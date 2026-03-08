@@ -41,16 +41,16 @@
 
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
-| WO-013 | Investigator Agent (Phase 0) | Draft | Phase 2 |
-| WO-014 | Tester Agent | Draft | WO-013 |
-| WO-015 | Test File Protection Hook | Draft | WO-014 |
-| WO-016 | Backend Agent | Draft | WO-015 |
-| WO-017 | Frontend Agent | Draft | WO-015 |
-| WO-018 | Doc Writer Agent | Draft | WO-016 |
-| WO-019 | `/vibeos:build` Orchestrator — Agent Dispatch Loop | Draft | WO-013 |
-| WO-020 | `/vibeos:build` Orchestrator — WO Lifecycle | Draft | WO-019, WO-014-018 |
-| WO-021 | `/vibeos:build` Orchestrator — Gate Integration | Draft | WO-020 |
-| WO-022 | `/vibeos:wo` Skill (WO Management) | Draft | WO-020 |
+| WO-013 | Investigator Agent (Phase 0) | Complete | Phase 2 |
+| WO-014 | Tester Agent | Complete | WO-013 |
+| WO-015 | Test File Protection Hook | Complete | WO-014 |
+| WO-016 | Backend Agent | Complete | WO-015 |
+| WO-017 | Frontend Agent | Complete | WO-015 |
+| WO-018 | Doc Writer Agent | Complete | WO-016 |
+| WO-019 | `/vibeos:build` Orchestrator — Agent Dispatch Loop | Complete | WO-013 |
+| WO-020 | `/vibeos:build` Orchestrator — WO Lifecycle | Complete | WO-019, WO-014-018 |
+| WO-021 | `/vibeos:build` Orchestrator — Gate Integration | Complete | WO-020 |
+| WO-022 | `/vibeos:wo` Skill (WO Management) | Complete | WO-020 |
 
 ### Phase 4: Fresh-Context Audit Agents
 
@@ -103,3 +103,13 @@
 | WO-010 | Plan Auditor Agent | 2 | 2026-03-07 |
 | WO-011 | Autonomy Negotiation | 2 | 2026-03-07 |
 | WO-012 | Project Intake Integration | 2 | 2026-03-07 |
+| WO-013 | Investigator Agent (Phase 0) | 3 | 2026-03-07 |
+| WO-014 | Tester Agent | 3 | 2026-03-07 |
+| WO-015 | Test File Protection Hook | 3 | 2026-03-07 |
+| WO-016 | Backend Agent | 3 | 2026-03-07 |
+| WO-017 | Frontend Agent | 3 | 2026-03-07 |
+| WO-018 | Doc Writer Agent | 3 | 2026-03-07 |
+| WO-019 | `/vibeos:build` Orchestrator — Agent Dispatch Loop | 3 | 2026-03-07 |
+| WO-020 | `/vibeos:build` Orchestrator — WO Lifecycle | 3 | 2026-03-07 |
+| WO-021 | `/vibeos:build` Orchestrator — Gate Integration | 3 | 2026-03-07 |
+| WO-022 | `/vibeos:wo` Skill (WO Management) | 3 | 2026-03-07 |

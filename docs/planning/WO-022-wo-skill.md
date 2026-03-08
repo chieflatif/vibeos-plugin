@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,13 +15,13 @@ Create a `/vibeos:wo` skill with subcommands for creating, checking status, comp
 ## Scope
 
 ### In Scope
-- [ ] Create `skills/wo.md` with subcommand dispatch
-- [ ] Subcommand `create`: create new WO from template with user input
-- [ ] Subcommand `status`: show current WO status, progress, blockers
-- [ ] Subcommand `complete`: mark WO as complete with evidence checklist
-- [ ] Subcommand `audit`: run plan auditor against a specific WO
-- [ ] Wrap existing patterns: wo-research, wo-complete, wo-audit from VibeOS-2
-- [ ] Communication contract enforced on all output
+- [x] Create `skills/wo/SKILL.md` with subcommand dispatch
+- [x] Subcommand `create`: create new WO from template with user input
+- [x] Subcommand `status`: show current WO status, progress, blockers
+- [x] Subcommand `complete`: mark WO as complete with evidence checklist
+- [x] Subcommand `audit`: run plan auditor against a specific WO
+- [x] Wrap existing patterns: wo-research, wo-complete, wo-audit from VibeOS-2
+- [x] Communication contract enforced on all output
 
 ### Out of Scope
 - Build orchestration (WO-019-021)
@@ -38,18 +38,18 @@ Create a `/vibeos:wo` skill with subcommands for creating, checking status, comp
 
 ## Impact Analysis
 
-- **Files created:** skills/wo.md
+- **Files created:** skills/wo/SKILL.md
 - **Systems affected:** WO management, user interaction with work orders
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `/vibeos:wo create` creates a new WO file from template
-- [ ] AC-2: `/vibeos:wo status` shows current WO with progress and blockers
-- [ ] AC-3: `/vibeos:wo complete` validates evidence and marks WO complete
-- [ ] AC-4: `/vibeos:wo audit` dispatches plan auditor and returns findings
-- [ ] AC-5: Created WOs follow WO-TEMPLATE.md structure exactly
-- [ ] AC-6: Status output uses communication contract language
-- [ ] AC-7: Complete validates all acceptance criteria have evidence before marking done
+- [x] AC-1: `/vibeos:wo create` creates a new WO file from template
+- [x] AC-2: `/vibeos:wo status` shows current WO with progress and blockers
+- [x] AC-3: `/vibeos:wo complete` validates evidence and marks WO complete
+- [x] AC-4: `/vibeos:wo audit` dispatches plan auditor and returns findings
+- [x] AC-5: Created WOs follow WO-TEMPLATE.md structure exactly
+- [x] AC-6: Status output uses communication contract language
+- [x] AC-7: Complete validates all acceptance criteria have evidence before marking done
 
 ## Test Strategy
 
@@ -94,8 +94,8 @@ Create a `/vibeos:wo` skill with subcommands for creating, checking status, comp
 
 ## Evidence
 
-- [ ] Skill file created
-- [ ] Create subcommand generates valid WO
-- [ ] Status subcommand reports accurate state
-- [ ] Complete subcommand validates evidence
-- [ ] Audit subcommand dispatches auditor and returns findings
+- [x] Skill file created
+- [x] Create subcommand generates valid WO
+- [x] Status subcommand reports accurate state
+- [x] Complete subcommand validates evidence
+- [x] Audit subcommand dispatches auditor and returns findings

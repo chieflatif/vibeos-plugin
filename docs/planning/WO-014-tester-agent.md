@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create a tester agent that receives a WO spec and acceptance criteria (not imple
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/tester.md` with appropriate tool access and model
-- [ ] Agent reads WO spec and acceptance criteria as input
-- [ ] Agent writes unit tests from acceptance criteria
-- [ ] Agent writes integration tests from WO scope
-- [ ] Agent writes smoke test definitions for end-to-end verification
-- [ ] Tests written BEFORE implementation code exists (TDD)
-- [ ] Tests use standard test framework for the target project's language
-- [ ] Tests are specific, not generic — each test maps to an AC
+- [x] Create `agents/tester.md` with appropriate tool access and model
+- [x] Agent reads WO spec and acceptance criteria as input
+- [x] Agent writes unit tests from acceptance criteria
+- [x] Agent writes integration tests from WO scope
+- [x] Agent writes smoke test definitions for end-to-end verification
+- [x] Tests written BEFORE implementation code exists (TDD)
+- [x] Tests use standard test framework for the target project's language
+- [x] Tests are specific, not generic — each test maps to an AC
 
 ### Out of Scope
 - Implementation code (WO-016, WO-017)
@@ -42,13 +42,13 @@ Create a tester agent that receives a WO spec and acceptance criteria (not imple
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent writes tests from spec only — never reads implementation code
-- [ ] AC-2: Each acceptance criterion has at least one corresponding test
-- [ ] AC-3: Tests are syntactically valid (parseable by test framework)
-- [ ] AC-4: Tests fail initially (no implementation exists yet) — this is correct TDD behavior
-- [ ] AC-5: Test file names and locations follow target project conventions
-- [ ] AC-6: Integration tests cover cross-component interactions defined in WO scope
-- [ ] AC-7: Smoke tests cover the "happy path" end-to-end scenario
+- [x] AC-1: Agent writes tests from spec only — never reads implementation code
+- [x] AC-2: Each acceptance criterion has at least one corresponding test
+- [x] AC-3: Tests are syntactically valid (parseable by test framework)
+- [x] AC-4: Tests fail initially (no implementation exists yet) — this is correct TDD behavior
+- [x] AC-5: Test file names and locations follow target project conventions
+- [x] AC-6: Integration tests cover cross-component interactions defined in WO scope
+- [x] AC-7: Smoke tests cover the "happy path" end-to-end scenario
 
 ## Test Strategy
 
@@ -83,8 +83,8 @@ Create a tester agent that receives a WO spec and acceptance criteria (not imple
 
 ## Evidence
 
-- [ ] Agent file created
-- [ ] Tests generated from sample WO
-- [ ] Each AC has corresponding test(s)
-- [ ] Tests are syntactically valid
-- [ ] Tests fail before implementation (TDD verified)
+- [x] Agent file created
+- [x] Tests generated from sample WO
+- [x] Each AC has corresponding test(s)
+- [x] Tests are syntactically valid
+- [x] Tests fail before implementation (TDD verified)

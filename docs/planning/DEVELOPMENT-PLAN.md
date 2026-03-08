@@ -88,16 +88,16 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-013 | Investigator Agent (Phase 0) | Phase 2 complete | Draft |
-| WO-014 | Tester Agent | WO-013 | Draft |
-| WO-015 | Test File Protection Hook | WO-014 | Draft |
-| WO-016 | Backend Agent | WO-015 | Draft |
-| WO-017 | Frontend Agent | WO-015 | Draft |
-| WO-018 | Doc Writer Agent | WO-016 | Draft |
-| WO-019 | `/vibeos:build` Orchestrator — Agent Dispatch Loop | WO-013 | Draft |
-| WO-020 | `/vibeos:build` Orchestrator — WO Lifecycle | WO-019, WO-014-018 | Draft |
-| WO-021 | `/vibeos:build` Orchestrator — Gate Integration | WO-020 | Draft |
-| WO-022 | `/vibeos:wo` Skill (WO Management) | WO-020 | Draft |
+| WO-013 | Investigator Agent (Phase 0) | Phase 2 complete | Complete |
+| WO-014 | Tester Agent | WO-013 | Complete |
+| WO-015 | Test File Protection Hook | WO-014 | Complete |
+| WO-016 | Backend Agent | WO-015 | Complete |
+| WO-017 | Frontend Agent | WO-015 | Complete |
+| WO-018 | Doc Writer Agent | WO-016 | Complete |
+| WO-019 | `/vibeos:build` Orchestrator — Agent Dispatch Loop | WO-013 | Complete |
+| WO-020 | `/vibeos:build` Orchestrator — WO Lifecycle | WO-019, WO-014-018 | Complete |
+| WO-021 | `/vibeos:build` Orchestrator — Gate Integration | WO-020 | Complete |
+| WO-022 | `/vibeos:wo` Skill (WO Management) | WO-020 | Complete |
 
 ---
 

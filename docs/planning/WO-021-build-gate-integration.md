@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,13 +15,13 @@ Extend the `/vibeos:build` orchestrator to run gate-runner.sh pre_commit after i
 ## Scope
 
 ### In Scope
-- [ ] After implementation agents complete: run `gate-runner.sh pre_commit`
-- [ ] Parse gate results (pass/fail per gate)
-- [ ] On gate failure: dispatch implementation agent to fix specific failures
-- [ ] Re-run gates after fix
-- [ ] Max 3 fix cycles; after 3 failures, escalate to user
-- [ ] Log all gate runs and results to build-log.md
-- [ ] Report which gates passed/failed in structured format
+- [x] After implementation agents complete: run `gate-runner.sh pre_commit`
+- [x] Parse gate results (pass/fail per gate)
+- [x] On gate failure: dispatch implementation agent to fix specific failures
+- [x] Re-run gates after fix
+- [x] Max 3 fix cycles; after 3 failures, escalate to user
+- [x] Log all gate runs and results to build-log.md
+- [x] Report which gates passed/failed in structured format
 
 ### Out of Scope
 - Audit agent integration (WO-029)
@@ -38,18 +38,18 @@ Extend the `/vibeos:build` orchestrator to run gate-runner.sh pre_commit after i
 
 ## Impact Analysis
 
-- **Files modified:** skills/build.md (add gate integration step)
+- **Files modified:** skills/build/SKILL.md (add gate integration step)
 - **Systems affected:** Build pipeline, quality enforcement
 
 ## Acceptance Criteria
 
-- [ ] AC-1: gate-runner.sh pre_commit runs after implementation completes
-- [ ] AC-2: Gate results parsed into structured format (gate name, pass/fail, output)
-- [ ] AC-3: On failure: implementation agent receives specific failure details
-- [ ] AC-4: Fix cycle repeats until gates pass or max 3 cycles reached
-- [ ] AC-5: After 3 failed cycles: escalation to user with failure details
-- [ ] AC-6: All gate runs logged with timestamps and results
-- [ ] AC-7: Successful gate run advances WO to documentation step
+- [x] AC-1: gate-runner.sh pre_commit runs after implementation completes
+- [x] AC-2: Gate results parsed into structured format (gate name, pass/fail, output)
+- [x] AC-3: On failure: implementation agent receives specific failure details
+- [x] AC-4: Fix cycle repeats until gates pass or max 3 cycles reached
+- [x] AC-5: After 3 failed cycles: escalation to user with failure details
+- [x] AC-6: All gate runs logged with timestamps and results
+- [x] AC-7: Successful gate run advances WO to documentation step
 
 ## Test Strategy
 
@@ -89,8 +89,8 @@ Extend the `/vibeos:build` orchestrator to run gate-runner.sh pre_commit after i
 
 ## Evidence
 
-- [ ] Gates run after implementation
-- [ ] Gate failures trigger fix cycle
-- [ ] Fix cycle converges (gates pass) or escalates (max cycles)
-- [ ] All gate runs logged
-- [ ] Escalation message is clear and actionable
+- [x] Gates run after implementation
+- [x] Gate failures trigger fix cycle
+- [x] Fix cycle converges (gates pass) or escalates (max cycles)
+- [x] All gate runs logged
+- [x] Escalation message is clear and actionable

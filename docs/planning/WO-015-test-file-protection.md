@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create a PreToolUse hook that prevents implementation agents from modifying test
 ## Scope
 
 ### In Scope
-- [ ] Create PreToolUse hook matching Write|Edit tool calls
-- [ ] Check if target file path is in a test directory (tests/, test/, __tests__/, spec/)
-- [ ] Determine current agent identity (implementation vs. tester)
-- [ ] If implementation agent targets a test file: exit 2 (block the tool call)
-- [ ] If tester agent targets a test file: allow
-- [ ] Primary mechanism: hook input (tool call metadata)
-- [ ] Fallback mechanism: `.vibeos/current-agent.txt` marker file
-- [ ] Log all blocked attempts for audit trail
+- [x] Create PreToolUse hook matching Write|Edit tool calls
+- [x] Check if target file path is in a test directory (tests/, test/, __tests__/, spec/)
+- [x] Determine current agent identity (implementation vs. tester)
+- [x] If implementation agent targets a test file: exit 2 (block the tool call)
+- [x] If tester agent targets a test file: allow
+- [x] Primary mechanism: hook input (tool call metadata)
+- [x] Fallback mechanism: `.vibeos/current-agent.txt` marker file
+- [x] Log all blocked attempts for audit trail
 
 ### Out of Scope
 - Test quality enforcement (WO-037)
@@ -43,13 +43,13 @@ Create a PreToolUse hook that prevents implementation agents from modifying test
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Hook fires on every Write and Edit tool call
-- [ ] AC-2: Test directories correctly identified across languages (tests/, test/, __tests__/, spec/)
-- [ ] AC-3: Implementation agent blocked from writing to test files (exit 2)
-- [ ] AC-4: Tester agent allowed to write to test files
-- [ ] AC-5: Non-test files are never blocked by this hook
-- [ ] AC-6: Blocked attempts logged with agent identity and target file
-- [ ] AC-7: Fallback to .vibeos/current-agent.txt when hook input lacks agent identity
+- [x] AC-1: Hook fires on every Write and Edit tool call
+- [x] AC-2: Test directories correctly identified across languages (tests/, test/, __tests__/, spec/)
+- [x] AC-3: Implementation agent blocked from writing to test files (exit 2)
+- [x] AC-4: Tester agent allowed to write to test files
+- [x] AC-5: Non-test files are never blocked by this hook
+- [x] AC-6: Blocked attempts logged with agent identity and target file
+- [x] AC-7: Fallback to .vibeos/current-agent.txt when hook input lacks agent identity
 
 ## Test Strategy
 
@@ -90,9 +90,9 @@ Create a PreToolUse hook that prevents implementation agents from modifying test
 
 ## Evidence
 
-- [ ] Hook file created
-- [ ] Implementation agent blocked from test files
-- [ ] Tester agent allowed to write test files
-- [ ] Non-test files never blocked
-- [ ] Block attempts logged
-- [ ] Fallback mechanism tested
+- [x] Hook file created
+- [x] Implementation agent blocked from test files
+- [x] Tester agent allowed to write test files
+- [x] Non-test files never blocked
+- [x] Block attempts logged
+- [x] Fallback mechanism tested

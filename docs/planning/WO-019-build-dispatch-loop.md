@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Implement the core `/vibeos:build` orchestrator skill with basic agent dispatch:
 ## Scope
 
 ### In Scope
-- [ ] Create `skills/build.md` as the main orchestrator entry point
-- [ ] Basic agent dispatch: spawn agent with input, wait for result
-- [ ] Result collection: parse structured output from agent
-- [ ] Decision logic: based on result, determine next action
-- [ ] Error recovery: timeout detection, garbage output detection
-- [ ] Retry logic: on error, log, retry once, then escalate to user
-- [ ] Logging: all dispatch events written to `.vibeos/build-log.md`
-- [ ] Log format: timestamp, agent name, WO, action, result summary
+- [x] Create `skills/build/SKILL.md` as the main orchestrator entry point
+- [x] Basic agent dispatch: spawn agent with input, wait for result
+- [x] Result collection: parse structured output from agent
+- [x] Decision logic: based on result, determine next action
+- [x] Error recovery: timeout detection, garbage output detection
+- [x] Retry logic: on error, log, retry once, then escalate to user
+- [x] Logging: all dispatch events written to `.vibeos/build-log.md`
+- [x] Log format: timestamp, agent name, WO, action, result summary
 
 ### Out of Scope
 - Full WO lifecycle (WO-020)
@@ -37,18 +37,18 @@ Implement the core `/vibeos:build` orchestrator skill with basic agent dispatch:
 
 ## Impact Analysis
 
-- **Files created:** skills/build.md, .vibeos/build-log.md template
+- **Files created:** skills/build/SKILL.md, .vibeos/build-log.md template
 - **Systems affected:** Agent dispatch infrastructure, build pipeline
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Orchestrator spawns an agent with structured input
-- [ ] AC-2: Orchestrator receives and parses structured result from agent
-- [ ] AC-3: On timeout: logged, retried once, escalated if retry fails
-- [ ] AC-4: On garbage output: logged, retried once with clarified instructions, escalated if retry fails
-- [ ] AC-5: All events logged to .vibeos/build-log.md with timestamps
-- [ ] AC-6: Escalation pauses build and communicates issue to user in plain English
-- [ ] AC-7: Build log is append-only (no overwrites)
+- [x] AC-1: Orchestrator spawns an agent with structured input
+- [x] AC-2: Orchestrator receives and parses structured result from agent
+- [x] AC-3: On timeout: logged, retried once, escalated if retry fails
+- [x] AC-4: On garbage output: logged, retried once with clarified instructions, escalated if retry fails
+- [x] AC-5: All events logged to .vibeos/build-log.md with timestamps
+- [x] AC-6: Escalation pauses build and communicates issue to user in plain English
+- [x] AC-7: Build log is append-only (no overwrites)
 
 ## Test Strategy
 
@@ -89,8 +89,8 @@ Implement the core `/vibeos:build` orchestrator skill with basic agent dispatch:
 
 ## Evidence
 
-- [ ] Orchestrator skill file created
-- [ ] Agent dispatch works end-to-end
-- [ ] Error recovery tested (timeout, garbage)
-- [ ] Build log populated correctly
-- [ ] Escalation produces clear user-facing message
+- [x] Orchestrator skill file created
+- [x] Agent dispatch works end-to-end
+- [x] Error recovery tested (timeout, garbage)
+- [x] Build log populated correctly
+- [x] Escalation produces clear user-facing message

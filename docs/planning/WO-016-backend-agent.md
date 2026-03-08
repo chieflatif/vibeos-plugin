@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create a backend implementation agent that receives a WO spec and pre-written te
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/backend.md` with appropriate tool access and model
-- [ ] Agent receives WO spec and test file paths as input
-- [ ] Agent implements backend code to make tests pass
-- [ ] Agent follows architecture rules from ARCHITECTURE-OUTLINE.md
-- [ ] Agent follows security patterns (input validation, error handling, no hardcoded secrets)
-- [ ] No stubs, no placeholders, no TODOs in generated code
-- [ ] Agent cannot modify test files (enforced by WO-015 hook)
-- [ ] Agent runs tests locally to verify they pass before completing
+- [x] Create `agents/backend.md` with appropriate tool access and model
+- [x] Agent receives WO spec and test file paths as input
+- [x] Agent implements backend code to make tests pass
+- [x] Agent follows architecture rules from ARCHITECTURE-OUTLINE.md
+- [x] Agent follows security patterns (input validation, error handling, no hardcoded secrets)
+- [x] No stubs, no placeholders, no TODOs in generated code
+- [x] Agent cannot modify test files (enforced by WO-015 hook)
+- [x] Agent runs tests locally to verify they pass before completing
 
 ### Out of Scope
 - Frontend code (WO-017)
@@ -42,13 +42,13 @@ Create a backend implementation agent that receives a WO spec and pre-written te
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent implements code that makes pre-written tests pass
-- [ ] AC-2: Agent cannot modify test files (hook enforcement verified)
-- [ ] AC-3: No stubs, placeholders, or TODOs in generated code
-- [ ] AC-4: Code follows architecture rules from ARCHITECTURE-OUTLINE.md
-- [ ] AC-5: Input validation and error handling present on all public interfaces
-- [ ] AC-6: Agent runs test suite and confirms tests pass before completing
-- [ ] AC-7: Agent reports which tests pass/fail in its return output
+- [x] AC-1: Agent implements code that makes pre-written tests pass
+- [x] AC-2: Agent cannot modify test files (hook enforcement verified)
+- [x] AC-3: No stubs, placeholders, or TODOs in generated code
+- [x] AC-4: Code follows architecture rules from ARCHITECTURE-OUTLINE.md
+- [x] AC-5: Input validation and error handling present on all public interfaces
+- [x] AC-6: Agent runs test suite and confirms tests pass before completing
+- [x] AC-7: Agent reports which tests pass/fail in its return output
 
 ## Test Strategy
 
@@ -84,8 +84,8 @@ Create a backend implementation agent that receives a WO spec and pre-written te
 
 ## Evidence
 
-- [ ] Agent file created
-- [ ] Tests pass after agent implementation
-- [ ] No stubs/TODOs in generated code
-- [ ] Architecture rules followed
-- [ ] Test files not modified by agent
+- [x] Agent file created
+- [x] Tests pass after agent implementation
+- [x] No stubs/TODOs in generated code
+- [x] Architecture rules followed
+- [x] Test files not modified by agent

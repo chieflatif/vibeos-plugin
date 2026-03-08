@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,17 +15,17 @@ Extend the `/vibeos:build` orchestrator to manage the full WO lifecycle: read th
 ## Scope
 
 ### In Scope
-- [ ] Read DEVELOPMENT-PLAN.md to determine current WO
-- [ ] Full WO execution sequence:
+- [x] Read DEVELOPMENT-PLAN.md to determine current WO
+- [x] Full WO execution sequence:
   1. Investigator agent — revalidate assumptions
   2. Planner agent — refine implementation steps if needed
   3. Plan auditor agent — audit the plan
   4. Tester agent — write tests from spec (TDD)
   5. Backend/frontend agent — implement to pass tests
   6. Doc writer agent — update documentation
-- [ ] Pass outputs between agents (investigator findings to planner, etc.)
-- [ ] Mark WO as complete in WO file and WO-INDEX.md
-- [ ] Handle agent failure at any step: log, attempt recovery, escalate
+- [x] Pass outputs between agents (investigator findings to planner, etc.)
+- [x] Mark WO as complete in WO file and WO-INDEX.md
+- [x] Handle agent failure at any step: log, attempt recovery, escalate
 
 ### Out of Scope
 - Gate integration (WO-021)
@@ -45,19 +45,19 @@ Extend the `/vibeos:build` orchestrator to manage the full WO lifecycle: read th
 
 ## Impact Analysis
 
-- **Files modified:** skills/build.md (extend orchestrator)
+- **Files modified:** skills/build/SKILL.md (extend orchestrator)
 - **Systems affected:** Full build pipeline, WO tracking
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Orchestrator reads DEVELOPMENT-PLAN.md and identifies correct next WO
-- [ ] AC-2: All 6 agents dispatched in correct sequence
-- [ ] AC-3: Output from each agent passed as input to the next
-- [ ] AC-4: If investigator flags critical risk: pause and escalate
-- [ ] AC-5: If plan auditor finds critical issue: pause and escalate
-- [ ] AC-6: WO marked complete only after all agents succeed
-- [ ] AC-7: WO-INDEX.md updated with completion status
-- [ ] AC-8: Failure at any step: logged, recovery attempted, escalated if unrecoverable
+- [x] AC-1: Orchestrator reads DEVELOPMENT-PLAN.md and identifies correct next WO
+- [x] AC-2: All 6 agents dispatched in correct sequence
+- [x] AC-3: Output from each agent passed as input to the next
+- [x] AC-4: If investigator flags critical risk: pause and escalate
+- [x] AC-5: If plan auditor finds critical issue: pause and escalate
+- [x] AC-6: WO marked complete only after all agents succeed
+- [x] AC-7: WO-INDEX.md updated with completion status
+- [x] AC-8: Failure at any step: logged, recovery attempted, escalated if unrecoverable
 
 ## Test Strategy
 
@@ -96,8 +96,8 @@ Extend the `/vibeos:build` orchestrator to manage the full WO lifecycle: read th
 
 ## Evidence
 
-- [ ] Full WO lifecycle executes end-to-end
-- [ ] Agents dispatch in correct sequence
-- [ ] Inter-agent data passing works
-- [ ] WO marked complete with evidence
-- [ ] Failure handling tested at each step
+- [x] Full WO lifecycle executes end-to-end
+- [x] Agents dispatch in correct sequence
+- [x] Inter-agent data passing works
+- [x] WO marked complete with evidence
+- [x] Failure handling tested at each step

@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create an investigator agent that runs before each WO to revalidate assumptions,
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/investigator.md` with appropriate tool access and model
-- [ ] Read the target WO and its dependencies
-- [ ] Analyze existing codebase relevant to the WO scope
-- [ ] Revalidate assumptions listed in the WO
-- [ ] Check if dependencies are actually complete (not just marked complete)
-- [ ] Identify risks not captured in the WO
-- [ ] Return structured report: validated assumptions, confirmed/revised steps, risk flags
-- [ ] Flag if WO scope has become stale relative to current codebase state
+- [x] Create `agents/investigator.md` with appropriate tool access and model
+- [x] Read the target WO and its dependencies
+- [x] Analyze existing codebase relevant to the WO scope
+- [x] Revalidate assumptions listed in the WO
+- [x] Check if dependencies are actually complete (not just marked complete)
+- [x] Identify risks not captured in the WO
+- [x] Return structured report: validated assumptions, confirmed/revised steps, risk flags
+- [x] Flag if WO scope has become stale relative to current codebase state
 
 ### Out of Scope
 - Modifying WO files (investigator is read-only analysis)
@@ -42,12 +42,12 @@ Create an investigator agent that runs before each WO to revalidate assumptions,
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent reads WO file and identifies all assumptions
-- [ ] AC-2: Agent checks dependency WOs are actually complete (reads evidence, not just status)
-- [ ] AC-3: Agent analyzes relevant codebase files for conflicts or existing implementations
-- [ ] AC-4: Structured report returned with: assumptions (validated/invalidated), steps (confirmed/revised), risks (new/changed)
-- [ ] AC-5: Agent completes within maxTurns limit
-- [ ] AC-6: If assumptions are invalidated, report includes specific evidence why
+- [x] AC-1: Agent reads WO file and identifies all assumptions
+- [x] AC-2: Agent checks dependency WOs are actually complete (reads evidence, not just status)
+- [x] AC-3: Agent analyzes relevant codebase files for conflicts or existing implementations
+- [x] AC-4: Structured report returned with: assumptions (validated/invalidated), steps (confirmed/revised), risks (new/changed)
+- [x] AC-5: Agent completes within maxTurns limit
+- [x] AC-6: If assumptions are invalidated, report includes specific evidence why
 
 ## Test Strategy
 
@@ -82,8 +82,8 @@ Create an investigator agent that runs before each WO to revalidate assumptions,
 
 ## Evidence
 
-- [ ] Agent file created
-- [ ] Dispatch succeeds
-- [ ] Structured report returned with all required sections
-- [ ] Stale assumption detection verified
-- [ ] Dependency verification works
+- [x] Agent file created
+- [x] Dispatch succeeds
+- [x] Structured report returned with all required sections
+- [x] Stale assumption detection verified
+- [x] Dependency verification works

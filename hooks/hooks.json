@@ -1,5 +1,5 @@
 {
-  "description": "VibeOS Plugin — Layer 0 enforcement hooks",
+  "description": "VibeOS Plugin — Layer 0 and Layer 1 enforcement hooks",
   "hooks": {
     "SessionStart": [
       {
@@ -23,6 +23,10 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/frozen-files.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/test-file-protection.sh"
           }
         ]
       }
