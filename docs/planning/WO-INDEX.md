@@ -98,6 +98,16 @@
 | WO-047 | Build Loop Visibility & Progress Reporting | Complete | WO-045, WO-044 (soft) |
 | WO-048 | Consequence-Aware Decision Support | Complete | WO-045, WO-044 (soft) |
 
+### Phase 8: Resilience & Transparency
+
+| WO | Title | Status | Dependencies |
+|---|---|---|---|
+| WO-049 | Mid-WO Resume & Error Recovery | Complete | Phase 7 |
+| WO-050 | Decision Engine Transparency & Gate Management | Complete | Phase 7 |
+| WO-051 | Midstream Baseline Bootstrap | Complete | Phase 7 |
+| WO-052 | First-Run Experience & Handoffs | Complete | Phase 7 |
+| WO-053 | Validation & Safety Hardening | Complete | Phase 7 |
+
 ## Completed
 
 | WO | Title | Phase | Completed |
@@ -152,3 +162,8 @@
 | WO-044 | Remediation Roadmap & Phase 0 Enforcement | 7 | 2026-03-08 |
 | WO-047 | Build Loop Visibility & Progress Reporting | 7 | 2026-03-08 |
 | WO-048 | Consequence-Aware Decision Support | 7 | 2026-03-08 |
+| WO-049 | Mid-WO Resume & Error Recovery | 8 | 2026-03-08 |
+| WO-050 | Decision Engine Transparency & Gate Management | 8 | 2026-03-08 |
+| WO-051 | Midstream Baseline Bootstrap | 8 | 2026-03-08 |
+| WO-052 | First-Run Experience & Handoffs | 8 | 2026-03-08 |
+| WO-053 | Validation & Safety Hardening | 8 | 2026-03-08 |

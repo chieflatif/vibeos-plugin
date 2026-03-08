@@ -44,6 +44,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER
 > - `wo`, `phase`, `gate`, `gate-runner`, `consensus`, `finding`, `disposition`, `phase-0`, `midstream`, `check-in`
 >
 > **Other:**
+> - `files` — What files the plugin creates in your project
 > - `onboarding` — Re-show the system introduction
 > - `communication` — How the system communicates with you
 >
@@ -105,5 +106,12 @@ Read the glossary from `${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.m
 - **phase-0**: "Phase 0 is the remediation phase for existing codebases. It contains work orders to fix critical issues found during the initial audit. Phase 0 must be completed before feature work (Phase 1+) begins."
 
 - **midstream**: "Midstream means the plugin is being added to a project that already has code. The system analyzes the existing codebase, maps its architecture, runs audits, and creates a baseline before planning new work."
+
+- **files**: "The plugin creates files in your project at different stages. Here's a summary by phase:"
+  - **Discovery:** `project-definition.json`, product docs in `docs/product/` (PRD, architecture, tech spec)
+  - **Planning:** `DEVELOPMENT-PLAN.md` and work orders in `docs/planning/`, gate scripts in `scripts/`, `CLAUDE.md`
+  - **Midstream planning:** `.vibeos/findings-registry.json` (audit findings), `.vibeos/baselines/` (quality baseline), `ACCEPTED-RISKS.md`
+  - **Build:** Source code, test files, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state)
+  - "All plugin state lives in the `.vibeos/` directory. For the full list, see `docs/FILE-INVENTORY.md` or run `/vibeos:help files`."
 
 For any term not listed above, read the glossary in `${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md` and explain it with the same pattern: plain English definition, why it matters, example.

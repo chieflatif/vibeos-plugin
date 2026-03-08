@@ -187,6 +187,21 @@ Report to user:
 >
 > The fix-now items will become Phase 0 remediation work orders in your development plan. Fix-later items are tracked and will be reminded periodically. Full report saved to `.vibeos/midstream-report.md`."
 
+#### 1c-6. Create Initial Baseline
+
+Create the quality baseline from the findings registry. This establishes the "starting point" so future builds only flag new issues:
+
+```bash
+mkdir -p .vibeos/baselines
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" create \
+  --mode finding-level \
+  --baseline-file ".vibeos/baselines/midstream-baseline.json" \
+  --current-findings-file ".vibeos/findings-registry.json"
+```
+
+Tell the user:
+> "I've established a quality baseline with [N] tracked findings. From now on, only new issues will be flagged — these existing ones are tracked and won't block your builds. Quality can only improve from here (a one-way ratchet — the count of known issues can go down but never up)."
+
 Continue to Step 2.
 
 ### Step 2: Run Project Intake Questionnaire
@@ -291,6 +306,15 @@ Determine which of the gate scripts to enable based on:
 
 Produces: list of enabled gates with tier, blocking status, and config.
 
+**Explain to user:**
+> "I've configured [N] quality gates based on your project profile ([language], [deployment context]):
+> - **Always on:** [list of tier-0 gates] — these catch critical issues like secrets and security vulnerabilities
+> - **Enabled for your stack:** [list of stack-specific gates] — [brief reason each is relevant]
+> - **[If compliance]:** [M] gates are required by your [compliance target] and cannot be disabled
+> - **Advisory only:** [list of tier-2+ gates] — these flag issues but won't block your builds
+>
+> You can manage gates anytime with `/vibeos:gate list`, `/vibeos:gate enable <name>`, or `/vibeos:gate disable <name>`."
+
 #### 4b. Phase Selection (`phase-selection.md`)
 
 Determine which gate phases to enable based on:
@@ -299,6 +323,15 @@ Determine which gate phases to enable based on:
 - `governance.production_urls`
 
 Produces: list of enabled phases with gate assignments.
+
+**Explain to user:**
+> "Quality checks run at [N] points during development:
+> - **Before each commit** (`pre_commit`): [N] fast checks — catches issues before code is saved
+> - **Before completing a WO** (`wo_exit`): [N] checks — validates the work meets requirements
+> - [If enabled] **Full audit** (`full_audit`): [N] deep checks — comprehensive compliance review
+> - [If enabled] **After deployment** (`post_deploy`): smoke tests and health checks
+>
+> This was selected because [reason based on team size and deployment context]."
 
 #### 4c. Hook Selection (`hook-selection.md`)
 
@@ -310,6 +343,15 @@ Determine which hooks to enable based on:
 
 Produces: list of enabled hooks with config.
 
+**Explain to user:**
+> "I've enabled [N] safety hooks that run automatically:
+> - **Secrets scan** — blocks any code containing API keys, passwords, or tokens
+> - **Test file protection** — prevents implementation agents from modifying your tests (TDD enforcement)
+> - [If frozen files] **Frozen files** — protects [list] from accidental modification
+> - [If production URLs] **Production URL guard** — prevents targeting your live systems
+>
+> These run silently in the background and only interrupt you if they catch something."
+
 #### 4d. Architecture Rules (`architecture-rules.md`)
 
 Select architecture enforcement rules based on:
@@ -318,6 +360,12 @@ Select architecture enforcement rules based on:
 - `stack.source_dirs`
 
 Produces: `architecture-rules.json` with framework-specific rules.
+
+**Explain to user:**
+> "Architecture rules enforce your project structure:
+> - [For each rule]: [rule name] — [plain English: what it prevents and why]
+>
+> These are based on [framework] best practices and prevent common structural mistakes like [example]."
 
 #### 4e. Compliance Mapping (`compliance-mapping.md`)
 
@@ -329,8 +377,23 @@ Map compliance targets to gate tiers, evidence requirements, and documentation:
 
 Produces: tier overrides and compliance-specific configuration.
 
-Tell the user what the decision engine determined:
-> "Based on your project profile, here's the governance setup: [N] gates enabled, [M] phases active, [K] hooks configured. [summary of key decisions]"
+**Explain to user:**
+> "[If compliance targets exist]: Your [compliance targets] require:
+> - [N] gates elevated to blocking (must pass before committing)
+> - [Evidence requirements in plain English]
+> - [Documentation requirements in plain English]
+>
+> These ensure your project stays audit-ready from day one."
+>
+> [If no compliance]: "No compliance targets set. Gates use standard tiers based on your deployment context."
+
+**Summary to user:**
+> "Here's your complete governance setup:
+> - **[N] quality gates** ([B] blocking, [A] advisory) — run `/vibeos:gate list` to see them all
+> - **[M] gate phases** — checks run before commits, WO completion[, and deployment]
+> - **[K] hooks** — automatic safety enforcement in the background
+> - **[R] architecture rules** — structural enforcement for [framework]
+> [If compliance]: - **[compliance targets]** compliance — [N] gates mandatory, evidence required"
 
 ### Step 5: Generate Development Plan
 
@@ -490,11 +553,15 @@ Before completing, verify all outputs exist:
 Report the result:
 > "Planning is complete. Here's your development plan:
 > - [N] phases with [M] work orders
-> - [K] quality gates configured ([B] blocking)
+> - [K] quality gates configured ([B] blocking) — manage with `/vibeos:gate list`
 > - [H] hooks enabled
 > - Governance profile: [team_size], [compliance], [deployment_context]
 >
-> Your next step is to start building. Run `/vibeos:build` to begin WO-001, or use `/vibeos:status` to see the full plan."
+> Your first work order is **WO-[NNN]: [title]** — [1-sentence description of what it builds].
+>
+> Run `/vibeos:build` to start. I'll write tests first, then implement the code, run [K] quality checks, and have 5 independent auditors review the result. I'll check in after each [work order/phase] based on your autonomy preference ([level]).
+>
+> Use `/vibeos:status` anytime to see progress, or `/vibeos:gate list` to review your quality gates."
 
 If any gate fails, explain what's missing and offer to fix it.
 

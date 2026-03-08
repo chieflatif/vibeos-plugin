@@ -20,6 +20,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 5 | Convergence & Full Loop | WO-030 — WO-034 | Multi-WO autonomy, convergence controls, phase boundaries |
 | 6 | Midstream Embedding & Polish | WO-035 — WO-040 | Existing projects, baselines, test quality, upgrade, e2e testing |
 | 7 | Informed Onboarding & User Comprehension | WO-041 — WO-048 | Architecture-first midstream, finding-level baselines, communication layer |
+| 8 | Resilience & Transparency | WO-049 — WO-053 | Mid-WO resume, decision engine explainability, baseline bootstrap, first-run polish, safety hardening |
 
 ## Mandatory Audits
 
@@ -180,6 +181,24 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | WO-044 | Remediation Roadmap & Phase 0 Enforcement | WO-043 | Draft |
 | WO-047 | Build Loop Visibility & Progress Reporting | WO-045, WO-044 (soft) | Draft |
 | WO-048 | Consequence-Aware Decision Support | WO-045, WO-044 (soft) | Draft |
+
+---
+
+## Phase 8: Resilience & Transparency
+
+**Goal:** Close gaps found during end-to-end audit: build loop can resume interrupted WOs, decision engine explains its choices, midstream baseline creation works end-to-end, first-run experience guides users, and validation catches missing prerequisites.
+
+**Exit Criteria:** Mid-WO resume works from checkpoint. Decision engine explains every selection. Gate management works without manual JSON editing. Midstream baseline bootstrap is seamless. First-run user knows what to do. Git repo validated. Test file protection logged. PRD merge preserves user edits.
+
+**Implementation Order:** WO-049 first (build skill changes foundation for others), then WO-050 and WO-051 (both modify plan/build skills), then WO-052 and WO-053 (polish and hardening).
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-049 | Mid-WO Resume & Error Recovery | Phase 7 complete | Draft |
+| WO-050 | Decision Engine Transparency & Gate Management | Phase 7 complete | Draft |
+| WO-051 | Midstream Baseline Bootstrap | Phase 7 complete | Draft |
+| WO-052 | First-Run Experience & Handoffs | Phase 7 complete | Draft |
+| WO-053 | Validation & Safety Hardening | Phase 7 complete | Draft |
 
 ---
 

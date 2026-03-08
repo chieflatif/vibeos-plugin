@@ -76,11 +76,22 @@ case "$CURRENT_AGENT" in
     exit 0
     ;;
   backend|frontend|doc-writer)
+    # Log block event to build-log.md for transparency
+    BUILD_LOG="${CLAUDE_PROJECT_DIR:-.}/.vibeos/build-log.md"
+    if [ -d "${CLAUDE_PROJECT_DIR:-.}/.vibeos" ]; then
+      TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
+      echo "| $TIMESTAMP | test-file-protection | BLOCKED: $CURRENT_AGENT attempted to modify $FILE_PATH | TDD enforced |" >> "$BUILD_LOG" 2>/dev/null || true
+    fi
     deny "Implementation agent '$CURRENT_AGENT' cannot modify test files. Test files are written by the tester agent only (TDD enforcement)."
     ;;
   "")
     # No agent identity — allow with warning (fail open)
-    # This handles the case where the user is editing directly
+    # Log fail-open event for transparency
+    BUILD_LOG="${CLAUDE_PROJECT_DIR:-.}/.vibeos/build-log.md"
+    if [ -d "${CLAUDE_PROJECT_DIR:-.}/.vibeos" ]; then
+      TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
+      echo "| $TIMESTAMP | test-file-protection | WARNING: Agent identity unknown, allowing write to $FILE_PATH | Fail-open |" >> "$BUILD_LOG" 2>/dev/null || true
+    fi
     echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
     exit 0
     ;;

@@ -20,10 +20,12 @@ usage() {
   echo "  Finding-level mode (v2.0):"
   echo "    $0 check --mode finding-level --baseline-file <path> --current-findings-file <path>"
   echo "    $0 ratchet --mode finding-level --baseline-file <path> --current-findings-file <path>"
+  echo "    $0 create --mode finding-level --baseline-file <path> --current-findings-file <path>"
   echo ""
   echo "Commands:"
   echo "  check    Compare current state against baseline, return PASS/FAIL/TRACKED"
   echo "  ratchet  If improvements found, lock them in (one-way ratchet)"
+  echo "  create   Bootstrap a new baseline from current findings (finding-level only)"
   echo ""
   echo "Results (count-based):"
   echo "  PASS     — No failures (current count is 0)"
@@ -233,6 +235,71 @@ if [ "$MODE" = "finding-level" ]; then
       else
         echo "{\"result\": \"UNCHANGED\", \"mode\": \"finding-level\", \"remaining\": $BASELINE_TOTAL, \"message\": \"No findings to ratchet\"}"
       fi
+      ;;
+
+    create)
+      # Bootstrap a new baseline from current findings
+      if [ ! -f "$CURRENT_FINDINGS_FILE" ]; then
+        echo "[baseline-check] ERROR: --current-findings-file does not exist: $CURRENT_FINDINGS_FILE" >&2
+        exit 1
+      fi
+
+      CURRENT_TOTAL=$(jq '.findings | length' "$CURRENT_FINDINGS_FILE" 2>/dev/null || echo "0")
+
+      # Build baseline with fingerprints for all current findings
+      BASELINE_FINDINGS="[]"
+      for i in $(seq 0 $((CURRENT_TOTAL - 1))); do
+        FINDING=$(jq -r ".findings[$i]" "$CURRENT_FINDINGS_FILE")
+        F_CAT=$(echo "$FINDING" | jq -r '.category')
+        F_FILE=$(echo "$FINDING" | jq -r '.file')
+        F_PATTERN=$(echo "$FINDING" | jq -r '.pattern')
+        F_SEVERITY=$(echo "$FINDING" | jq -r '.severity')
+        F_FP=$(echo "$FINDING" | jq -r '.fingerprint // empty')
+        if [ -z "$F_FP" ]; then
+          F_FP=$(compute_fingerprint "$F_CAT" "$F_FILE" "$F_PATTERN" "$F_SEVERITY")
+        fi
+        # Add fingerprint to finding and append to baseline
+        UPDATED_FINDING=$(echo "$FINDING" | jq --arg fp "$F_FP" '. + {"fingerprint": $fp, "status": "baselined"}')
+        BASELINE_FINDINGS=$(echo "$BASELINE_FINDINGS" | jq --argjson f "$UPDATED_FINDING" '. + [$f]')
+      done
+
+      # Count by severity
+      CRITICAL=$(echo "$BASELINE_FINDINGS" | jq '[.[] | select(.severity == "critical")] | length')
+      HIGH=$(echo "$BASELINE_FINDINGS" | jq '[.[] | select(.severity == "high")] | length')
+      MEDIUM=$(echo "$BASELINE_FINDINGS" | jq '[.[] | select(.severity == "medium")] | length')
+      LOW=$(echo "$BASELINE_FINDINGS" | jq '[.[] | select(.severity == "low")] | length')
+
+      # Create baseline file
+      NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+      BASELINE_JSON=$(jq -n \
+        --arg version "2.0" \
+        --arg date "$NOW" \
+        --arg type "midstream" \
+        --argjson findings "$BASELINE_FINDINGS" \
+        --argjson critical "$CRITICAL" \
+        --argjson high "$HIGH" \
+        --argjson medium "$MEDIUM" \
+        --argjson low "$LOW" \
+        --argjson total "$CURRENT_TOTAL" \
+        '{
+          type: $type,
+          version: $version,
+          date: $date,
+          findings: $findings,
+          summary: {
+            critical: $critical,
+            high: $high,
+            medium: $medium,
+            low: $low,
+            total: $total
+          }
+        }')
+
+      # Ensure directory exists
+      mkdir -p "$(dirname "$BASELINE_FILE")"
+      echo "$BASELINE_JSON" > "$BASELINE_FILE"
+
+      echo "{\"result\": \"CREATED\", \"mode\": \"finding-level\", \"findings_baselined\": $CURRENT_TOTAL, \"baseline_file\": \"$BASELINE_FILE\", \"message\": \"Baseline created with $CURRENT_TOTAL findings ($CRITICAL critical, $HIGH high, $MEDIUM medium, $LOW low)\"}"
       ;;
 
     *)

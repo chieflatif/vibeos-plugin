@@ -177,7 +177,9 @@ Before completing, verify all of these are true:
 
 Report the gate result to the user:
 
-> "Discovery is complete. Here's what we have: [summary]. All [N] artifacts have been generated in docs/product/. You're ready to run `/vibeos:plan` to generate the development plan and governance setup."
+> "Discovery is complete. Here's what we have: [summary]. All [N] artifacts have been generated in docs/product/.
+>
+> **Next step: `/vibeos:plan`** — I'll ask about your technical preferences (framework, database, deployment), configure quality gates for your project, and generate a phased development plan with specific work orders. This usually takes 5-10 minutes of your input."
 
 If any gate fails, explain what's missing and ask the user to provide it.
 
@@ -238,9 +240,27 @@ Generate `docs/TECHNICAL-SPEC.md` using the reference template at `${CLAUDE_SKIL
 
 #### M3c. PRD.md (with collision handling)
 
-**If `docs/product/PRD.md` already exists** (from a prior `/vibeos:discover` run): read the existing document and merge inferred data into it rather than overwriting. Add sections for inferred scope and workflows without removing user-authored content.
+**If `docs/product/PRD.md` does not exist:** Generate a skeleton `docs/product/PRD.md` from the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/PRD.md.ref`. Populate with inferred product scope based on code structure, README content (if present), and API surface. Tag each section with source metadata:
+```markdown
+<!-- source: inferred, updated: 2024-01-15T10:30:00Z -->
+## Section Title
+```
 
-**If `docs/product/PRD.md` does not exist:** Generate a skeleton `docs/product/PRD.md` from the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/PRD.md.ref`. Populate with inferred product scope based on code structure, README content (if present), and API surface.
+**If `docs/product/PRD.md` already exists** (from a prior `/vibeos:discover` run): apply section-level merge:
+
+**Section identification:** Each `##` heading is a merge unit. Sections are identified by their metadata comment tag.
+
+**Merge rules:**
+1. Section exists with `source: user` → **KEEP** user version unchanged
+2. Section exists with `source: inferred` → **REPLACE** with new inference, update timestamp
+3. Section is new (not in old PRD) → **ADD** with `source: inferred`
+4. Section exists in old PRD but not in new analysis → **KEEP** (user may have added it)
+
+**Conflict handling:** If both user and inference touch the same section (user edited an `inferred` section — detected by comparing content):
+- Keep user version
+- Add note: `<!-- Note: VibeOS inferred updated content for this section but preserved your edits. Re-run /vibeos:discover to see the new inference in a separate diff. -->`
+
+**Detecting user edits:** A section originally tagged `source: inferred` is considered user-edited if its content differs from what the inference would produce. When a user edits an inferred section, update its tag to `source: user`.
 
 #### M3d. project-definition.json
 
@@ -286,7 +306,9 @@ Report the result:
 > - Stack: [language] + [framework] + [database]
 > - [N] documents generated in docs/product/
 >
-> Your architecture document is now the anchor for all subsequent audits. Next step: run `/vibeos:plan` to generate the development plan and run the guided codebase audit."
+> Your architecture document is now the anchor for all subsequent audits.
+>
+> **Next step: `/vibeos:plan`** — I'll run a guided audit of your codebase, walk you through any issues I find (you'll decide what to fix now vs later), then generate a development plan. The audit covers security, architecture, code quality, dependencies, and test coverage."
 
 ---
 

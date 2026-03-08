@@ -16,6 +16,24 @@ An autonomous, self-governing development engine for Claude Code. Describe what 
 claude plugin install ./vibeos-plugin
 ```
 
+## Quick Start
+
+### New Project
+1. `/vibeos:discover` — Describe what you want to build. I'll ask questions and create product docs.
+2. `/vibeos:plan` — I'll generate a phased development plan with work orders and quality gates.
+3. `/vibeos:build` — I'll build autonomously, checking in at natural pause points.
+
+### Existing Project
+1. `/vibeos:discover` — I'll analyze your codebase and create architecture docs.
+2. `/vibeos:plan` — I'll audit your code for issues and create a remediation + feature plan.
+3. `/vibeos:build` — Critical issues first (Phase 0), then feature work.
+
+### Anytime
+- `/vibeos:status` — See where things stand
+- `/vibeos:help` — Learn any concept
+- `/vibeos:gate` — Run quality checks manually
+- `/vibeos:help files` — See what files the plugin creates in your project
+
 ## Skills
 
 | Skill | Description |

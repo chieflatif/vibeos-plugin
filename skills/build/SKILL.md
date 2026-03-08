@@ -47,24 +47,44 @@ Before starting, verify these exist:
 - `docs/planning/DEVELOPMENT-PLAN.md`
 - `docs/planning/WO-INDEX.md`
 - `project-definition.json`
+- **Git repository:** Run `git rev-parse --is-inside-work-tree`. If not a git repo, warn: "This directory is not a git repository. State tracking, baselines, and convergence features won't work correctly. Initialize git with `git init` before building." Build can proceed but with degraded convergence.
 
-If any are missing, tell the user to run `/vibeos:plan` first.
+If planning files are missing, tell the user to run `/vibeos:plan` first.
 
-## Token Tracking
+## WO Checkpoint & Resume
 
-After every agent dispatch, record token usage:
-```bash
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/token-tracker.sh" record \
-  --agent "[agent-name]" --wo "WO-NNN" \
-  --input-tokens [N] --output-tokens [N]
+The build loop saves progress after each agent completes. If interrupted (context window reset, user pause, crash), the build resumes from where it left off.
+
+**Checkpoint file:** `.vibeos/checkpoints/WO-NNN.json`
+
+**Schema:**
+```json
+{
+  "wo": "WO-NNN",
+  "started_at": "ISO-8601",
+  "last_updated": "ISO-8601",
+  "current_step": 5,
+  "total_steps": 8,
+  "completed_agents": [
+    {"agent": "investigator", "step": 4, "result": "PROCEED", "completed_at": "ISO-8601"},
+    {"agent": "tester", "step": 5, "result": "tests-written", "completed_at": "ISO-8601"}
+  ],
+  "gate_attempts": 0,
+  "audit_iterations": 0,
+  "state_hash": "sha256"
+}
 ```
 
-After each WO completes, check audit overhead:
-```bash
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/token-tracker.sh" overhead
-```
+**On WO start (Step 1):** Check for existing checkpoint:
+1. Look for `.vibeos/checkpoints/WO-NNN.json`
+2. If found: read checkpoint and announce resume:
+   > "Resuming WO-NNN from step [N]/8. Already completed: [agent list]. Picking up at: [next step name]."
+3. Skip to the next incomplete step
+4. If not found: start fresh, create checkpoint directory: `mkdir -p .vibeos/checkpoints`
 
-If audit overhead exceeds 30%, log a warning in the build log and report to the user.
+**After each agent completes (Steps 4-9):** Write/update checkpoint file with the completed agent and step number.
+
+**On WO completion (Step 10):** Delete checkpoint file. If `.vibeos/checkpoints/` is empty, remove directory.
 
 ## Build Flow
 
@@ -75,9 +95,15 @@ If `$ARGUMENTS` contains a WO number, use that. Otherwise:
 1. Read `docs/planning/DEVELOPMENT-PLAN.md`
 2. Read `docs/planning/WO-INDEX.md`
 3. **Phase 0 enforcement (midstream projects):** If Phase 0 exists (remediation phase) and has incomplete fix-now WOs, those must be built first. Do not proceed to Phase 1 until all Phase 0 fix-now WOs are complete. Tell the user:
-   > "Phase 0 (remediation) has [N] incomplete fix-now items. These critical issues must be resolved before starting feature work. Building WO-NNN ([title]) next."
+   > "Phase 0 (remediation) has [N] incomplete fix-now items. These critical issues must be resolved before starting feature work. Building WO-NNN ([title]) next.
+   >
+   > Your options:
+   > 1. **Build Phase 0 first** (recommended) — Fix the [N] critical issues before feature work. Your codebase starts clean and these issues won't compound as you add code.
+   > 2. **Skip Phase 0 for now** — Start feature work immediately. The [N] issues remain unfixed: [top 2-3 finding summaries]. This will be logged as a risk acceptance. You can return to Phase 0 later.
+   >
+   > I recommend option 1 because [specific reasoning based on finding severity — e.g., 'the security findings could expose user data if exploited']."
 
-   The user can override with explicit "skip Phase 0" — log this as risk acceptance in `.vibeos/build-log.md`.
+   If user chooses to skip: log risk acceptance in `.vibeos/build-log.md` with timestamp and justification. Append to `docs/planning/ACCEPTED-RISKS.md` if it exists.
 4. Find the current phase (first phase with incomplete WOs)
 5. Within that phase, find the first WO whose:
    - Dependencies are all Complete
@@ -182,7 +208,28 @@ bash scripts/gate-runner.sh pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
 
 **Baseline-aware gate evaluation:**
 
-After running gates, check each failure against known baselines. The system supports two modes:
+After running gates, check each failure against known baselines.
+
+**Auto-migration:** If `.vibeos/baselines/midstream-baseline.json` exists with version 1.0 (old count-based format), auto-migrate to finding-level format:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/migrate-baseline.sh" \
+  --input ".vibeos/baselines/midstream-baseline.json" \
+  --output ".vibeos/baselines/midstream-baseline.json"
+```
+Tell user: "I upgraded your quality baseline to the new finding-level format. This gives more precise tracking of individual issues."
+
+**No baseline exists:** If `.vibeos/baselines/midstream-baseline.json` does not exist and `.vibeos/findings-registry.json` exists, create the baseline:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" create \
+  --mode finding-level \
+  --baseline-file ".vibeos/baselines/midstream-baseline.json" \
+  --current-findings-file ".vibeos/findings-registry.json"
+```
+Tell user: "No quality baseline existed yet. I've created one from your audit findings — [N] existing issues are now tracked. Only new issues will block builds."
+
+If neither baseline nor findings-registry exists (greenfield project), skip baseline checks entirely.
+
+The system supports two modes:
 
 **Finding-level mode (preferred, if `.vibeos/findings-registry.json` exists):**
 ```bash
@@ -209,9 +256,11 @@ bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
 **Gate fix loop (max 3 cycles):**
 1. Parse gate results for new failures (exceeding baseline)
 2. If all pass or tracked: proceed to Step 8
-3. If new failures: re-dispatch implementation agent with specific failure details
-4. Re-run gates
-5. Repeat until pass or 3 cycles exhausted
+3. If new failures: **notify user before acting:**
+   > "[Specific issue, e.g. 'Type annotations missing on 3 functions in src/api.py']. Fixing automatically and re-running quality checks (attempt [N] of 3)..."
+4. Re-dispatch implementation agent with specific failure details
+5. Re-run gates
+6. Repeat until pass or 3 cycles exhausted
 
 After successful gate pass with fewer failures than baseline, ratchet:
 ```bash
@@ -273,7 +322,9 @@ PREV_HASH=$(bash "${CLAUDE_PLUGIN_ROOT}/convergence/state-hash.sh" --project-dir
 
 For each fix cycle iteration:
 1. Extract critical/high findings with file paths and recommendations
-2. Re-dispatch the appropriate implementation agent (`backend` or `frontend`) with:
+2. **Notify user before acting:**
+   > "Audit found [N] issues to fix: [top finding summary]. Fixing automatically (iteration [N] of 5)..."
+3. Re-dispatch the appropriate implementation agent (`backend` or `frontend`) with:
    - The specific findings to fix
    - The file paths and line numbers
    - The recommended fixes from the auditors
@@ -344,10 +395,7 @@ After all agents succeed:
 2. Update WO-INDEX.md: move WO to Complete, add completion date
 3. Update DEVELOPMENT-PLAN.md: set WO status to Complete
 4. Clean up `.vibeos/current-agent.txt`
-5. Check token overhead:
-   ```bash
-   bash "${CLAUDE_PLUGIN_ROOT}/convergence/token-tracker.sh" overhead
-   ```
+5. Delete checkpoint file: remove `.vibeos/checkpoints/WO-NNN.json` (if `.vibeos/checkpoints/` is empty, remove directory)
 6. **Remediation aging check** (if `.vibeos/findings-registry.json` exists):
    - Read fix-later items from findings-registry.json
    - For each, check the `baselined_at_wo` field (set by WO-043 when the finding was baselined)
@@ -365,11 +413,14 @@ Report to user:
 > - [M] quality gates passed
 > - [L] audit findings resolved
 > - [K] files created/modified
+> - TDD enforcement: [B] test file modification attempts blocked
 > - Documentation updated
 > - This work order dispatched [N] agents across [M] iterations ([X] gate retries, [Y] audit convergence cycles)
 >
 > Phase [P]: [completed]/[total] work orders complete.
 > Next: WO-NNN+1 ([next title]) is ready."
+
+**TDD metric source:** Count lines matching `test-file-protection | BLOCKED` in `.vibeos/build-log.md` since this WO started (compare timestamps against checkpoint `started_at`).
 
 ### Step 11: Multi-WO Orchestration & Autonomy Check
 
@@ -428,7 +479,6 @@ When pausing (any autonomy level), generate a check-in report:
 > - Tests: [N] passing, [M] failing
 > - Gates: [N]/[M] passing
 > - Audit: [N] findings resolved, [M] warnings remaining
-> - Token usage: [N] total ([X]% audit overhead)
 >
 > **Next up:** WO-NNN ([title])
 > [1-sentence description of what this WO will build]
@@ -458,21 +508,25 @@ Log the check-in: `[timestamp] check-in WO-NNN [user-choice]`
 ### Agent Timeout
 If an agent doesn't complete within its maxTurns:
 1. Log the timeout
-2. Retry once with a simplified prompt
-3. If retry fails: escalate to user
+2. **Notify user before retrying:**
+   > "The [agent-name] agent didn't complete in time. Retrying with a simplified prompt to help it focus on the essentials..."
+3. Retry once with a simplified prompt
+4. If retry fails: escalate to user
 
 ### Garbage Output
 If an agent returns output that doesn't match the expected structure:
 1. Log the raw output
-2. Retry once with explicit output format reminder
-3. If retry fails: escalate to user
+2. **Notify user before retrying:**
+   > "The [agent-name] agent returned unexpected output. Retrying with explicit format requirements..."
+3. Retry once with explicit output format reminder
+4. If retry fails: escalate to user
 
 ### Escalation Format
 When escalating to user, always explain:
 - What step was being executed
 - What went wrong (in plain English)
 - What was tried to fix it
-- What options the user has
+- What options the user has (with consequences per Communication Contract)
 
 ## Build Log
 
@@ -495,6 +549,7 @@ The build log is append-only — never overwrite previous entries.
 | Artifact | Path | Purpose |
 |---|---|---|
 | Build log | .vibeos/build-log.md | Append-only execution history |
+| Checkpoint | .vibeos/checkpoints/WO-NNN.json | Resume state (deleted after WO completes) |
 | Agent marker | .vibeos/current-agent.txt | Current agent identity for hooks |
 | Test files | {test_dir}/ | TDD tests written by tester agent |
 | Source files | {source_dirs}/ | Implementation by backend/frontend agents |
