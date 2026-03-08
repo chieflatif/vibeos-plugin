@@ -1,0 +1,143 @@
+# WO-043: Finding-Level Baseline Model
+
+## Status
+
+`Draft`
+
+## Phase
+
+Phase 7: Informed Onboarding & User Comprehension
+
+## Objective
+
+Replace the count-based baseline model (`"critical": 10`) with a finding-level model where each baselined finding has a unique ID, file location, description, and user-decided disposition. This prevents new issues from hiding behind fixed old ones and enables precise tracking of what was acknowledged vs what is new.
+
+## Scope
+
+### In Scope
+- [ ] New baseline schema: per-finding entries with IDs, not aggregate counts
+- [ ] Each finding in baseline linked to its entry in findings-registry.json
+- [ ] Baseline comparison: match by finding ID + file + pattern, not by count
+- [ ] New finding detection: if a finding doesn't match any baselined entry, it's NEW (blocks)
+- [ ] Fixed finding detection: if a baselined finding no longer appears, it's FIXED (ratchet)
+- [ ] Swapped finding detection: if count stays same but specific findings differ, flag it
+- [ ] Update `convergence/baseline-check.sh` to support finding-level comparison
+- [ ] Backward compatibility: count-based baselines still work (graceful migration)
+- [ ] Baseline migration script: convert old count-based to finding-level format
+- [ ] Update `skills/build/SKILL.md` Step 7 to use finding-level baseline
+- [ ] Update `skills/checkpoint/SKILL.md` to use finding-level ratcheting
+
+### Out of Scope
+- Creating the findings (WO-042)
+- User decision flow (WO-042)
+- Remediation execution
+
+## Dependencies
+
+| Dependency | Type | Status |
+|---|---|---|
+| WO-042 | Guided codebase audit | Draft |
+
+## Impact Analysis
+
+- **Files modified:** `convergence/baseline-check.sh` (finding-level support), `skills/build/SKILL.md` (Step 7), `skills/checkpoint/SKILL.md` (ratcheting)
+- **Files created:** Migration script for old baselines
+- **Systems affected:** Baseline system, gate evaluation, checkpoint ratcheting
+
+## Acceptance Criteria
+
+- [ ] AC-1: Baseline stores individual findings with IDs, not just counts
+- [ ] AC-2: New finding (not in baseline) correctly detected and blocks
+- [ ] AC-3: Pre-existing finding (in baseline) correctly tracked and doesn't block
+- [ ] AC-4: Fixed finding (was in baseline, now gone) triggers ratchet (removed from baseline)
+- [ ] AC-5: Swapped finding (old fixed, new introduced, count unchanged) correctly detected as NEW
+- [ ] AC-6: Count-based baselines still work (backward compatibility)
+- [ ] AC-7: Migration script converts count-based to finding-level format
+- [ ] AC-8: Build skill uses finding-level comparison in gate evaluation
+- [ ] AC-9: Checkpoint skill uses finding-level ratcheting
+
+## Test Strategy
+
+- **Unit:** Test finding-level comparison logic (match, new, fixed, swapped scenarios)
+- **Migration:** Test conversion of count-based baseline to finding-level
+- **Integration:** Run gates with finding-level baseline, verify correct blocking/tracking
+- **Swap detection:** Fix one issue, introduce another, verify system detects the swap
+
+## Implementation Plan
+
+### Step 1: Define Finding-Level Baseline Schema
+```json
+{
+  "type": "midstream",
+  "version": "2.0",
+  "date": "ISO-8601",
+  "source_files": 150,
+  "findings": [
+    {
+      "id": "SEC-001",
+      "category": "security",
+      "severity": "critical",
+      "fingerprint": "sha256-of-file+line+pattern",
+      "file": "src/config.py",
+      "line": 42,
+      "pattern": "hardcoded-secret",
+      "description": "AWS API key hardcoded",
+      "disposition": "fix-now",
+      "baselined_at": "ISO-8601",
+      "status": "open"
+    }
+  ],
+  "summary": {
+    "critical": 3, "high": 8, "medium": 15, "low": 22,
+    "fix_now": 5, "fix_later": 12, "accepted_risk": 9, "total": 48
+  }
+}
+```
+
+### Step 2: Update baseline-check.sh
+Add finding-level mode:
+- Detect baseline version (1.0 = count-based, 2.0 = finding-level)
+- For version 2.0: compare current findings against baselined findings by fingerprint
+- `check`: NEW (not in baseline) → FAIL, IN_BASELINE → TRACKED, NO_FINDINGS → PASS
+- `ratchet`: Remove findings from baseline that no longer appear in current scan
+- Preserve backward compatibility for version 1.0
+
+### Step 3: Implement Fingerprinting
+Finding fingerprint = SHA-256 of `category + file + pattern + severity`:
+- Tolerates line number changes (file refactoring)
+- Catches same-pattern-different-file as new finding
+- Catches same-file-different-pattern as new finding
+
+### Step 4: Implement Swap Detection
+After gate/audit run:
+1. Match current findings against baseline by fingerprint
+2. Unmatched current findings = NEW (potential new issues)
+3. Unmatched baseline findings = FIXED (improvements)
+4. If NEW > 0: report specifically which findings are new, even if total count unchanged
+
+### Step 5: Migration Script
+`convergence/migrate-baseline.sh`:
+- Read old count-based baseline
+- Convert to finding-level format with generic entries
+- Preserve original counts in summary
+- Mark all entries as `disposition: "pre-existing-unmigrated"` (user needs to review)
+
+### Step 6: Update Skills
+- `skills/build/SKILL.md` Step 7: use finding-level check, report specific new findings
+- `skills/checkpoint/SKILL.md`: ratchet removes fixed findings from baseline
+
+## Audit Checkpoints
+
+### Planning Audit
+- Status: `pending`
+- Test status: Unit tests for all comparison scenarios
+- Risk: Fingerprinting must be stable across minor code changes; too sensitive = false positives, too loose = missed swaps
+
+## Evidence
+
+- [ ] Finding-level comparison works
+- [ ] New findings correctly detected
+- [ ] Fixed findings correctly ratcheted
+- [ ] Swapped findings detected (count unchanged but findings differ)
+- [ ] Backward compatibility with count-based baselines
+- [ ] Migration script works

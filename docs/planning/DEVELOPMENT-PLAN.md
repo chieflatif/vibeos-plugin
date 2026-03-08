@@ -19,6 +19,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 4 | Fresh-Context Audit Agents | WO-023 — WO-029 | 5 isolated audit agents + consensus aggregation |
 | 5 | Convergence & Full Loop | WO-030 — WO-034 | Multi-WO autonomy, convergence controls, phase boundaries |
 | 6 | Midstream Embedding & Polish | WO-035 — WO-040 | Existing projects, baselines, test quality, upgrade, e2e testing |
+| 7 | Informed Onboarding & User Comprehension | WO-041 — WO-048 | Architecture-first midstream, finding-level baselines, communication layer |
 
 ## Mandatory Audits
 
@@ -149,6 +150,25 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | WO-038 | Test Diff Auditing | WO-037 | Complete |
 | WO-039 | Plugin Upgrade Mechanism | WO-035 | Complete |
 | WO-040 | End-to-End Integration Testing | WO-035-039 | Complete |
+
+---
+
+## Phase 7: Informed Onboarding & User Comprehension
+
+**Goal:** Replace blind baselining with informed user-driven decisions. Make the system visible and understandable. Two tracks: (A) midstream onboarding that audits architecture first and lets the user decide finding dispositions, (B) communication layer that explains what's happening at every step.
+
+**Exit Criteria:** Midstream user makes informed decisions about every critical/high finding before baseline is established. Finding-level baselines prevent new issues hiding behind fixed ones. User understands what the system is doing at every step. All communication follows the contract.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-041 | Architecture-First Midstream Discovery | Phase 6 complete | Draft |
+| WO-042 | Guided Codebase Audit with User Decisions | WO-041 | Draft |
+| WO-043 | Finding-Level Baseline Model | WO-042 | Draft |
+| WO-044 | Remediation Roadmap & Phase 0 Enforcement | WO-043 | Draft |
+| WO-045 | User Communication Contract | Phase 6 complete | Draft |
+| WO-046 | System Onboarding & Concept Introduction | WO-045 | Draft |
+| WO-047 | Build Loop Visibility & Progress Reporting | WO-045 | Draft |
+| WO-048 | Consequence-Aware Decision Support | WO-045 | Draft |
 
 ---
 

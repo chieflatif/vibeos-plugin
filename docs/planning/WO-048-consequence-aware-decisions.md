@@ -1,0 +1,149 @@
+# WO-048: Consequence-Aware Decision Support
+
+## Status
+
+`Draft`
+
+## Phase
+
+Phase 7: Informed Onboarding & User Comprehension
+
+## Objective
+
+Every time the system presents the user with a choice, it includes the consequences of each option in plain English. No option is presented without the user understanding what will happen if they choose it. This applies to escalations, autonomy choices, gate skipping, finding dispositions, and all other decision points.
+
+## Scope
+
+### In Scope
+- [ ] Audit every decision point in all skills and identify missing consequence descriptions
+- [ ] Gate escalation: explain what each gate checks and what skipping means
+- [ ] Audit escalation: explain what each finding means and what accepting means
+- [ ] Autonomy selection: explain what each level means in practice (not just definition)
+- [ ] Finding disposition: explain what fix-now/fix-later/accepted-risk means concretely
+- [ ] Check-in options: explain what each choice leads to
+- [ ] Phase 0 skip: explain what deferring remediation means for code quality and security
+- [ ] Update all decision points in `skills/build/SKILL.md`
+- [ ] Update all decision points in `skills/plan/SKILL.md`
+- [ ] Update all decision points in `skills/audit/SKILL.md`
+- [ ] Update check-in report in `skills/build/SKILL.md` Step 11e
+- [ ] Define decision presentation template in Communication Contract
+
+### Out of Scope
+- Communication contract creation (WO-045)
+- New decision points (only improving existing ones)
+- Automated decision-making
+
+## Dependencies
+
+| Dependency | Type | Status |
+|---|---|---|
+| WO-045 | User communication contract | Draft |
+
+## Impact Analysis
+
+- **Files modified:** `skills/build/SKILL.md` (all escalation/decision points), `skills/plan/SKILL.md` (autonomy, intake), `skills/audit/SKILL.md` (finding review)
+- **Systems affected:** All user-facing decision points
+
+## Acceptance Criteria
+
+- [ ] AC-1: Every decision point in build skill includes consequences for each option
+- [ ] AC-2: Gate skip option explains what quality checks are bypassed
+- [ ] AC-3: Audit accept option explains specific risks being accepted
+- [ ] AC-4: Autonomy options explain practical experience (not just abstract definition)
+- [ ] AC-5: Finding dispositions explain what happens for each choice
+- [ ] AC-6: Phase 0 skip option explains security/quality implications
+- [ ] AC-7: No decision point presents options as bare labels (a/b/c without context)
+- [ ] AC-8: Recommendations include reasoning, not just "I recommend X"
+- [ ] AC-9: Decision presentation follows Communication Contract template
+
+## Test Strategy
+
+- **Review:** Audit every AskUserQuestion and decision point in all skills
+- **Consequence check:** For each option, verify a non-technical user would understand the impact
+- **Bare label check:** Search for any remaining a/b/c options without consequence text
+
+## Implementation Plan
+
+### Step 1: Inventory All Decision Points
+Audit all skills for decision points:
+
+**Build skill (`skills/build/SKILL.md`):**
+1. Gate failure escalation (3 cycles exhausted) — lines 166-167
+2. Audit finding escalation (STUCK/MAX_ITER) — lines 222-230
+3. Human check-in (5 options) — lines 334-339
+4. Error recovery (agent timeout/garbage output) — lines 356-374
+
+**Plan skill (`skills/plan/SKILL.md`):**
+5. Autonomy negotiation (3 levels) — lines 338-366
+6. Intake confirmations (18 questions) — lines 105-164
+7. Solo compliance warning — lines 155-156
+8. Plan validation ("Does this look correct?") — lines 177-180
+
+**Audit skill (`skills/audit/SKILL.md`):**
+9. Finding review (currently no decision point — should there be one?)
+
+### Step 2: Rewrite Each Decision Point
+
+**Gate failure escalation (current):**
+> "Would you like me to: (a) try again with a different approach, (b) skip these gates for now, or (c) let you fix it manually?"
+
+**Gate failure escalation (improved):**
+> "Quality checks are still failing after 3 attempts. Here's what's failing: [specific issues].
+>
+> Your options:
+> 1. **Try a different approach** — I'll rethink how to implement this and try again. This may resolve the issue but will use more time and tokens.
+> 2. **Skip these checks for now** — Your code will be committed without passing [gate-name]. This means [specific risk, e.g., "type annotations won't be verified, which could let type-related bugs through"]. You can re-run these checks later with `/vibeos:gate`.
+> 3. **Fix it yourself** — I'll show you exactly what's failing and where, so you can fix it directly. I'll re-run the checks when you're ready.
+>
+> I recommend option 1 because [reason]."
+
+**Audit escalation (current):**
+> "Would you like to: (a) try a different approach, (b) accept the remaining findings, or (c) fix manually?"
+
+**Audit escalation (improved):**
+> "After [N] fix attempts, these issues remain:
+> - [finding 1 with severity and file]
+> - [finding 2 with severity and file]
+>
+> Your options:
+> 1. **Try a different approach** — I'll use a different strategy to fix these. May resolve them but no guarantee.
+> 2. **Accept these findings** — These issues will be documented as known and tracked. [If security]: This means [specific security risk] remains in your code. [If architecture]: This means [specific maintenance risk]. They won't block future work but will appear in phase audits.
+> 3. **Fix yourself** — I'll give you the exact details. You fix them, I'll verify.
+>
+> I recommend [X] because [reason]."
+
+### Step 3: Add Consequence Descriptions to Autonomy Options
+The current autonomy options are already well-written. Enhance with practical examples:
+
+> **Option A — Stop after every work order:**
+> "I'll build one thing at a time and check in after each piece. For example, after building your user authentication, I'll show you what was built, what tests pass, and ask before moving to the next feature. **You'll review about [N] check-ins for this project.** Best if this is your first time using VibeOS or you want to stay closely involved."
+
+### Step 4: Define Decision Template
+Add to Communication Contract:
+```
+DECISION_TEMPLATE:
+"[Context — what happened and why a decision is needed]
+
+Your options:
+1. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
+2. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
+3. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
+
+I recommend [option] because [specific reasoning based on project context]."
+```
+
+## Audit Checkpoints
+
+### Planning Audit
+- Status: `pending`
+- Test status: Review every decision point in all skills for consequence completeness
+- Risk: Overly verbose consequence descriptions could slow down experienced users; keep them concise
+
+## Evidence
+
+- [ ] All decision points have consequence descriptions
+- [ ] No bare label options remain
+- [ ] Gate skip consequences explain specific risks
+- [ ] Audit accept consequences explain specific implications
+- [ ] Recommendations include reasoning
+- [ ] Non-technical user can understand every option
