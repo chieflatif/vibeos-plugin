@@ -6,6 +6,9 @@
 # Hook type: PreToolUse (matcher: Edit|Write)
 # Response format: JSON with hookSpecificOutput.permissionDecision = allow|deny
 # Framework version: 1.0.0
+# Note: No set -euo pipefail — hook reads stdin via cat and uses || fallbacks
+# that would trigger errexit. This is intentional per hook convention.
+FRAMEWORK_VERSION="1.0.0"
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null || echo "")

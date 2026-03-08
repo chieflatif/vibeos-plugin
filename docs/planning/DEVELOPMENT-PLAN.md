@@ -35,7 +35,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-000 | Technical Spike — Plugin Architecture Validation | None | Draft |
+| WO-000 | Technical Spike — Plugin Architecture Validation | None | Complete |
 
 **Assumptions to validate:**
 1. Plugin manifest schema — what fields does `plugin.json` accept?
@@ -49,7 +49,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 **Goal:** Plugin loads, skills invoke, gates run from plugin context, basic agent dispatch works.
 
-**Exit Criteria:** Plugin installs, 3 skills invoke correctly, gates run from plugin context, hooks block dangerous operations, one agent dispatches and returns. Test fixture validates each layer.
+**Exit Criteria:** Plugin installs, 2 skills invoke correctly, gates run from plugin context, hooks block dangerous operations, one agent dispatches and returns. Test fixture validates each layer.
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
@@ -180,11 +180,11 @@ If Phase 0 spike or Phase 1 post-audit reveals failed assumptions:
 
 ## Source Material
 
-All source files are in `/Users/latifhorst/cursor projects/VibeOS-2/`:
+All source files are from VibeOS-2 (dev-local: `/Users/latifhorst/cursor projects/VibeOS-2/`, not required at runtime):
 
 | Component | Source Path | Action |
 |---|---|---|
-| 21 gate scripts | `scripts/*.sh`, `scripts/*.py` | Copy as-is |
+| 25 gate scripts | `scripts/*.sh`, `scripts/*.py` | Copy as-is |
 | Gate runner | `scripts/gate-runner.sh` | Adapt for plugin context |
 | Decision engine | `decision-engine/*.md` | Copy as-is |
 | Reference files | `reference/**/*.ref` | Copy as-is |

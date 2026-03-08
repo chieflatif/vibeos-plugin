@@ -11,7 +11,7 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 skills/                       ← 8 user-invocable skills (/vibeos:discover, :plan, :build, etc.)
 agents/                       ← 12 specialized subagents (planner, auditors, tester, etc.)
 hooks/hooks.json              ← Event-driven enforcement (secrets, stubs, frozen files)
-scripts/                      ← 21 deterministic gate scripts + gate-runner.sh (bash)
+scripts/                      ← 25 deterministic gate scripts + gate-runner.sh (bash)
 decision-engine/              ← 8 decision tree files (markdown)
 reference/                    ← 40+ annotated reference files
 convergence/                  ← Loop control scripts (state hashing, convergence checks)
@@ -38,7 +38,7 @@ docs/planning/                ← Development plan, WO index, individual WO file
 
 ## Conventions
 
-- Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail`
+- Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
 - Version: `FRAMEWORK_VERSION="1.0.0"` in every script
@@ -69,9 +69,9 @@ grep -rn '{{.*}}' scripts/ hooks/ decision-engine/ || echo "Clean"
 
 ## Source Material
 
-This plugin is built from VibeOS-2 (`/Users/latifhorst/cursor projects/VibeOS-2/`). Key source files:
+This plugin was built from VibeOS-2 (dev-local: `/Users/latifhorst/cursor projects/VibeOS-2/`, not required at runtime). Key source files:
 
-- `scripts/` — 21 gate scripts + gate-runner.sh (copy as-is, adapt paths)
+- `scripts/` — 25 gate scripts + gate-runner.sh (copied, paths adapted)
 - `decision-engine/` — 8 decision trees (copy as-is)
 - `reference/` — 40+ annotated references (copy as-is)
 - `reference/hooks/` — 8 hook .ref files (convert to executable hooks)
