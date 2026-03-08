@@ -26,6 +26,22 @@ Before starting, verify these exist:
 
 If any are missing, tell the user to run `/vibeos:plan` first.
 
+## Token Tracking
+
+After every agent dispatch, record token usage:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/token-tracker.sh" record \
+  --agent "[agent-name]" --wo "WO-NNN" \
+  --input-tokens [N] --output-tokens [N]
+```
+
+After each WO completes, check audit overhead:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/token-tracker.sh" overhead
+```
+
+If audit overhead exceeds 30%, log a warning in the build log and report to the user.
+
 ## Build Flow
 
 ### Step 1: Identify Next WO
@@ -151,18 +167,41 @@ Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — ins
    - **Critical or High findings:** trigger audit-fix cycle
    - **Medium or Low findings:** log as warnings in build log, do not block
 
-**Audit-fix cycle (max 3 cycles):**
+**Audit-fix cycle with convergence control:**
+
+Before starting the fix cycle, capture the initial state hash:
+```bash
+PREV_HASH=$(bash "${CLAUDE_PLUGIN_ROOT}/convergence/state-hash.sh" --project-dir "${CLAUDE_PROJECT_DIR:-.}")
+```
+
+For each fix cycle iteration:
 1. Extract critical/high findings with file paths and recommendations
 2. Re-dispatch the appropriate implementation agent (`backend` or `frontend`) with:
    - The specific findings to fix
    - The file paths and line numbers
    - The recommended fixes from the auditors
-3. Re-run the audit agents that found the issues
-4. If findings resolved: proceed
-5. If findings persist after 3 cycles: escalate to user
+3. Capture new state hash after fixes:
+   ```bash
+   CURR_HASH=$(bash "${CLAUDE_PLUGIN_ROOT}/convergence/state-hash.sh" --project-dir "${CLAUDE_PROJECT_DIR:-.}")
+   ```
+4. Run convergence check:
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/convergence/convergence-check.sh" \
+     --current-hash "$CURR_HASH" --previous-hash "$PREV_HASH" \
+     --iteration $N --max-iterations 5 \
+     --critical-count $CRITICAL --high-count $HIGH \
+     --previous-critical $PREV_CRITICAL --previous-high $PREV_HIGH \
+     --tests-pass "$TESTS_PASS"
+   ```
+5. Act on convergence decision:
+   - **CONVERGED:** proceed to Step 9
+   - **CONTINUE:** re-run audit agents, loop back to step 1
+   - **STUCK or MAX_ITER:** escalate to user
+6. Update `PREV_HASH=$CURR_HASH` and store previous finding counts
 
-**Escalation format:**
-> "Audit findings remain after 3 fix attempts. Here are the unresolved findings:
+**Escalation format (STUCK or MAX_ITER):**
+> "Audit findings remain after [N] fix attempts ([reason from convergence check]).
+> Unresolved findings:
 > [list of findings with severity, file, description]
 >
 > These were flagged by: [auditor names]
@@ -195,30 +234,102 @@ Log: `[timestamp] doc-writer WO-NNN document [COMPLETE]`
 
 After all agents succeed:
 1. Mark WO status as `Complete` in WO file (if doc-writer didn't already)
-2. Verify WO-INDEX.md shows Complete
-3. Verify DEVELOPMENT-PLAN.md shows Complete
+2. Update WO-INDEX.md: move WO to Complete, add completion date
+3. Update DEVELOPMENT-PLAN.md: set WO status to Complete
 4. Clean up `.vibeos/current-agent.txt`
+5. Check token overhead:
+   ```bash
+   bash "${CLAUDE_PLUGIN_ROOT}/convergence/token-tracker.sh" overhead
+   ```
 
 Report to user:
 > "WO-NNN ([title]) is complete.
 > - [N] tests written and passing
 > - [M] quality gates passed
+> - [L] audit findings resolved
 > - [K] files created/modified
 > - Documentation updated
 >
 > Next: WO-NNN+1 ([next title]) is ready."
 
-### Step 11: Autonomy Check
+### Step 11: Multi-WO Orchestration & Autonomy Check
 
-Based on `.vibeos/config.json`:
+After WO completion, determine whether to continue with the next WO.
+
+**11a. Read autonomy config** from `.vibeos/config.json` (default: "wo").
+
+**11b. Detect phase boundary:**
+- Read the current WO's phase from DEVELOPMENT-PLAN.md
+- Identify the next eligible WO (Step 1 logic)
+- If the next WO is in a different phase: this is a phase boundary
+
+**11c. Apply autonomy rules:**
 
 **If level = "wo":** Stop. Report completion and wait for user to say "continue" or "proceed".
 
-**If level = "phase":** Check if the current phase has more WOs:
-- If yes: loop back to Step 1 for the next WO
-- If no: report phase completion and stop
+**If level = "phase":**
+- If phase boundary reached: stop and report phase completion
+- If more WOs in current phase: loop back to Step 1 for the next WO
+- At phase boundary, report:
+  > "Phase [N] ([name]) is complete.
+  > - [X] WOs completed in this phase
+  > - [Y] total tests passing
+  > - [Z] audit findings resolved
+  >
+  > Next phase: Phase [N+1] ([name]) with [W] WOs."
 
-**If level = "major":** Continue to next WO unless a major decision is needed (architecture change, scope change, user input required).
+**If level = "major":** Continue to next WO unless:
+- Phase boundary reached (pause for phase transition report)
+- A WO has BLOCK recommendation from investigator
+- An escalation was triggered during the WO
+- Architecture change is needed (flagged by architecture auditor)
+
+**11d. Dependency check for next WO:**
+Before looping back to Step 1:
+1. Read DEVELOPMENT-PLAN.md for the next WO's dependencies
+2. Verify all dependencies have status "Complete"
+3. If dependencies unmet: skip to the next eligible WO in the same phase
+4. If no eligible WOs remain in the phase: report phase complete, stop
+5. If skipping: log which WO was skipped and why
+
+**11e. Human check-in report:**
+
+When pausing (any autonomy level), generate a check-in report:
+
+> **Build Progress Check-in**
+>
+> **Completed this session:**
+> - WO-NNN: [title] — [1-line summary of what was built]
+> - [additional WOs if autonomy=phase or major]
+>
+> **Quality summary:**
+> - Tests: [N] passing, [M] failing
+> - Gates: [N]/[M] passing
+> - Audit: [N] findings resolved, [M] warnings remaining
+> - Token usage: [N] total ([X]% audit overhead)
+>
+> **Next up:** WO-NNN ([title])
+> [1-sentence description of what this WO will build]
+>
+> **Your options:**
+> 1. **Continue** — proceed with the next WO
+> 2. **Adjust plan** — modify WO scope, reorder priorities, or add new WOs
+> 3. **Change autonomy** — switch between wo/phase/major levels
+> 4. **Redirect** — work on something different (creates new WO)
+> 5. **Stop** — save progress and end the build session
+
+**On user response:**
+- **Continue:** loop back to Step 1 with next eligible WO
+- **Adjust plan:** ask user for changes, update DEVELOPMENT-PLAN.md and WO-INDEX.md, then loop back to Step 1
+- **Change autonomy:** present the 3 levels, save selection to `.vibeos/config.json`, then loop back to Step 1
+- **Redirect:** create a new WO using the WO template from `reference/governance/WO-TEMPLATE.md.ref`, add to plan, then build it
+- **Stop:** log session end to build-log.md, report final progress summary, exit
+
+Log the check-in: `[timestamp] check-in WO-NNN [user-choice]`
+
+**11f. Loop or stop:**
+- If continuing: loop back to Step 1 with the next eligible WO
+- If stopping: report final progress summary and save build state
 
 ## Error Recovery
 

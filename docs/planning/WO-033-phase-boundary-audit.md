@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create a `/vibeos:checkpoint` skill that runs all 21 gates and all 5 audit agent
 ## Scope
 
 ### In Scope
-- [ ] Create `skills/checkpoint.md` as the phase boundary audit skill
-- [ ] Run all 21 gate scripts via gate-runner.sh on entire codebase
-- [ ] Run all 5 audit agents on entire codebase
-- [ ] Compare results against previous phase boundary baseline (if exists)
-- [ ] Baseline ratcheting: new findings count must be <= previous count
-- [ ] Store baseline in `.vibeos/baselines/phase-N-baseline.json`
-- [ ] Generate comprehensive phase report
-- [ ] Block phase transition if ratchet violated (more findings than baseline)
+- [x] Create `skills/checkpoint/SKILL.md` as the phase boundary audit skill
+- [x] Run all 21 gate scripts via gate-runner.sh on entire codebase
+- [x] Run all 5 audit agents on entire codebase
+- [x] Compare results against previous phase boundary baseline (if exists)
+- [x] Baseline ratcheting: new findings count must be <= previous count
+- [x] Store baseline in `.vibeos/baselines/phase-N-baseline.json`
+- [x] Generate comprehensive phase report
+- [x] Block phase transition if ratchet violated (more findings than baseline)
 
 ### Out of Scope
 - Individual gate implementation (Phase 1)
@@ -33,24 +33,24 @@ Create a `/vibeos:checkpoint` skill that runs all 21 gates and all 5 audit agent
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-032 | Must complete first | Draft |
-| WO-028 | Audit skill | Draft |
-| WO-004 | Gate skill | Draft |
+| WO-032 | Must complete first | Complete |
+| WO-028 | Audit skill | Complete |
+| WO-004 | Gate skill | Complete |
 
 ## Impact Analysis
 
-- **Files created:** skills/checkpoint.md, .vibeos/baselines/ directory
+- **Files created:** skills/checkpoint/SKILL.md, .vibeos/baselines/ directory
 - **Systems affected:** Phase transitions, quality enforcement
 
 ## Acceptance Criteria
 
-- [ ] AC-1: All 21 gates run on entire codebase
-- [ ] AC-2: All 5 audit agents run on entire codebase
-- [ ] AC-3: Results compared against previous baseline
-- [ ] AC-4: Ratchet enforced: finding count cannot increase between phases
-- [ ] AC-5: Baseline stored for future comparison
-- [ ] AC-6: Phase report includes: gate results, audit findings, baseline comparison, ratchet status
-- [ ] AC-7: Phase transition blocked if ratchet violated
+- [x] AC-1: All 21 gates run on entire codebase
+- [x] AC-2: All 5 audit agents run on entire codebase
+- [x] AC-3: Results compared against previous baseline
+- [x] AC-4: Ratchet enforced: finding count cannot increase between phases
+- [x] AC-5: Baseline stored for future comparison
+- [x] AC-6: Phase report includes: gate results, audit findings, baseline comparison, ratchet status
+- [x] AC-7: Phase transition blocked if ratchet violated
 
 ## Test Strategy
 
@@ -93,8 +93,8 @@ Create a `/vibeos:checkpoint` skill that runs all 21 gates and all 5 audit agent
 
 ## Evidence
 
-- [ ] Checkpoint skill created
-- [ ] All gates and auditors run
-- [ ] Baseline stored and loaded correctly
-- [ ] Ratchet enforced
-- [ ] Phase report generated
+- [x] Checkpoint skill created
+- [x] All gates and auditors run
+- [x] Baseline stored and loaded correctly
+- [x] Ratchet enforced
+- [x] Phase report generated

@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,13 +15,13 @@ Track token usage per agent, per WO, and per phase, with alerts when audit overh
 ## Scope
 
 ### In Scope
-- [ ] Track token usage per agent dispatch (input tokens, output tokens)
-- [ ] Aggregate by WO: total tokens for investigator, tester, implementer, auditors
-- [ ] Aggregate by phase: total tokens across all WOs in phase
-- [ ] Calculate audit overhead: (audit tokens / total tokens) as percentage
-- [ ] Alert when audit overhead exceeds 30%
-- [ ] Store token data in `.vibeos/token-usage.json`
-- [ ] Report token usage in build-log.md entries
+- [x] Track token usage per agent dispatch (input tokens, output tokens)
+- [x] Aggregate by WO: total tokens for investigator, tester, implementer, auditors
+- [x] Aggregate by phase: total tokens across all WOs in phase
+- [x] Calculate audit overhead: (audit tokens / total tokens) as percentage
+- [x] Alert when audit overhead exceeds 30%
+- [x] Store token data in `.vibeos/token-usage.json`
+- [x] Report token usage in build-log.md entries
 
 ### Out of Scope
 - Token cost calculation (pricing varies)
@@ -32,23 +32,23 @@ Track token usage per agent, per WO, and per phase, with alerts when audit overh
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-030 | Must complete first | Draft |
+| WO-030 | Must complete first | Complete |
 
 ## Impact Analysis
 
 - **Files created:** .vibeos/token-usage.json schema
-- **Files modified:** skills/build.md (add token tracking)
+- **Files modified:** skills/build/SKILL.md (add token tracking)
 - **Systems affected:** Build loop, agent dispatch, reporting
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Token usage recorded for every agent dispatch
-- [ ] AC-2: Per-WO aggregation available
-- [ ] AC-3: Per-phase aggregation available
-- [ ] AC-4: Audit overhead percentage calculated correctly
-- [ ] AC-5: Alert generated when audit overhead exceeds 30%
-- [ ] AC-6: Token data persisted to .vibeos/token-usage.json
-- [ ] AC-7: Build log includes token usage per dispatch
+- [x] AC-1: Token usage recorded for every agent dispatch
+- [x] AC-2: Per-WO aggregation available
+- [x] AC-3: Per-phase aggregation available
+- [x] AC-4: Audit overhead percentage calculated correctly
+- [x] AC-5: Alert generated when audit overhead exceeds 30%
+- [x] AC-6: Token data persisted to .vibeos/token-usage.json
+- [x] AC-7: Build log includes token usage per dispatch
 
 ## Test Strategy
 
@@ -86,7 +86,7 @@ Track token usage per agent, per WO, and per phase, with alerts when audit overh
 
 ## Evidence
 
-- [ ] Token usage recorded per dispatch
-- [ ] Aggregation by WO and phase works
-- [ ] Audit overhead alert triggers at 30%
-- [ ] Token data persisted to JSON
+- [x] Token usage recorded per dispatch
+- [x] Aggregation by WO and phase works
+- [x] Audit overhead alert triggers at 30%
+- [x] Token data persisted to JSON

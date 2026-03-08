@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Implement a human check-in protocol that pauses at the negotiated frequency and 
 ## Scope
 
 ### In Scope
-- [ ] Pause at frequency matching autonomy config (WO-011)
-- [ ] Generate full check-in report: what was built, what was found, what's next
-- [ ] Report in communication contract format (plain English, no jargon)
-- [ ] User options at each check-in: continue, adjust plan, change autonomy level, redirect to different work, stop
-- [ ] If user adjusts plan: update DEVELOPMENT-PLAN.md before continuing
-- [ ] If user changes autonomy: update .vibeos/config.json
-- [ ] If user redirects: create new WO or reprioritize existing WOs
-- [ ] Log all check-in interactions in build-log.md
+- [x] Pause at frequency matching autonomy config (WO-011)
+- [x] Generate full check-in report: what was built, what was found, what's next
+- [x] Report in communication contract format (plain English, no jargon)
+- [x] User options at each check-in: continue, adjust plan, change autonomy level, redirect to different work, stop
+- [x] If user adjusts plan: update DEVELOPMENT-PLAN.md before continuing
+- [x] If user changes autonomy: update .vibeos/config.json
+- [x] If user redirects: create new WO or reprioritize existing WOs
+- [x] Log all check-in interactions in build-log.md
 
 ### Out of Scope
 - Autonomy negotiation (WO-011, initial setup)
@@ -33,24 +33,24 @@ Implement a human check-in protocol that pauses at the negotiated frequency and 
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-032 | Must complete first | Draft |
-| WO-011 | Autonomy config | Draft |
+| WO-032 | Must complete first | Complete |
+| WO-011 | Autonomy config | Complete |
 
 ## Impact Analysis
 
-- **Files modified:** skills/build.md (add check-in step)
+- **Files modified:** skills/build/SKILL.md (add check-in step)
 - **Systems affected:** Build loop, user interaction, plan management
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Check-in triggers at correct frequency per autonomy config
-- [ ] AC-2: Report includes: completed WOs summary, findings summary, next WO preview
-- [ ] AC-3: Report uses communication contract language throughout
-- [ ] AC-4: User can continue without changes
-- [ ] AC-5: User can adjust plan (modifications saved to DEVELOPMENT-PLAN.md)
-- [ ] AC-6: User can change autonomy level (saved to .vibeos/config.json)
-- [ ] AC-7: User can redirect to different work (new WO created or priorities changed)
-- [ ] AC-8: User can stop (build loop exits gracefully)
+- [x] AC-1: Check-in triggers at correct frequency per autonomy config
+- [x] AC-2: Report includes: completed WOs summary, findings summary, next WO preview
+- [x] AC-3: Report uses communication contract language throughout
+- [x] AC-4: User can continue without changes
+- [x] AC-5: User can adjust plan (modifications saved to DEVELOPMENT-PLAN.md)
+- [x] AC-6: User can change autonomy level (saved to .vibeos/config.json)
+- [x] AC-7: User can redirect to different work (new WO created or priorities changed)
+- [x] AC-8: User can stop (build loop exits gracefully)
 
 ## Test Strategy
 
@@ -88,8 +88,8 @@ Implement a human check-in protocol that pauses at the negotiated frequency and 
 
 ## Evidence
 
-- [ ] Check-in triggers at correct frequency
-- [ ] Report is clear and actionable
-- [ ] All user options work correctly
-- [ ] Changes persisted to correct files
-- [ ] Build loop resumes correctly after check-in
+- [x] Check-in triggers at correct frequency
+- [x] Report is clear and actionable
+- [x] All user options work correctly
+- [x] Changes persisted to correct files
+- [x] Build loop resumes correctly after check-in

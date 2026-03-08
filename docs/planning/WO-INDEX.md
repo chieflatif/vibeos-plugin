@@ -68,11 +68,11 @@
 
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
-| WO-030 | Convergence Controls | Draft | WO-029 |
-| WO-031 | Token Budget Tracking | Draft | WO-030 |
-| WO-032 | Multi-WO Orchestration | Draft | WO-030 |
-| WO-033 | Phase Boundary Audit (Layer 5) | Draft | WO-032 |
-| WO-034 | Human Check-in Protocol (Layer 6) | Draft | WO-032 |
+| WO-030 | Convergence Controls | Complete | WO-029 |
+| WO-031 | Token Budget Tracking | Complete | WO-030 |
+| WO-032 | Multi-WO Orchestration | Complete | WO-030 |
+| WO-033 | Phase Boundary Audit (Layer 5) | Complete | WO-032 |
+| WO-034 | Human Check-in Protocol (Layer 6) | Complete | WO-032 |
 
 ### Phase 6: Midstream Embedding & Production Readiness
 
@@ -120,3 +120,8 @@
 | WO-027 | Evidence Auditor Agent | 4 | 2026-03-07 |
 | WO-028 | `/vibeos:audit` Skill (Full Audit Cycle) | 4 | 2026-03-07 |
 | WO-029 | Integrate Auditors into Build Loop | 4 | 2026-03-07 |
+| WO-030 | Convergence Controls | 5 | 2026-03-08 |
+| WO-031 | Token Budget Tracking | 5 | 2026-03-08 |
+| WO-032 | Multi-WO Orchestration | 5 | 2026-03-08 |
+| WO-033 | Phase Boundary Audit (Layer 5) | 5 | 2026-03-08 |
+| WO-034 | Human Check-in Protocol (Layer 6) | 5 | 2026-03-08 |

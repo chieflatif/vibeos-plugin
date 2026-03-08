@@ -127,11 +127,11 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-030 | Convergence Controls | WO-029 | Draft |
-| WO-031 | Token Budget Tracking | WO-030 | Draft |
-| WO-032 | Multi-WO Orchestration | WO-030 | Draft |
-| WO-033 | Phase Boundary Audit (Layer 5) | WO-032 | Draft |
-| WO-034 | Human Check-in Protocol (Layer 6) | WO-032 | Draft |
+| WO-030 | Convergence Controls | WO-029 | Complete |
+| WO-031 | Token Budget Tracking | WO-030 | Complete |
+| WO-032 | Multi-WO Orchestration | WO-030 | Complete |
+| WO-033 | Phase Boundary Audit (Layer 5) | WO-032 | Complete |
+| WO-034 | Human Check-in Protocol (Layer 6) | WO-032 | Complete |
 
 ---
 
