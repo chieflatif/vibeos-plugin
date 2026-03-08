@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,17 +15,17 @@ Create the `USER-COMMUNICATION-CONTRACT.md` referenced in CLAUDE.md but never bu
 ## Scope
 
 ### In Scope
-- [ ] Create `docs/USER-COMMUNICATION-CONTRACT.md` with universal communication rules
-- [ ] Define concept introduction protocol: first use of any term includes plain English definition
-- [ ] Define progress reporting format: step indicators, agent identification, ETA-free status
-- [ ] Define decision presentation format: options with consequences, not just labels
-- [ ] Define error reporting format: what happened, why, what was tried, options
-- [ ] Define escalation format: when the system needs human input
-- [ ] Define finding presentation format: risk in business terms, not technical jargon
-- [ ] Define glossary of core terms (WO, phase, gate, audit, convergence, baseline, ratchet, TDD, layer)
-- [ ] Embed contract reference in every agent prompt (agents/*.md)
-- [ ] Embed contract reference in every skill prompt (skills/*/SKILL.md)
-- [ ] Add communication contract to agent frontmatter as a constraint
+- [x]Create `docs/USER-COMMUNICATION-CONTRACT.md` with universal communication rules
+- [x]Define concept introduction protocol: first use of any term includes plain English definition
+- [x]Define progress reporting format: step indicators, agent identification, ETA-free status
+- [x]Define decision presentation format: options with consequences, not just labels
+- [x]Define error reporting format: what happened, why, what was tried, options
+- [x]Define escalation format: when the system needs human input
+- [x]Define finding presentation format: risk in business terms, not technical jargon
+- [x]Define glossary of core terms (WO, phase, gate, audit, convergence, baseline, ratchet, TDD, layer)
+- [x]Embed contract reference in every agent prompt (agents/*.md)
+- [x]Embed contract reference in every skill prompt (skills/*/SKILL.md)
+- [x]Add communication contract to agent frontmatter as a constraint
 
 ### Out of Scope
 - Onboarding flow (WO-046)
@@ -46,15 +46,15 @@ Create the `USER-COMMUNICATION-CONTRACT.md` referenced in CLAUDE.md but never bu
 
 ## Acceptance Criteria
 
-- [ ] AC-1: USER-COMMUNICATION-CONTRACT.md created with all sections
-- [ ] AC-2: Concept introduction protocol defined with examples
-- [ ] AC-3: Progress reporting format defined with templates
-- [ ] AC-4: Decision presentation format defined with consequence requirements
-- [ ] AC-5: Error reporting format defined
-- [ ] AC-6: Glossary of 15+ core terms with plain English definitions
-- [ ] AC-7: All 12 agent files reference the communication contract
-- [ ] AC-8: All 8 skill files reference the communication contract
-- [ ] AC-9: Contract includes at least one compliant and one non-compliant example for each template, enabling objective compliance checking
+- [x]AC-1: USER-COMMUNICATION-CONTRACT.md created with all sections
+- [x]AC-2: Concept introduction protocol defined with examples
+- [x]AC-3: Progress reporting format defined with templates
+- [x]AC-4: Decision presentation format defined with consequence requirements
+- [x]AC-5: Error reporting format defined
+- [x]AC-6: Glossary of 15+ core terms with plain English definitions
+- [x]AC-7: All 12 agent files reference the communication contract
+- [x]AC-8: All 8 skill files reference the communication contract
+- [x]AC-9: Contract includes at least one compliant and one non-compliant example for each template, enabling objective compliance checking
 
 ## Test Strategy
 
@@ -123,14 +123,14 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (${CLAUDE_PLUGIN_ROOT}/docs/USER-
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Review all agent/skill files for contract reference, sample output compliance
 - Risk: Contract is an instruction to the AI, not enforced code — compliance is probabilistic. Templates and examples improve compliance rate.
 
 ## Evidence
 
-- [ ] Communication contract document created
-- [ ] All agents reference contract
-- [ ] All skills reference contract
-- [ ] Glossary covers all core terms
-- [ ] Output templates are clear and testable
+- [x]Communication contract document created
+- [x]All agents reference contract
+- [x]All skills reference contract
+- [x]Glossary covers all core terms
+- [x]Output templates are clear and testable

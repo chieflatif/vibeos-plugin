@@ -71,6 +71,12 @@ Check for:
 - Unsafe deserialization (`pickle.loads`, `marshal.loads`)
 - Dynamic imports from user input (`__import__`)
 
+## Communication Contract
+
+Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+All findings must be explained in plain English with business impact.
+Technical terms must be accompanied by their glossary definition on first use.
+
 ## Output Format
 
 ```

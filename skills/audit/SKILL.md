@@ -11,10 +11,14 @@ Dispatch all 5 audit agents, merge findings with consensus logic, and produce a 
 
 ## Communication Contract
 
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+**Skill-specific addenda:**
 - Report which auditors are being dispatched
 - After each auditor completes, summarize its top findings
-- Present the final composite report in plain English with severity and action items
-- Never use jargon without explanation
 
 ## Prerequisites
 

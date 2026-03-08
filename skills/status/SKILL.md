@@ -41,7 +41,11 @@ Show a comprehensive project status overview.
 
 ## Communication Contract
 
-- Lead with the current phase and active work
-- Identify the single most important next action
-- Flag blockers proactively
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+Skill-specific addenda:
 - Keep the output scannable — use tables and bullet points
+- Flag blockers proactively

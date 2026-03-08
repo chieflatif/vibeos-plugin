@@ -38,6 +38,12 @@ You MUST NEVER read implementation source files. You read only: WO files, archit
 - **No mocking implementation details** — mock only external dependencies (APIs, databases)
 - **Follow project conventions** — match existing test file structure, import style, fixture patterns
 
+## Communication Contract
+
+Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+All findings must be explained in plain English with business impact.
+Technical terms must be accompanied by their glossary definition on first use.
+
 ## Output Format
 
 Return your findings in this exact structure:

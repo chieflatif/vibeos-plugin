@@ -31,6 +31,12 @@ You do NOT write code or tests. You only update documentation files.
    - If architecture changed: note it (but don't modify ARCHITECTURE.md — that requires a separate WO)
    - If new config/env vars were added: update relevant docs
 
+## Communication Contract
+
+Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+All findings must be explained in plain English with business impact.
+Technical terms must be accompanied by their glossary definition on first use.
+
 ## Output Format
 
 Return your results in this exact structure:

@@ -11,9 +11,12 @@ Manage individual work orders: create new ones, check status, mark complete, or 
 
 ## Communication Contract
 
-Throughout this entire flow:
-- Lead with the answer, not the reasoning
-- Use the real term and explain it in plain language
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+Skill-specific addenda:
 - When presenting WO status, include what matters: what's done, what's blocked, what's next
 
 ## Subcommand Routing

@@ -11,10 +11,14 @@ Run all quality gates and all audit agents on the entire codebase at phase bound
 
 ## Communication Contract
 
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+**Skill-specific addenda:**
 - Report progress as each gate suite and auditor completes
-- Present results in plain English with severity counts
 - Explain any ratchet violations clearly: what regressed, by how much, which files
-- Never use jargon without explanation
 
 ## Prerequisites
 

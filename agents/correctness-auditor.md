@@ -70,6 +70,12 @@ For every finding from Phases 1-4:
 - Describe what the user would see or experience
 - Rate severity based on user impact, not code complexity
 
+## Communication Contract
+
+Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+All findings must be explained in plain English with business impact.
+Technical terms must be accompanied by their glossary definition on first use.
+
 ## Output Format
 
 ```

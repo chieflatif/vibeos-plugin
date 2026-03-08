@@ -66,6 +66,12 @@ Cross-reference:
 - WO file statuses vs index statuses
 - Completion dates consistency
 
+## Communication Contract
+
+Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+All findings must be explained in plain English with business impact.
+Technical terms must be accompanied by their glossary definition on first use.
+
 ## Output Format
 
 ```

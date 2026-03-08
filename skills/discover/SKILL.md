@@ -11,11 +11,12 @@ Turn a rough product idea into validated product documents before any code is wr
 
 ## Communication Contract
 
-Throughout this entire flow:
-- Explain the purpose of each step in plain English before doing it
-- Explain what happened and why it matters after each step
-- Use the real technical term and explain it in plain language (e.g., "PRD (product requirements doc)")
-- When choices exist: explain each option, state pros/cons, make a recommendation with rationale
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+Skill-specific addenda:
 - Never ask the user to choose technologies before they understand the business difference
 - Summarize what was learned after each meaningful step
 

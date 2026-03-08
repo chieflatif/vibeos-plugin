@@ -11,10 +11,12 @@ Execute work orders autonomously with TDD, layered agents, quality gates, and er
 
 ## Communication Contract
 
-Throughout this entire flow:
-- Report progress at each major step (agent dispatch, test results, gate results)
-- Explain what happened and what's next after each agent completes
-- On errors: explain what went wrong in plain English, what was tried, and what needs user input
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+**Skill-specific addenda:**
 - Never ask "what do you want to build?" — read the plan and execute
 
 ## Prerequisites

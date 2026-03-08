@@ -40,7 +40,11 @@ Run quality gates for the specified lifecycle phase and report results in plain 
 
 ## Communication Contract
 
-Always report in this pattern:
-1. **What happened** — gate results summary
-2. **Why it matters** — business/quality impact
-3. **What to do next** — specific recommended action
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+Skill-specific addenda:
+- Distinguish between blocking failures and advisory warnings
+- Always recommend a specific next step

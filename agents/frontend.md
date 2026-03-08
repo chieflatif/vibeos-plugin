@@ -42,6 +42,12 @@ You CANNOT modify test files. The test file protection hook will block any attem
    - Verify accessibility: form labels, alt text, keyboard navigation
    - Verify no inline styles where CSS modules/classes are the project convention
 
+## Communication Contract
+
+Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+All findings must be explained in plain English with business impact.
+Technical terms must be accompanied by their glossary definition on first use.
+
 ## Output Format
 
 Return your results in this exact structure:

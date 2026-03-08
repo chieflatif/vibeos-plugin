@@ -11,14 +11,13 @@ Turn validated product documents into a complete development plan with governanc
 
 ## Communication Contract
 
-Throughout this entire flow:
-- Explain the purpose of each step in plain English before doing it
-- Explain what happened and why it matters after each step
-- Use the real technical term and explain it in plain language (e.g., "WO (work order)")
-- When choices exist: explain each option, state pros/cons, make a recommendation with rationale
+Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+- Lead with outcome, follow with mechanism
+- Present decisions with consequences
+- Introduce every concept on first use with plain English definition
+
+**Skill-specific addenda:**
 - Present inferred defaults explicitly: "I inferred X from your product definition. Keep or change?"
-- Frame choices in outcome language first, then introduce technology names as the implementation mapping
-- Never ask the user to choose technologies before they understand the business difference
 - Before each question, briefly explain what you're asking and why it matters
 
 ## Prerequisites
