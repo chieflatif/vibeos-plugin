@@ -84,7 +84,7 @@ Integrate known baselines into the gate and audit systems so that pre-existing f
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Unit tests for baseline logic, integration test with gate-runner
 - Risk: Baseline file corruption could cause false blocks or false passes; must validate file integrity
 

@@ -3,7 +3,8 @@
 # PreToolUse hook: reads tool input from stdin, checks if an implementation agent
 # is modifying a test file with justification-required patterns.
 # Exit 0 with JSON on stdout; exit 2 on blocking error.
-# Note: No pipefail — stdin/jq patterns may trigger errexit.
+# Note: No set -euo pipefail — hook reads stdin via cat and uses || fallbacks
+# that would trigger errexit. This is intentional per hook convention.
 
 FRAMEWORK_VERSION="1.0.0"
 

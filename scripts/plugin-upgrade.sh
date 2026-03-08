@@ -162,12 +162,25 @@ case "$COMMAND" in
 
     echo "[plugin-upgrade] Rolling back from backup: $LATEST_BACKUP"
 
+    # Restore scripts directory
+    if [ -d "$LATEST_BACKUP/scripts" ]; then
+      cp -r "$LATEST_BACKUP/scripts/"* "$PLUGIN_DIR/scripts/" 2>/dev/null || true
+      echo "[plugin-upgrade] Restored scripts from backup"
+    fi
+
+    # Restore hooks directory
+    if [ -d "$LATEST_BACKUP/hooks" ]; then
+      cp -r "$LATEST_BACKUP/hooks/"* "$PLUGIN_DIR/hooks/" 2>/dev/null || true
+      echo "[plugin-upgrade] Restored hooks from backup"
+    fi
+
     # Restore version file
     if [ -f "$LATEST_BACKUP/version.json" ]; then
       cp "$LATEST_BACKUP/version.json" "$VERSION_FILE"
+      echo "[plugin-upgrade] Restored version tracking"
     fi
 
-    echo "[plugin-upgrade] Rollback complete"
+    echo "[plugin-upgrade] Rollback complete: scripts, hooks, and version restored"
     echo "{\"status\": \"rolled_back\", \"backup_used\": \"$LATEST_BACKUP\"}"
     ;;
 
