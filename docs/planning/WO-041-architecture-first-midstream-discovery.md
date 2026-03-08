@@ -117,6 +117,7 @@ After user validates, write the final architecture document.
 - If not: tell user to run `/vibeos:discover` first (which now handles midstream)
 - Architecture document is a prerequisite for meaningful audits
 - The existing Step 1b gate/audit/baseline flow is superseded by the WO-042/043/044 pipeline
+- **Interim limitation:** After WO-041 replaces Step 1b but before WO-044 is implemented, midstream projects will not have remediation WO creation. This is acceptable because the full pipeline (WO-041 → WO-042 → WO-043 → WO-044) must all be implemented before the midstream flow is functional end-to-end.
 
 ## Audit Checkpoints
 

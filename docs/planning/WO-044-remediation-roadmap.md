@@ -41,7 +41,7 @@ Create a proper remediation roadmap that integrates user-decided finding disposi
 
 ## Impact Analysis
 
-- **Files modified:** `skills/plan/SKILL.md` (Phase 0 generation — WO-044 is the **sole owner** of remediation WO creation, superseding the existing Step 1b remediation logic that WO-041 replaces), `skills/build/SKILL.md` (Phase 0 enforcement at Step 1, aging reminders after WO completion), `skills/status/SKILL.md` (remediation display), `convergence/baseline-check.sh` (may need to query findings-registry for Phase 0 enforcement checks)
+- **Files modified:** `skills/plan/SKILL.md` (Phase 0 generation — WO-044 is the **sole owner** of remediation WO creation, superseding the existing Step 1b remediation logic that WO-041 replaces), `skills/build/SKILL.md` (Phase 0 enforcement at Step 1, aging reminders after WO completion), `skills/status/SKILL.md` (remediation display). Note: Phase 0 enforcement reads `.vibeos/findings-registry.json` directly (via jq) to check fix-now completion status — no modifications to `convergence/baseline-check.sh` needed (WO-043 owns that file).
 - **Files created:** `docs/planning/ACCEPTED-RISKS.md` (in target project), `docs/planning/REMEDIATION-ROADMAP.md` (in target project)
 - **Systems affected:** Plan skill, build skill, status skill, WO creation
 - **Note:** WO-047 also modifies `skills/build/SKILL.md` for progress reporting. WO-044 should be implemented first; WO-047 adds progress banners around WO-044's enforcement and reminder logic.

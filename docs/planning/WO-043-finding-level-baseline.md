@@ -122,6 +122,7 @@ Finding fingerprint = SHA-256 of `category + file + pattern + severity` using `s
 ```bash
 echo -n "${category}:${file}:${pattern}:${severity}" | shasum -a 256 | cut -d' ' -f1
 ```
+Fingerprints are **pre-computed and stored** in the baseline file (as shown in Step 1 schema `fingerprint` field). At comparison time, compute fingerprints for current findings and match against stored fingerprints. This avoids recomputing on every check.
 - Tolerates line number changes (file refactoring)
 - Catches same-pattern-different-file as new finding
 - Catches same-file-different-pattern as new finding
@@ -132,6 +133,9 @@ After gate/audit run:
 2. Unmatched current findings = NEW (potential new issues)
 3. Unmatched baseline findings = FIXED (improvements)
 4. If NEW > 0: report specifically which findings are new, even if total count unchanged
+
+### Step 4b: Update findings-registry.json
+When a finding is first baselined, update the corresponding entry in `.vibeos/findings-registry.json` to set `baselined_at_wo` (the WO number at time of baselining). This cross-file update is required by WO-042's schema contract and consumed by WO-044 for aging reminders.
 
 ### Step 5: Migration Script
 `convergence/migrate-baseline.sh`:
