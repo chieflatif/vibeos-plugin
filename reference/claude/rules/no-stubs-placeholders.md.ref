@@ -1,0 +1,53 @@
+# <!-- REQUIRED -->
+# No Stubs, Placeholders, or Fallbacks (Always Active)
+
+## Zero Tolerance Policy
+
+- **NO stubs**: `raise NotImplementedError`, pass-only functions, empty implementations
+- **NO placeholders**: TODO/FIXME in production code, placeholder variables, dummy data in non-test code
+- **NO fallback code** that masks missing functionality
+
+## Patterns That Are FORBIDDEN
+
+<!-- ADAPT: Agent includes language-specific patterns based on project language -->
+
+```python
+# Python stubs
+raise NotImplementedError
+def foo(): pass
+def foo(): ...
+```
+
+```javascript
+// JavaScript/TypeScript stubs
+throw new Error("Not implemented")
+function foo() {}
+const foo = () => {}
+```
+
+```go
+// Go stubs
+panic("not implemented")
+func Foo() {}
+```
+
+## Universal Patterns (All Languages)
+
+```
+# Placeholders
+# TODO: implement this later
+# FIXME: this is broken
+
+# Vacuous tests
+assert True
+assert 1 == 1
+expect(true).toBe(true)
+```
+
+## Enforcement
+
+Automated: `scripts/detect-stubs-placeholders.py` runs as a pre-commit gate.
+
+## If You Can't Implement Something Fully
+
+**STOP and flag it.** Do not create a stub. Either implement it fully or document the blocker in the Work Order.

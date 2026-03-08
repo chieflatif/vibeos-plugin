@@ -1,0 +1,62 @@
+<!-- REQUIRED -->
+# {{PROJECT_NAME}} Technical Spec
+
+<!-- REQUIRED -->
+## Delivery Shape
+<!-- ADAPT -->
+- Product type: {{PRODUCT_TYPE}}
+- Platforms: {{PLATFORMS}}
+- Deployment shape: {{DEPLOYMENT_SHAPE}}
+
+<!-- REQUIRED -->
+## Recommended Stack
+<!-- ADAPT -->
+- Language: {{LANGUAGE}}
+- Framework: {{FRAMEWORK}}
+- Database: {{DATABASE}}
+- Package manager: {{PACKAGE_MANAGER}}
+
+<!-- REQUIRED -->
+## Core Modules
+<!-- ADAPT -->
+- {{MODULE_1}}
+- {{MODULE_2}}
+- {{MODULE_3}}
+
+<!-- REQUIRED -->
+## Data and Security
+<!-- ADAPT -->
+- Sensitive data: {{SENSITIVE_DATA}}
+- Compliance targets: {{COMPLIANCE_TARGETS}}
+- Audit/logging notes: {{AUDIT_REQUIREMENTS}}
+
+<!-- OPTIONAL: Include when deployment_context is production or above -->
+## Observability & Operations
+<!-- ADAPT: When production+ — logging, metrics, health, alerting -->
+- Logging: structured, correlation IDs
+- Metrics: APM, SLOs
+- Health: DB/Redis readiness probes
+- Alerting: runbooks, on-call
+
+<!-- OPTIONAL: Include when deployment_context is customer-facing or scale -->
+## Resilience & Scale
+<!-- ADAPT: When customer-facing+ — rate limiting, retries, caching, scaling -->
+- Rate limiting
+- Circuit breakers, retries
+- Caching strategy
+- Horizontal scaling (if applicable)
+
+<!-- OPTIONAL: Include when deployment_context is production or above -->
+## Security Hardening
+<!-- ADAPT: When production+ — headers, validation, secrets, audit -->
+- Security headers (CSP, HSTS)
+- Input validation, size limits
+- Secrets management
+- Audit trail for sensitive actions
+
+<!-- REQUIRED -->
+## Delivery Notes
+<!-- ADAPT -->
+- Dependency policy: {{DEPENDENCY_POLICY}}
+- Environments: {{ENVIRONMENT_SHAPE}}
+- Testing strategy: {{TEST_STRATEGY}}

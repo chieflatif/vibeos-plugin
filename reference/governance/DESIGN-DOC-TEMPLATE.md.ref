@@ -1,0 +1,52 @@
+# <!-- OPTIONAL: Include if project uses design docs for complex features -->
+# Design Doc: Title
+
+## Summary
+
+<!-- 1-2 paragraph overview of what's being built and why -->
+
+## Goals
+
+- <!-- Goal 1 -->
+- <!-- Goal 2 -->
+
+## Non-Goals
+
+- <!-- Explicitly out of scope -->
+
+## Background
+
+<!-- Context needed to understand this design -->
+
+## Detailed Design
+
+### Architecture
+
+<!-- How does this fit into the existing system? -->
+
+### API/Interface Changes
+
+<!-- New endpoints, function signatures, data models -->
+
+### Data Model Changes
+
+<!-- Schema changes, migration plan -->
+
+## Implementation Plan
+
+| Phase | Description | Estimate |
+|-------|-------------|----------|
+| 1 | <!-- Phase 1 --> | |
+| 2 | <!-- Phase 2 --> | |
+
+## Testing Strategy
+
+<!-- How will this be tested? Unit, integration, e2e? -->
+
+## Security Considerations
+
+<!-- What security implications does this design have? -->
+
+## Open Questions
+
+- <!-- Question 1 -->

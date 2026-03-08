@@ -1,0 +1,117 @@
+{
+  "_comment": "VibeOS Plugin Architecture Rules — Example configurations for common frameworks",
+  "_usage": "Copy this file to scripts/architecture-rules.json and customize for your project",
+
+  "_examples": {
+    "fastapi": {
+      "rules": [
+        {
+          "name": "router-isolation",
+          "type": "forbidden_imports",
+          "source_module": "routers/",
+          "target_module": "routers/",
+          "severity": "error",
+          "message": "Routers cannot import from other routers — use shared services"
+        },
+        {
+          "name": "api-purity",
+          "type": "forbidden_patterns",
+          "source_module": "routers/",
+          "pattern": "(open\\(|subprocess\\.|os\\.system)",
+          "severity": "error",
+          "message": "Router endpoints must not perform direct I/O — delegate to services"
+        },
+        {
+          "name": "dependency-injection",
+          "type": "require_parameter",
+          "source_module": "services/",
+          "parameter": "db",
+          "severity": "warning",
+          "message": "Service functions should accept db session via dependency injection"
+        },
+        {
+          "name": "no-raw-sql",
+          "type": "forbidden_patterns",
+          "source_module": "src/",
+          "pattern": "(cursor\\.execute|connection\\.execute)\\s*\\(\\s*f['\"]",
+          "severity": "error",
+          "message": "Use SQLAlchemy ORM or parameterized queries"
+        }
+      ]
+    },
+
+    "django": {
+      "rules": [
+        {
+          "name": "orm-enforcement",
+          "type": "forbidden_patterns",
+          "source_module": "src/",
+          "pattern": "(cursor\\.execute|raw\\(|RawSQL)",
+          "severity": "error",
+          "message": "Use Django ORM — avoid raw SQL"
+        },
+        {
+          "name": "view-separation",
+          "type": "forbidden_patterns",
+          "source_module": "*/views.py",
+          "pattern": "(objects\\.create|objects\\.filter|objects\\.get|save\\(\\))",
+          "severity": "warning",
+          "message": "Views should delegate data operations to services or managers"
+        }
+      ]
+    },
+
+    "express": {
+      "rules": [
+        {
+          "name": "middleware-isolation",
+          "type": "forbidden_imports",
+          "source_module": "middleware/",
+          "target_module": "routes/",
+          "severity": "error",
+          "message": "Middleware cannot import route handlers"
+        },
+        {
+          "name": "controller-separation",
+          "type": "forbidden_patterns",
+          "source_module": "routes/",
+          "pattern": "(mongoose\\.|prisma\\.|knex\\.|db\\.)",
+          "severity": "warning",
+          "message": "Route handlers should delegate data access to controllers/services"
+        },
+        {
+          "name": "async-patterns",
+          "type": "forbidden_patterns",
+          "source_module": "routes/",
+          "pattern": "\\.then\\(",
+          "severity": "warning",
+          "message": "Use async/await instead of .then() chains in route handlers"
+        }
+      ]
+    },
+
+    "nestjs": {
+      "rules": [
+        {
+          "name": "service-purity",
+          "type": "forbidden_patterns",
+          "source_module": "*.controller.ts",
+          "pattern": "(Repository|getRepository|createQueryBuilder)",
+          "severity": "error",
+          "message": "Controllers should not access repositories directly — use services"
+        }
+      ]
+    }
+  },
+
+  "rules": [
+    {
+      "name": "no-raw-sql",
+      "type": "forbidden_patterns",
+      "source_module": "src/",
+      "pattern": "(cursor\\.execute|connection\\.execute)\\s*\\(\\s*f['\"]|(\\.execute\\s*\\(.*%s)",
+      "severity": "error",
+      "message": "Use parameterized queries, not string formatting for SQL"
+    }
+  ]
+}

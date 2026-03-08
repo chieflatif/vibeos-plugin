@@ -1,0 +1,32 @@
+<!-- REQUIRED -->
+# {{PROJECT_NAME}} Architecture Outline
+
+<!-- REQUIRED -->
+## System Context
+<!-- ADAPT -->
+{{SYSTEM_CONTEXT}}
+
+<!-- REQUIRED -->
+## Major Components
+<!-- ADAPT -->
+- Client: {{CLIENT_COMPONENT}}
+- API/Application: {{APP_COMPONENT}}
+- Data: {{DATA_COMPONENT}}
+
+<!-- REQUIRED -->
+## Core Flows
+<!-- ADAPT -->
+1. {{FLOW_1}}
+2. {{FLOW_2}}
+3. {{FLOW_3}}
+
+<!-- REQUIRED -->
+## Risks and Constraints
+<!-- ADAPT -->
+- {{RISK_1}}
+- {{RISK_2}}
+
+<!-- OPTIONAL: constraints.integrations is not empty -->
+## External Dependencies
+<!-- ADAPT -->
+- {{EXTERNAL_DEPENDENCY_1}}

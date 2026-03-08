@@ -1,0 +1,54 @@
+# <!-- REQUIRED -->
+# Mandatory Audit (Always Active)
+
+## Audit Loop (Always Active)
+
+Every Work Order must go through four audit checkpoints:
+
+1. Planning self-audit
+2. Pre-implementation deep audit
+3. Pre-commit audit
+4. Staging audit
+
+Plan acceptance does not authorize implementation. After the user accepts a plan, run `wo_entry` and do not start coding until it passes.
+
+Use `docs/planning/WO-AUDIT-FRAMEWORK.md` for the standard questions. Do not make the user repeat them manually.
+
+## Standard Questions
+
+- What did we miss?
+- What did we get wrong?
+- What assumptions might fail?
+- What dependencies, configs, migrations, or integrations are missing?
+- What details are invented or not backed by evidence?
+- What tests, fixtures, validations, or monitoring are missing?
+- Should we recommend an additional user-requested audit right now?
+
+## After Every Phase Completion
+
+Run the appropriate quality gate phase:
+
+```bash
+# After plan acceptance, before implementation
+bash scripts/gate-runner.sh wo_entry --continue-on-failure --wo <NUMBER>
+
+# After implementation work
+bash scripts/gate-runner.sh wo_exit --continue-on-failure
+
+# Before any commit
+bash scripts/gate-runner.sh pre_commit --continue-on-failure
+```
+
+## Audit Results
+
+- **Blocking failures** (tier 0-1): Must be resolved before proceeding
+- **Advisory failures** (tier 2-3): Document in WO, resolve when practical
+- **Baselined failures**: Pre-existing issues tracked in manifest, not regressions
+- **Deep audit findings**: Must be written back into the WO audit-loop sections, not kept as ephemeral chat output
+
+## No Silent Failures
+
+- Every gate run must be acknowledged
+- Failed gates must have a resolution path documented
+- Do not suppress or ignore gate output
+- Do not skip the planning, pre-implementation, pre-commit, or staging audits when the WO is active

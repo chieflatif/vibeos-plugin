@@ -1,0 +1,29 @@
+# <!-- OPTIONAL: Include if project tracks architectural decisions -->
+# ADR-NNN: Title
+
+## Status
+
+Proposed | Accepted | Deprecated | Superseded by ADR-NNN
+
+## Context
+
+<!-- What is the issue that we're seeing that is motivating this decision? -->
+
+## Decision
+
+<!-- What is the change that we're proposing and/or doing? -->
+
+## Consequences
+
+### Positive
+<!-- What becomes easier or possible as a result? -->
+
+### Negative
+<!-- What becomes harder or impossible as a result? -->
+
+### Neutral
+<!-- What other effects does this have? -->
+
+## Alternatives Considered
+
+<!-- What other options were evaluated? Why were they rejected? -->

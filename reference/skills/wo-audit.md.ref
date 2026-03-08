@@ -1,0 +1,46 @@
+# <!-- REQUIRED -->
+# Skill: /wo-audit
+
+## Description
+Run the standard deep self-audit for a Work Order without the user having to restate the audit questions.
+
+## Trigger
+User types `/wo-audit` or asks for a WO audit at planning, pre-implementation, pre-commit, or staging.
+
+## Behavior
+
+1. **Identify the WO and checkpoint**
+   - Parameters: `--wo NUMBER`, `--checkpoint planning|pre-implementation|pre-commit|staging`
+2. **Load the standard framework**
+   - Read `docs/planning/WO-AUDIT-FRAMEWORK.md`
+   - Read the target `WO-*.md`
+3. **Prefer an independent audit context**
+   - Use a fresh-context audit pass or separate agent when available
+   - Avoid reusing the exact same planning context for the critical planning audit
+4. **Run the audit question set**
+   - What did we miss?
+   - What did we get wrong?
+   - What assumptions could fail?
+   - What dependencies, integrations, migrations, or env requirements are missing?
+   - What details are guessed or invented?
+   - What errors, regressions, edge cases, or security issues exist?
+   - What tests, fixtures, and validation steps are missing?
+   - Should an additional user-requested audit happen now?
+5. **Produce structured findings**
+   - Blocking issues
+   - Advisory issues
+   - Missing evidence
+   - Required plan changes
+   - Recommended next action
+6. **Update the WO**
+   - Record findings under the matching audit-loop checkpoint
+   - Update `WO-INDEX.md` audit-loop status if needed
+7. **Report back using this structure**
+   - Executive summary: what matters most in plain English
+   - Technical explanation: what was checked and why the findings exist (use the real term and explain it in plain language, e.g. "WO (work order)")
+   - Decision guidance: what must be fixed now vs what can wait — with pros/cons and a clear recommendation based on evidence
+   - Recommended next step: what should happen next and why
+
+## Parameters
+- `--wo NUMBER` — work order number (required)
+- `--checkpoint CHECKPOINT` — one of `planning`, `pre-implementation`, `pre-commit`, `staging`

@@ -1,0 +1,19 @@
+<!-- REQUIRED -->
+# {{PROJECT_NAME}} — Assumptions and Risks
+
+<!-- REQUIRED -->
+## Unresolved Questions
+<!-- ADAPT: List assumptions that need validation or user confirmation -->
+- {{ASSUMPTION_1}}
+- {{ASSUMPTION_2}}
+
+<!-- REQUIRED -->
+## Delivery Risks
+<!-- ADAPT: Technical, timeline, or dependency risks -->
+- {{RISK_1}}
+- {{RISK_2}}
+
+<!-- OPTIONAL: When compliance includes gdpr, soc2, or sensitive_data is not empty -->
+## Compliance and Data Concerns
+<!-- ADAPT: PII handling, audit trail, data retention, consent -->
+- {{COMPLIANCE_CONCERN_1}}

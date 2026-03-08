@@ -1,0 +1,48 @@
+# <!-- ADAPT: Agent generates .pre-commit-config.yaml from project config -->
+# <!-- REQUIRED: Must include secrets detection at minimum -->
+# Pre-commit configuration
+# Install: pip install pre-commit && pre-commit install
+
+repos:
+  # <!-- REQUIRED: Secrets detection -->
+  - repo: local
+    hooks:
+      - id: no-secrets
+        name: Secrets Detection
+        entry: bash scripts/validate-no-secrets.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: security-patterns
+        name: Security Pattern Check
+        entry: bash scripts/validate-security-patterns.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      # <!-- ADAPT: Include if language is Python -->
+      # - id: stub-detection
+      #   name: Stub/Placeholder Detection
+      #   entry: python3 scripts/detect-stubs-placeholders.py
+      #   language: system
+      #   pass_filenames: false
+      #   always_run: true
+
+  # <!-- ADAPT: Include language-specific linting hooks -->
+  # <!-- EXAMPLE: Python with ruff -->
+  # - repo: https://github.com/astral-sh/ruff-pre-commit
+  #   rev: v0.8.0
+  #   hooks:
+  #     - id: ruff
+  #       args: [--fix]
+  #     - id: ruff-format
+
+  # <!-- EXAMPLE: TypeScript with eslint -->
+  # - repo: local
+  #   hooks:
+  #     - id: eslint
+  #       name: ESLint
+  #       entry: npx eslint
+  #       language: system
+  #       types: [typescript]

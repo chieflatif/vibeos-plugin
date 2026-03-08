@@ -1,0 +1,68 @@
+#!/bin/bash
+# <!-- REQUIRED -->
+# Session Hook: Session Start
+# Initializes session with governance context, captures git state, sets env vars.
+#
+# <!-- ADAPT: Health check URL, session evidence directory, environment variables -->
+#
+# Hook type: SessionStart (matcher: startup)
+# Uses CLAUDE_ENV_FILE to persist env vars for the session.
+#
+# Framework version: 1.0.0
+
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+cd "$PROJECT_DIR"
+
+# Create session evidence directory
+SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%Y%m%d-%H%M%S)}"
+# <!-- ADAPT: Change evidence directory path to match project structure -->
+SESSION_DIR=".claude/evidence/session-$SESSION_ID"
+mkdir -p "$SESSION_DIR"
+
+# Persist environment variables via CLAUDE_ENV_FILE
+if [ -n "$CLAUDE_ENV_FILE" ]; then
+  echo "export SESSION_ID=\"$SESSION_ID\"" >> "$CLAUDE_ENV_FILE"
+  echo "export SESSION_EVIDENCE_DIR=\"$SESSION_DIR\"" >> "$CLAUDE_ENV_FILE"
+  # <!-- ADAPT: Add project-specific env vars -->
+  # echo "export TARGET_ENV=\"staging\"" >> "$CLAUDE_ENV_FILE"
+  # echo "export PYTHONPATH=\"src\"" >> "$CLAUDE_ENV_FILE"
+fi
+
+# Get current git state
+GIT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+GIT_STATUS=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+LAST_COMMIT=$(git log -1 --oneline 2>/dev/null || echo "none")
+
+# <!-- OPTIONAL: Check health endpoint -->
+# <!-- ADAPT: Set to project's staging health URL -->
+HEALTH_URL="${HEALTH_URL:-}"
+HEALTH_STATUS="not configured"
+if [ -n "$HEALTH_URL" ] && command -v curl &> /dev/null; then
+  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" --max-time 5 2>/dev/null || echo "000")
+  if [ "$HTTP_CODE" = "200" ]; then
+    HEALTH_STATUS="healthy"
+  else
+    HEALTH_STATUS="unreachable ($HTTP_CODE)"
+  fi
+fi
+
+# Check for previous handoff
+HANDOFF_EXISTS="false"
+HANDOFF_CONTENT=""
+if [ -f "SESSION-HANDOFF.md" ]; then
+  HANDOFF_EXISTS="true"
+  HANDOFF_CONTENT=$(head -30 SESSION-HANDOFF.md | tr '\n' ' ' | cut -c1-300)
+fi
+
+# Output session context
+cat << EOF
+{
+  "systemMessage": "Session initialized. Branch: $GIT_BRANCH | Uncommitted: $GIT_STATUS | Health: $HEALTH_STATUS | Handoff: $HANDOFF_EXISTS",
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "Session $SESSION_ID started. Branch: $GIT_BRANCH, uncommitted: $GIT_STATUS, last commit: $LAST_COMMIT. Health: $HEALTH_STATUS. Handoff: $HANDOFF_EXISTS. $HANDOFF_CONTENT"
+  }
+}
+EOF

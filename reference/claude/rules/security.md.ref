@@ -1,0 +1,36 @@
+# <!-- REQUIRED -->
+# Security (Always Active)
+
+## Secrets
+
+- **NEVER** hardcode secrets (API keys, tokens, passwords) in source code
+- Store secrets in `.env` files (gitignored) and access via environment variables
+- Use secret management services in production (Vault, AWS Secrets Manager, etc.)
+
+## Input Validation
+
+- Validate all external input at system boundaries
+- Use parameterized queries — never string-format SQL
+- Sanitize user input before rendering in HTML/templates
+
+## Authentication & Authorization
+
+<!-- ADAPT: Include project-specific auth patterns -->
+- Never trust client-provided identity claims without server-side verification
+- Use established auth libraries — do not implement custom crypto
+
+## OWASP Top 10
+
+<!-- OPTIONAL: Include if compliance targets include OWASP -->
+Automated validation via `scripts/validate-owasp-alignment.sh`:
+- A01: Broken Access Control — no hardcoded role bypasses, no CORS wildcards
+- A02: Cryptographic Failures — no MD5/SHA1, no hardcoded keys
+- A03: Injection — no SQL injection, no command injection, no XSS
+- A07: Auth Failures — no hardcoded passwords
+- A09: Logging Failures — no silent exception handling
+
+## Dependencies
+
+- Pin dependency versions (no wildcards in production)
+- Run dependency audits regularly (`scripts/validate-dependencies.sh`)
+- Keep dependencies updated to patch known vulnerabilities

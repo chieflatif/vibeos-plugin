@@ -1,0 +1,48 @@
+<!-- REQUIRED -->
+# Project Name
+
+<!-- REQUIRED -->
+## Summary
+Describe the product idea in the user's own words.
+
+<!-- REQUIRED -->
+## Primary User
+Who is this primarily for?
+
+<!-- REQUIRED -->
+## Problem
+What problem does it solve, and why does it matter now?
+
+<!-- REQUIRED -->
+## Core Workflows
+- Main workflow 1
+- Main workflow 2
+
+<!-- REQUIRED -->
+## V1 Features
+- Must-have feature 1
+- Must-have feature 2
+
+<!-- OPTIONAL -->
+## Non-Goals
+- Explicitly out-of-scope item
+
+<!-- OPTIONAL -->
+## Platforms
+- web
+- mobile
+- api
+
+<!-- OPTIONAL -->
+## Integrations
+- Stripe
+
+<!-- OPTIONAL -->
+## Sensitive Data
+- pii
+- health
+
+<!-- OPTIONAL -->
+## Compliance Targets
+- gdpr
+- owasp

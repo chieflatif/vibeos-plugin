@@ -1,0 +1,183 @@
+# <!-- REQUIRED: Agent generates this file customized to the project -->
+# <!-- ADAPT: Project name, architecture, stack, governance rules -->
+# $PROJECT_NAME — Agent Boot
+
+## What Is $PROJECT_NAME
+
+<!-- ADAPT: Agent writes 3-5 sentence description based on PROJECT-INTAKE.md answers -->
+<!-- REQUIRED: Must describe what the project IS and IS NOT -->
+
+## Architecture
+
+<!-- ADAPT: Agent generates architecture diagram from project's module structure -->
+<!-- REQUIRED: Must show module boundaries and dependency direction -->
+
+```
+<!-- EXAMPLE: Replace with actual project architecture -->
+Surface Layer (API, CLI, UI)
+        ↓
+Business Logic (services, processors)
+        ↓
+Data Layer (repositories, models)
+        ↑
+External Adapters (APIs, message queues)
+```
+
+### Module Structure
+
+```
+<!-- ADAPT: Agent scans project dirs and generates actual structure -->
+src/
+├── api/          # <!-- ADAPT: Describe each directory's purpose -->
+├── services/
+├── models/
+└── config/
+```
+
+### Architecture Rules
+
+<!-- ADAPT: Agent generates rules from enforce-architecture.sh rules file -->
+<!-- REQUIRED: Must list all architecture rules that are enforced -->
+
+## Technology Stack
+
+<!-- ADAPT: Agent fills from PROJECT-INTAKE.md answers -->
+<!-- REQUIRED: Must include language, framework, database, cloud provider -->
+
+| Technology | Purpose |
+|---|---|
+| $LANGUAGE | Runtime |
+| $FRAMEWORK | Web framework |
+
+## Governance
+
+### Three Laws
+<!-- REQUIRED: These are non-negotiable -->
+1. No remediation without a Work Order
+2. No Work Order without an evidence-backed finding
+3. No finding without investigation
+
+### Communication Style
+<!-- REQUIRED -->
+- Assume the user may be non-technical unless they clearly show otherwise
+- Use the real technical term and explain it in plain language: "PRD (product requirements doc)", "quality gates [checks that run before you commit]". Never replace the term entirely — users should learn the vocabulary.
+- Before acting: tell the user what you're about to do and why it matters
+- After acting: explain what happened, what changed, and why it matters
+- Start with a short executive or business summary before technical detail
+- When presenting choices: explain each option, state pros/cons, make a recommendation based on evidence, and explain your rationale
+- Present options in outcome language first, then map them to technologies
+- Keep the user oriented; never go silent and return only with terminal-style output
+
+### Quality Gates
+
+<!-- ADAPT: Agent lists active phases from quality-gate-manifest.json -->
+
+```bash
+# After plan acceptance, before implementation
+bash scripts/gate-runner.sh wo_entry --continue-on-failure --wo <NUMBER>
+
+# Before every commit
+bash scripts/gate-runner.sh pre_commit --continue-on-failure
+
+# After completing a Work Order
+bash scripts/gate-runner.sh wo_exit --continue-on-failure
+
+# Comprehensive audit
+bash scripts/gate-runner.sh full_audit --continue-on-failure
+```
+
+### Audit Loop
+
+Before moving a Work Order forward, run the matching deep self-audit using `docs/planning/WO-AUDIT-FRAMEWORK.md`:
+
+- Planning self-audit before WO approval
+- Pre-implementation deep audit before coding
+- Pre-commit audit before commit
+- Staging audit after push/staging verification
+- Plan acceptance should move the WO to `Accepted - Awaiting Entry Audit`
+- Do not start implementation until `wo_entry` passes
+
+Always record:
+- what was missed
+- what was wrong
+- what assumptions remain risky
+- what dependencies or tests are missing
+- whether an additional user-requested audit is recommended
+
+### Required Response Pattern
+
+For setup milestones, WO planning, implementation updates, audits, and WO completion, respond in this order:
+
+1. What we just achieved
+2. What changed under the hood
+3. Why it matters
+4. Recommended next step and why
+
+### Quality Gates (source of truth: `.claude/quality-gate-manifest.json`)
+
+<!-- ADAPT: Agent lists gates per phase from manifest -->
+
+### Zero-Stub Policy
+<!-- REQUIRED -->
+No `NotImplementedError`, no `pass`-only functions, no `# TODO` in committed code. If it can't be implemented fully, flag it as a blocker.
+
+### Upgrade VibeOS (Voice-Driven)
+<!-- REQUIRED: When user says upgrade, get latest, or update governance -->
+When the user says "Upgrade VibeOS", "Get the latest governance", "Update VibeOS", or similar:
+1. **If they give a URL** (e.g. `https://github.com/chieflatif/VibeOS-2` or `chieflatif/VibeOS-2`): Clone or pull that repo to `~/.vibeos-cache/VibeOS-2`, then run `bash ~/.vibeos-cache/VibeOS-2/helpers/fetch-and-upgrade.sh . [url]`. Use the current workspace as the target.
+2. **If they give a path** (e.g. `~/VibeOS-2`): Run `bash {path}/helpers/upgrade.sh .`.
+3. **If neither**: Ask "Give me the VibeOS repo URL (e.g. https://github.com/chieflatif/VibeOS-2) or the path where you have it cloned."
+4. **After upgrade**: Summarize what changed from the framework's CHANGELOG (Unreleased section) so the user understands the new capabilities.
+
+You handle everything — no manual git pull or script running. The user just says what they want.
+
+## Development Workflow
+
+<!-- ADAPT: Agent generates from language/framework/package manager -->
+
+```bash
+# <!-- EXAMPLE: Python -->
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"
+pre-commit install
+
+# <!-- EXAMPLE: TypeScript -->
+# npm install
+# npm run build
+# npm test
+```
+
+## Work Order Protocol
+
+<!-- REQUIRED -->
+```
+Phase 0: Research             → Dependencies, impact analysis, test plan
+Phase 0A: Planning Audit      → Deep self-audit before approval
+Phase 0B: Plan Accepted       → Accepted - Awaiting Entry Audit
+Phase 0C: Entry Gate          → gate-runner.sh wo_entry
+Phase 0D: Pre-Impl Audit      → Deep self-audit before coding
+Phase 1+: Implement           → Code + tests
+Phase N: Pre-Commit Audit     → Deep self-audit before commit
+Phase N+1: Gate Audit         → gate-runner.sh wo_exit
+Phase N+2: Commit             → Only if audits + gates pass
+Phase N+3: Staging Audit      → Deep self-audit after push/staging
+```
+
+### Production Definition of Done
+<!-- OPTIONAL: When deployment_context is production, customer-facing, or scale -->
+For deployed applications (deployment_context IN ["production", "customer-facing", "scale"]):
+- The application is NOT "finished" until the Production Readiness phase (and any Observability/Resilience/Security phases for customer-facing/scale) in DEVELOPMENT-PLAN are complete or explicitly deferred in a WO.
+- Before declaring the application done, check: Are all production-readiness WOs Complete or Deferred?
+- If not: "The application is not yet production-ready. Remaining: [list WOs]. Shall I implement them or create deferral WOs?"
+
+### Single Tracker
+**docs/planning/DEVELOPMENT-PLAN.md** defines the phased roadmap. Determine next WO from the "Next Work Order" section. Never ask the user what to build. All WO status tracked in `docs/planning/WO-INDEX.md`.
+
+## Key Design Decisions
+
+<!-- ADAPT: Agent documents project-specific architectural decisions -->
+
+## Compliance Targets
+
+<!-- ADAPT: Agent fills from PROJECT-INTAKE.md compliance answers -->
+<!-- OPTIONAL: Only include if compliance targets != "none" -->

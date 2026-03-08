@@ -1,0 +1,37 @@
+# <!-- REQUIRED -->
+# Architecture Enforcement (Always Active)
+
+<!-- ADAPT: Agent generates this from project's architecture-rules.json -->
+
+## Module Boundaries
+
+<!-- ADAPT: Describe the project's actual layer architecture -->
+
+### Layer Architecture
+
+```
+<!-- ADAPT: Replace with project architecture -->
+```
+
+### Rules
+
+<!-- ADAPT: List each rule from architecture-rules.json -->
+<!-- EXAMPLE:
+1. **API Layer Isolation** — `api/` cannot import from data layer directly
+2. **Service Layer Purity** — `services/` cannot perform direct I/O
+3. **No Circular Dependencies** — modules cannot create import cycles
+-->
+
+### Allowed Dependency Direction
+
+```
+<!-- ADAPT: Show allowed import directions -->
+```
+
+## Enforcement
+
+Architecture rules are enforced by `scripts/enforce-architecture.sh` which reads `scripts/architecture-rules.json`.
+
+```bash
+bash scripts/enforce-architecture.sh
+```

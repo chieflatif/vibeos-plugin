@@ -1,0 +1,65 @@
+# <!-- REQUIRED -->
+# Skill: /wo-research
+
+## Description
+Launch Phase 0 research for a new Work Order. Produces dependency map, implementation plan, and test strategy.
+
+## Trigger
+User types `/wo-research` or starts a new WO with "research phase"
+
+## Behavior
+
+1. **Create WO file** from template:
+   - Generate `docs/planning/WO-$SLUG-NNN.md` from WO-TEMPLATE
+   - Set status to "Active - Phase 0"
+   - Ensure `docs/planning/WO-AUDIT-FRAMEWORK.md` exists and is referenced in the WO
+2. **Add to WO-INDEX.md** — new entry in Active table
+3. **Research**:
+   - Scan codebase for related modules and functions
+   - Map dependencies that will be affected
+   - Identify test coverage gaps
+   - Check for architecture rule implications
+4. **Populate WO**:
+   - Fill dependency section
+   - Fill impact analysis
+   - Draft implementation phases
+   - Draft test strategy
+5. **Run independent planning self-audit before presenting the plan**:
+   - Use a fresh-context audit pass or separate agent when available
+   - Do not present the plan to the user until blocking findings are resolved or explicitly documented
+   - Set WO status to `Internally Audited` when this pass is complete
+6. **Run planning self-audit** using `docs/planning/WO-AUDIT-FRAMEWORK.md`:
+   - What did we miss?
+   - What did we get wrong?
+   - What assumptions, dependencies, migrations, or integrations are missing?
+   - What are the top P1/P0 risks in the plan?
+   - What should change before implementation is approved?
+7. **Present audited plan only after revision**
+   - If user accepts, move WO status to `Accepted - Awaiting Entry Audit`
+   - Acceptance is not implementation approval
+8. **Run pre-check**:
+   ```bash
+   bash scripts/gate-runner.sh pre_commit --dry-run
+   ```
+9. **Run pre-implementation deep audit** before handing the WO off to coding:
+   - Re-check architecture fit
+   - Re-check dependency and environment assumptions
+   - Re-check test and validation plan
+   - Recommend an extra user-requested audit if risk remains high
+10. **Run blocking entry gate**:
+   ```bash
+   bash scripts/gate-runner.sh wo_entry --continue-on-failure --wo <NUMBER>
+   ```
+11. **Only after wo_entry passes**
+   - Set WO status to `Implementation Ready`
+   - Implementation may begin
+12. **Report** — use this response pattern:
+   - Executive summary: what the plan now achieves in business terms
+   - Technical summary: what changed in the plan, in plain English (use the real term and explain it in plain language)
+   - Risks and assumptions: what could still bite the team
+   - If choices exist: explain pros/cons, make a recommendation, and state your rationale
+   - Recommended next step: what should happen next and why
+
+## Parameters
+- `title` — WO title (required)
+- `scope` — Brief scope description

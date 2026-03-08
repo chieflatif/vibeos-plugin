@@ -1,0 +1,37 @@
+#!/bin/bash
+# <!-- REQUIRED -->
+# Post-Tool Hook: Capture Failure
+# Automatically logs tool failures for evidence collection.
+# Runs asynchronously — does not block the agent.
+#
+# <!-- ADAPT: SESSION_DIR path may differ based on project structure -->
+#
+# Hook type: PostToolUseFailure (matcher: .*)
+# Async: true (runs in background, does not block)
+#
+# Framework version: 1.0.0
+
+INPUT=$(cat)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null || echo "unknown")
+ERROR=$(echo "$INPUT" | jq -r '.error // empty' 2>/dev/null || echo "")
+
+PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+cd "$PROJECT_DIR" || exit 0
+
+# <!-- ADAPT: Session directory location -->
+SESSION_ID="${CLAUDE_SESSION_ID:-$(date +%Y%m%d)}"
+SESSION_DIR="${SESSION_EVIDENCE_DIR:-.claude/evidence/session-$SESSION_ID}"
+mkdir -p "$SESSION_DIR"
+
+# Log the failure
+FAILURES_LOG="$SESSION_DIR/failures.log"
+cat >> "$FAILURES_LOG" << EOF
+---
+timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+tool: $TOOL_NAME
+error: |
+$(echo "$ERROR" | head -50)
+---
+EOF
+
+echo '{"ok": true}'

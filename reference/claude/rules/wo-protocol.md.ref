@@ -1,0 +1,64 @@
+# <!-- REQUIRED -->
+# Work Order Protocol (Always Active)
+
+## Work Order Lifecycle
+
+```
+Phase 0: Research             → Dependencies, impact analysis, test plan
+Phase 0A: Planning Audit      → Deep self-audit before approval
+Phase 0B: Pre-Impl Audit      → Deep self-audit before coding starts
+Phase 1+: Implement           → Code + tests per phase
+Phase N: Pre-Commit Audit     → Deep self-audit before commit
+Phase N+1: Gate Audit         → gate-runner.sh wo_exit
+Phase N+2: Commit             → Only if audits + gates pass
+Phase N+3: Staging Audit      → Deep self-audit after push/staging before next step
+```
+
+## Required WO Sections
+
+Every Work Order file must contain:
+1. **Objective** — What and why
+2. **Acceptance Criteria** — Definition of done (must include tests)
+3. **Test Strategy** — What will be tested, how, and where (required before implementation)
+4. **Tasks/Phases** — Implementation breakdown (tests in every phase)
+5. **Status** — Current state (`Draft` → `Active - Phase 0` → `Internally Audited` → `Presented` → `Accepted - Awaiting Entry Audit` → `Implementation Ready` → `Active - Phase 1`/`In Progress` → `Complete`/`Shipped`/`Blocked`)
+
+**TDD is built into the WO.** No WO can pass entry or completion validation without a Test Strategy and test evidence. The `validate-work-order` gate enforces this. **Exception:** Documentation-only or config-only WOs (no code changes) may waive the test requirement by stating "N/A — documentation-only" or "Waived — no code changes" in the Test Strategy section.
+
+## WO File Naming
+
+<!-- ADAPT: Use project's slug -->
+`WO-$PROJECT_SLUG-NNN.md` in `docs/planning/`
+
+## Production Definition of Done
+<!-- OPTIONAL: Include when deployment_context is production, customer-facing, or scale -->
+For deployed applications (deployment_context IN ["production", "customer-facing", "scale"]):
+- The application is NOT "finished" until the Production Readiness phase (and any Observability/Resilience/Security phases for customer-facing/scale) in DEVELOPMENT-PLAN are complete or explicitly deferred in a WO.
+- Before declaring the application done, check: Are all production-readiness WOs Complete or Deferred?
+- If not: "The application is not yet production-ready. Remaining: [list WOs]. Shall I implement them or create deferral WOs?"
+
+## Development Plan (Canonical Roadmap)
+
+**docs/planning/DEVELOPMENT-PLAN.md** defines phases and ordered Work Orders. The plan is derived from the PRD and architecture.
+
+- **Determine next WO from the plan** — Read the "Next Work Order" section. That is what to build next.
+- **Never ask the user** "What work order do you want to build?" or "What do you want to do next?" — the system knows from the plan.
+- After completing a WO: (1) Mark it Complete in DEVELOPMENT-PLAN table, (2) Move to WO-INDEX Completed, (3) Set "Next" to the next pending WO. All three must stay aligned.
+- The `validate-development-plan-alignment` gate enforces alignment at wo_exit and full_audit. Fix drift before the gate will pass.
+- When starting a session, check the plan; propose the next WO: "Next up is WO-XXX (title). Shall I start?"
+
+## Single Tracker
+
+All WO status tracked in `docs/planning/WO-INDEX.md`.
+- One file, one source of truth
+- No separate trackers, no parity checking
+- Update WO-INDEX.md every time a WO changes status
+
+## Commit Protocol
+
+- Reference WO number in commit messages: `feat(wo-NNN): description`
+- Run quality gates before committing: `bash scripts/gate-runner.sh pre_commit`
+- Run the blocking entry audit before implementation starts: `bash scripts/gate-runner.sh wo_entry --continue-on-failure --wo <NUMBER>`
+- No commits without passing blocking gates
+- No implementation start without the planning + pre-implementation audits documented in the WO
+- No release closeout without the staging audit documented

@@ -1,0 +1,22 @@
+# <!-- REQUIRED -->
+# Evidence-First Mandate (Always Active)
+
+## Before ANY Fix
+
+1. **Reproduce** the issue
+2. **Capture** evidence (request, response, logs, timestamps)
+3. **Document** in WO-INDEX.md
+4. **Then** implement the fix
+
+<!-- OPTIONAL: Include if project uses multi-tenancy -->
+## Multi-Tenancy Guard
+
+Before any database operation:
+1. Verify tenant_id is present in the query
+2. Verify RLS is enabled on the target table
+3. Never accept tenant_id from user input — extract from JWT
+
+## Staging is the Engineering Target
+
+- All development and testing targets staging
+- Production changes require explicit human approval

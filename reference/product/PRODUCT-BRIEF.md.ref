@@ -1,0 +1,39 @@
+<!-- REQUIRED -->
+# {{PROJECT_NAME}} Product Brief
+
+<!-- REQUIRED -->
+## Summary
+<!-- ADAPT -->
+{{PRODUCT_SUMMARY}}
+
+<!-- REQUIRED -->
+## Primary User
+<!-- ADAPT -->
+{{PRIMARY_PERSONA}}
+
+<!-- REQUIRED -->
+## Problem
+<!-- ADAPT -->
+{{PROBLEM_STATEMENT}}
+
+<!-- REQUIRED -->
+## Core Workflow
+<!-- ADAPT -->
+1. {{WORKFLOW_STEP_1}}
+2. {{WORKFLOW_STEP_2}}
+3. {{WORKFLOW_STEP_3}}
+
+<!-- REQUIRED -->
+## V1 Outcome
+<!-- ADAPT -->
+{{V1_OUTCOME}}
+
+<!-- OPTIONAL: constraints.integrations is not empty -->
+## Key Integrations
+<!-- ADAPT -->
+- {{INTEGRATION_1}}
+
+<!-- OPTIONAL: constraints.sensitive_data is not empty -->
+## Sensitive Data
+<!-- ADAPT -->
+- {{SENSITIVE_DATA_CATEGORY}}

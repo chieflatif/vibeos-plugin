@@ -1,0 +1,59 @@
+# <!-- REQUIRED -->
+# <!-- ADAPT: Project name, phases, work orders -->
+# {{PROJECT_NAME}} — Development Plan
+
+<!-- The development plan is the canonical roadmap. The agent determines "what's next" from this document, not by asking the user. -->
+
+## Overview
+
+<!-- ADAPT: 2-3 sentence summary of the plan, aligned with PRD and architecture -->
+
+## Phases
+
+<!-- ADAPT: Generate from PRD core_workflows, v1_features, architecture. Each phase has a clear outcome and ordered Work Orders. -->
+
+### Phase 1: Foundation
+<!-- Scaffold, shared packages, database, auth infra, baseline setup -->
+
+| # | WO | Title | Dependencies | Status |
+|---|----|-------|--------------|--------|
+| 1 | WO-001 | Initial scaffold | — | Complete |
+| 2 | WO-002 | Shared packages | WO-001 | Complete |
+| 3 | WO-003 | Database schema | WO-001 | Pending |
+<!-- ... add all foundation WOs in order -->
+
+### Phase 2: Core Workflow — [Workflow Name]
+<!-- ADAPT: One phase per core workflow from PRD -->
+
+| # | WO | Title | Dependencies | Status |
+|---|----|-------|--------------|--------|
+| 1 | WO-0XX | [e.g. LinkedIn OAuth] | WO-003 | Pending |
+| 2 | WO-0XX | [e.g. Event creation API] | WO-0XX | Pending |
+<!-- ... -->
+
+### Phase 3: [Next Core Workflow or Feature Set]
+<!-- ADAPT: Continue with core workflows, then v1 features -->
+
+| # | WO | Title | Dependencies | Status |
+|---|----|-------|--------------|--------|
+| 1 | WO-0XX | ... | ... | Pending |
+
+<!-- Add phases as needed for all core workflows and v1 features -->
+
+---
+
+## Next Work Order
+
+**Next:** WO-0XX — [Title]
+
+<!-- This is the single source of truth for "what to build next". Update after each WO completes. The agent never asks the user what to build — it uses this. -->
+
+---
+
+## Protocol
+
+- Phases are ordered. Complete Phase N before Phase N+1 unless a WO explicitly spans phases.
+- Within a phase, WOs are ordered by dependencies. Complete dependencies before dependents.
+- **When a WO completes:** (1) Mark its Status `Complete` in this plan's table, (2) Move it to WO-INDEX Completed table, (3) Set **Next** to the next pending WO.
+- DEVELOPMENT-PLAN, WO-INDEX, and WO-*.md files must stay aligned. The `validate-development-plan-alignment` gate runs at wo_exit and full_audit and fails if there is drift.
+- If the plan changes (user request, discovery), update this document and WO-INDEX together.

@@ -1,0 +1,37 @@
+# <!-- REQUIRED -->
+# Version Validation (Always Active)
+
+## Why Version Validation Matters
+
+AI agents build on training data that may be months or years old. Framework APIs change, libraries deprecate methods, and best practices evolve. Version validation forces real-time checks.
+
+## Before Using Any External Dependency
+
+1. Check the **installed version** — not what you assume from training data
+2. Verify API compatibility with the installed version
+3. Use `scripts/validate-dependency-versions.sh` to enforce pinning policy, lockfile policy, and latest-version awareness
+
+## Common Version Pitfalls
+
+- Using deprecated API calls from older framework versions
+- Assuming default behavior that changed between versions
+- Referencing documentation from a different major version
+
+## Enforcement
+
+```bash
+# Check app-oriented dependency version policy
+bash scripts/validate-dependency-versions.sh
+
+# Check for known vulnerabilities
+bash scripts/validate-dependencies.sh
+```
+
+For application repos, floating dependency declarations should be treated as failures unless the project has explicitly chosen a library-style policy.
+
+## Rule
+
+When uncertain about an API or library behavior:
+1. Read the installed package's actual source or docs
+2. Do not rely on training data for API signatures
+3. Test the behavior before committing

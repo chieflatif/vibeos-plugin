@@ -1,0 +1,52 @@
+{
+  "_description": "Example project config for a TypeScript Node.js project",
+  "project": {
+    "name": "Example Node Service",
+    "slug": "example-node",
+    "description": "Backend service built with Express and TypeScript",
+    "repo_url": ""
+  },
+  "stack": {
+    "language": "typescript",
+    "framework": "express",
+    "source_dirs": ["src"],
+    "test_dir": "tests",
+    "package_manager": "npm",
+    "database": "postgresql"
+  },
+  "governance": {
+    "team_size": "enterprise",
+    "compliance_targets": ["soc2", "owasp"],
+    "wo_dir": "docs/planning",
+    "frozen_files": ["src/index.ts"],
+    "production_urls": ["https://api.example.com", "https://app.example.com"]
+  },
+  "agent": {
+    "cloud_provider": "azure",
+    "ci_cd_platform": "github-actions",
+    "mcp_servers": ["none"]
+  },
+  "architecture_rules": [
+    {
+      "name": "controller-isolation",
+      "type": "forbidden_imports",
+      "description": "Controllers cannot import from data access layer",
+      "source": "src/controllers/",
+      "forbidden": ["src/repositories/", "src/db/"]
+    },
+    {
+      "name": "middleware-isolation",
+      "type": "forbidden_imports",
+      "description": "Middleware cannot import from controllers",
+      "source": "src/middleware/",
+      "forbidden": ["src/controllers/"]
+    },
+    {
+      "name": "no-raw-sql",
+      "type": "forbidden_patterns",
+      "description": "Use query builder or ORM",
+      "pattern": "query\\(\\s*`|query\\(\\s*[\"'].*\\$\\{",
+      "paths": ["src/"]
+    }
+  ]
+}

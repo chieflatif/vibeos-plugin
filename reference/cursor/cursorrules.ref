@@ -1,0 +1,112 @@
+# <!-- ADAPT: Agent generates .cursorrules customized to the project -->
+# <!-- Cursor does not support hooks — governance rules must be embedded as text instructions -->
+
+# $PROJECT_NAME — Cursor Rules
+
+## Governance
+
+### Three Laws (Non-Negotiable)
+1. No remediation without a Work Order
+2. No Work Order without an evidence-backed finding
+3. No finding without investigation
+
+### Work Order Protocol
+- **docs/planning/DEVELOPMENT-PLAN.md** — Phased roadmap. Determines what to build next. Never ask "what do you want to build?" — use the plan.
+- All work tracked in `docs/planning/WO-INDEX.md`
+- Quality gate manifest stored at `quality-gate-manifest.json`
+- Use `docs/planning/WO-AUDIT-FRAMEWORK.md` for every WO audit checkpoint
+- Run planning self-audit before approving a WO
+- Run pre-implementation deep audit before coding starts
+- Treat plan acceptance as `Accepted - Awaiting Entry Audit`, not implementation approval
+- Run `bash scripts/gate-runner.sh wo_entry --continue-on-failure --wo <NUMBER>` before coding starts
+- Run `bash scripts/gate-runner.sh pre_commit` before committing
+- Run pre-commit deep audit before committing
+- Run `bash scripts/gate-runner.sh wo_exit` after completing a WO
+- Run staging audit after push/staging verification before moving to the next step
+- Reference WO number in commit messages: `feat(wo-NNN): description`
+
+### Communication Style
+- Use the real technical term and explain it: "PRD (product requirements doc)", "quality gates [checks that run before you commit]". Never replace the term entirely — users learn the vocabulary.
+- Before acting: tell the user what you're about to do and why it matters
+- After acting: start with the business meaning, then explain the technical work in plain English
+- After each major step, explain what is next and why
+- When presenting choices: explain each option, state pros/cons, make a recommendation based on evidence, and explain your rationale
+- Present options in outcome language first, not raw technology names
+- Keep the user oriented; do not reply with terse WO/status messages without explanation
+
+### Zero-Stub Policy
+- No `NotImplementedError`, `pass`-only functions, empty implementations
+- No `# TODO` or `# FIXME` in committed code
+- If something can't be implemented fully, flag it as a blocker
+
+## Security
+
+### NEVER Do
+- Hardcode secrets (API keys, tokens, passwords) in source code
+- Use string formatting for SQL queries (use parameterized queries)
+- Write to `.env` files programmatically
+- Target production URLs in development commands
+- Use `eval()`, `exec()`, or equivalent unsafe patterns
+- Force push to any branch
+
+### ALWAYS Do
+- Store secrets in `.env` (gitignored) and access via environment variables
+- Validate all external input at system boundaries
+- Use established auth libraries for authentication
+- Target staging environment for all development work
+
+## Architecture
+
+<!-- ADAPT: Agent generates architecture rules from project config -->
+<!-- EXAMPLE:
+### Module Boundaries
+- `api/` cannot import from data layer directly
+- `services/` is the only layer that can access both API and data
+- No circular dependencies between modules
+-->
+
+## Code Quality
+
+<!-- ADAPT: Agent includes language-specific quality rules -->
+<!-- EXAMPLE for Python:
+- Use type hints on all function signatures
+- Use ruff for linting (run `ruff check .`)
+- Use mypy for type checking
+-->
+
+## Quality Gates
+
+Run quality gates at these checkpoints:
+```bash
+# Before commits
+bash scripts/gate-runner.sh pre_commit --continue-on-failure
+
+# After WO completion
+bash scripts/gate-runner.sh wo_exit --continue-on-failure
+
+# Full audit
+bash scripts/gate-runner.sh full_audit --continue-on-failure
+```
+
+### Standard Audit Questions
+- What did we miss?
+- What did we get wrong?
+- What assumptions might fail?
+- What dependencies, configs, migrations, or integrations are missing?
+- What details are invented or not backed by evidence?
+- What tests, fixtures, validations, or monitoring are missing?
+- Should an additional user-requested audit happen now?
+
+### Required Response Pattern
+- What we just achieved
+- What changed under the hood
+- Why it matters
+- Recommended next step and why
+
+## Evidence-First
+
+Before fixing any issue:
+1. Reproduce the issue
+2. Capture evidence (request, response, logs)
+3. Document in WO-INDEX.md
+4. Then implement the fix

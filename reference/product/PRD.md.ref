@@ -1,0 +1,46 @@
+<!-- REQUIRED -->
+# {{PROJECT_NAME}} PRD
+
+<!-- REQUIRED -->
+## Problem Statement
+<!-- ADAPT -->
+{{PROBLEM_STATEMENT}}
+
+<!-- REQUIRED -->
+## Goals
+<!-- ADAPT -->
+- {{GOAL_1}}
+- {{GOAL_2}}
+
+<!-- REQUIRED -->
+## Non-Goals
+<!-- ADAPT -->
+- {{NON_GOAL_1}}
+
+<!-- REQUIRED -->
+## Personas
+<!-- ADAPT -->
+- Primary: {{PRIMARY_PERSONA}}
+- Secondary: {{SECONDARY_PERSONA}}
+
+<!-- REQUIRED -->
+## V1 Features
+<!-- ADAPT -->
+- {{FEATURE_1}}
+- {{FEATURE_2}}
+
+<!-- REQUIRED -->
+## User Stories
+<!-- ADAPT -->
+- As a {{PERSONA}}, I want {{CAPABILITY}} so that {{OUTCOME}}.
+
+<!-- REQUIRED -->
+## Acceptance Criteria
+<!-- ADAPT -->
+- [ ] {{ACCEPTANCE_CRITERION_1}}
+- [ ] {{ACCEPTANCE_CRITERION_2}}
+
+<!-- OPTIONAL: scope.success_metrics is not empty -->
+## Success Metrics
+<!-- ADAPT -->
+- {{SUCCESS_METRIC_1}}

@@ -1,0 +1,43 @@
+# <!-- REQUIRED -->
+# Governance Cascade (Always Active)
+
+## The Cascade (Non-Negotiable)
+
+```
+Behavioral Rules (This file + CLAUDE.md)
+        ↓
+Investigation & Evidence
+        ↓
+Work Orders
+        ↓
+Implementation
+```
+
+## Three Laws
+
+1. **No remediation without a Work Order**
+2. **No Work Order without an evidence-backed finding**
+3. **No finding without investigation**
+
+## Authority Hierarchy
+
+1. **CLAUDE.md** — Agent boot instructions
+2. **docs/planning/DEVELOPMENT-PLAN.md** — Phased roadmap with ordered WOs; determines what to build next
+3. **docs/planning/WO-INDEX.md** — Single tracker (WO status)
+
+## Evidence-First
+
+Every fix requires:
+- Reproduction of the issue
+- Evidence (request, response, error, context)
+- Entry in WO-INDEX.md
+
+## Quality Gates
+
+Always use the gate runner:
+```bash
+bash scripts/gate-runner.sh <phase> --continue-on-failure
+```
+
+<!-- ADAPT: List active phases from quality-gate-manifest.json -->
+Phases: `pre_commit`, `wo_exit`, `full_audit`

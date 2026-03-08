@@ -1,0 +1,426 @@
+{
+  "_reference": {
+    "description": "Annotated quality gate manifest reference. The agent reads this and generates a project-specific version.",
+    "markers": {
+      "REQUIRED": "Section must appear in generated manifest",
+      "ADAPT": "Agent customizes based on project config",
+      "OPTIONAL": "Include only if condition is met",
+      "EXAMPLE": "Concrete pattern the agent uses"
+    },
+    "framework_version": "1.0.0"
+  },
+
+  "_instructions": [
+    "REQUIRED: The generated manifest MUST include 'version', 'project', 'tiers', and at least one phase.",
+    "ADAPT: Phase selection depends on team_size (solo=5, small=7, enterprise=10 phases).",
+    "ADAPT: Gate selection depends on language, framework, compliance targets.",
+    "ADAPT: Environment variables in gate configs must match the project's directory structure.",
+    "REQUIRED: Every gate MUST have 'name', 'script', and 'tier' fields.",
+    "OPTIONAL: 'env' block on gates passes environment variables to the script.",
+    "OPTIONAL: 'timeout' on gates overrides the default per-gate timeout.",
+    "OPTIONAL: 'known_baselines' section for existing projects with pre-existing failures.",
+    "The gate-runner.sh supports variable substitution: $WO_NUMBER, $EVIDENCE_DIR, $PROJECT_ROOT"
+  ],
+
+  "version": "1.0.0",
+
+  "project": {
+    "_comment_ADAPT": "Agent fills from PROJECT-INTAKE.md answers",
+    "name": "Example Project",
+    "slug": "example-project",
+    "language": "python",
+    "framework": "fastapi"
+  },
+
+  "tiers": {
+    "_comment_REQUIRED": "Tier definitions control blocking behavior. Tiers 0-1 are blocking, 2-3 are advisory.",
+    "0": {
+      "label": "critical",
+      "blocking": true,
+      "description": "Security and data integrity gates. Failures block all progress."
+    },
+    "1": {
+      "label": "important",
+      "blocking": true,
+      "description": "Architecture and quality gates. Failures block commit/WO completion."
+    },
+    "2": {
+      "label": "advisory",
+      "blocking": false,
+      "description": "Best practice gates. Failures are warnings, not blockers."
+    },
+    "3": {
+      "label": "informational",
+      "blocking": false,
+      "description": "Metrics and reporting gates. Never block."
+    }
+  },
+
+  "phases": {
+    "_comment_ADAPT": "Phase selection: `wo_exit` is the universal user-facing audit phase. Solo projects use it directly. Small and enterprise projects may add specialized `wo_exit_*` phases, but `wo_exit` should remain available directly or via runner fallback.",
+
+    "session_start": {
+      "_comment_REQUIRED_for": "all team sizes",
+      "description": "Run at start of every development session",
+      "gates": [
+        {
+          "name": "session-start-validation",
+          "script": "scripts/validate-session-start.sh",
+          "tier": 2,
+          "env": {
+            "_comment_REQUIRED": "REQUIRED_DOCS must include CLAUDE.md, docs/planning/DEVELOPMENT-PLAN.md, docs/planning/WO-INDEX.md",
+            "REQUIRED_DOCS": "CLAUDE.md docs/planning/DEVELOPMENT-PLAN.md docs/planning/WO-INDEX.md",
+            "HEALTH_URL": ""
+          }
+        }
+      ]
+    },
+
+    "pre_commit": {
+      "_comment_REQUIRED_for": "all team sizes",
+      "description": "Run before every commit — security + quality basics",
+      "gates": [
+        {
+          "name": "no-secrets",
+          "script": "scripts/validate-no-secrets.sh",
+          "tier": 0,
+          "_comment": "REQUIRED: Always tier 0 (critical). Secrets in commits are never acceptable."
+        },
+        {
+          "name": "security-patterns",
+          "script": "scripts/validate-security-patterns.sh",
+          "tier": 0,
+          "env": {
+            "_comment_ADAPT": "Set SCAN_DIRS to project source directories",
+            "SCAN_DIRS": ""
+          }
+        },
+        {
+          "name": "stub-detection",
+          "script": "scripts/detect-stubs-placeholders.py",
+          "tier": 1,
+          "env": {
+            "_comment_ADAPT": "Set language and scan dirs from project config",
+            "LANGUAGE": "",
+            "SCAN_DIRS": ""
+          }
+        },
+        {
+          "name": "code-quality",
+          "script": "scripts/validate-code-quality.sh",
+          "tier": 1,
+          "env": {
+            "_comment_ADAPT": "Set SOURCE_DIR, LANGUAGE, LINTER from project config. LINTER defaults to best available for language.",
+            "SOURCE_DIR": "",
+            "LANGUAGE": ""
+          }
+        },
+        {
+          "name": "tests-required",
+          "script": "scripts/validate-tests-required.sh",
+          "tier": 1,
+          "_comment": "REQUIRED for TDD: Blocks when no test files exist. Use known_baselines for existing projects during adoption.",
+          "env": {
+            "_comment_ADAPT": "Set TEST_DIR, SOURCE_DIR, LANGUAGE from project config",
+            "TEST_DIR": "",
+            "SOURCE_DIR": "",
+            "LANGUAGE": ""
+          }
+        },
+        {
+          "name": "tests-pass",
+          "script": "scripts/validate-tests-pass.sh",
+          "tier": 1,
+          "_comment": "REQUIRED for TDD: Runs test command, blocks when tests fail. Set TEST_CMD to override auto-detected command.",
+          "env": {
+            "_comment_ADAPT": "Set TEST_CMD to override (e.g. pnpm test, pytest). Optional: LANGUAGE, PROJECT_ROOT",
+            "TEST_CMD": "",
+            "LANGUAGE": ""
+          }
+        }
+      ]
+    },
+
+    "wo_entry": {
+      "_comment_REQUIRED_for": "all team sizes",
+      "description": "Run after plan acceptance and before implementation starts",
+      "gates": [
+        {
+          "name": "work-order-entry-readiness",
+          "script": "scripts/validate-work-order.sh",
+          "tier": 1,
+          "env": {
+            "WO_DIR": "docs/planning",
+            "WO_NUMBER": "$WO_NUMBER",
+            "WO_VALIDATION_MODE": "entry"
+          }
+        },
+        {
+          "name": "infrastructure-manifest",
+          "script": "scripts/validate-infrastructure-manifest.sh",
+          "tier": 2
+        }
+      ]
+    },
+
+    "wo_exit": {
+      "_comment_REQUIRED_for": "all team sizes",
+      "description": "Run after completing a Work Order — includes pre_commit + WO-specific gates",
+      "includes": ["pre_commit"],
+      "_comment_includes": "Phase inheritance: wo_exit runs all pre_commit gates first, then adds its own.",
+      "gates": [
+        {
+          "name": "architecture-enforcement",
+          "script": "scripts/enforce-architecture.sh",
+          "tier": 1,
+          "env": {
+            "_comment_ADAPT": "RULES_FILE should point to the project's architecture rules JSON. Agent generates this in Phase 5.",
+            "RULES_FILE": "scripts/architecture-rules.json"
+          }
+        },
+        {
+          "name": "work-order-validation",
+          "script": "scripts/validate-work-order.sh",
+          "tier": 1,
+          "env": {
+            "WO_DIR": "docs/planning",
+            "WO_NUMBER": "$WO_NUMBER",
+            "WO_VALIDATION_MODE": "completion"
+          }
+        },
+        {
+          "name": "development-plan-alignment",
+          "script": "scripts/validate-development-plan-alignment.sh",
+          "tier": 1,
+          "env": { "WO_DIR": "docs/planning" }
+        },
+        {
+          "name": "production-readiness",
+          "script": "scripts/validate-production-readiness.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include when deployment_context is production, customer-facing, or scale",
+          "env": {
+            "WO_DIR": "docs/planning",
+            "DEPLOYMENT_CONTEXT": "",
+            "PROJECT_DEFINITION": "project-definition.json"
+          }
+        },
+        {
+          "name": "production-readiness",
+          "script": "scripts/validate-production-readiness.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include when deployment_context is production, customer-facing, or scale",
+          "env": {
+            "DEPLOYMENT_CONTEXT": "",
+            "WO_DIR": "docs/planning",
+            "PROJECT_DEFINITION": "project-definition.json"
+          }
+        },
+        {
+          "name": "logging-patterns",
+          "script": "scripts/validate-logging-patterns.sh",
+          "tier": 2,
+          "env": {
+            "_comment_ADAPT": "Set SCAN_DIR and LANGUAGE",
+            "SCAN_DIR": "",
+            "LANGUAGE": ""
+          }
+        },
+        {
+          "name": "documentation-completeness",
+          "script": "scripts/validate-documentation-completeness.sh",
+          "tier": 2,
+          "env": {
+            "_comment_ADAPT": "Set SOURCE_DIR, DOC_DIR, LANGUAGE, MIN_DOCSTRING_PCT",
+            "SOURCE_DIR": "",
+            "DOC_DIR": "docs",
+            "LANGUAGE": "",
+            "MIN_DOCSTRING_PCT": "50"
+          }
+        },
+        {
+          "name": "tests-required",
+          "script": "scripts/validate-tests-required.sh",
+          "tier": 1,
+          "env": { "TEST_DIR": "", "SOURCE_DIR": "", "LANGUAGE": "" }
+        },
+        {
+          "name": "tests-pass",
+          "script": "scripts/validate-tests-pass.sh",
+          "tier": 1,
+          "env": { "TEST_CMD": "", "LANGUAGE": "" }
+        }
+      ]
+    },
+
+    "wo_exit_backend": {
+      "_comment_OPTIONAL_for": "small and enterprise team sizes",
+      "_comment": "Component-specific exit for backend changes. Inherits from wo_exit.",
+      "includes": ["wo_exit"],
+      "gates": []
+    },
+
+    "wo_exit_frontend": {
+      "_comment_OPTIONAL_for": "enterprise team sizes with frontend",
+      "includes": ["wo_exit"],
+      "gates": []
+    },
+
+    "wo_exit_crosscutting": {
+      "_comment_OPTIONAL_for": "enterprise team sizes",
+      "includes": ["wo_exit"],
+      "gates": []
+    },
+
+    "wo_exit_governance": {
+      "_comment_OPTIONAL_for": "small and enterprise team sizes",
+      "includes": ["wo_exit"],
+      "gates": [
+        {
+          "name": "audit-completeness",
+          "script": "scripts/validate-audit-completeness.sh",
+          "tier": 1,
+          "env": {
+            "WO_DIR": "docs/planning",
+            "ENFORCE_AUDIT_LOOP": "true"
+          }
+        }
+      ]
+    },
+
+    "post_deploy": {
+      "_comment_OPTIONAL_for": "teams with deployment URLs configured",
+      "description": "Run after deployment — endpoint availability + health checks",
+      "gates": [
+        {
+          "name": "smoke-test",
+          "script": "scripts/smoke-test.sh",
+          "tier": 1,
+          "env": {
+            "_comment_ADAPT": "Set SMOKE_ENDPOINTS to space-separated URLs to test after deploy",
+            "SMOKE_ENDPOINTS": "",
+            "SMOKE_TIMEOUT": "10"
+          }
+        },
+        {
+          "name": "health-check",
+          "script": "scripts/health-check.sh",
+          "tier": 1,
+          "env": {
+            "_comment_ADAPT": "Set HEALTH_URL to the project's health endpoint",
+            "HEALTH_URL": "",
+            "HEALTH_TIMEOUT": "10"
+          }
+        }
+      ]
+    },
+
+    "full_audit": {
+      "_comment_REQUIRED_for": "all team sizes",
+      "description": "Comprehensive audit — includes wo_exit + deep security/compliance checks",
+      "includes": ["wo_exit"],
+      "gates": [
+        {
+          "name": "owasp-alignment",
+          "script": "scripts/validate-owasp-alignment.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include if compliance targets include OWASP",
+          "env": {
+            "SCAN_DIRS": "",
+            "LANGUAGE": ""
+          }
+        },
+        {
+          "name": "pii-handling",
+          "script": "scripts/validate-pii-handling.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include if compliance targets include GDPR or SOC 2",
+          "env": {
+            "SCAN_DIRS": "",
+            "STRICT_MODE": "false",
+            "_comment_ADAPT": "Set STRICT_MODE=true for GDPR compliance"
+          }
+        },
+        {
+          "name": "tenant-isolation",
+          "script": "scripts/validate-tenant-isolation.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include if project uses multi-tenancy (database != none)",
+          "env": {
+            "SCAN_DIRS": "",
+            "TENANT_FIELD": "tenant_id"
+          }
+        },
+        {
+          "name": "test-integrity",
+          "script": "scripts/validate-test-integrity.sh",
+          "tier": 1,
+          "_comment": "Upgraded to tier 1 for TDD: checks vacuous assertions, empty tests. tests-required + tests-pass enforce presence and pass.",
+          "env": {
+            "_comment_ADAPT": "Set TEST_DIR and SOURCE_DIR",
+            "TEST_DIR": "",
+            "SOURCE_DIR": ""
+          }
+        },
+        {
+          "name": "dependency-security",
+          "script": "scripts/validate-dependencies.sh",
+          "tier": 1,
+          "env": {
+            "_comment_ADAPT": "Set PACKAGE_FILE to project's manifest (requirements.txt, package.json, go.mod, Cargo.toml)",
+            "PACKAGE_FILE": ""
+          }
+        },
+        {
+          "name": "dependency-versions",
+          "script": "scripts/validate-dependency-versions.sh",
+          "tier": 2,
+          "env": {
+            "PACKAGE_FILE": ""
+          }
+        },
+        {
+          "name": "infrastructure-manifest",
+          "script": "scripts/validate-infrastructure-manifest.sh",
+          "tier": 2,
+          "env": {
+            "MANIFEST_PATH": "docs/INFRASTRUCTURE-MANIFEST.md"
+          }
+        },
+        {
+          "name": "evidence-bundle",
+          "script": "scripts/validate-evidence-bundle.sh",
+          "tier": 2,
+          "_comment_OPTIONAL": "Include if compliance targets include SOC 2",
+          "env": {
+            "EVIDENCE_DIR": "docs/evidence"
+          }
+        }
+      ]
+    },
+
+    "session_end": {
+      "_comment_OPTIONAL_for": "small and enterprise team sizes",
+      "description": "Run at end of development session — summary and cleanup",
+      "gates": []
+    }
+  },
+
+  "known_baselines": {
+    "_comment_ADAPT": "Agent populates this during Phase 6 (existing project ingestion). Each entry represents a pre-existing failure that should not block progress.",
+    "_comment_format": "Keys are gate names. max_allowed_failures is the count threshold. fail_count_pattern is a regex with capture group (1) to extract the failure count from gate output.",
+
+    "_example_stub-detection": {
+      "reason": "Pre-existing at framework adoption (2024-01-15)",
+      "max_allowed_failures": 3,
+      "fail_count_pattern": "FAIL.*?\\((\\d+)\\)",
+      "tracked_in": "WO-001"
+    },
+    "_example_code-quality": {
+      "reason": "Legacy lint issues (ratchet-down in progress)",
+      "max_allowed_failures": 12,
+      "fail_count_pattern": "(\\d+) error",
+      "tracked_in": "WO-003"
+    }
+  }
+}

@@ -1,0 +1,127 @@
+# <!-- REQUIRED -->
+# WO-$PROJECT_SLUG-NNN: Title
+
+## Status: Draft
+
+<!-- Valid states: Draft | Active - Phase 0 | Internally Audited | Presented | Accepted - Awaiting Entry Audit | Implementation Ready | Active - Phase 1 | In Progress | Complete | Shipped | Blocked -->
+
+## Objective
+
+<!-- What problem does this solve? Why now? -->
+
+## Scope
+
+<!-- What's in scope and what's explicitly out of scope? -->
+
+## Acceptance Criteria
+
+- [ ] <!-- Criterion 1 -->
+- [ ] <!-- Criterion 2 -->
+- [ ] Tests written and passing (or N/A — documentation/config-only WO)
+- [ ] All quality gates pass (`bash scripts/gate-runner.sh wo_exit`)
+
+## Dependencies
+
+<!-- What must exist before this WO can start? -->
+
+## Impact Analysis
+
+<!-- What existing functionality could be affected? -->
+
+## Test Strategy <!-- REQUIRED: Define tests, or explicitly waive if no code changes. -->
+
+<!-- For code WOs: define what will be tested and how. For docs/config-only WOs: use the waiver below. -->
+- **Unit tests:** <!-- Which functions/modules? What cases? (or N/A) -->
+- **Integration tests:** <!-- Which routes/APIs/flows? (or N/A) -->
+- **Fixtures/mocks:** <!-- What test data or mocks are needed? (or N/A) -->
+- **Coverage target:** <!-- Minimum coverage for new code (e.g. 80%) (or N/A) -->
+
+<!-- OPTIONAL waiver — use only when WO has no code changes (e.g. documentation, README, config-only): -->
+<!-- **Waived:** N/A — documentation-only WO. No code changes. Test requirement does not apply. -->
+
+## Audit Loop
+
+Use `docs/planning/WO-AUDIT-FRAMEWORK.md` as the standard prompt set. Every checkpoint should answer, at minimum:
+
+- What did we miss?
+- What did we get wrong?
+- What assumptions might break implementation?
+- What dependencies, integrations, migrations, or env requirements are missing?
+- What did we make up without evidence?
+- What edge cases, regressions, rollback paths, and monitoring gaps exist?
+- What tests, fixtures, or validations are still missing?
+
+### Planning Self-Audit (Required Before Approval)
+
+- Audit Status: not-started
+- Findings:
+  - <!-- Missing requirements, sequencing issues, or plan holes -->
+- Required changes to the plan:
+  - <!-- What must change before the WO can be approved -->
+
+### Pre-Implementation Deep Audit (Required Before Coding Starts)
+
+- Audit Status: not-started
+- Findings:
+  - <!-- Re-check architecture, dependencies, data flow, migrations, and tests -->
+- Entry criteria to implementation:
+  - <!-- What must be true before coding begins -->
+
+### Pre-Commit Audit (Required Before Commit)
+
+- Audit Status: not-started
+- Findings:
+  - <!-- Regressions, missed tests, invented details, or incomplete acceptance criteria -->
+- Exit criteria to commit:
+  - <!-- What must be fixed or documented before commit -->
+
+### Staging Audit (Required Before Release Closeout / Next Step)
+
+- Audit Status: not-started
+- Findings:
+  - <!-- Staging behavior, deployment/config drift, observability gaps, rollback risks -->
+- Release follow-ups:
+  - <!-- What must happen before production or before the WO is fully closed -->
+
+## Implementation
+
+### Phase 0: Research
+
+- [ ] Dependency mapping
+- [ ] Impact analysis
+- [ ] **Test Strategy section completed** (required before Phase 1)
+- [ ] Planning self-audit completed
+- [ ] Pre-implementation deep audit completed
+
+### Phase 1: Implementation
+
+- [ ] <!-- Task 1 -->
+- [ ] <!-- Task 2 -->
+- [ ] **Tests written first or alongside code** (or N/A if documentation/config-only)
+
+### Phase 2: Audit
+
+- [ ] `bash scripts/gate-runner.sh wo_exit --continue-on-failure`
+- [ ] All blocking gates pass
+- [ ] Advisory findings documented
+- [ ] Pre-commit audit completed
+- [ ] Staging audit planned or completed
+
+## Evidence
+
+<!-- REQUIRED: Every WO must include test evidence. -->
+- **Test results:** <!-- Output of test command (pytest, jest, go test, etc.) or link -->
+- **Gate output:** <!-- gate-runner.sh wo_exit output showing tests pass -->
+
+### Evidence Location
+
+<!-- OPTIONAL: For SOC 2 or evidence-first workflows -->
+`docs/evidence/WO-$PROJECT_SLUG-NNN/`
+
+## Audit Notes
+
+<!-- REQUIRED for compliance-heavy projects: summarize gate results, baselines, exceptions, and audit-loop findings -->
+
+## Notes
+
+<!-- Additional context, decisions made during implementation -->

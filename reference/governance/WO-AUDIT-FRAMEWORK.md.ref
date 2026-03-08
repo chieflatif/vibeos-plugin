@@ -1,0 +1,101 @@
+# <!-- REQUIRED -->
+# Work Order Audit Framework
+
+Use this framework at four checkpoints:
+
+1. Planning
+2. Pre-implementation
+3. Pre-commit
+4. Staging / post-deploy
+
+The goal is to catch the issues that still slip through good-looking plans: hidden assumptions, invented details, missing dependencies, bad sequencing, broken migrations, weak tests, and release risks.
+
+When auditing a plan before presentation, prefer a fresh-context audit pass or separate agent if available.
+
+## Standard Audit Questions
+
+Ask these every time:
+
+1. What did we miss?
+2. What did we get wrong?
+3. What assumptions are we making that could fail?
+4. What dependencies, integrations, configs, migrations, or env requirements are missing?
+5. What details are guessed, invented, or not backed by evidence?
+6. What edge cases, regressions, security issues, or data risks are unaddressed?
+7. What tests, fixtures, validation steps, or observability checks are still missing?
+8. What could make this fail on staging or in real user flows?
+9. What should be simplified, split, or resequenced before proceeding?
+10. Should an additional user-requested audit happen now because the risk is high or uncertainty remains?
+
+## Planning Audit
+
+Run before approving the WO for implementation.
+Do not present the plan to the user until blocking planning-audit findings are resolved or explicitly documented.
+
+Focus on:
+- missing requirements
+- dependency and integration mapping
+- scope holes
+- wrong sequencing
+- unrealistic acceptance criteria
+- missing rollback or migration thinking
+
+## Pre-Implementation Audit
+
+Run after research is complete and before code starts.
+After the user accepts a plan, move the WO to `Accepted - Awaiting Entry Audit` and run `wo_entry`. Only start coding after the entry gate passes.
+
+Focus on:
+- architecture fit
+- data flow
+- migrations
+- external contracts
+- test strategy
+- setup and environment prerequisites
+
+## Pre-Commit Audit
+
+Run after implementation and before commit.
+
+Focus on:
+- regressions
+- incomplete acceptance criteria
+- invented implementation details
+- test gaps
+- incorrect documentation
+- unhandled failure paths
+
+## Staging Audit
+
+Run after commit/push and after staging verification.
+
+Focus on:
+- deployment/config drift
+- staging-only errors
+- monitoring and alerting gaps
+- rollback readiness
+- follow-up work before production
+
+## TDD Requirement (Every Checkpoint)
+
+Every audit checkpoint **must** explicitly address tests. No checkpoint passes without answering:
+
+- **Planning:** What tests are required for this WO? Unit, integration, e2e?
+- **Pre-implementation:** Is the test strategy complete? What will we run before commit?
+- **Pre-commit:** Do all new/changed paths have tests? Do tests pass?
+- **Staging:** Are tests green? Any test gaps before release?
+
+A WO cannot be considered complete if any checkpoint omits or defers the test question.
+
+## Required Output Format
+
+For each checkpoint, record:
+
+- `Audit Status: complete` when the checkpoint has passed
+- findings
+- severity
+- required fixes
+- accepted risks
+- evidence or commands run
+- **test status** — what tests exist, what passed, what gaps remain
+- whether an extra user-requested audit was recommended

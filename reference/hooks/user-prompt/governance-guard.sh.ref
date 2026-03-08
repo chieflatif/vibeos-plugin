@@ -1,0 +1,64 @@
+#!/bin/bash
+# <!-- OPTIONAL: Include if compliance targets != "none" -->
+# User-Prompt Hook: Governance Guard
+# Blocks prompts that attempt to bypass governance rules.
+#
+# <!-- ADAPT: Customize blocked patterns based on project's governance requirements -->
+# <!-- ADAPT: Customize frozen file references based on project config -->
+#
+# Hook type: UserPromptSubmit (no matcher needed — runs on all prompts)
+# Response format: JSON with decision = allow|block
+#
+# Framework version: 1.0.0
+
+INPUT=$(cat)
+PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || echo "")
+
+PROMPT_LOWER=$(echo "$PROMPT" | tr '[:upper:]' '[:lower:]')
+
+# <!-- REQUIRED: Block production deployment requests -->
+if echo "$PROMPT_LOWER" | grep -qE "(deploy to prod|push to prod|production deploy|update production|modify production)"; then
+  cat << 'EOF'
+{
+  "decision": "block",
+  "reason": "Production operations require explicit human approval. Create a work order and follow the deployment checklist."
+}
+EOF
+  exit 0
+fi
+
+# <!-- REQUIRED: Block governance bypass attempts -->
+if echo "$PROMPT_LOWER" | grep -qE "(skip|bypass|ignore|without).*(work.?order|wo|governance|audit|evidence|review|gate)"; then
+  cat << 'EOF'
+{
+  "decision": "block",
+  "reason": "Governance bypass is not permitted. All work must follow the cascade: Investigation -> Evidence -> Work Order -> Implementation."
+}
+EOF
+  exit 0
+fi
+
+# <!-- REQUIRED: Block force push -->
+if echo "$PROMPT_LOWER" | grep -qE "(force push|push.?--force|-f.*push|push.*-f)"; then
+  cat << 'EOF'
+{
+  "decision": "block",
+  "reason": "Force push is prohibited. It can destroy commit history and cause data loss."
+}
+EOF
+  exit 0
+fi
+
+# <!-- OPTIONAL: Block frozen file modification requests -->
+# <!-- ADAPT: Replace file names with project's frozen files -->
+# if echo "$PROMPT_LOWER" | grep -qE "(edit|modify|change|update|add to|fix).*(main\.py|index\.ts)"; then
+#   cat << 'EOF'
+# {
+#   "decision": "block",
+#   "reason": "That file is FROZEN. Check the architecture docs for the approved modification path."
+# }
+# EOF
+#   exit 0
+# fi
+
+echo '{"decision": "allow"}'

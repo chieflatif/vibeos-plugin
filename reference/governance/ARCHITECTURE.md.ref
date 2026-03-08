@@ -1,0 +1,39 @@
+# <!-- ADAPT: Agent generates this from project structure analysis -->
+# $PROJECT_NAME — Architecture
+
+## Overview
+
+<!-- ADAPT: High-level architecture description -->
+
+## System Diagram
+
+```
+<!-- ADAPT: Agent draws architecture from project analysis -->
+```
+
+## Module Boundaries
+
+<!-- ADAPT: List each module with its responsibilities and allowed dependencies -->
+
+### Module: <!-- name -->
+- **Responsibility**: <!-- what it does -->
+- **Depends on**: <!-- what it imports -->
+- **Depended on by**: <!-- what imports it -->
+- **Enforced rules**: <!-- architecture rules that apply -->
+
+## Data Flow
+
+<!-- ADAPT: Describe how data flows through the system -->
+
+## External Dependencies
+
+<!-- ADAPT: List external services, APIs, databases -->
+
+| Service | Purpose | Environment |
+|---------|---------|-------------|
+<!-- ADAPT: Fill from project analysis -->
+
+## Deployment Architecture
+
+<!-- ADAPT: Describe deployment topology -->
+<!-- OPTIONAL: Only if project has deployment configuration -->

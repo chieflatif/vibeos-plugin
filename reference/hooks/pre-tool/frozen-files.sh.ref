@@ -1,0 +1,65 @@
+#!/bin/bash
+# <!-- REQUIRED -->
+# Pre-Tool Hook: Frozen Files
+# Blocks edits to files that are designated as frozen/locked.
+#
+# <!-- ADAPT: The FROZEN_FILES array must be customized to the project's frozen files -->
+# <!-- ADAPT: The reason messages should reference the project's architectural docs -->
+#
+# Hook type: PreToolUse (matcher: Edit|Write)
+# Response format: JSON with hookSpecificOutput.permissionDecision = allow|deny
+#
+# Framework version: 1.0.0
+
+INPUT=$(cat)
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null || echo "")
+
+if [ -z "$FILE_PATH" ]; then
+  echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
+  exit 0
+fi
+
+# <!-- ADAPT: List frozen files relative to project root -->
+# <!-- EXAMPLE: Entry point files, legacy files under migration, generated files -->
+FROZEN_FILES=(
+  # "src/main.py"
+  # "src/index.ts"
+  # "config/production.json"
+)
+
+# <!-- OPTIONAL: Read frozen files from a config file instead of hardcoding -->
+# PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+# FROZEN_CONFIG="$PROJECT_DIR/.claude/frozen-files.json"
+# if [ -f "$FROZEN_CONFIG" ]; then
+#   mapfile -t FROZEN_FILES < <(jq -r '.[]' "$FROZEN_CONFIG" 2>/dev/null)
+# fi
+
+for frozen in "${FROZEN_FILES[@]}"; do
+  if [[ "$FILE_PATH" == *"$frozen"* ]]; then
+    cat << EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "BLOCKED: $frozen is FROZEN. This file is locked to prevent accidental modification. Check the project's architecture docs for details."
+  }
+}
+EOF
+    exit 0
+  fi
+done
+
+# <!-- REQUIRED: Always block .env files -->
+if [[ "$FILE_PATH" == *".env"* && "$FILE_PATH" != *".env.example"* ]]; then
+  cat << 'EOF'
+{
+  "hookSpecificOutput": {
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "BLOCKED: .env files contain secrets and must not be edited programmatically."
+  }
+}
+EOF
+  exit 0
+fi
+
+echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'

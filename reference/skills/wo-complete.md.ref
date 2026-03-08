@@ -1,0 +1,43 @@
+# <!-- REQUIRED -->
+# Skill: /wo-complete
+
+## Description
+Complete a work order with quality gate audit, commit, and tracker updates.
+
+## Trigger
+User types `/wo-complete` or says "complete WO-NNN"
+
+## Behavior
+
+1. **Identify the WO** — from argument or current context
+2. **Run pre-commit deep audit** using `docs/planning/WO-AUDIT-FRAMEWORK.md`:
+   - What did we miss?
+   - What did we get wrong?
+   - What dependencies, tests, edge cases, or invented details remain?
+   - Should an additional user-requested audit happen before commit?
+3. **Run wo_exit gates**:
+   ```bash
+   bash scripts/gate-runner.sh wo_exit --continue-on-failure --wo <NUMBER>
+   ```
+4. **Check results**:
+   - If blocking failures: report them, do NOT proceed
+   - If only advisory failures: note them, proceed
+5. **Update WO file** — mark status as Complete, add audit results and pre-commit audit findings
+6. **Update WO-INDEX.md** — move entry to Completed table
+7. **Update docs/planning/DEVELOPMENT-PLAN.md** — (1) mark completed WO Status `Complete` in plan table, (2) set "Next Work Order" to the next pending WO. Must stay aligned with WO-INDEX (the alignment gate enforces this)
+8. **Stage and commit**:
+   ```bash
+   git add <changed files>
+   git commit -m "feat(wo-<NUMBER>): <WO title>"
+   ```
+9. **Recommend staging audit**
+   - Prompt for a final staging audit after push if the work is user-facing, risky, or still has open assumptions
+10. **Report** — use this response pattern:
+   - Executive summary: what the business or product outcome was
+   - Technical summary: what changed under the hood, in plain English (use the real term and explain it in plain language)
+   - Why it matters: quality, risk, speed, or user impact
+   - If choices exist (e.g., staging audit now vs later): explain pros/cons, make a recommendation, and state your rationale
+   - Recommended next step: Read DEVELOPMENT-PLAN.md for the next WO. Propose: "Next up is WO-XXX (title) from the development plan. Shall I start?" Never ask "what do you want to build?"
+
+## Parameters
+- `wo` — Work order number (required)

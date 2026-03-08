@@ -1,0 +1,35 @@
+#!/bin/bash
+# <!-- REQUIRED -->
+# Session Hook: Session Resume
+# Checks for drift when resuming an existing session.
+#
+# Hook type: SessionStart (matcher: resume)
+#
+# Framework version: 1.0.0
+
+set -e
+
+PROJECT_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+cd "$PROJECT_DIR"
+
+GIT_BRANCH=$(git branch --show-current 2>/dev/null || echo "unknown")
+GIT_STATUS=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+
+if [ "$GIT_STATUS" -gt 0 ]; then
+  UNCOMMITTED_FILES=$(git status --porcelain 2>/dev/null | head -10)
+  cat << EOF
+{
+  "systemMessage": "Session resumed. WARNING: $GIT_STATUS uncommitted file(s). Branch: $GIT_BRANCH",
+  "hookSpecificOutput": {
+    "hookEventName": "SessionStart",
+    "additionalContext": "Resumed session with $GIT_STATUS uncommitted files on branch $GIT_BRANCH. Files: $UNCOMMITTED_FILES"
+  }
+}
+EOF
+else
+  cat << EOF
+{
+  "systemMessage": "Session resumed. Clean working tree. Branch: $GIT_BRANCH"
+}
+EOF
+fi

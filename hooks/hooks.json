@@ -1,0 +1,41 @@
+{
+  "description": "VibeOS Plugin — Layer 0 enforcement hooks",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prereq-check.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/secrets-scan.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/frozen-files.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review the response you just gave. Check for any of the following quality issues:\n1. Stubs: raise NotImplementedError, def func(): pass, def func(): ...\n2. Placeholders: TODO, FIXME, HACK, XXX comments\n3. Incomplete code: 'implement later', 'add here', 'placeholder'\n4. Swallowed errors: bare except: pass\n\nIf you find ANY of these issues, immediately flag them to the user and offer to fix them. Do not let incomplete code pass without acknowledgment."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+#!/bin/bash
+# <!-- OPTIONAL: Include only if project has production URLs configured -->
+# Pre-Tool Hook: Staging Target
+# Blocks bash commands that target production URLs or use production flags.
+#
+# <!-- ADAPT: PROD_PATTERNS must be set to the project's actual production URLs -->
+#
+# Hook type: PreToolUse (matcher: Bash)
+# Response format: JSON with hookSpecificOutput.permissionDecision = allow|deny
+#
+# Framework version: 1.0.0
+
+INPUT=$(cat)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null || echo "")
+
+if [ -z "$COMMAND" ]; then
+  echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
+  exit 0
+fi
+
+# <!-- ADAPT: Replace with project's actual production URL patterns -->
+PROD_PATTERNS=(
+  # "api.example.com"
+  # "prod.example.com"
+  # "example-app.herokuapp.com"
+)
+
+for pattern in "${PROD_PATTERNS[@]}"; do
+  if echo "$COMMAND" | grep -qi "$pattern"; then
+    cat << EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "BLOCKED: Command targets production URL ($pattern). Staging is the engineering target. Production requires explicit human approval."
+  }
+}
+EOF
+    exit 0
+  fi
+done
+
+# <!-- REQUIRED: Block explicit production flags -->
+if echo "$COMMAND" | grep -qiE '(--prod|--production|-p production|--env prod|NODE_ENV=production)'; then
+  cat << 'EOF'
+{
+  "hookSpecificOutput": {
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "BLOCKED: Command contains production flag. Staging is the engineering target. Production requires explicit human approval."
+  }
+}
+EOF
+  exit 0
+fi
+
+# <!-- REQUIRED: Block dangerous recursive deletes -->
+if echo "$COMMAND" | grep -qE '^rm\s+-rf\s+/|^rm\s+-rf\s+~|^rm\s+-rf\s+\*'; then
+  cat << 'EOF'
+{
+  "hookSpecificOutput": {
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "BLOCKED: Dangerous recursive delete operation. This could cause data loss."
+  }
+}
+EOF
+  exit 0
+fi
+
+echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'

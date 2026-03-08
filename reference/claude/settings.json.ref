@@ -1,0 +1,147 @@
+{
+  "_reference": {
+    "description": "Annotated Claude Code settings.json reference. Agent reads this and generates a project-specific version.",
+    "markers": {
+      "REQUIRED": "Must appear in generated settings",
+      "ADAPT": "Agent customizes based on project config",
+      "OPTIONAL": "Include only if condition is met"
+    },
+    "framework_version": "1.0.0"
+  },
+
+  "_instructions": [
+    "REQUIRED: The generated settings.json must include hooks for secrets-scan and frozen-files at minimum.",
+    "ADAPT: env section should include project-specific environment variables (e.g., PYTHONPATH, TARGET_ENV).",
+    "ADAPT: permissions.deny should include the project's frozen files and production URLs.",
+    "OPTIONAL: SessionStart hooks only if project wants session lifecycle tracking.",
+    "OPTIONAL: UserPromptSubmit hook only if compliance targets != 'none'.",
+    "OPTIONAL: SubagentStop hook only if project uses multi-agent workflows.",
+    "OPTIONAL: staging-target hook only if project has production URLs.",
+    "The hook paths assume hooks are installed at .claude/hooks/ relative to project root."
+  ],
+
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+
+  "_comment_ADAPT_model": "Set model based on project preferences. Sonnet for speed, Opus for complex tasks.",
+  "model": "claude-sonnet-4-6",
+
+  "env": {
+    "_comment_ADAPT": "Add project-specific environment variables",
+    "_example_PYTHONPATH": "src",
+    "_example_TARGET_ENV": "staging"
+  },
+
+  "attribution": {
+    "commit": "Generated with Claude Code",
+    "pr": "Generated with Claude Code"
+  },
+
+  "respectGitignore": true,
+
+  "permissions": {
+    "_comment_ADAPT": "Customize deny list: add frozen file Edit() rules and production URL Bash(curl *...*) rules",
+    "_example_frozen_files": ["Edit(src/main.py)", "Edit(config/production.json)"],
+    "_example_production_urls": ["Bash(curl *api.example.com*)"],
+    "deny": [
+      "Edit(.env)",
+      "Edit(.env.*)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r /*)",
+      "Bash(git push * --force*)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean -fd*)",
+      "Bash(*DROP DATABASE*)",
+      "Bash(*DROP TABLE*)"
+    ]
+  },
+
+  "hooks": {
+    "_comment_REQUIRED_SessionStart": "Session lifecycle hooks provide governance context on every session start/resume.",
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [{
+          "type": "command",
+          "command": ".claude/hooks/session/session-start.sh",
+          "timeout": 60,
+          "statusMessage": "Initializing session with governance compliance..."
+        }]
+      },
+      {
+        "matcher": "resume",
+        "hooks": [{
+          "type": "command",
+          "command": ".claude/hooks/session/session-resume.sh",
+          "timeout": 30,
+          "statusMessage": "Resuming session, checking for drift..."
+        }]
+      }
+    ],
+
+    "_comment_OPTIONAL_UserPromptSubmit": "Include if compliance targets != 'none'",
+    "UserPromptSubmit": [
+      {
+        "hooks": [{
+          "type": "command",
+          "command": ".claude/hooks/user-prompt/governance-guard.sh",
+          "timeout": 5
+        }]
+      }
+    ],
+
+    "_comment_REQUIRED_PreToolUse": "Pre-tool hooks enforce security boundaries in real-time.",
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-tool/frozen-files.sh",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": ".claude/hooks/pre-tool/secrets-scan.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "_comment_OPTIONAL": "Include only if project has production URLs",
+        "matcher": "Bash",
+        "hooks": [{
+          "type": "command",
+          "command": ".claude/hooks/pre-tool/staging-target.sh",
+          "timeout": 5
+        }]
+      }
+    ],
+
+    "_comment_REQUIRED_PostToolUseFailure": "Capture failures for evidence collection.",
+    "PostToolUseFailure": [
+      {
+        "matcher": ".*",
+        "hooks": [{
+          "type": "command",
+          "command": ".claude/hooks/post-tool/capture-failure.sh",
+          "async": true
+        }]
+      }
+    ],
+
+    "_comment_OPTIONAL_SubagentStop": "Include if project uses multi-agent workflows",
+    "SubagentStop": [
+      {
+        "matcher": ".*",
+        "hooks": [{
+          "type": "command",
+          "command": ".claude/hooks/subagent/validate-audit-result.sh",
+          "timeout": 30
+        }]
+      }
+    ]
+  }
+}

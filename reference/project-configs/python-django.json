@@ -1,0 +1,45 @@
+{
+  "_description": "Example project config for a Python Django project",
+  "project": {
+    "name": "Example Django App",
+    "slug": "example-django",
+    "description": "Web application built with Django",
+    "repo_url": ""
+  },
+  "stack": {
+    "language": "python",
+    "framework": "django",
+    "source_dirs": ["apps"],
+    "test_dir": "tests",
+    "package_manager": "pip",
+    "database": "postgresql"
+  },
+  "governance": {
+    "team_size": "solo",
+    "compliance_targets": ["none"],
+    "wo_dir": "docs/planning",
+    "frozen_files": [],
+    "production_urls": []
+  },
+  "agent": {
+    "cloud_provider": "gcp",
+    "ci_cd_platform": "none",
+    "mcp_servers": ["none"]
+  },
+  "architecture_rules": [
+    {
+      "name": "app-isolation",
+      "type": "forbidden_imports",
+      "description": "Django apps cannot import from each other's models directly",
+      "source": "apps/*/views.py",
+      "forbidden": []
+    },
+    {
+      "name": "orm-enforcement",
+      "type": "forbidden_patterns",
+      "description": "Use Django ORM, not raw SQL",
+      "pattern": "cursor\\.execute|connection\\.cursor",
+      "paths": ["apps/"]
+    }
+  ]
+}

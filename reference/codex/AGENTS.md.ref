@@ -1,0 +1,98 @@
+# <!-- ADAPT: Agent generates AGENTS.md customized to the project -->
+# <!-- Codex does not support hooks — governance rules must be embedded as text instructions -->
+
+# $PROJECT_NAME — Agent Instructions
+
+## Governance Rules
+
+### Three Laws
+1. No remediation without a Work Order
+2. No Work Order without an evidence-backed finding
+3. No finding without investigation
+
+### Work Order Protocol
+- **docs/planning/DEVELOPMENT-PLAN.md** — Phased roadmap. Determines what to build next. Never ask "what do you want to build?" — use the plan.
+- Track all work in `docs/planning/WO-INDEX.md`
+- Quality gate manifest stored at `quality-gate-manifest.json`
+- Use `docs/planning/WO-AUDIT-FRAMEWORK.md` for every WO audit checkpoint
+- Run planning self-audit before approving a WO
+- Run pre-implementation deep audit before coding starts
+- Treat plan acceptance as `Accepted - Awaiting Entry Audit`, not implementation approval
+- Run `bash scripts/gate-runner.sh wo_entry --continue-on-failure --wo <NUMBER>` before coding starts
+- Run `bash scripts/gate-runner.sh pre_commit` before every commit
+- Run pre-commit deep audit before commit
+- Run `bash scripts/gate-runner.sh wo_exit` after completing a Work Order
+- Run staging audit after push/staging verification before moving on
+- Use commit format: `feat(wo-NNN): description`
+
+### Communication Style
+- Use the real technical term and explain it: "PRD (product requirements doc)", "quality gates [checks that run before you commit]". Never replace the term entirely — users learn the vocabulary.
+- Before acting: tell the user what you're about to do and why it matters
+- After acting: start with the business meaning, then explain the technical work in plain English
+- After each major step, explain what is next and why
+- When presenting choices: explain each option, state pros/cons, make a recommendation based on evidence, and explain your rationale
+- Present options in outcome language first, not raw technology names
+- Keep the user oriented; do not reply with terse WO/status messages without explanation
+
+### Zero-Stub Policy
+No stubs, placeholders, or TODO comments in committed code. If something cannot be fully implemented, document the blocker in the Work Order.
+
+## Security Rules
+
+- NEVER hardcode secrets in source code
+- NEVER use string formatting for SQL queries
+- NEVER target production URLs
+- NEVER force push
+- ALWAYS use parameterized queries
+- ALWAYS store secrets in environment variables
+- ALWAYS validate external input at system boundaries
+
+## Architecture
+
+<!-- ADAPT: Agent generates from project config -->
+<!-- EXAMPLE:
+### Module Boundaries
+- API layer cannot import from data layer
+- Business logic must not contain I/O operations
+- No circular dependencies
+-->
+
+## Quality Gates
+
+```bash
+bash scripts/gate-runner.sh pre_commit --continue-on-failure
+bash scripts/gate-runner.sh wo_exit --continue-on-failure
+bash scripts/gate-runner.sh full_audit --continue-on-failure
+```
+
+## Standard Audit Questions
+
+- What did we miss?
+- What did we get wrong?
+- What assumptions might fail?
+- What dependencies, configs, migrations, or integrations are missing?
+- What details are invented or not backed by evidence?
+- What tests, fixtures, validations, or monitoring are missing?
+- Should an additional user-requested audit happen now?
+
+## Required Response Pattern
+
+1. What we just achieved
+2. What changed under the hood
+3. Why it matters
+4. Recommended next step and why
+
+## Development
+
+<!-- ADAPT: Agent fills from project config -->
+
+```bash
+# Setup
+# <!-- ADAPT: language-specific setup commands -->
+
+# Test
+# <!-- ADAPT: test commands -->
+
+# Lint
+# <!-- ADAPT: lint commands -->
+```
