@@ -89,14 +89,14 @@
 
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
+| WO-045 | User Communication Contract | Draft | Phase 6 |
 | WO-041 | Architecture-First Midstream Discovery | Draft | Phase 6 |
-| WO-042 | Guided Codebase Audit with User Decisions | Draft | WO-041 |
+| WO-042 | Guided Codebase Audit with User Decisions | Draft | WO-041, WO-045 (soft) |
+| WO-046 | System Onboarding & Concept Introduction | Draft | WO-045, WO-041 (soft) |
 | WO-043 | Finding-Level Baseline Model | Draft | WO-042 |
 | WO-044 | Remediation Roadmap & Phase 0 Enforcement | Draft | WO-043 |
-| WO-045 | User Communication Contract | Draft | Phase 6 |
-| WO-046 | System Onboarding & Concept Introduction | Draft | WO-045 |
-| WO-047 | Build Loop Visibility & Progress Reporting | Draft | WO-045 |
-| WO-048 | Consequence-Aware Decision Support | Draft | WO-045 |
+| WO-047 | Build Loop Visibility & Progress Reporting | Draft | WO-045, WO-044 (soft) |
+| WO-048 | Consequence-Aware Decision Support | Draft | WO-045, WO-044 (soft) |
 
 ## Completed
 

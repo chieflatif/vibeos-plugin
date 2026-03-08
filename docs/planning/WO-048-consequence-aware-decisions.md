@@ -38,11 +38,18 @@ Every time the system presents the user with a choice, it includes the consequen
 | Dependency | Type | Status |
 |---|---|---|
 | WO-045 | User communication contract | Draft |
+| WO-044 | Remediation roadmap (soft) | Draft |
+| WO-042 | Guided codebase audit (soft) | Draft |
+
+**Soft dependency notes:**
+- WO-044 creates the Phase 0 skip decision point. If WO-044 is not implemented when WO-048 runs, the Phase 0 skip item (scope line 24) should be marked as conditional and implemented when Phase 0 enforcement exists.
+- WO-042 creates the finding disposition decision points (fix-now/fix-later/accepted-risk). WO-048 should audit and improve those decision points for consequence completeness.
 
 ## Impact Analysis
 
-- **Files modified:** `skills/build/SKILL.md` (all escalation/decision points), `skills/plan/SKILL.md` (autonomy, intake), `skills/audit/SKILL.md` (finding review)
-- **Systems affected:** All user-facing decision points
+- **Files modified:** `skills/build/SKILL.md` (all escalation/decision points), `skills/plan/SKILL.md` (autonomy, intake, guided audit finding dispositions from WO-042), `skills/audit/SKILL.md` (finding review), `skills/discover/SKILL.md` (intent confirmation, gate failure decisions), `skills/checkpoint/SKILL.md` (ratchet violation decisions), `docs/USER-COMMUNICATION-CONTRACT.md` (decision template variant conforming to WO-045 schema)
+- **Systems affected:** All user-facing decision points across all skills
+- **Note:** WO-047 also modifies `skills/build/SKILL.md`. Both WOs should be implemented after Track A completes its modifications to avoid merge conflicts. WO-048 improves decision points including those created by WO-042 (finding dispositions) and WO-044 (Phase 0 skip).
 
 ## Acceptance Criteria
 
@@ -81,6 +88,17 @@ Audit all skills for decision points:
 
 **Audit skill (`skills/audit/SKILL.md`):**
 9. Finding review (currently no decision point — should there be one?)
+
+**Discover skill (`skills/discover/SKILL.md`):**
+10. Intent confirmation ("Does this match your intent, or should I adjust anything?") — Step 2
+11. Gate failure during discovery — Step 6
+
+**Checkpoint skill (`skills/checkpoint/SKILL.md`):**
+12. Ratchet violation response (what to do about quality regressions)
+
+**Guided audit (WO-042, in `skills/plan/SKILL.md`):**
+13. Per-finding disposition (fix-now/fix-later/accepted-risk) — if WO-042 is complete
+14. Phase 0 negotiation (which fix-later items to escalate) — if WO-044 is complete
 
 ### Step 2: Rewrite Each Decision Point
 

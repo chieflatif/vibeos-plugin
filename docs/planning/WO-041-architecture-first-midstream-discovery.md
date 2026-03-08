@@ -27,8 +27,9 @@ When the plugin detects existing code, the first action is to infer the architec
 - [ ] Detect database connections, ORMs, migration frameworks
 - [ ] Detect auth patterns (middleware, decorators, session management)
 - [ ] Detect test infrastructure (framework, directory, naming convention, coverage)
-- [ ] Update `skills/discover/SKILL.md` with midstream discovery flow
-- [ ] Update `skills/plan/SKILL.md` Step 1b to require architecture-first before audits
+- [ ] Update `skills/discover/SKILL.md` with midstream discovery flow (major: adds complete alternate code path — the current skill is purely greenfield with no concept of existing code; this adds early detection branching and a full midstream Steps 2-5 equivalent)
+- [ ] Update `skills/plan/SKILL.md` Step 1b: **replace** the existing 55-line midstream logic (run-gates-then-baseline) with architecture-first requirement — existing Step 1b is superseded by the WO-041/042/043/044 pipeline
+- [ ] Handle PRD.md collision: if `docs/product/PRD.md` already exists (from prior `/vibeos:discover` run), merge inferred data rather than overwrite
 
 ### Out of Scope
 - Running audits (WO-042)
@@ -44,9 +45,10 @@ When the plugin detects existing code, the first action is to infer the architec
 
 ## Impact Analysis
 
-- **Files modified:** `skills/discover/SKILL.md` (add midstream discovery path), `skills/plan/SKILL.md` (Step 1b requires architecture-first)
-- **Files created:** None at plugin level — artifacts are created in the target project
-- **Systems affected:** Discovery skill, plan skill, architecture auditor (now has a document to audit against)
+- **Files modified:** `skills/discover/SKILL.md` (major: adds complete midstream alternate path with early detection branch, code analysis steps, and user validation — the current skill is purely greenfield), `skills/plan/SKILL.md` (Step 1b: **replaces** existing midstream logic with architecture-first requirement)
+- **Files created:** None at plugin level — artifacts are created in the target project (`docs/product/ARCHITECTURE-OUTLINE.md`, `docs/product/TECHNICAL-SPEC.md`, `docs/product/PRD.md`, `project-definition.json`)
+- **Systems affected:** Discovery skill (structural change), plan skill (Step 1b replacement), architecture auditor (now has a document to audit against)
+- **Note:** WO-046 also modifies `skills/discover/SKILL.md` to add onboarding. WO-041 should be implemented first; WO-046 wraps its onboarding check around WO-041's midstream branch.
 
 ## Acceptance Criteria
 
@@ -58,7 +60,7 @@ When the plugin detects existing code, the first action is to infer the architec
 - [ ] AC-6: Draft project-definition.json generated with inferred values
 - [ ] AC-7: User presented with inferred architecture and asked to validate/correct
 - [ ] AC-8: Validated architecture document becomes the anchor for all subsequent audits
-- [ ] AC-9: Architecture auditor can now audit against a real document (not just flag "missing")
+- [ ] AC-9: Generated ARCHITECTURE-OUTLINE.md is in the path the architecture auditor checks (`docs/product/ARCHITECTURE-OUTLINE.md`), enabling it to audit against a real document instead of flagging "missing"
 - [ ] AC-10: Greenfield projects unaffected — existing discover flow unchanged
 
 ## Test Strategy
@@ -89,7 +91,7 @@ The midstream discovery flow:
 From code analysis, generate:
 - `docs/product/ARCHITECTURE-OUTLINE.md` — layers, modules, dependencies, boundaries
 - `docs/product/TECHNICAL-SPEC.md` — detected stack, frameworks, database, auth
-- `docs/product/PRD.md` — skeleton with inferred product scope from code structure
+- `docs/product/PRD.md` — skeleton with inferred product scope from code structure. **Collision handling:** if PRD.md already exists (from prior `/vibeos:discover` run), merge inferred data into the existing document rather than overwriting
 - `project-definition.json` — with `source: "inferred"` and confidence levels
 
 ### Step 4: User Validation
@@ -110,10 +112,11 @@ Present the inferred architecture to the user:
 After user validates, write the final architecture document.
 
 ### Step 5: Update Plan Skill
-Update `skills/plan/SKILL.md` Step 1b:
+**Replace** the existing `skills/plan/SKILL.md` Step 1b midstream logic (lines 49-103, which currently runs gates, dispatches 5 audit agents, stores baselines, and creates remediation WOs) with architecture-first requirement:
 - Before running any audits, check if architecture documents exist
 - If not: tell user to run `/vibeos:discover` first (which now handles midstream)
 - Architecture document is a prerequisite for meaningful audits
+- The existing Step 1b gate/audit/baseline flow is superseded by the WO-042/043/044 pipeline
 
 ## Audit Checkpoints
 

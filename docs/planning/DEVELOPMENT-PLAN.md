@@ -159,16 +159,27 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 **Exit Criteria:** Midstream user makes informed decisions about every critical/high finding before baseline is established. Finding-level baselines prevent new issues hiding behind fixed ones. User understands what the system is doing at every step. All communication follows the contract.
 
+**Implementation Order:** While the two tracks have independent dependency chains, they share file modifications (`skills/discover/SKILL.md`, `skills/plan/SKILL.md`, `skills/build/SKILL.md`) and semantic dependencies (Track A defines user-facing communication patterns that should follow Track B's contract). The recommended implementation order is:
+
+1. WO-045 (communication contract — no dependencies, unlocks consistent communication)
+2. WO-041 (architecture-first discovery)
+3. WO-042 (guided audit — references WO-045 contract for communication patterns)
+4. WO-046 (onboarding — depends on WO-045, coordinates with WO-041 on discover skill)
+5. WO-043 (finding-level baseline)
+6. WO-044 (remediation roadmap)
+7. WO-047 (build visibility — Track A done modifying build skill)
+8. WO-048 (consequence decisions — all decision points now exist)
+
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
+| WO-045 | User Communication Contract | Phase 6 complete | Draft |
 | WO-041 | Architecture-First Midstream Discovery | Phase 6 complete | Draft |
-| WO-042 | Guided Codebase Audit with User Decisions | WO-041 | Draft |
+| WO-042 | Guided Codebase Audit with User Decisions | WO-041, WO-045 (soft) | Draft |
+| WO-046 | System Onboarding & Concept Introduction | WO-045, WO-041 (soft) | Draft |
 | WO-043 | Finding-Level Baseline Model | WO-042 | Draft |
 | WO-044 | Remediation Roadmap & Phase 0 Enforcement | WO-043 | Draft |
-| WO-045 | User Communication Contract | Phase 6 complete | Draft |
-| WO-046 | System Onboarding & Concept Introduction | WO-045 | Draft |
-| WO-047 | Build Loop Visibility & Progress Reporting | WO-045 | Draft |
-| WO-048 | Consequence-Aware Decision Support | WO-045 | Draft |
+| WO-047 | Build Loop Visibility & Progress Reporting | WO-045, WO-044 (soft) | Draft |
+| WO-048 | Consequence-Aware Decision Support | WO-045, WO-044 (soft) | Draft |
 
 ---
 

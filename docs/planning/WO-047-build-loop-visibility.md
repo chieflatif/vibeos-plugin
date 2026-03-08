@@ -22,7 +22,7 @@ Add mandatory progress reporting to the build loop so the user always knows what
 - [ ] Audit results summarized: `"Auditors found 2 issues. 1 confirmed (flagged by 2 auditors), 1 warning."`
 - [ ] Convergence retries reported: `"Fixing 2 audit findings automatically (attempt 2 of 5)..."`
 - [ ] Gate fix retries reported: `"Quality check failed. Fixing [issue] and re-running (attempt 2 of 3)..."`
-- [ ] Token usage reported at WO completion: `"This WO used [N] tokens ([X]% on quality checks)"`
+- [ ] Iteration and dispatch counts reported at WO completion: `"This WO dispatched [N] agents across [M] iterations ([X] gate retries, [Y] audit convergence cycles)"` (token counts are best-effort — the Agent tool may not expose token usage to the caller; dispatch counts are always available from the orchestrator's own tracking)
 - [ ] Phase progress indicator: `"Phase 2: 3 of 5 work orders complete"`
 - [ ] Update `skills/build/SKILL.md` with mandatory progress reporting at every step
 - [ ] Define progress templates in the Communication Contract
@@ -37,11 +37,15 @@ Add mandatory progress reporting to the build loop so the user always knows what
 | Dependency | Type | Status |
 |---|---|---|
 | WO-045 | User communication contract | Draft |
+| WO-044 | Remediation roadmap (soft) | Draft |
+
+**Soft dependency note:** WO-044 modifies `skills/build/SKILL.md` for Phase 0 enforcement and aging reminders. WO-047 should be implemented after WO-044 to add progress banners around those additions. The templates defined here (Step 1) must conform to WO-045's template schemas.
 
 ## Impact Analysis
 
-- **Files modified:** `skills/build/SKILL.md` (add progress reporting at every step)
+- **Files modified:** `skills/build/SKILL.md` (add progress reporting at every step), `docs/USER-COMMUNICATION-CONTRACT.md` (add progress template variants that conform to WO-045 schema)
 - **Systems affected:** Build loop, gate execution, audit cycle, convergence control
+- **Note:** Standalone `/vibeos:audit` progress is out of scope — this WO focuses on the build loop where silence is most problematic. Audit skill progress can be a backlog item post-Phase 7.
 
 ## Acceptance Criteria
 
@@ -50,9 +54,9 @@ Add mandatory progress reporting to the build loop so the user always knows what
 - [ ] AC-3: Audit agent dispatch and completion reported
 - [ ] AC-4: Convergence retries are not silent — user sees brief update
 - [ ] AC-5: Gate fix retries are not silent — user sees what failed and that a retry is happening
-- [ ] AC-6: Token usage reported at WO completion
+- [ ] AC-6: Dispatch and iteration counts reported at WO completion (token counts best-effort if Agent tool exposes them)
 - [ ] AC-7: Phase progress shown (N of M WOs complete)
-- [ ] AC-8: User never experiences more than 30 seconds of silence without a status update
+- [ ] AC-8: Every agent dispatch has a pre-dispatch banner and a post-completion summary (the subagent model does not support mid-dispatch keepalives, so step banners before and after each dispatch are the primary mitigation for long silent periods)
 - [ ] AC-9: Progress updates follow Communication Contract templates (WO-045)
 
 ## Test Strategy
@@ -72,7 +76,7 @@ GATE_RESULT: "Quality checks: {passed}/{total} passed.{if failures} {top_issue_p
 AUDIT_DISPATCH: "Running {N} quality auditors to review your code..."
 AUDIT_RESULT: "Audit complete: {confirmed} confirmed findings, {warnings} warnings.{if critical} {critical_summary}{/if}"
 RETRY: "{what_failed}. Fixing automatically (attempt {N} of {max})..."
-TOKEN_REPORT: "This work order used {N} tokens ({audit_pct}% on quality enforcement)."
+WO_SUMMARY: "This work order dispatched {N} agents across {M} iterations ({gate_retries} gate retries, {audit_cycles} audit convergence cycles).{if token_data} Used approximately {tokens} tokens ({audit_pct}% on quality enforcement).{/if}"
 PHASE_PROGRESS: "Phase {N}: {completed}/{total} work orders complete."
 ```
 
@@ -110,9 +114,9 @@ For each of the 11 steps in `skills/build/SKILL.md`, add mandatory progress outp
 **Step 11 (Check-in):**
 > "[Step 8/8] Check-in — Here's what was built: [summary]"
 
-### Step 3: Add Silent Period Prevention
-After any agent dispatch that could take more than 30 seconds, add a keepalive instruction:
-> "If the agent is still running after 30 seconds, report: 'Still working on [agent task]...'"
+### Step 3: Silent Period Mitigation
+The subagent model does not support streaming partial output back to the main thread during dispatch. The primary mitigation is the pre-dispatch and post-completion banners from Step 2, which ensure the user always knows what's happening before and after each agent runs. For the longest-running dispatches (audit agents in parallel), the pre-dispatch banner should set expectations:
+> "[Step 5/8] Audit — Running 5 independent quality reviewers. This is the longest step and may take a minute..."
 
 ## Audit Checkpoints
 
@@ -127,5 +131,5 @@ After any agent dispatch that could take more than 30 seconds, add a keepalive i
 - [ ] Gate results reported inline
 - [ ] Audit dispatch and results reported
 - [ ] Retries not silent
-- [ ] Token usage reported
-- [ ] No silent paths >30 seconds
+- [ ] Dispatch and iteration counts reported
+- [ ] Every dispatch has pre/post banners

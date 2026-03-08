@@ -41,9 +41,10 @@ Create a proper remediation roadmap that integrates user-decided finding disposi
 
 ## Impact Analysis
 
-- **Files modified:** `skills/plan/SKILL.md` (Phase 0 generation), `skills/build/SKILL.md` (Phase 0 enforcement), `skills/status/SKILL.md` (remediation display)
+- **Files modified:** `skills/plan/SKILL.md` (Phase 0 generation — WO-044 is the **sole owner** of remediation WO creation, superseding the existing Step 1b remediation logic that WO-041 replaces), `skills/build/SKILL.md` (Phase 0 enforcement at Step 1, aging reminders after WO completion), `skills/status/SKILL.md` (remediation display), `convergence/baseline-check.sh` (may need to query findings-registry for Phase 0 enforcement checks)
 - **Files created:** `docs/planning/ACCEPTED-RISKS.md` (in target project), `docs/planning/REMEDIATION-ROADMAP.md` (in target project)
 - **Systems affected:** Plan skill, build skill, status skill, WO creation
+- **Note:** WO-047 also modifies `skills/build/SKILL.md` for progress reporting. WO-044 should be implemented first; WO-047 adds progress banners around WO-044's enforcement and reminder logic.
 
 ## Acceptance Criteria
 
@@ -54,7 +55,7 @@ Create a proper remediation roadmap that integrates user-decided finding disposi
 - [ ] AC-5: User can negotiate which items go into Phase 0 vs parallel track
 - [ ] AC-6: Remediation WOs link to specific finding IDs from findings-registry.json
 - [ ] AC-7: Status skill shows remediation progress (N fix-now resolved, M fix-later remaining)
-- [ ] AC-8: Periodic reminder when fix-later items age beyond threshold
+- [ ] AC-8: Periodic reminder when fix-later items age beyond threshold (configurable in `.vibeos/config.json` as `remediation_aging_threshold`, default: 5 WOs)
 - [ ] AC-9: REMEDIATION-ROADMAP.md generated with timeline and dependencies
 - [ ] AC-10: Greenfield projects unaffected (no Phase 0 if no pre-existing findings)
 
@@ -100,8 +101,9 @@ Update `skills/status/SKILL.md`:
 ### Step 5: Aging Reminders
 In `skills/build/SKILL.md`, after each WO completion:
 1. Check fix-later items in findings-registry.json
-2. Count WOs completed since each item was baselined
-3. If any item exceeds threshold (default: 5 WOs since baselined):
+2. Count WOs completed since each item was baselined (using the `baselined_at_wo` field in findings-registry.json — set by WO-043 when the finding is first baselined)
+3. Read threshold from `.vibeos/config.json` `remediation_aging_threshold` (default: 5 WOs)
+4. If any item exceeds threshold:
    > "Reminder: [N] fix-later remediation items have been deferred for [M] work orders. Consider scheduling them soon:
    > - [finding summary] (deferred since WO-NNN)
    > Run `/vibeos:status` to see the full list."

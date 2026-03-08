@@ -40,9 +40,10 @@ Replace the count-based baseline model (`"critical": 10`) with a finding-level m
 
 ## Impact Analysis
 
-- **Files modified:** `convergence/baseline-check.sh` (finding-level support), `skills/build/SKILL.md` (Step 7), `skills/checkpoint/SKILL.md` (ratcheting)
-- **Files created:** Migration script for old baselines
+- **Files modified:** `convergence/baseline-check.sh` (finding-level support with new CLI interface), `skills/build/SKILL.md` (Step 7 — finding-level check), `skills/checkpoint/SKILL.md` (finding-level ratcheting — runs in parallel with existing phase-level count-based ratchet; phase baselines retain aggregate counts, finding-level provides precision)
+- **Files created:** `convergence/migrate-baseline.sh` (converts count-based baselines to finding-level format)
 - **Systems affected:** Baseline system, gate evaluation, checkpoint ratcheting
+- **Note:** SHA-256 fingerprinting uses `shasum -a 256` (available on macOS by default) with jq for JSON processing — no new dependencies required beyond what gate-runner.sh already uses.
 
 ## Acceptance Criteria
 
@@ -95,15 +96,32 @@ Replace the count-based baseline model (`"critical": 10`) with a finding-level m
 ```
 
 ### Step 2: Update baseline-check.sh
-Add finding-level mode:
-- Detect baseline version (1.0 = count-based, 2.0 = finding-level)
-- For version 2.0: compare current findings against baselined findings by fingerprint
-- `check`: NEW (not in baseline) → FAIL, IN_BASELINE → TRACKED, NO_FINDINGS → PASS
+Add finding-level mode with new CLI interface:
+
+**Count-based mode (existing, version 1.0):**
+```bash
+baseline-check.sh check --baseline-file <path> --category <name> --current-count <N>
+baseline-check.sh ratchet --baseline-file <path> --category <name> --current-count <N>
+```
+
+**Finding-level mode (new, version 2.0):**
+```bash
+baseline-check.sh check --mode finding-level --baseline-file <path> --current-findings-file <path>
+baseline-check.sh ratchet --mode finding-level --baseline-file <path> --current-findings-file <path>
+```
+
+The `--current-findings-file` is a JSON file with the same schema as findings-registry.json (WO-042 schema contract). Mode detection:
+- If `--mode finding-level` is passed, use finding-level comparison
+- If `--mode` is omitted, detect from baseline version field (1.0 = count-based, 2.0 = finding-level)
+- `check`: NEW (not in baseline) → FAIL with specific finding details, IN_BASELINE → TRACKED, NO_FINDINGS → PASS
 - `ratchet`: Remove findings from baseline that no longer appear in current scan
 - Preserve backward compatibility for version 1.0
 
 ### Step 3: Implement Fingerprinting
-Finding fingerprint = SHA-256 of `category + file + pattern + severity`:
+Finding fingerprint = SHA-256 of `category + file + pattern + severity` using `shasum -a 256` (macOS built-in, no external dependencies):
+```bash
+echo -n "${category}:${file}:${pattern}:${severity}" | shasum -a 256 | cut -d' ' -f1
+```
 - Tolerates line number changes (file refactoring)
 - Catches same-pattern-different-file as new finding
 - Catches same-file-different-pattern as new finding
@@ -123,8 +141,8 @@ After gate/audit run:
 - Mark all entries as `disposition: "pre-existing-unmigrated"` (user needs to review)
 
 ### Step 6: Update Skills
-- `skills/build/SKILL.md` Step 7: use finding-level check, report specific new findings
-- `skills/checkpoint/SKILL.md`: ratchet removes fixed findings from baseline
+- `skills/build/SKILL.md` Step 7: use finding-level check (`--mode finding-level`), report specific new findings by ID and file
+- `skills/checkpoint/SKILL.md`: add finding-level ratchet alongside existing phase-level count-based ratchet. Phase baselines (`phase-[N]-baseline.json`) retain aggregate counts for backward compatibility. Finding-level baselines (from findings-registry.json) provide precision tracking. The checkpoint runs both: count-based ratchet ensures aggregate quality only improves, finding-level ratchet ensures specific findings are tracked and swaps are detected.
 
 ## Audit Checkpoints
 

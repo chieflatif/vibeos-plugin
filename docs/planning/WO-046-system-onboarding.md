@@ -20,10 +20,10 @@ Create a first-time user experience that explains what VibeOS does, how it works
 - [ ] Explain the system: phases → WOs → agents → gates → audits → convergence
 - [ ] Explain the user's role: decision maker, not code writer
 - [ ] Explain what to expect: autonomous build with check-ins, not interactive coding
-- [ ] Concept tracker: track which concepts have been introduced in the session
-- [ ] First-use definitions: when a term is used for the first time, include inline definition
+- [ ] First-use concept introduction via Communication Contract instruction (WO-045 "introduce every concept on first use" rule) — no session-state tracking needed; the LLM follows the contract instruction naturally
 - [ ] Create `/vibeos:help` skill for on-demand concept clarification
-- [ ] Update `skills/discover/SKILL.md` to include onboarding before discovery starts
+- [ ] Update `skills/discover/SKILL.md` to include onboarding before discovery starts (wraps around WO-041's midstream branch if present)
+- [ ] Update `skills/build/SKILL.md` to include onboarding check at start (second entry point)
 - [ ] Store onboarding-complete flag in `.vibeos/config.json`
 
 ### Out of Scope
@@ -36,12 +36,15 @@ Create a first-time user experience that explains what VibeOS does, how it works
 | Dependency | Type | Status |
 |---|---|---|
 | WO-045 | User communication contract | Draft |
+| WO-041 | Architecture-first midstream discovery (soft) | Draft |
+
+**Soft dependency note:** WO-041 modifies `skills/discover/SKILL.md` to add the midstream branch. WO-046 wraps its onboarding check around this branch. WO-046 should be implemented after WO-041 for the discover skill, so onboarding fires before midstream discovery.
 
 ## Impact Analysis
 
-- **Files created:** `skills/help/SKILL.md` (new skill)
-- **Files modified:** `skills/discover/SKILL.md` (add onboarding), `.claude-plugin/plugin.json` (register help skill)
-- **Systems affected:** Discovery flow, all skills (first-use definitions)
+- **Files created:** `skills/help/SKILL.md` (new skill — auto-discovered from `skills/` directory, no `plugin.json` registration needed)
+- **Files modified:** `skills/discover/SKILL.md` (add onboarding check wrapping WO-041's midstream branch), `skills/build/SKILL.md` (add onboarding check at start — second entry point for users who skip discover)
+- **Systems affected:** Discovery flow, build flow (entry points only — onboarding limited to discover and build skills, not all 8+ skills)
 
 ## Acceptance Criteria
 
@@ -83,12 +86,13 @@ Before the first skill action, present:
 > Let's start by understanding what you want to build.
 
 ### Step 2: First-Run Detection
-In each skill, check at the start:
+In entry-point skills only (`skills/discover/SKILL.md` and `skills/build/SKILL.md`), check at the start:
 ```
 if .vibeos/config.json does not exist or onboarding_complete is false:
   present onboarding message
   set onboarding_complete: true
 ```
+Other skills (gate, status, wo, checkpoint, audit, plan) do not check for first-run — a user invoking these directly has either been onboarded or is experienced enough to not need it.
 
 ### Step 3: Create `/vibeos:help` Skill
 `skills/help/SKILL.md`:

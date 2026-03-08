@@ -54,7 +54,7 @@ Create the `USER-COMMUNICATION-CONTRACT.md` referenced in CLAUDE.md but never bu
 - [ ] AC-6: Glossary of 15+ core terms with plain English definitions
 - [ ] AC-7: All 12 agent files reference the communication contract
 - [ ] AC-8: All 8 skill files reference the communication contract
-- [ ] AC-9: Contract is testable — a reviewer can check if output complies
+- [ ] AC-9: Contract includes at least one compliant and one non-compliant example for each template, enabling objective compliance checking
 
 ## Test Strategy
 
@@ -72,13 +72,16 @@ Core rules:
 4. **Explain errors in terms of impact.** Not "exit code 1 from validate-types.sh" but "your type annotations are incomplete — 3 functions are missing return types, which means bugs could slip through undetected."
 5. **Never use a technical term without context.** Not "ratchet violation" but "quality regression — the number of issues increased since the last phase, which our one-way improvement policy doesn't allow."
 
-### Step 2: Define Output Templates
-Mandatory templates for common outputs:
-- **Progress update:** `"[Step N/M] [agent-name] — [what it's doing in plain English]"`
-- **Gate result:** `"Quality check: [N] passed, [M] need attention. [Top issue in plain English]"`
+### Step 2: Define Output Template Schemas
+Define the **template structure** for common outputs. These are the base schemas — WO-047 (build visibility) and WO-048 (consequence decisions) will populate specific instances within this structure. WO-045 defines the schema and initial templates; WO-047/048 add domain-specific variants that must conform to these schemas.
+
+**Template schemas:**
+- **Progress update:** `"[Step N/M] [agent-name] — [what it's doing in plain English]"` — WO-047 adds specific build loop step variants
+- **Gate result:** `"Quality check: [N] passed, [M] need attention. [Top issue in plain English]"` — WO-047 adds inline gate reporting format
 - **Audit finding:** `"[severity]: [what's wrong] in [file]. [Why it matters]. [What to do about it]."`
-- **Decision point:** `"[Question]. Option A: [description] — [consequence]. Option B: [description] — [consequence]. I recommend [X] because [reason]."`
+- **Decision point:** `"[Context]. Option A: [description] — [consequence]. Option B: [description] — [consequence]. I recommend [X] because [reason]."` — WO-048 adds domain-specific decision rewrites that conform to this schema
 - **Error/escalation:** `"Something went wrong: [what happened in plain English]. I tried: [what was attempted]. Your options: [list with consequences]."`
+- **System notification:** `"[notification type]: [message in plain English]"` — for non-step messages like aging reminders (WO-044), convergence updates, etc.
 
 ### Step 3: Define Glossary
 Core terms with definitions:
@@ -95,21 +98,27 @@ Core terms with definitions:
 - ... (15+ terms total)
 
 ### Step 4: Embed in Agents and Skills
+**Agent reference path:** Use `${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md` — `${CLAUDE_PLUGIN_ROOT}` is available in hooks (confirmed by Phase 0 spike) and should be available in agent execution contexts since agents run within the plugin environment.
+
 For each agent file, add to the prompt:
 ```
 ## Communication Contract
-Follow the USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
 All findings must be explained in plain English with business impact.
 Technical terms must be accompanied by their glossary definition on first use.
 ```
 
-For each skill file, add to Communication Contract section:
+For each skill file: **replace** the existing inline `## Communication Contract` sections (currently present in all 8 skills with ad-hoc rules) with a standardized reference to the centralized contract plus any skill-specific communication rules that go beyond the contract:
 ```
-Follow the full USER-COMMUNICATION-CONTRACT.md. Key rules:
+## Communication Contract
+Follow the full USER-COMMUNICATION-CONTRACT.md (${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition
+[Skill-specific rules below if any]
 ```
+
+**Migration strategy:** Existing inline rules in skills are replaced, not supplemented. Any skill-specific rules not covered by the centralized contract are preserved as skill-specific addenda below the contract reference.
 
 ## Audit Checkpoints
 
