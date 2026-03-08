@@ -31,11 +31,11 @@
 
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
-| WO-008 | `/vibeos:discover` Skill | Draft | Phase 1 |
-| WO-009 | `/vibeos:plan` Skill | Draft | WO-008 |
-| WO-010 | Plan Auditor Agent | Draft | WO-007 |
-| WO-011 | Autonomy Negotiation | Draft | WO-009 |
-| WO-012 | Project Intake Integration | Draft | WO-009 |
+| WO-008 | `/vibeos:discover` Skill | Complete | Phase 1 |
+| WO-009 | `/vibeos:plan` Skill | Complete | WO-008 |
+| WO-010 | Plan Auditor Agent | Complete | WO-007 |
+| WO-011 | Autonomy Negotiation | Complete | WO-009 |
+| WO-012 | Project Intake Integration | Complete | WO-009 |
 
 ### Phase 3: Autonomous Build Loop
 
@@ -98,3 +98,8 @@
 | WO-006 | Basic hooks.json (Layer 0) | 1 | 2026-03-07 |
 | WO-007 | Planner Agent (Proof of Concept) | 1 | 2026-03-07 |
 | WO-007a | Test Fixture Project | 1 | 2026-03-07 |
+| WO-008 | `/vibeos:discover` Skill | 2 | 2026-03-07 |
+| WO-009 | `/vibeos:plan` Skill | 2 | 2026-03-07 |
+| WO-010 | Plan Auditor Agent | 2 | 2026-03-07 |
+| WO-011 | Autonomy Negotiation | 2 | 2026-03-07 |
+| WO-012 | Project Intake Integration | 2 | 2026-03-07 |

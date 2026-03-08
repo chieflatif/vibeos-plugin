@@ -72,11 +72,11 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-008 | `/vibeos:discover` Skill | Phase 1 complete | Draft |
-| WO-009 | `/vibeos:plan` Skill | WO-008 | Draft |
-| WO-010 | Plan Auditor Agent | WO-007 | Draft |
-| WO-011 | Autonomy Negotiation | WO-009 | Draft |
-| WO-012 | Project Intake Integration | WO-009 | Draft |
+| WO-008 | `/vibeos:discover` Skill | Phase 1 complete | Complete |
+| WO-009 | `/vibeos:plan` Skill | WO-008 | Complete |
+| WO-010 | Plan Auditor Agent | WO-007 | Complete |
+| WO-011 | Autonomy Negotiation | WO-009 | Complete |
+| WO-012 | Project Intake Integration | WO-009 | Complete |
 
 ---
 
