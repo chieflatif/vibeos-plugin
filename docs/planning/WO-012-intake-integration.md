@@ -15,12 +15,12 @@ Ensure project intake answers feed correctly into the decision engine, with pre-
 ## Scope
 
 ### In Scope
-- [ ] Map each intake question to decision engine input fields
-- [ ] Pre-fill intake answers from project-definition.json when fields match
-- [ ] Skip questions that are fully answered by pre-fill (with confirmation)
-- [ ] Validate all required fields have answers before decision engine runs
-- [ ] Handle missing/incomplete project-definition.json gracefully
-- [ ] Error messages in plain English when validation fails
+- [x] Map each intake question to decision engine input fields
+- [x] Pre-fill intake answers from project-definition.json when fields match
+- [x] Skip questions that are fully answered by pre-fill (with confirmation)
+- [x] Validate all required fields have answers before decision engine runs
+- [x] Handle missing/incomplete project-definition.json gracefully
+- [x] Error messages in plain English when validation fails
 
 ### Out of Scope
 - Intake questionnaire design (already in PROJECT-INTAKE.md)
@@ -36,18 +36,18 @@ Ensure project intake answers feed correctly into the decision engine, with pre-
 
 ## Impact Analysis
 
-- **Files modified:** skills/plan.md (intake integration logic)
+- **Files modified:** skills/plan/SKILL.md (intake integration logic)
 - **Systems affected:** Data flow between discover and plan skills
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Every intake question maps to at least one decision engine input
-- [ ] AC-2: Pre-fill correctly reads from project-definition.json
-- [ ] AC-3: Pre-filled answers shown to user for confirmation (not silently assumed)
-- [ ] AC-4: Missing required fields produce clear error with which field and why
-- [ ] AC-5: Works when project-definition.json is absent (all questions asked manually)
-- [ ] AC-6: Works when project-definition.json is partial (only missing fields asked)
-- [ ] AC-7: Decision engine receives complete, validated input
+- [x] AC-1: Every intake question maps to at least one decision engine input
+- [x] AC-2: Pre-fill correctly reads from project-definition.json
+- [x] AC-3: Pre-filled answers shown to user for confirmation (not silently assumed)
+- [x] AC-4: Missing required fields produce clear error with which field and why
+- [x] AC-5: Works when project-definition.json is absent (all questions asked manually)
+- [x] AC-6: Works when project-definition.json is partial (only missing fields asked)
+- [x] AC-7: Decision engine receives complete, validated input
 
 ## Test Strategy
 
@@ -87,8 +87,8 @@ Ensure project intake answers feed correctly into the decision engine, with pre-
 
 ## Evidence
 
-- [ ] Field mapping documented
-- [ ] Pre-fill works with full project-definition.json
-- [ ] Pre-fill works with partial project-definition.json
-- [ ] Validation catches missing required fields
-- [ ] Decision engine receives correct input format
+- [x] Field mapping documented
+- [x] Pre-fill works with full project-definition.json
+- [x] Pre-fill works with partial project-definition.json
+- [x] Validation catches missing required fields
+- [x] Decision engine receives correct input format

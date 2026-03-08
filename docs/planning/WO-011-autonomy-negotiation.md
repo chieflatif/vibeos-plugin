@@ -15,12 +15,12 @@ Add an autonomy negotiation flow to `/vibeos:plan` that lets the user choose how
 ## Scope
 
 ### In Scope
-- [ ] Add autonomy negotiation step to the /vibeos:plan skill
-- [ ] Three autonomy levels: stop after every WO, stop after every phase, stop at major decisions only
-- [ ] Explain each option in outcome language (what the user will experience, not technical details)
-- [ ] Include a recommendation with rationale
-- [ ] Store selected autonomy config in `.vibeos/config.json`
-- [ ] Config schema: `{ "autonomy": { "level": "wo|phase|major", "negotiated_at": "ISO timestamp" } }`
+- [x] Add autonomy negotiation step to the /vibeos:plan skill
+- [x] Three autonomy levels: stop after every WO, stop after every phase, stop at major decisions only
+- [x] Explain each option in outcome language (what the user will experience, not technical details)
+- [x] Include a recommendation with rationale
+- [x] Store selected autonomy config in `.vibeos/config.json`
+- [x] Config schema: `{ "autonomy": { "level": "wo|phase|major", "negotiated_at": "ISO timestamp" } }`
 
 ### Out of Scope
 - Build loop implementation (WO-019)
@@ -35,18 +35,18 @@ Add an autonomy negotiation flow to `/vibeos:plan` that lets the user choose how
 
 ## Impact Analysis
 
-- **Files modified:** skills/plan.md (add autonomy step)
+- **Files modified:** skills/plan/SKILL.md (add autonomy step)
 - **Files created:** autonomy negotiation logic, .vibeos/config.json schema
 - **Systems affected:** Plan skill, future build orchestrator reads this config
 
 ## Acceptance Criteria
 
-- [ ] AC-1: User presented with 3 autonomy options after plan generation
-- [ ] AC-2: Each option explained in plain English with concrete examples
-- [ ] AC-3: Recommendation provided (default: stop after every phase for new users)
-- [ ] AC-4: Selection stored in `.vibeos/config.json`
-- [ ] AC-5: Config file is valid JSON and readable by future build orchestrator
-- [ ] AC-6: Communication contract enforced — no jargon, outcome language only
+- [x] AC-1: User presented with 3 autonomy options after plan generation
+- [x] AC-2: Each option explained in plain English with concrete examples
+- [x] AC-3: Recommendation provided (default: stop after every phase for new users)
+- [x] AC-4: Selection stored in `.vibeos/config.json`
+- [x] AC-5: Config file is valid JSON and readable by future build orchestrator
+- [x] AC-6: Communication contract enforced — no jargon, outcome language only
 
 ## Test Strategy
 
@@ -80,7 +80,7 @@ Add an autonomy negotiation flow to `/vibeos:plan` that lets the user choose how
 
 ## Evidence
 
-- [ ] Autonomy options presented in plan skill
-- [ ] .vibeos/config.json created with valid schema
-- [ ] Option descriptions verified as plain English
-- [ ] Recommendation included
+- [x] Autonomy options presented in plan skill
+- [x] .vibeos/config.json created with valid schema
+- [x] Option descriptions verified as plain English
+- [x] Recommendation included

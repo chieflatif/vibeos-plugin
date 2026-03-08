@@ -15,14 +15,14 @@ Implement the `/vibeos:plan` skill that runs the PROJECT-INTAKE.md questionnaire
 ## Scope
 
 ### In Scope
-- [ ] Create `skills/plan.md` implementing the full planning flow
-- [ ] Run PROJECT-INTAKE.md 18-question questionnaire
-- [ ] Pre-fill answers from project-definition.json when available
-- [ ] Apply decision engine trees: gate-selection, phase-selection, hook-selection, architecture-rules, compliance-mapping
-- [ ] Generate DEVELOPMENT-PLAN.md with phased, ordered work orders
-- [ ] Run mechanical setup: create project directories, copy gate scripts, generate manifests
-- [ ] Generate WO-INDEX.md tracking all work orders
-- [ ] Enforce communication contract throughout
+- [x] Create `skills/plan/SKILL.md` implementing the full planning flow
+- [x] Run PROJECT-INTAKE.md 18-question questionnaire
+- [x] Pre-fill answers from project-definition.json when available
+- [x] Apply decision engine trees: gate-selection, phase-selection, hook-selection, architecture-rules, compliance-mapping
+- [x] Generate DEVELOPMENT-PLAN.md with phased, ordered work orders
+- [x] Run mechanical setup: create project directories, copy gate scripts, generate manifests
+- [x] Generate WO-INDEX.md tracking all work orders
+- [x] Enforce communication contract throughout
 
 ### Out of Scope
 - Product discovery (WO-008)
@@ -39,19 +39,19 @@ Implement the `/vibeos:plan` skill that runs the PROJECT-INTAKE.md questionnaire
 
 ## Impact Analysis
 
-- **Files created:** skills/plan.md, generated DEVELOPMENT-PLAN.md, WO-INDEX.md, project structure
+- **Files created:** skills/plan/SKILL.md, generated DEVELOPMENT-PLAN.md, WO-INDEX.md, project structure
 - **Systems affected:** Decision engine integration, project scaffolding
 
 ## Acceptance Criteria
 
-- [ ] AC-1: All 18 intake questions asked (or pre-filled from project-definition.json)
-- [ ] AC-2: Decision engine trees applied correctly based on intake answers
-- [ ] AC-3: DEVELOPMENT-PLAN.md generated with correct phase ordering
-- [ ] AC-4: Each WO in plan has: title, objective, dependencies, acceptance criteria
-- [ ] AC-5: Gate scripts copied to target project
-- [ ] AC-6: Manifests generated (gate-manifest.json, hook-manifest.json)
-- [ ] AC-7: WO-INDEX.md created with all WOs listed
-- [ ] AC-8: Pre-fill works — questions with known answers from discovery are not re-asked
+- [x] AC-1: All 18 intake questions asked (or pre-filled from project-definition.json)
+- [x] AC-2: Decision engine trees applied correctly based on intake answers
+- [x] AC-3: DEVELOPMENT-PLAN.md generated with correct phase ordering
+- [x] AC-4: Each WO in plan has: title, objective, dependencies, acceptance criteria
+- [x] AC-5: Gate scripts copied to target project
+- [x] AC-6: Manifests generated (gate-manifest.json, hook-manifest.json)
+- [x] AC-7: WO-INDEX.md created with all WOs listed
+- [x] AC-8: Pre-fill works — questions with known answers from discovery are not re-asked
 
 ## Test Strategy
 
@@ -93,8 +93,8 @@ Implement the `/vibeos:plan` skill that runs the PROJECT-INTAKE.md questionnaire
 
 ## Evidence
 
-- [ ] Skill file created
-- [ ] DEVELOPMENT-PLAN.md generated from test run
-- [ ] Decision engine correctly selects gates/phases for test cases
-- [ ] Pre-fill from project-definition.json works
-- [ ] Mechanical setup creates correct directory structure
+- [x] Skill file created
+- [x] DEVELOPMENT-PLAN.md generated from test run
+- [x] Decision engine correctly selects gates/phases for test cases
+- [x] Pre-fill from project-definition.json works
+- [x] Mechanical setup creates correct directory structure

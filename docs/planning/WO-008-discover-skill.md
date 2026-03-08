@@ -15,18 +15,18 @@ Implement the `/vibeos:discover` skill that runs the PRODUCT-DISCOVERY.md flow t
 ## Scope
 
 ### In Scope
-- [ ] Create `skills/discover.md` implementing the full product discovery flow
-- [ ] Capture intent: what the user wants to build, in their own words
-- [ ] Determine product shape (web app, API, CLI, mobile, etc.)
-- [ ] Run targeted follow-up questions based on product shape
-- [ ] Generate PROJECT-IDEA.md from captured intent
-- [ ] Generate project-definition.json (structured, machine-readable)
-- [ ] Generate PRODUCT-BRIEF.md (plain-English summary)
-- [ ] Generate PRD.md (product requirements document)
-- [ ] Generate TECHNICAL-SPEC.md (technical specification)
-- [ ] Generate ARCHITECTURE-OUTLINE.md (high-level architecture)
-- [ ] Generate ASSUMPTIONS-AND-RISKS.md
-- [ ] Enforce communication contract throughout all interactions
+- [x] Create `skills/discover/SKILL.md` implementing the full product discovery flow
+- [x] Capture intent: what the user wants to build, in their own words
+- [x] Determine product shape (web app, API, CLI, mobile, etc.)
+- [x] Run targeted follow-up questions based on product shape
+- [x] Generate PROJECT-IDEA.md from captured intent
+- [x] Generate project-definition.json (structured, machine-readable)
+- [x] Generate PRODUCT-BRIEF.md (plain-English summary)
+- [x] Generate PRD.md (product requirements document)
+- [x] Generate TECHNICAL-SPEC.md (technical specification)
+- [x] Generate ARCHITECTURE-OUTLINE.md (high-level architecture)
+- [x] Generate ASSUMPTIONS-AND-RISKS.md
+- [x] Enforce communication contract throughout all interactions
 
 ### Out of Scope
 - Project intake questionnaire (WO-009)
@@ -43,18 +43,18 @@ Implement the `/vibeos:discover` skill that runs the PRODUCT-DISCOVERY.md flow t
 
 ## Impact Analysis
 
-- **Files created:** skills/discover.md, templates for generated artifacts
+- **Files created:** skills/discover/SKILL.md, templates for generated artifacts
 - **Systems affected:** Skill dispatch, document generation pipeline
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Skill captures user intent through conversational flow
-- [ ] AC-2: Product shape correctly identified from user description
-- [ ] AC-3: Follow-up questions are targeted to product shape (not generic)
-- [ ] AC-4: All 7 artifacts generated with correct structure
-- [ ] AC-5: project-definition.json is valid JSON with all required fields
-- [ ] AC-6: Communication contract enforced — plain English, no jargon, outcome language
-- [ ] AC-7: Artifacts stored in target project's docs/ directory
+- [x] AC-1: Skill captures user intent through conversational flow
+- [x] AC-2: Product shape correctly identified from user description
+- [x] AC-3: Follow-up questions are targeted to product shape (not generic)
+- [x] AC-4: All 7 artifacts generated with correct structure
+- [x] AC-5: project-definition.json is valid JSON with all required fields
+- [x] AC-6: Communication contract enforced — plain English, no jargon, outcome language
+- [x] AC-7: Artifacts stored in target project's docs/ directory
 
 ## Test Strategy
 
@@ -92,7 +92,7 @@ Implement the `/vibeos:discover` skill that runs the PRODUCT-DISCOVERY.md flow t
 
 ## Evidence
 
-- [ ] Skill file created
-- [ ] All 7 artifacts generated from test run
-- [ ] project-definition.json validates against schema
-- [ ] Communication contract language verified in all outputs
+- [x] Skill file created
+- [x] All 7 artifacts generated from test run
+- [x] project-definition.json validates against schema
+- [x] Communication contract language verified in all outputs

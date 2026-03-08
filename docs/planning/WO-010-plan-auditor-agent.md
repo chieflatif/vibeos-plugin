@@ -15,12 +15,12 @@ Create a plan auditor agent that runs the WO-AUDIT-FRAMEWORK.md 10-question chec
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/plan-auditor.md` with isolation and tool restrictions
-- [ ] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: opus
-- [ ] Implement all 10 questions from WO-AUDIT-FRAMEWORK.md Planning checkpoint
-- [ ] Return structured findings: question, pass/fail, severity, evidence, recommendation
-- [ ] Severity levels: critical, major, minor, info
-- [ ] Agent cannot modify any files (read-only audit)
+- [x] Create `agents/plan-auditor.md` with isolation and tool restrictions
+- [x] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: opus
+- [x] Implement all 10 questions from WO-AUDIT-FRAMEWORK.md Planning checkpoint
+- [x] Return structured findings: question, pass/fail, severity, evidence, recommendation
+- [x] Severity levels: critical, major, minor, info
+- [x] Agent cannot modify any files (read-only audit)
 
 ### Out of Scope
 - Security auditor (WO-023)
@@ -41,13 +41,13 @@ Create a plan auditor agent that runs the WO-AUDIT-FRAMEWORK.md 10-question chec
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent runs in isolated worktree (cannot affect main working tree)
-- [ ] AC-2: Agent cannot use Write, Edit, or Agent tools
-- [ ] AC-3: All 10 Planning checkpoint questions evaluated
-- [ ] AC-4: Each finding includes: question ID, pass/fail, severity, evidence quote, recommendation
-- [ ] AC-5: Structured JSON-compatible output returned to caller
-- [ ] AC-6: Agent uses opus model for deep reasoning
-- [ ] AC-7: Agent completes within maxTurns limit
+- [x] AC-1: Agent runs in isolated worktree (cannot affect main working tree)
+- [x] AC-2: Agent cannot use Write, Edit, or Agent tools
+- [x] AC-3: All 10 Planning checkpoint questions evaluated
+- [x] AC-4: Each finding includes: question ID, pass/fail, severity, evidence quote, recommendation
+- [x] AC-5: Structured JSON-compatible output returned to caller
+- [x] AC-6: Agent uses opus model for deep reasoning
+- [x] AC-7: Agent completes within maxTurns limit
 
 ## Test Strategy
 
@@ -81,8 +81,8 @@ Create a plan auditor agent that runs the WO-AUDIT-FRAMEWORK.md 10-question chec
 
 ## Evidence
 
-- [ ] Agent file created with correct frontmatter
-- [ ] Dispatch succeeds in isolated worktree
-- [ ] All 10 questions evaluated
-- [ ] Structured findings returned
-- [ ] Tool restrictions enforced (no Write/Edit/Agent)
+- [x] Agent file created with correct frontmatter
+- [x] Dispatch succeeds in isolated worktree
+- [x] All 10 questions evaluated
+- [x] Structured findings returned
+- [x] Tool restrictions enforced (no Write/Edit/Agent)
