@@ -143,12 +143,12 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-035 | Midstream Embedding | Phase 5 complete | Draft |
-| WO-036 | Known Baselines Integration | WO-035 | Draft |
-| WO-037 | Enhanced Test Quality Enforcement | WO-026 | Draft |
-| WO-038 | Test Diff Auditing | WO-037 | Draft |
-| WO-039 | Plugin Upgrade Mechanism | WO-035 | Draft |
-| WO-040 | End-to-End Integration Testing | WO-035-039 | Draft |
+| WO-035 | Midstream Embedding | Phase 5 complete | Complete |
+| WO-036 | Known Baselines Integration | WO-035 | Complete |
+| WO-037 | Enhanced Test Quality Enforcement | WO-026 | Complete |
+| WO-038 | Test Diff Auditing | WO-037 | Complete |
+| WO-039 | Plugin Upgrade Mechanism | WO-035 | Complete |
+| WO-040 | End-to-End Integration Testing | WO-035-039 | Complete |
 
 ---
 

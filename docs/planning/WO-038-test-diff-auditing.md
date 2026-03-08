@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,13 +15,13 @@ Create a hook or gate that detects test file modifications during implementation
 ## Scope
 
 ### In Scope
-- [ ] Hook or gate: detect when test files are modified during implementation phase
-- [ ] Require justification for any test modification (comment or commit message)
-- [ ] Dispatch audit agent to review the test diff specifically
-- [ ] Audit checks: was the test weakened? was an assertion removed? was a test deleted?
-- [ ] Distinguish legitimate modifications (bug fix, refactor) from TDD violations (weakening tests to pass)
-- [ ] Log all test modifications with justification and audit result
-- [ ] Block unjustified test modifications
+- [x] Hook or gate: detect when test files are modified during implementation phase
+- [x] Require justification for any test modification (comment or commit message)
+- [x] Dispatch audit agent to review the test diff specifically
+- [x] Audit checks: was the test weakened? was an assertion removed? was a test deleted?
+- [x] Distinguish legitimate modifications (bug fix, refactor) from TDD violations (weakening tests to pass)
+- [x] Log all test modifications with justification and audit result
+- [x] Block unjustified test modifications
 
 ### Out of Scope
 - Test file protection during implementation (WO-015, prevents modification entirely)
@@ -32,8 +32,8 @@ Create a hook or gate that detects test file modifications during implementation
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-037 | Must complete first | Draft |
-| WO-015 | Test file protection | Draft |
+| WO-037 | Must complete first | Complete |
+| WO-015 | Test file protection | Complete |
 
 ## Impact Analysis
 
@@ -42,13 +42,13 @@ Create a hook or gate that detects test file modifications during implementation
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Test file modifications detected during implementation
-- [ ] AC-2: Justification required before modification proceeds
-- [ ] AC-3: Audit agent reviews test diff for weakening patterns
-- [ ] AC-4: Weakening patterns detected: assertion removal, threshold relaxation, test deletion
-- [ ] AC-5: Legitimate modifications allowed with justification
-- [ ] AC-6: Unjustified or weakening modifications blocked
-- [ ] AC-7: All test modifications logged with justification and audit verdict
+- [x] AC-1: Test file modifications detected during implementation
+- [x] AC-2: Justification required before modification proceeds
+- [x] AC-3: Audit agent reviews test diff for weakening patterns
+- [x] AC-4: Weakening patterns detected: assertion removal, threshold relaxation, test deletion
+- [x] AC-5: Legitimate modifications allowed with justification
+- [x] AC-6: Unjustified or weakening modifications blocked
+- [x] AC-7: All test modifications logged with justification and audit verdict
 
 ## Test Strategy
 
@@ -89,9 +89,9 @@ Create a hook or gate that detects test file modifications during implementation
 
 ## Evidence
 
-- [ ] Test modification detected during implementation
-- [ ] Justification required and captured
-- [ ] Audit agent reviews diff correctly
-- [ ] Weakening patterns blocked
-- [ ] Legitimate modifications allowed
-- [ ] All modifications logged
+- [x] Test modification detected during implementation
+- [x] Justification required and captured
+- [x] Audit agent reviews diff correctly
+- [x] Weakening patterns blocked
+- [x] Legitimate modifications allowed
+- [x] All modifications logged

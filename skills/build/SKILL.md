@@ -136,12 +136,32 @@ Run pre_commit gates:
 bash scripts/gate-runner.sh pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
 ```
 
+**Baseline-aware gate evaluation:**
+
+After running gates, check each failure against known baselines:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
+  --baseline-file ".vibeos/baselines/midstream-baseline.json" \
+  --category "[gate-name]" --current-count [failure-count]
+```
+
+- **PASS:** No failures — proceed
+- **TRACKED:** Failures within baseline (pre-existing) — log as tracked, proceed
+- **FAIL:** Failures exceed baseline (new issues) — trigger fix cycle
+
 **Gate fix loop (max 3 cycles):**
-1. Parse gate results for failures
-2. If all pass: proceed to Step 8
-3. If failures: re-dispatch implementation agent with specific failure details
+1. Parse gate results for new failures (exceeding baseline)
+2. If all pass or tracked: proceed to Step 8
+3. If new failures: re-dispatch implementation agent with specific failure details
 4. Re-run gates
 5. Repeat until pass or 3 cycles exhausted
+
+After successful gate pass with fewer failures than baseline, ratchet:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" ratchet \
+  --baseline-file ".vibeos/baselines/midstream-baseline.json" \
+  --category "[gate-name]" --current-count [failure-count]
+```
 
 **On 3 failed cycles:** Escalate to user:
 > "Quality gates are still failing after 3 fix attempts. Here's what's failing: [details]. Would you like me to: (a) try again with a different approach, (b) skip these gates for now, or (c) let you fix it manually?"

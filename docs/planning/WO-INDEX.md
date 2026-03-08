@@ -78,12 +78,12 @@
 
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
-| WO-035 | Midstream Embedding | Draft | Phase 5 |
-| WO-036 | Known Baselines Integration | Draft | WO-035 |
-| WO-037 | Enhanced Test Quality Enforcement | Draft | WO-026 |
-| WO-038 | Test Diff Auditing | Draft | WO-037 |
-| WO-039 | Plugin Upgrade Mechanism | Draft | WO-035 |
-| WO-040 | End-to-End Integration Testing | Draft | WO-035-039 |
+| WO-035 | Midstream Embedding | Complete | Phase 5 |
+| WO-036 | Known Baselines Integration | Complete | WO-035 |
+| WO-037 | Enhanced Test Quality Enforcement | Complete | WO-026 |
+| WO-038 | Test Diff Auditing | Complete | WO-037 |
+| WO-039 | Plugin Upgrade Mechanism | Complete | WO-035 |
+| WO-040 | End-to-End Integration Testing | Complete | WO-035-039 |
 
 ## Completed
 
@@ -125,3 +125,9 @@
 | WO-032 | Multi-WO Orchestration | 5 | 2026-03-08 |
 | WO-033 | Phase Boundary Audit (Layer 5) | 5 | 2026-03-08 |
 | WO-034 | Human Check-in Protocol (Layer 6) | 5 | 2026-03-08 |
+| WO-035 | Midstream Embedding | 6 | 2026-03-08 |
+| WO-036 | Known Baselines Integration | 6 | 2026-03-08 |
+| WO-037 | Enhanced Test Quality Enforcement | 6 | 2026-03-08 |
+| WO-038 | Test Diff Auditing | 6 | 2026-03-08 |
+| WO-039 | Plugin Upgrade Mechanism | 6 | 2026-03-08 |
+| WO-040 | End-to-End Integration Testing | 6 | 2026-03-08 |

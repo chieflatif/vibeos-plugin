@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Integrate known baselines into the gate and audit systems so that pre-existing f
 ## Scope
 
 ### In Scope
-- [ ] Modify gate-runner to support max_allowed_failures per gate
-- [ ] Read baseline counts from .vibeos/baselines/ files
-- [ ] Pre-existing failures: tracked but do not block builds
-- [ ] New failures (count exceeds baseline): block builds
-- [ ] Baseline ratcheting: when findings are fixed, reduce max_allowed_failures
-- [ ] Ratchet is one-way: baseline can only decrease, never increase
-- [ ] Apply same logic to audit findings: pre-existing = tracked, new = block
-- [ ] Update baseline files after successful ratchet
+- [x] Modify gate-runner to support max_allowed_failures per gate
+- [x] Read baseline counts from .vibeos/baselines/ files
+- [x] Pre-existing failures: tracked but do not block builds
+- [x] New failures (count exceeds baseline): block builds
+- [x] Baseline ratcheting: when findings are fixed, reduce max_allowed_failures
+- [x] Ratchet is one-way: baseline can only decrease, never increase
+- [x] Apply same logic to audit findings: pre-existing = tracked, new = block
+- [x] Update baseline files after successful ratchet
 
 ### Out of Scope
 - Midstream detection (WO-035)
@@ -33,7 +33,7 @@ Integrate known baselines into the gate and audit systems so that pre-existing f
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-035 | Must complete first | Draft |
+| WO-035 | Must complete first | Complete |
 
 ## Impact Analysis
 
@@ -43,13 +43,13 @@ Integrate known baselines into the gate and audit systems so that pre-existing f
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Gates accept max_allowed_failures parameter from baseline
-- [ ] AC-2: Pre-existing failures (within baseline) do not block
-- [ ] AC-3: New failures (exceeding baseline) block with clear message
-- [ ] AC-4: When findings are fixed: baseline ratchets down automatically
-- [ ] AC-5: Baseline can never increase (one-way ratchet)
-- [ ] AC-6: Same logic applies to audit findings
-- [ ] AC-7: Baseline updates logged to build-log.md
+- [x] AC-1: Gates accept max_allowed_failures parameter from baseline
+- [x] AC-2: Pre-existing failures (within baseline) do not block
+- [x] AC-3: New failures (exceeding baseline) block with clear message
+- [x] AC-4: When findings are fixed: baseline ratchets down automatically
+- [x] AC-5: Baseline can never increase (one-way ratchet)
+- [x] AC-6: Same logic applies to audit findings
+- [x] AC-7: Baseline updates logged to build-log.md
 
 ## Test Strategy
 
@@ -90,8 +90,8 @@ Integrate known baselines into the gate and audit systems so that pre-existing f
 
 ## Evidence
 
-- [ ] Baseline reading works
-- [ ] Pre-existing failures pass within baseline
-- [ ] New failures block correctly
-- [ ] Ratcheting works (baseline decreases on improvement)
-- [ ] One-way ratchet enforced (baseline never increases)
+- [x] Baseline reading works
+- [x] Pre-existing failures pass within baseline
+- [x] New failures block correctly
+- [x] Ratcheting works (baseline decreases on improvement)
+- [x] One-way ratchet enforced (baseline never increases)

@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Implement a plugin upgrade mechanism that updates VibeOS plugin components witho
 ## Scope
 
 ### In Scope
-- [ ] Detect when a newer version of the plugin is available
-- [ ] Upgrade plugin files without overwriting project config (.vibeos/config.json, baselines)
-- [ ] Merge new gate scripts: add new gates, update existing gates, preserve custom gates
-- [ ] Preserve baselines: midstream and phase baselines are never overwritten
-- [ ] Preserve hook customizations
-- [ ] Generate "what's new" summary: new gates, updated scripts, new features
-- [ ] Rollback capability: snapshot current state before upgrade
-- [ ] Version tracking in .vibeos/version.json
+- [x] Detect when a newer version of the plugin is available
+- [x] Upgrade plugin files without overwriting project config (.vibeos/config.json, baselines)
+- [x] Merge new gate scripts: add new gates, update existing gates, preserve custom gates
+- [x] Preserve baselines: midstream and phase baselines are never overwritten
+- [x] Preserve hook customizations
+- [x] Generate "what's new" summary: new gates, updated scripts, new features
+- [x] Rollback capability: snapshot current state before upgrade
+- [x] Version tracking in .vibeos/version.json
 
 ### Out of Scope
 - Auto-update (upgrade is user-initiated)
@@ -33,7 +33,7 @@ Implement a plugin upgrade mechanism that updates VibeOS plugin components witho
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-035 | Midstream embedding | Draft |
+| WO-035 | Midstream embedding | Complete |
 
 ## Impact Analysis
 
@@ -42,13 +42,13 @@ Implement a plugin upgrade mechanism that updates VibeOS plugin components witho
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Plugin files updated to new version
-- [ ] AC-2: .vibeos/config.json preserved (not overwritten)
-- [ ] AC-3: Baseline files preserved (not overwritten)
-- [ ] AC-4: New gates added, existing gates updated, custom gates preserved
-- [ ] AC-5: "What's new" summary generated in plain English
-- [ ] AC-6: Pre-upgrade snapshot created for rollback
-- [ ] AC-7: .vibeos/version.json tracks current and previous versions
+- [x] AC-1: Plugin files updated to new version
+- [x] AC-2: .vibeos/config.json preserved (not overwritten)
+- [x] AC-3: Baseline files preserved (not overwritten)
+- [x] AC-4: New gates added, existing gates updated, custom gates preserved
+- [x] AC-5: "What's new" summary generated in plain English
+- [x] AC-6: Pre-upgrade snapshot created for rollback
+- [x] AC-7: .vibeos/version.json tracks current and previous versions
 
 ## Test Strategy
 
@@ -94,9 +94,9 @@ Implement a plugin upgrade mechanism that updates VibeOS plugin components witho
 
 ## Evidence
 
-- [ ] Upgrade completes without losing config
-- [ ] Baselines preserved
-- [ ] New gates added, custom gates preserved
-- [ ] "What's new" summary accurate
-- [ ] Rollback works
-- [ ] Version tracking updated
+- [x] Upgrade completes without losing config
+- [x] Baselines preserved
+- [x] New gates added, custom gates preserved
+- [x] "What's new" summary accurate
+- [x] Rollback works
+- [x] Version tracking updated

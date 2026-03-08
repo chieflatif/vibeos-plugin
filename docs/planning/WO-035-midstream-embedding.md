@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,15 +15,15 @@ Implement midstream embedding: detect existing code in a target project, run bas
 ## Scope
 
 ### In Scope
-- [ ] Detect existing code in target project (not a greenfield project)
-- [ ] Run all 21 gates on existing codebase to establish baseline
-- [ ] Run all 5 audit agents on existing codebase
-- [ ] Explain all findings in plain English (communication contract)
-- [ ] Categorize findings: pre-existing (inherited) vs. new (if any)
-- [ ] Create remediation WOs for critical and high findings
-- [ ] Establish known baselines: snapshot of current finding counts
-- [ ] Store baselines in `.vibeos/baselines/midstream-baseline.json`
-- [ ] Integrate into /vibeos:plan (detect existing code, offer midstream flow)
+- [x] Detect existing code in target project (not a greenfield project)
+- [x] Run all 21 gates on existing codebase to establish baseline
+- [x] Run all 5 audit agents on existing codebase
+- [x] Explain all findings in plain English (communication contract)
+- [x] Categorize findings: pre-existing (inherited) vs. new (if any)
+- [x] Create remediation WOs for critical and high findings
+- [x] Establish known baselines: snapshot of current finding counts
+- [x] Store baselines in `.vibeos/baselines/midstream-baseline.json`
+- [x] Integrate into /vibeos:plan (detect existing code, offer midstream flow)
 
 ### Out of Scope
 - Baseline ratcheting logic (WO-036)
@@ -34,23 +34,23 @@ Implement midstream embedding: detect existing code in a target project, run bas
 
 | Dependency | Type | Status |
 |---|---|---|
-| Phase 5 complete | Must complete first | Draft |
+| Phase 5 complete | Must complete first | Complete |
 
 ## Impact Analysis
 
 - **Files created:** midstream detection logic, baseline files
-- **Files modified:** skills/plan.md (add midstream detection)
+- **Files modified:** skills/plan/SKILL.md (add midstream detection)
 - **Systems affected:** Plan skill, audit pipeline, WO creation
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Existing code detected (non-empty src/, lib/, or language-specific directories)
-- [ ] AC-2: All gates run and results captured as baseline
-- [ ] AC-3: All audit agents run and findings captured as baseline
-- [ ] AC-4: Findings explained in plain English with context
-- [ ] AC-5: Remediation WOs created for critical/high findings
-- [ ] AC-6: Baseline stored in .vibeos/baselines/midstream-baseline.json
-- [ ] AC-7: User informed: "These are pre-existing issues. They won't block your new work, but they're tracked for improvement."
+- [x] AC-1: Existing code detected (non-empty src/, lib/, or language-specific directories)
+- [x] AC-2: All gates run and results captured as baseline
+- [x] AC-3: All audit agents run and findings captured as baseline
+- [x] AC-4: Findings explained in plain English with context
+- [x] AC-5: Remediation WOs created for critical/high findings
+- [x] AC-6: Baseline stored in .vibeos/baselines/midstream-baseline.json
+- [x] AC-7: User informed: "These are pre-existing issues. They won't block your new work, but they're tracked for improvement."
 
 ## Test Strategy
 
@@ -97,9 +97,9 @@ Implement midstream embedding: detect existing code in a target project, run bas
 
 ## Evidence
 
-- [ ] Existing code detected correctly
-- [ ] Baseline audits complete
-- [ ] Baseline file stored
-- [ ] Remediation WOs created for critical/high findings
-- [ ] User explanation is clear and actionable
-- [ ] Greenfield projects skip midstream correctly
+- [x] Existing code detected correctly
+- [x] Baseline audits complete
+- [x] Baseline file stored
+- [x] Remediation WOs created for critical/high findings
+- [x] User explanation is clear and actionable
+- [x] Greenfield projects skip midstream correctly

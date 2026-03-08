@@ -46,6 +46,62 @@ Extract pre-filled values for:
 Tell the user what was found:
 > "I found your project definition from discovery. Here's what I already know: [summary]. I'll confirm a few things and fill in the remaining details."
 
+### Step 1b: Midstream Detection
+
+Check if the project has existing source code:
+
+1. Look for source directories: `src/`, `lib/`, `app/`, `pkg/`, `cmd/`, `internal/`
+2. Look for language indicators: `package.json`, `requirements.txt`, `go.mod`, `Cargo.toml`, `pom.xml`, `build.gradle`, `*.csproj`, `Gemfile`, `composer.json`
+3. Count source files (excluding test files and generated files)
+
+**If existing code is found (midstream project):**
+
+Tell the user:
+> "I detected existing source code in this project ([N] files across [directories]). I'll run a baseline audit to understand the current state before planning new work."
+
+Then run the midstream baseline flow:
+
+1. Run all gates: `bash "${CLAUDE_PLUGIN_ROOT}/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"`
+2. Dispatch all 5 audit agents following `skills/audit/SKILL.md` protocol
+3. Collect and merge all findings with consensus logic
+
+Store the baseline:
+```bash
+mkdir -p .vibeos/baselines
+```
+Write `.vibeos/baselines/midstream-baseline.json`:
+```json
+{
+  "type": "midstream",
+  "date": "ISO-8601",
+  "source_files": N,
+  "gates": { "total": N, "passed": N, "failed": N },
+  "findings": {
+    "critical": N, "high": N, "medium": N, "low": N,
+    "total": N, "all_pre_existing": true
+  }
+}
+```
+
+For critical and high findings, create remediation WOs:
+- Read the WO template from `${CLAUDE_PLUGIN_ROOT}/reference/governance/WO-TEMPLATE.md.ref`
+- Create one WO per critical finding, group related high findings into WOs
+- Add remediation WOs to the development plan (Phase 0: Remediation)
+- Mark all findings as "pre-existing" — they don't block new work
+
+Report to user:
+> "Here's the current state of your codebase:
+> - [N] quality gates passed, [M] failed
+> - [critical] critical, [high] high, [medium] medium, [low] low findings
+>
+> These are pre-existing issues. They won't block your new work, but I've created [K] remediation work orders to track improvements.
+>
+> [Top 3 findings explained in plain English]"
+
+**If no existing code (greenfield project):**
+
+Skip midstream flow. Continue to Step 2.
+
 ### Step 2: Run Project Intake Questionnaire
 
 Run the 18-question intake from 4 rounds. **Pre-fill from project-definition.json** — only ask questions where the answer is missing, confidence is low, or impact is high enough to justify confirmation.
