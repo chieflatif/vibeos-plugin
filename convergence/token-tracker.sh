@@ -76,9 +76,16 @@ case "$COMMAND" in
       UPDATED=$(jq --argjson record "$NEW_RECORD" '.records += [$record]' "$TOKEN_FILE")
       echo "$UPDATED" > "$TOKEN_FILE"
     else
-      # Fallback: read file, insert before closing bracket
-      # This is fragile but works for simple cases without jq
-      sed -i.bak 's/\]}/,'"$(echo "$NEW_RECORD" | sed 's/"/\\"/g')"']}/' "$TOKEN_FILE" 2>/dev/null || true
+      # Fallback without jq: detect empty vs non-empty records array
+      if grep -q '"records": \[\]' "$TOKEN_FILE" 2>/dev/null; then
+        # Empty array: replace [] with [record]
+        ESCAPED_RECORD=$(echo "$NEW_RECORD" | sed 's/[&/\]/\\&/g')
+        sed -i.bak 's/"records": \[\]/"records": ['"$ESCAPED_RECORD"']/' "$TOKEN_FILE" 2>/dev/null || true
+      else
+        # Non-empty array: insert before closing ]}
+        ESCAPED_RECORD=$(echo "$NEW_RECORD" | sed 's/[&/\]/\\&/g')
+        sed -i.bak 's/\]}/,'"$ESCAPED_RECORD"']}/' "$TOKEN_FILE" 2>/dev/null || true
+      fi
       rm -f "${TOKEN_FILE}.bak"
     fi
 
