@@ -90,13 +90,13 @@
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
 | WO-045 | User Communication Contract | Complete | Phase 6 |
-| WO-041 | Architecture-First Midstream Discovery | Draft | Phase 6 |
-| WO-042 | Guided Codebase Audit with User Decisions | Draft | WO-041, WO-045 (soft) |
-| WO-046 | System Onboarding & Concept Introduction | Draft | WO-045, WO-041 (soft) |
-| WO-043 | Finding-Level Baseline Model | Draft | WO-042 |
-| WO-044 | Remediation Roadmap & Phase 0 Enforcement | Draft | WO-043 |
-| WO-047 | Build Loop Visibility & Progress Reporting | Draft | WO-045, WO-044 (soft) |
-| WO-048 | Consequence-Aware Decision Support | Draft | WO-045, WO-044 (soft) |
+| WO-041 | Architecture-First Midstream Discovery | Complete | Phase 6 |
+| WO-042 | Guided Codebase Audit with User Decisions | Complete | WO-041, WO-045 (soft) |
+| WO-046 | System Onboarding & Concept Introduction | Complete | WO-045, WO-041 (soft) |
+| WO-043 | Finding-Level Baseline Model | Complete | WO-042 |
+| WO-044 | Remediation Roadmap & Phase 0 Enforcement | Complete | WO-043 |
+| WO-047 | Build Loop Visibility & Progress Reporting | Complete | WO-045, WO-044 (soft) |
+| WO-048 | Consequence-Aware Decision Support | Complete | WO-045, WO-044 (soft) |
 
 ## Completed
 
@@ -145,3 +145,10 @@
 | WO-039 | Plugin Upgrade Mechanism | 6 | 2026-03-08 |
 | WO-040 | End-to-End Integration Testing | 6 | 2026-03-08 |
 | WO-045 | User Communication Contract | 7 | 2026-03-08 |
+| WO-041 | Architecture-First Midstream Discovery | 7 | 2026-03-08 |
+| WO-042 | Guided Codebase Audit with User Decisions | 7 | 2026-03-08 |
+| WO-046 | System Onboarding & Concept Introduction | 7 | 2026-03-08 |
+| WO-043 | Finding-Level Baseline Model | 7 | 2026-03-08 |
+| WO-044 | Remediation Roadmap & Phase 0 Enforcement | 7 | 2026-03-08 |
+| WO-047 | Build Loop Visibility & Progress Reporting | 7 | 2026-03-08 |
+| WO-048 | Consequence-Aware Decision Support | 7 | 2026-03-08 |

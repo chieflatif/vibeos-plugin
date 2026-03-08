@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,18 +15,18 @@ Create a proper remediation roadmap that integrates user-decided finding disposi
 ## Scope
 
 ### In Scope
-- [ ] Generate remediation roadmap from findings-registry.json dispositions
-- [ ] Phase 0 WOs created from `fix-now` findings (one WO per critical, grouped highs)
-- [ ] Parallel remediation track for `fix-later` items (WOs created but not blocking Phase 1)
-- [ ] Accepted risk register: `docs/planning/ACCEPTED-RISKS.md` with justifications
-- [ ] Phase 0 enforcement: build skill checks Phase 0 completion before starting Phase 1
-- [ ] User negotiation: which fix-later items go into Phase 0 vs parallel track
-- [ ] Remediation WO template variant: links to finding ID, includes verification criteria
-- [ ] Progress tracking: remediation items in `/vibeos:status` output
-- [ ] Periodic reminder: when fix-later items age beyond configurable threshold (default: 5 WOs)
-- [ ] Update `skills/plan/SKILL.md` to generate Phase 0 from findings
-- [ ] Update `skills/build/SKILL.md` Step 1 to enforce Phase 0 completion
-- [ ] Update `skills/status/SKILL.md` to show remediation status
+- [x] Generate remediation roadmap from findings-registry.json dispositions
+- [x] Phase 0 WOs created from `fix-now` findings (one WO per critical, grouped highs)
+- [x] Parallel remediation track for `fix-later` items (WOs created but not blocking Phase 1)
+- [x] Accepted risk register: `docs/planning/ACCEPTED-RISKS.md` with justifications
+- [x] Phase 0 enforcement: build skill checks Phase 0 completion before starting Phase 1
+- [x] User negotiation: which fix-later items go into Phase 0 vs parallel track
+- [x] Remediation WO template variant: links to finding ID, includes verification criteria
+- [x] Progress tracking: remediation items in `/vibeos:status` output
+- [x] Periodic reminder: when fix-later items age beyond configurable threshold (default: 5 WOs)
+- [x] Update `skills/plan/SKILL.md` to generate Phase 0 from findings
+- [x] Update `skills/build/SKILL.md` Step 1 to enforce Phase 0 completion
+- [x] Update `skills/status/SKILL.md` to show remediation status
 
 ### Out of Scope
 - Running the audits (WO-042)
@@ -37,7 +37,7 @@ Create a proper remediation roadmap that integrates user-decided finding disposi
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-043 | Finding-level baseline | Draft |
+| WO-043 | Finding-level baseline | Complete |
 
 ## Impact Analysis
 
@@ -48,16 +48,16 @@ Create a proper remediation roadmap that integrates user-decided finding disposi
 
 ## Acceptance Criteria
 
-- [ ] AC-1: fix-now findings become Phase 0 WOs
-- [ ] AC-2: fix-later findings become tracked remediation WOs with priority
-- [ ] AC-3: accepted-risk findings documented in ACCEPTED-RISKS.md with justifications
-- [ ] AC-4: Build skill enforces Phase 0: won't start Phase 1 until fix-now items resolved
-- [ ] AC-5: User can negotiate which items go into Phase 0 vs parallel track
-- [ ] AC-6: Remediation WOs link to specific finding IDs from findings-registry.json
-- [ ] AC-7: Status skill shows remediation progress (N fix-now resolved, M fix-later remaining)
-- [ ] AC-8: Periodic reminder when fix-later items age beyond threshold (configurable in `.vibeos/config.json` as `remediation_aging_threshold`, default: 5 WOs)
-- [ ] AC-9: REMEDIATION-ROADMAP.md generated with timeline and dependencies
-- [ ] AC-10: Greenfield projects unaffected (no Phase 0 if no pre-existing findings)
+- [x] AC-1: fix-now findings become Phase 0 WOs
+- [x] AC-2: fix-later findings become tracked remediation WOs with priority
+- [x] AC-3: accepted-risk findings documented in ACCEPTED-RISKS.md with justifications
+- [x] AC-4: Build skill enforces Phase 0: won't start Phase 1 until fix-now items resolved
+- [x] AC-5: User can negotiate which items go into Phase 0 vs parallel track
+- [x] AC-6: Remediation WOs link to specific finding IDs from findings-registry.json
+- [x] AC-7: Status skill shows remediation progress (N fix-now resolved, M fix-later remaining)
+- [x] AC-8: Periodic reminder when fix-later items age beyond threshold (configurable in `.vibeos/config.json` as `remediation_aging_threshold`, default: 5 WOs)
+- [x] AC-9: REMEDIATION-ROADMAP.md generated with timeline and dependencies
+- [x] AC-10: Greenfield projects unaffected (no Phase 0 if no pre-existing findings)
 
 ## Test Strategy
 
@@ -111,15 +111,15 @@ In `skills/build/SKILL.md`, after each WO completion:
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Integration test — midstream project with mixed dispositions
 - Risk: Phase 0 enforcement could frustrate users who want to start feature work immediately; must clearly explain why and offer escape hatch
 
 ## Evidence
 
-- [ ] Phase 0 WOs created from fix-now findings
-- [ ] fix-later WOs created and tracked
-- [ ] Accepted risks documented with justifications
-- [ ] Phase 0 enforcement works
-- [ ] Status skill shows remediation progress
-- [ ] Aging reminders fire correctly
+- [x] Phase 0 WOs created from fix-now findings
+- [x] fix-later WOs created and tracked
+- [x] Accepted risks documented with justifications
+- [x] Phase 0 enforcement works
+- [x] Status skill shows remediation progress
+- [x] Aging reminders fire correctly

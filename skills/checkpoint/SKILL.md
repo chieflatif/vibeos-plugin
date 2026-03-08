@@ -98,24 +98,47 @@ Baseline schema:
 
 ### Step 5: Apply Ratchet
 
-Compare current results against previous baseline:
+Compare current results against previous baseline using dual ratchet (count-based + finding-level):
 
-**Ratchet rules:**
+**5a. Count-based ratchet (aggregate quality):**
+
 - Gate pass count must be >= previous (cannot have more gate failures)
 - Critical finding count must be <= previous (cannot introduce critical issues)
 - High finding count must be <= previous
 - Total finding count must be <= previous (overall quality cannot decrease)
 
-**Ratchet result:**
-- **PASS:** All counts improved or stayed the same
-- **FAIL:** Any count regressed
+**5b. Finding-level ratchet (precision tracking, if `.vibeos/findings-registry.json` exists):**
 
-If ratchet fails, report which categories regressed:
-> "Quality ratchet violation detected:
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
+  --mode finding-level \
+  --baseline-file ".vibeos/baselines/midstream-baseline.json" \
+  --current-findings-file ".vibeos/findings-registry.json"
+```
+
+This detects:
+- **New findings:** Not in baseline — blocks even if total count unchanged (swap detection)
+- **Fixed findings:** In baseline but no longer present — locked in via ratchet
+- **Tracked findings:** In baseline and still present — allowed, not blocking
+
+Both ratchets run in parallel: count-based ensures aggregate quality only improves, finding-level ensures specific findings are tracked and swaps are detected.
+
+**Ratchet result:**
+- **PASS:** Both ratchets pass (counts improved or stable AND no new findings)
+- **FAIL:** Either ratchet fails
+
+If ratchet fails, report which categories regressed with consequences:
+> "Quality regression detected — your codebase has more issues now than at the end of the previous phase:
 > - Critical findings: [prev] → [current] (+[delta])
 > - [category]: [prev] → [current] (+[delta])
+> - New findings detected: [finding IDs] (not in baseline, even though total count unchanged)
 >
-> These regressions must be fixed before proceeding to Phase [N+1]."
+> Your options:
+> 1. **Fix the regressions** — I'll identify which changes introduced the new issues and fix them. This is the recommended path because it keeps quality improving.
+> 2. **Review and accept** — You review each new finding and decide: some may be acceptable trade-offs. Accepted findings update the baseline. This means these issues become the new 'normal' and won't be flagged again.
+> 3. **Roll back and rebuild** — Revert the changes that introduced regressions and try a different approach. Most thorough but costs more time.
+>
+> I recommend option 1 because regressions are usually unintentional and fixing them now prevents compounding issues in later phases."
 
 ### Step 6: Store New Baseline
 

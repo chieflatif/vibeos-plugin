@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,17 +15,17 @@ Add mandatory progress reporting to the build loop so the user always knows what
 ## Scope
 
 ### In Scope
-- [ ] Mandatory step banner at each build step transition: `"[Step N/M] agent-name — what it's doing"`
-- [ ] Agent identification in every progress update
-- [ ] Gate results reported inline: `"Quality checks: 11/12 passed. 1 pre-existing issue tracked."`
-- [ ] Audit dispatch reported: `"Running 5 quality auditors in parallel..."`
-- [ ] Audit results summarized: `"Auditors found 2 issues. 1 confirmed (flagged by 2 auditors), 1 warning."`
-- [ ] Convergence retries reported: `"Fixing 2 audit findings automatically (attempt 2 of 5)..."`
-- [ ] Gate fix retries reported: `"Quality check failed. Fixing [issue] and re-running (attempt 2 of 3)..."`
-- [ ] Iteration and dispatch counts reported at WO completion: `"This WO dispatched [N] agents across [M] iterations ([X] gate retries, [Y] audit convergence cycles)"` (token counts are best-effort — the Agent tool may not expose token usage to the caller; dispatch counts are always available from the orchestrator's own tracking)
-- [ ] Phase progress indicator: `"Phase 2: 3 of 5 work orders complete"`
-- [ ] Update `skills/build/SKILL.md` with mandatory progress reporting at every step
-- [ ] Define progress templates in the Communication Contract
+- [x] Mandatory step banner at each build step transition: `"[Step N/M] agent-name — what it's doing"`
+- [x] Agent identification in every progress update
+- [x] Gate results reported inline: `"Quality checks: 11/12 passed. 1 pre-existing issue tracked."`
+- [x] Audit dispatch reported: `"Running 5 quality auditors in parallel..."`
+- [x] Audit results summarized: `"Auditors found 2 issues. 1 confirmed (flagged by 2 auditors), 1 warning."`
+- [x] Convergence retries reported: `"Fixing 2 audit findings automatically (attempt 2 of 5)..."`
+- [x] Gate fix retries reported: `"Quality check failed. Fixing [issue] and re-running (attempt 2 of 3)..."`
+- [x] Iteration and dispatch counts reported at WO completion: `"This WO dispatched [N] agents across [M] iterations ([X] gate retries, [Y] audit convergence cycles)"` (token counts are best-effort — the Agent tool may not expose token usage to the caller; dispatch counts are always available from the orchestrator's own tracking)
+- [x] Phase progress indicator: `"Phase 2: 3 of 5 work orders complete"`
+- [x] Update `skills/build/SKILL.md` with mandatory progress reporting at every step
+- [x] Define progress templates in the Communication Contract
 
 ### Out of Scope
 - Time/effort estimation (inherently unreliable with LLMs)
@@ -36,8 +36,8 @@ Add mandatory progress reporting to the build loop so the user always knows what
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-045 | User communication contract | Draft |
-| WO-044 | Remediation roadmap (soft) | Draft |
+| WO-045 | User communication contract | Complete |
+| WO-044 | Remediation roadmap (soft) | Complete |
 
 **Soft dependency note:** WO-044 modifies `skills/build/SKILL.md` for Phase 0 enforcement and aging reminders. WO-047 should be implemented after WO-044 to add progress banners around those additions. The templates defined here (Step 1) must conform to WO-045's template schemas.
 
@@ -49,15 +49,15 @@ Add mandatory progress reporting to the build loop so the user always knows what
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Every build step transition has a progress banner with step number and agent name
-- [ ] AC-2: Gate results reported inline with pass/fail counts and top issue
-- [ ] AC-3: Audit agent dispatch and completion reported
-- [ ] AC-4: Convergence retries are not silent — user sees brief update
-- [ ] AC-5: Gate fix retries are not silent — user sees what failed and that a retry is happening
-- [ ] AC-6: Dispatch and iteration counts reported at WO completion (token counts best-effort if Agent tool exposes them)
-- [ ] AC-7: Phase progress shown (N of M WOs complete)
-- [ ] AC-8: Every agent dispatch has a pre-dispatch banner and a post-completion summary (the subagent model does not support mid-dispatch keepalives, so step banners before and after each dispatch are the primary mitigation for long silent periods)
-- [ ] AC-9: Progress updates follow Communication Contract templates (WO-045)
+- [x] AC-1: Every build step transition has a progress banner with step number and agent name
+- [x] AC-2: Gate results reported inline with pass/fail counts and top issue
+- [x] AC-3: Audit agent dispatch and completion reported
+- [x] AC-4: Convergence retries are not silent — user sees brief update
+- [x] AC-5: Gate fix retries are not silent — user sees what failed and that a retry is happening
+- [x] AC-6: Dispatch and iteration counts reported at WO completion (token counts best-effort if Agent tool exposes them)
+- [x] AC-7: Phase progress shown (N of M WOs complete)
+- [x] AC-8: Every agent dispatch has a pre-dispatch banner and a post-completion summary (the subagent model does not support mid-dispatch keepalives, so step banners before and after each dispatch are the primary mitigation for long silent periods)
+- [x] AC-9: Progress updates follow Communication Contract templates (WO-045)
 
 ## Test Strategy
 
@@ -121,15 +121,15 @@ The subagent model does not support streaming partial output back to the main th
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Trace through build skill, verify no silent paths
 - Risk: Too many progress updates could be noisy; balance visibility with signal-to-noise ratio
 
 ## Evidence
 
-- [ ] Every step transition has a progress banner
-- [ ] Gate results reported inline
-- [ ] Audit dispatch and results reported
-- [ ] Retries not silent
-- [ ] Dispatch and iteration counts reported
-- [ ] Every dispatch has pre/post banners
+- [x] Every step transition has a progress banner
+- [x] Gate results reported inline
+- [x] Audit dispatch and results reported
+- [x] Retries not silent
+- [x] Dispatch and iteration counts reported
+- [x] Every dispatch has pre/post banners

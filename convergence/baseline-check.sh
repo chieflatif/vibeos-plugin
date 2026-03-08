@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# baseline-check.sh — Compare current finding counts against known baselines
+# baseline-check.sh — Compare current findings against known baselines
+# Supports two modes:
+#   Count-based (v1.0): aggregate counts per category
+#   Finding-level (v2.0): per-finding comparison using fingerprints
 # Determines whether failures are pre-existing (within baseline) or new (exceeding baseline).
 # Supports one-way ratcheting: baseline can only decrease, never increase.
 # Exit 0 with JSON result on stdout; exit 1 on error.
@@ -10,19 +13,39 @@ FRAMEWORK_VERSION="1.0.0"
 
 usage() {
   echo "Usage:"
-  echo "  $0 check --baseline-file <path> --category <name> --current-count <N>"
-  echo "  $0 ratchet --baseline-file <path> --category <name> --current-count <N>"
+  echo "  Count-based mode (v1.0):"
+  echo "    $0 check --baseline-file <path> --category <name> --current-count <N>"
+  echo "    $0 ratchet --baseline-file <path> --category <name> --current-count <N>"
+  echo ""
+  echo "  Finding-level mode (v2.0):"
+  echo "    $0 check --mode finding-level --baseline-file <path> --current-findings-file <path>"
+  echo "    $0 ratchet --mode finding-level --baseline-file <path> --current-findings-file <path>"
   echo ""
   echo "Commands:"
-  echo "  check    Compare current count against baseline, return PASS/FAIL/TRACKED"
-  echo "  ratchet  If current count < baseline, reduce baseline (one-way ratchet)"
+  echo "  check    Compare current state against baseline, return PASS/FAIL/TRACKED"
+  echo "  ratchet  If improvements found, lock them in (one-way ratchet)"
   echo ""
-  echo "Results:"
+  echo "Results (count-based):"
   echo "  PASS     — No failures (current count is 0)"
   echo "  TRACKED  — Failures within baseline (pre-existing, not blocking)"
   echo "  FAIL     — Failures exceed baseline (new issues, blocking)"
   echo "  RATCHET  — Baseline reduced to current count (improvement locked in)"
+  echo ""
+  echo "Results (finding-level):"
+  echo "  PASS     — No new findings"
+  echo "  FAIL     — New findings detected (not in baseline), blocking"
+  echo "  TRACKED  — All findings are baselined (pre-existing)"
+  echo "  RATCHET  — Fixed findings removed from baseline"
   exit 1
+}
+
+# Compute fingerprint for a finding: SHA-256 of category:file:pattern:severity
+compute_fingerprint() {
+  local category="$1"
+  local file="$2"
+  local pattern="$3"
+  local severity="$4"
+  echo -n "${category}:${file}:${pattern}:${severity}" | shasum -a 256 | cut -d' ' -f1
 }
 
 COMMAND="${1:-}"
@@ -31,24 +54,200 @@ shift || true
 BASELINE_FILE=""
 CATEGORY=""
 CURRENT_COUNT=0
+MODE=""
+CURRENT_FINDINGS_FILE=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --baseline-file) BASELINE_FILE="$2"; shift 2 ;;
     --category) CATEGORY="$2"; shift 2 ;;
     --current-count) CURRENT_COUNT="$2"; shift 2 ;;
+    --mode) MODE="$2"; shift 2 ;;
+    --current-findings-file) CURRENT_FINDINGS_FILE="$2"; shift 2 ;;
     --help|-h) usage ;;
     *) echo "[baseline-check] ERROR: Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
 
-if [ -z "$BASELINE_FILE" ] || [ -z "$CATEGORY" ]; then
-  echo "[baseline-check] ERROR: --baseline-file and --category are required" >&2
+if [ -z "$BASELINE_FILE" ]; then
+  echo "[baseline-check] ERROR: --baseline-file is required" >&2
   exit 1
 fi
 
 if ! command -v jq >/dev/null 2>&1; then
   echo "[baseline-check] ERROR: jq is required" >&2
+  exit 1
+fi
+
+# Auto-detect mode from baseline file version if --mode not specified
+if [ -z "$MODE" ] && [ -f "$BASELINE_FILE" ]; then
+  DETECTED_VERSION=$(jq -r '.version // "1.0"' "$BASELINE_FILE" 2>/dev/null || echo "1.0")
+  if [ "$DETECTED_VERSION" = "2.0" ]; then
+    MODE="finding-level"
+  fi
+fi
+
+# Default to count-based mode
+if [ -z "$MODE" ]; then
+  MODE="count-based"
+fi
+
+# ============================================================
+# Finding-level mode (v2.0)
+# ============================================================
+if [ "$MODE" = "finding-level" ]; then
+  if [ -z "$CURRENT_FINDINGS_FILE" ]; then
+    echo "[baseline-check] ERROR: --current-findings-file is required for finding-level mode" >&2
+    exit 1
+  fi
+
+  case "$COMMAND" in
+    check)
+      # If no baseline file exists, all current findings are NEW
+      if [ ! -f "$BASELINE_FILE" ]; then
+        CURRENT_TOTAL=$(jq '.findings | length' "$CURRENT_FINDINGS_FILE" 2>/dev/null || echo "0")
+        if [ "$CURRENT_TOTAL" -eq 0 ]; then
+          echo "{\"result\": \"PASS\", \"mode\": \"finding-level\", \"new\": 0, \"tracked\": 0, \"fixed\": 0, \"message\": \"No findings and no baseline\"}"
+        else
+          echo "{\"result\": \"FAIL\", \"mode\": \"finding-level\", \"new\": $CURRENT_TOTAL, \"tracked\": 0, \"fixed\": 0, \"message\": \"$CURRENT_TOTAL new findings (no baseline exists)\"}"
+        fi
+        exit 0
+      fi
+
+      # Extract fingerprints from baseline
+      BASELINE_FPS=$(jq -r '.findings[]?.fingerprint // empty' "$BASELINE_FILE" 2>/dev/null | sort)
+
+      # Compute fingerprints for current findings and compare
+      NEW_COUNT=0
+      TRACKED_COUNT=0
+      NEW_IDS=""
+
+      CURRENT_COUNT_FL=$(jq '.findings | length' "$CURRENT_FINDINGS_FILE" 2>/dev/null || echo "0")
+
+      for i in $(seq 0 $((CURRENT_COUNT_FL - 1))); do
+        # Read finding fields
+        FINDING=$(jq -r ".findings[$i]" "$CURRENT_FINDINGS_FILE")
+        F_CAT=$(echo "$FINDING" | jq -r '.category')
+        F_FILE=$(echo "$FINDING" | jq -r '.file')
+        F_PATTERN=$(echo "$FINDING" | jq -r '.pattern')
+        F_SEVERITY=$(echo "$FINDING" | jq -r '.severity')
+        F_ID=$(echo "$FINDING" | jq -r '.id')
+
+        # Check if fingerprint is pre-computed in the finding
+        F_FP=$(echo "$FINDING" | jq -r '.fingerprint // empty')
+        if [ -z "$F_FP" ]; then
+          F_FP=$(compute_fingerprint "$F_CAT" "$F_FILE" "$F_PATTERN" "$F_SEVERITY")
+        fi
+
+        # Check against baseline fingerprints
+        if echo "$BASELINE_FPS" | grep -q "^${F_FP}$"; then
+          TRACKED_COUNT=$((TRACKED_COUNT + 1))
+        else
+          NEW_COUNT=$((NEW_COUNT + 1))
+          if [ -n "$NEW_IDS" ]; then
+            NEW_IDS="${NEW_IDS}, ${F_ID}"
+          else
+            NEW_IDS="$F_ID"
+          fi
+        fi
+      done
+
+      # Count fixed findings (in baseline but not in current)
+      BASELINE_TOTAL=$(jq '.findings | length' "$BASELINE_FILE" 2>/dev/null || echo "0")
+      CURRENT_FPS=""
+      for i in $(seq 0 $((CURRENT_COUNT_FL - 1))); do
+        FINDING=$(jq -r ".findings[$i]" "$CURRENT_FINDINGS_FILE")
+        F_CAT=$(echo "$FINDING" | jq -r '.category')
+        F_FILE=$(echo "$FINDING" | jq -r '.file')
+        F_PATTERN=$(echo "$FINDING" | jq -r '.pattern')
+        F_SEVERITY=$(echo "$FINDING" | jq -r '.severity')
+        F_FP=$(echo "$FINDING" | jq -r '.fingerprint // empty')
+        if [ -z "$F_FP" ]; then
+          F_FP=$(compute_fingerprint "$F_CAT" "$F_FILE" "$F_PATTERN" "$F_SEVERITY")
+        fi
+        CURRENT_FPS="${CURRENT_FPS}${F_FP}\n"
+      done
+
+      FIXED_COUNT=0
+      for i in $(seq 0 $((BASELINE_TOTAL - 1))); do
+        B_FP=$(jq -r ".findings[$i].fingerprint" "$BASELINE_FILE" 2>/dev/null || echo "")
+        if [ -n "$B_FP" ] && ! echo -e "$CURRENT_FPS" | grep -q "^${B_FP}$"; then
+          FIXED_COUNT=$((FIXED_COUNT + 1))
+        fi
+      done
+
+      if [ "$NEW_COUNT" -gt 0 ]; then
+        echo "{\"result\": \"FAIL\", \"mode\": \"finding-level\", \"new\": $NEW_COUNT, \"tracked\": $TRACKED_COUNT, \"fixed\": $FIXED_COUNT, \"new_ids\": \"$NEW_IDS\", \"message\": \"$NEW_COUNT new findings detected: $NEW_IDS\"}"
+      elif [ "$TRACKED_COUNT" -gt 0 ]; then
+        echo "{\"result\": \"TRACKED\", \"mode\": \"finding-level\", \"new\": 0, \"tracked\": $TRACKED_COUNT, \"fixed\": $FIXED_COUNT, \"message\": \"$TRACKED_COUNT pre-existing findings tracked, $FIXED_COUNT fixed\"}"
+      else
+        echo "{\"result\": \"PASS\", \"mode\": \"finding-level\", \"new\": 0, \"tracked\": 0, \"fixed\": $FIXED_COUNT, \"message\": \"No findings\"}"
+      fi
+      ;;
+
+    ratchet)
+      if [ ! -f "$BASELINE_FILE" ]; then
+        echo "{\"result\": \"SKIP\", \"mode\": \"finding-level\", \"message\": \"No baseline file to ratchet\"}"
+        exit 0
+      fi
+
+      # Remove findings from baseline that no longer appear in current scan
+      CURRENT_COUNT_FL=$(jq '.findings | length' "$CURRENT_FINDINGS_FILE" 2>/dev/null || echo "0")
+      CURRENT_FPS=""
+      for i in $(seq 0 $((CURRENT_COUNT_FL - 1))); do
+        FINDING=$(jq -r ".findings[$i]" "$CURRENT_FINDINGS_FILE")
+        F_CAT=$(echo "$FINDING" | jq -r '.category')
+        F_FILE=$(echo "$FINDING" | jq -r '.file')
+        F_PATTERN=$(echo "$FINDING" | jq -r '.pattern')
+        F_SEVERITY=$(echo "$FINDING" | jq -r '.severity')
+        F_FP=$(echo "$FINDING" | jq -r '.fingerprint // empty')
+        if [ -z "$F_FP" ]; then
+          F_FP=$(compute_fingerprint "$F_CAT" "$F_FILE" "$F_PATTERN" "$F_SEVERITY")
+        fi
+        CURRENT_FPS="${CURRENT_FPS}${F_FP}\n"
+      done
+
+      BASELINE_TOTAL=$(jq '.findings | length' "$BASELINE_FILE" 2>/dev/null || echo "0")
+      REMOVED_COUNT=0
+      KEEP_INDICES=""
+
+      for i in $(seq 0 $((BASELINE_TOTAL - 1))); do
+        B_FP=$(jq -r ".findings[$i].fingerprint" "$BASELINE_FILE" 2>/dev/null || echo "")
+        if [ -n "$B_FP" ] && echo -e "$CURRENT_FPS" | grep -q "^${B_FP}$"; then
+          if [ -n "$KEEP_INDICES" ]; then
+            KEEP_INDICES="${KEEP_INDICES}, $i"
+          else
+            KEEP_INDICES="$i"
+          fi
+        else
+          REMOVED_COUNT=$((REMOVED_COUNT + 1))
+        fi
+      done
+
+      if [ "$REMOVED_COUNT" -gt 0 ]; then
+        # Build updated baseline with only kept findings
+        UPDATED=$(jq "[.findings | to_entries[] | select(.key | IN(${KEEP_INDICES:-})) | .value]" "$BASELINE_FILE" 2>/dev/null || echo "[]")
+        jq --argjson kept "$UPDATED" '.findings = $kept' "$BASELINE_FILE" > "${BASELINE_FILE}.tmp" && mv "${BASELINE_FILE}.tmp" "$BASELINE_FILE"
+        NEW_TOTAL=$(jq '.findings | length' "$BASELINE_FILE")
+        echo "{\"result\": \"RATCHET\", \"mode\": \"finding-level\", \"removed\": $REMOVED_COUNT, \"remaining\": $NEW_TOTAL, \"message\": \"$REMOVED_COUNT fixed findings removed from baseline\"}"
+      else
+        echo "{\"result\": \"UNCHANGED\", \"mode\": \"finding-level\", \"remaining\": $BASELINE_TOTAL, \"message\": \"No findings to ratchet\"}"
+      fi
+      ;;
+
+    *)
+      usage
+      ;;
+  esac
+  exit 0
+fi
+
+# ============================================================
+# Count-based mode (v1.0) — original behavior
+# ============================================================
+
+if [ -z "$CATEGORY" ]; then
+  echo "[baseline-check] ERROR: --category is required for count-based mode" >&2
   exit 1
 fi
 

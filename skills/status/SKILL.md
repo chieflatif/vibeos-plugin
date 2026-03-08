@@ -20,7 +20,12 @@ Show a comprehensive project status overview.
    - Which WOs are active, blocked, or recently completed?
    - What dependencies are unblocked and ready to start?
 
-3. **Report the dashboard**:
+3. **Check remediation status** (if `.vibeos/findings-registry.json` exists):
+   - Count fix-now findings and their resolution status
+   - Count fix-later findings and how many are overdue
+   - Count accepted-risk findings
+
+4. **Report the dashboard**:
 
    ```
    ## Project Status
@@ -29,15 +34,24 @@ Show a comprehensive project status overview.
    **Active WOs:** [list or "none"]
    **Recently Completed:** [last 3 completed WOs]
 
+   ## Remediation Status
+   (only shown for midstream projects with findings)
+
+   - **Fix Now:** [N] resolved / [M] total
+   - **Fix Later:** [N] resolved / [M] total ([K] overdue)
+   - **Accepted Risks:** [N] documented
+
    ## Next Recommended Action
    [What WO should be started next, based on dependency graph and phase ordering]
    [Why this is the right next step]
+   [If Phase 0 has incomplete fix-now items, recommend those first]
 
    ## Blockers
    [Any blocked WOs with reason, or "None"]
+   [If Phase 0 incomplete and user trying to start Phase 1, flag it]
    ```
 
-4. **If no governance files exist**: Report that the project hasn't been set up with VibeOS governance yet, and suggest running `/vibeos:discover` to start.
+5. **If no governance files exist**: Report that the project hasn't been set up with VibeOS governance yet, and suggest running `/vibeos:discover` to start.
 
 ## Communication Contract
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,17 +15,17 @@ Replace the count-based baseline model (`"critical": 10`) with a finding-level m
 ## Scope
 
 ### In Scope
-- [ ] New baseline schema: per-finding entries with IDs, not aggregate counts
-- [ ] Each finding in baseline linked to its entry in findings-registry.json
-- [ ] Baseline comparison: match by finding ID + file + pattern, not by count
-- [ ] New finding detection: if a finding doesn't match any baselined entry, it's NEW (blocks)
-- [ ] Fixed finding detection: if a baselined finding no longer appears, it's FIXED (ratchet)
-- [ ] Swapped finding detection: if count stays same but specific findings differ, flag it
-- [ ] Update `convergence/baseline-check.sh` to support finding-level comparison
-- [ ] Backward compatibility: count-based baselines still work (graceful migration)
-- [ ] Baseline migration script: convert old count-based to finding-level format
-- [ ] Update `skills/build/SKILL.md` Step 7 to use finding-level baseline
-- [ ] Update `skills/checkpoint/SKILL.md` to use finding-level ratcheting
+- [x] New baseline schema: per-finding entries with IDs, not aggregate counts
+- [x] Each finding in baseline linked to its entry in findings-registry.json
+- [x] Baseline comparison: match by finding ID + file + pattern, not by count
+- [x] New finding detection: if a finding doesn't match any baselined entry, it's NEW (blocks)
+- [x] Fixed finding detection: if a baselined finding no longer appears, it's FIXED (ratchet)
+- [x] Swapped finding detection: if count stays same but specific findings differ, flag it
+- [x] Update `convergence/baseline-check.sh` to support finding-level comparison
+- [x] Backward compatibility: count-based baselines still work (graceful migration)
+- [x] Baseline migration script: convert old count-based to finding-level format
+- [x] Update `skills/build/SKILL.md` Step 7 to use finding-level baseline
+- [x] Update `skills/checkpoint/SKILL.md` to use finding-level ratcheting
 
 ### Out of Scope
 - Creating the findings (WO-042)
@@ -36,7 +36,7 @@ Replace the count-based baseline model (`"critical": 10`) with a finding-level m
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-042 | Guided codebase audit | Draft |
+| WO-042 | Guided codebase audit | Complete |
 
 ## Impact Analysis
 
@@ -47,15 +47,15 @@ Replace the count-based baseline model (`"critical": 10`) with a finding-level m
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Baseline stores individual findings with IDs, not just counts
-- [ ] AC-2: New finding (not in baseline) correctly detected and blocks
-- [ ] AC-3: Pre-existing finding (in baseline) correctly tracked and doesn't block
-- [ ] AC-4: Fixed finding (was in baseline, now gone) triggers ratchet (removed from baseline)
-- [ ] AC-5: Swapped finding (old fixed, new introduced, count unchanged) correctly detected as NEW
-- [ ] AC-6: Count-based baselines still work (backward compatibility)
-- [ ] AC-7: Migration script converts count-based to finding-level format
-- [ ] AC-8: Build skill uses finding-level comparison in gate evaluation
-- [ ] AC-9: Checkpoint skill uses finding-level ratcheting
+- [x] AC-1: Baseline stores individual findings with IDs, not just counts
+- [x] AC-2: New finding (not in baseline) correctly detected and blocks
+- [x] AC-3: Pre-existing finding (in baseline) correctly tracked and doesn't block
+- [x] AC-4: Fixed finding (was in baseline, now gone) triggers ratchet (removed from baseline)
+- [x] AC-5: Swapped finding (old fixed, new introduced, count unchanged) correctly detected as NEW
+- [x] AC-6: Count-based baselines still work (backward compatibility)
+- [x] AC-7: Migration script converts count-based to finding-level format
+- [x] AC-8: Build skill uses finding-level comparison in gate evaluation
+- [x] AC-9: Checkpoint skill uses finding-level ratcheting
 
 ## Test Strategy
 
@@ -151,15 +151,15 @@ When a finding is first baselined, update the corresponding entry in `.vibeos/fi
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Unit tests for all comparison scenarios
 - Risk: Fingerprinting must be stable across minor code changes; too sensitive = false positives, too loose = missed swaps
 
 ## Evidence
 
-- [ ] Finding-level comparison works
-- [ ] New findings correctly detected
-- [ ] Fixed findings correctly ratcheted
-- [ ] Swapped findings detected (count unchanged but findings differ)
-- [ ] Backward compatibility with count-based baselines
-- [ ] Migration script works
+- [x] Finding-level comparison works
+- [x] New findings correctly detected
+- [x] Fixed findings correctly ratcheted
+- [x] Swapped findings detected (count unchanged but findings differ)
+- [x] Backward compatibility with count-based baselines
+- [x] Migration script works

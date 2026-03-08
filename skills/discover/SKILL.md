@@ -22,6 +22,45 @@ Skill-specific addenda:
 
 ## Discovery Flow
 
+### Step 0a: First-Run Onboarding
+
+Check if this is the user's first time using VibeOS on this project:
+
+1. Read `.vibeos/config.json` — if it does not exist or `onboarding_complete` is `false`, this is the first run
+2. If first run, present the onboarding message:
+
+> **Welcome to VibeOS**
+>
+> VibeOS turns Claude into an autonomous development engine. Here's how it works:
+>
+> 1. **You describe what you want to build** — I'll ask questions to understand your vision
+> 2. **I create a development plan** — broken into phases and work orders (detailed task specs)
+> 3. **I build autonomously** — writing tests first, then code, with quality checks at every step
+> 4. **I check in with you** — at natural pause points so you can review, redirect, or continue
+>
+> **Your role:** You make the decisions — what to build, what quality level to target, when to ship. I handle the implementation, testing, and quality enforcement.
+>
+> **What to expect:** You'll see progress updates as each piece is built. I'll explain what I'm doing in plain English. When I need your input, I'll present clear options with their implications.
+
+3. Create `.vibeos/config.json` (or update it) with `"onboarding_complete": true`
+4. If existing code is detected (Step 0b below), append to the onboarding: "I see you already have code — I'll start by understanding what's here before we plan anything new."
+
+### Step 0b: Detect Existing Code
+
+Before starting discovery, check if the project has existing source code:
+
+1. Look for source directories: `src/`, `lib/`, `app/`, `pkg/`, `cmd/`, `internal/`, `server/`, `client/`, `api/`, `core/`
+2. Look for language indicators: `package.json`, `requirements.txt`, `go.mod`, `Cargo.toml`, `pom.xml`, `build.gradle`, `*.csproj`, `Gemfile`, `composer.json`, `pyproject.toml`, `setup.py`
+3. Count source files (excluding test files, node_modules, vendor dirs, and generated files)
+
+**If existing code is found (10+ source files):** Switch to the **Midstream Discovery Flow** below.
+
+**If no existing code (greenfield project):** Continue with Step 1.
+
+---
+
+## Greenfield Discovery Flow
+
 ### Step 1: Capture Intent
 
 If `$ARGUMENTS` contains a product description, use it. Otherwise ask the user:
@@ -142,7 +181,118 @@ Report the gate result to the user:
 
 If any gate fails, explain what's missing and ask the user to provide it.
 
+---
+
+## Midstream Discovery Flow
+
+This flow runs when existing source code is detected (Step 0). It reverse-engineers the architecture from the codebase and produces draft product documents for user validation.
+
+### Step M1: Announce Midstream Mode
+
+Tell the user:
+
+> "I see existing code in this project — [N] source files across [directories]. Instead of starting from scratch, I'll analyze your codebase to understand its architecture, then ask you to validate what I find."
+
+### Step M2: Analyze Codebase
+
+Perform systematic code analysis:
+
+1. **Directory structure** — Map source dirs, test dirs, config files, documentation, scripts, CI/CD
+2. **Language and framework detection** — Identify from indicators (package.json → Node.js, requirements.txt → Python, go.mod → Go, etc.). Detect framework from imports/config (Express, FastAPI, Django, Next.js, Spring Boot, etc.)
+3. **Import graph** — Analyze imports to build a module dependency map. Identify which modules depend on which.
+4. **Architectural pattern detection** — Classify: layered, modular, monolith, microservice, MVC, service-repository, hexagonal, etc. Evidence is based on directory structure and import patterns.
+5. **Database layer** — Detect ORM (SQLAlchemy, Prisma, TypeORM, GORM, etc.), raw SQL, migration framework, connection configuration
+6. **Auth layer** — Detect middleware, decorators, session management, JWT usage, OAuth integrations
+7. **API surface** — Map routes, endpoints, controllers, GraphQL schemas, gRPC definitions
+8. **Test infrastructure** — Detect test framework (pytest, jest, go test, etc.), test directory, naming conventions, approximate coverage
+
+For each inference, track confidence:
+- **high** — strong indicator (e.g., `package.json` with `"express"` in dependencies)
+- **medium** — indirect indicator (e.g., directory named `controllers/` suggests MVC)
+- **low** — weak signal (e.g., few files, ambiguous structure)
+
+### Step M3: Generate Draft Documents
+
+From the code analysis, generate draft documents in the project's `docs/product/` directory:
+
+#### M3a. ARCHITECTURE-OUTLINE.md
+
+Generate `docs/product/ARCHITECTURE-OUTLINE.md` using the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/ARCHITECTURE-OUTLINE.md.ref`. Include:
+- Detected layers and their boundaries
+- Module map with dependencies
+- Database schema overview (from migrations or models)
+- API surface map
+- Auth flow
+- Test infrastructure summary
+
+Mark inferred sections with confidence levels.
+
+#### M3b. TECHNICAL-SPEC.md
+
+Generate `docs/TECHNICAL-SPEC.md` using the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/TECHNICAL-SPEC.md.ref`. Include:
+- Detected language, framework, and runtime version
+- Database and ORM
+- Key dependencies and their purposes
+- Build and deployment configuration
+- Test framework and patterns
+
+#### M3c. PRD.md (with collision handling)
+
+**If `docs/product/PRD.md` already exists** (from a prior `/vibeos:discover` run): read the existing document and merge inferred data into it rather than overwriting. Add sections for inferred scope and workflows without removing user-authored content.
+
+**If `docs/product/PRD.md` does not exist:** Generate a skeleton `docs/product/PRD.md` from the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/PRD.md.ref`. Populate with inferred product scope based on code structure, README content (if present), and API surface.
+
+#### M3d. project-definition.json
+
+Generate `project-definition.json` in the project root with the same structure as the greenfield flow (Step 4), but with all values marked as `"source": "inferred"` and appropriate confidence levels.
+
+### Step M4: User Validation
+
+Present the inferred architecture to the user for validation:
+
+> "I've analyzed your codebase and here's what I found:
+>
+> **Architecture:** [pattern] with [N] modules across [M] layers
+> **Stack:** [language] [version] + [framework] + [database]
+> **Module map:**
+> - [module]: [purpose] ([N] files, depends on [deps])
+> - [module]: [purpose] ([N] files, depends on [deps])
+> - ...
+>
+> **What I'm confident about:** [high-confidence inferences]
+> **What I'm less sure about:** [low-confidence inferences, with specific questions]
+>
+> Is this accurate? What should I add or correct?"
+
+After user validates or corrects:
+1. Update the draft documents with corrections
+2. Finalize the architecture document
+
+### Step M5: Midstream Gate Readiness
+
+Before completing, verify all outputs exist:
+- [ ] Directory structure mapped
+- [ ] Language, framework, and database detected
+- [ ] `docs/product/ARCHITECTURE-OUTLINE.md` generated with module map
+- [ ] `docs/TECHNICAL-SPEC.md` generated with detected stack
+- [ ] `docs/product/PRD.md` generated or merged
+- [ ] `project-definition.json` generated with inferred values and confidence levels
+- [ ] User validated and corrected the architecture
+
+Report the result:
+
+> "Midstream discovery is complete. Here's what we established:
+> - Architecture: [pattern] with [N] modules
+> - Stack: [language] + [framework] + [database]
+> - [N] documents generated in docs/product/
+>
+> Your architecture document is now the anchor for all subsequent audits. Next step: run `/vibeos:plan` to generate the development plan and run the guided codebase audit."
+
+---
+
 ## Output Summary
+
+### Greenfield Artifacts
 
 | Artifact | Path | Purpose |
 |---|---|---|
@@ -153,3 +303,12 @@ If any gate fails, explain what's missing and ask the user to provide it.
 | TECHNICAL-SPEC.md | docs/ | Stack and implementation approach |
 | ARCHITECTURE-OUTLINE.md | docs/product/ | System components and data flow |
 | ASSUMPTIONS-AND-RISKS.md | docs/product/ | Open questions and risks |
+
+### Midstream Artifacts
+
+| Artifact | Path | Purpose |
+|---|---|---|
+| project-definition.json | project root | Inferred canonical definition with confidence levels |
+| ARCHITECTURE-OUTLINE.md | docs/product/ | Inferred architecture, validated by user |
+| TECHNICAL-SPEC.md | docs/ | Detected stack and implementation details |
+| PRD.md | docs/product/ | Inferred scope (or merged with existing) |

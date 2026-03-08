@@ -170,6 +170,44 @@ For non-step messages like aging reminders, convergence updates, etc.
 
 **Non-compliant:** "WARN: 3 fix-later items exceed aging threshold (5 WOs)" (jargon, no actionable guidance)
 
+### Consequence-Aware Decision Variants
+
+Every decision point must follow this pattern. No option is ever presented as a bare label.
+
+```
+ESCALATION_DECISION:
+"[Context — what happened and what failed]
+
+Your options:
+1. **[Option name]** — [What happens]. [Consequence for project]. [When to choose this].
+2. **[Option name]** — [What happens]. [Consequence for project]. [When to choose this].
+
+I recommend [option] because [specific reasoning]."
+
+DISPOSITION_DECISION:
+"[Finding explanation in plain English]
+- Risk: [what could happen if this isn't fixed]
+- Recommendation: [what to do]
+- What do you want to do? fix now (fix before feature work) / fix later (tracked, reminded periodically) / accept risk (documented, you explain why)"
+
+SKIP_DECISION:
+"[What you're about to skip] — this means [specific quality check or enforcement] won't run. [What could happen as a result]. You can re-run it later with [command]."
+```
+
+### Build Loop Progress Variants
+
+These are domain-specific variants of the Progress Update schema, used by the build orchestrator:
+
+```
+STEP_BANNER: "[Step {N}/{M}] {agent-name} — {description in plain English}"
+GATE_RESULT: "Quality checks: {passed}/{total} passed.{if failures} {top_issue_plain_english}{/if}"
+AUDIT_DISPATCH: "Running {N} quality auditors to review your code..."
+AUDIT_RESULT: "Audit complete: {confirmed} confirmed findings, {warnings} warnings.{if critical} {critical_summary}{/if}"
+RETRY: "{what_failed}. Fixing automatically (attempt {N} of {max})..."
+WO_SUMMARY: "This work order dispatched {N} agents across {M} iterations ({gate_retries} gate retries, {audit_cycles} audit convergence cycles)."
+PHASE_PROGRESS: "Phase {N}: {completed}/{total} work orders complete."
+```
+
 ## Glossary
 
 Core terms with plain English definitions. Introduce each term on first use in any conversation.

@@ -19,6 +19,28 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER
 **Skill-specific addenda:**
 - Never ask "what do you want to build?" — read the plan and execute
 
+## First-Run Onboarding
+
+Check if this is the user's first time using VibeOS on this project (second entry point — users may invoke `/vibeos:build` directly):
+
+1. Read `.vibeos/config.json` — if it does not exist or `onboarding_complete` is `false`, this is the first run
+2. If first run, present the onboarding message:
+
+> **Welcome to VibeOS**
+>
+> VibeOS turns Claude into an autonomous development engine. Here's how it works:
+>
+> 1. **You describe what you want to build** — I'll ask questions to understand your vision
+> 2. **I create a development plan** — broken into phases and work orders (detailed task specs)
+> 3. **I build autonomously** — writing tests first, then code, with quality checks at every step
+> 4. **I check in with you** — at natural pause points so you can review, redirect, or continue
+>
+> **Your role:** You make the decisions — what to build, what quality level to target, when to ship. I handle the implementation, testing, and quality enforcement.
+>
+> **What to expect:** You'll see progress updates as each piece is built. I'll explain what I'm doing in plain English. When I need your input, I'll present clear options with their implications.
+
+3. Create `.vibeos/config.json` (or update it) with `"onboarding_complete": true`
+
 ## Prerequisites
 
 Before starting, verify these exist:
@@ -52,8 +74,12 @@ If `$ARGUMENTS` contains a WO number, use that. Otherwise:
 
 1. Read `docs/planning/DEVELOPMENT-PLAN.md`
 2. Read `docs/planning/WO-INDEX.md`
-3. Find the current phase (first phase with incomplete WOs)
-4. Within that phase, find the first WO whose:
+3. **Phase 0 enforcement (midstream projects):** If Phase 0 exists (remediation phase) and has incomplete fix-now WOs, those must be built first. Do not proceed to Phase 1 until all Phase 0 fix-now WOs are complete. Tell the user:
+   > "Phase 0 (remediation) has [N] incomplete fix-now items. These critical issues must be resolved before starting feature work. Building WO-NNN ([title]) next."
+
+   The user can override with explicit "skip Phase 0" — log this as risk acceptance in `.vibeos/build-log.md`.
+4. Find the current phase (first phase with incomplete WOs)
+5. Within that phase, find the first WO whose:
    - Dependencies are all Complete
    - Status is Draft or Implementation Ready
 
@@ -80,6 +106,10 @@ Update this file before each agent dispatch.
 
 ### Step 4: Dispatch Investigator Agent
 
+**Progress banner:**
+> "Starting WO-NNN: [title]. [1-sentence description of what this builds]."
+> "[Step 1/8] Investigator — Reviewing requirements and checking dependencies before we start building..."
+
 Dispatch `agents/investigator.md` with:
 - **Input:** WO file path, development plan path
 - **Purpose:** Revalidate assumptions, check dependencies, analyze codebase, flag risks
@@ -96,6 +126,9 @@ Log the dispatch to `.vibeos/build-log.md`:
 
 ### Step 5: Dispatch Tester Agent (TDD)
 
+**Progress banner:**
+> "[Step 2/8] Tester — Writing tests from your requirements. These tests define what 'working' means before any code is written."
+
 Set agent identity: `echo "tester" > .vibeos/current-agent.txt`
 
 Dispatch `agents/tester.md` with:
@@ -110,6 +143,9 @@ Dispatch `agents/tester.md` with:
 Log: `[timestamp] tester WO-NNN write-tests [count] tests written, all failing`
 
 ### Step 6: Dispatch Implementation Agent
+
+**Progress banner:**
+> "[Step 3/8] [Backend/Frontend] — Writing the code to make all tests pass..."
 
 Determine which agent to use:
 - Read WO scope to determine if it's backend, frontend, or both
@@ -133,6 +169,12 @@ Log: `[timestamp] backend WO-NNN implement [PASS|FAIL] [test count] tests`
 
 ### Step 7: Run Quality Gates
 
+**Progress banner:**
+> "[Step 4/8] Quality Gates — Running [N] automated quality checks..."
+
+**On result:** Report inline: "Quality checks: [passed]/[total] passed. [top issue if any]."
+**On retry:** "[issue description]. Fixing and re-checking (attempt [N] of 3)..."
+
 Run pre_commit gates:
 ```bash
 bash scripts/gate-runner.sh pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
@@ -140,13 +182,26 @@ bash scripts/gate-runner.sh pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
 
 **Baseline-aware gate evaluation:**
 
-After running gates, check each failure against known baselines:
+After running gates, check each failure against known baselines. The system supports two modes:
+
+**Finding-level mode (preferred, if `.vibeos/findings-registry.json` exists):**
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
+  --mode finding-level \
+  --baseline-file ".vibeos/baselines/midstream-baseline.json" \
+  --current-findings-file ".vibeos/findings-registry.json"
+```
+
+This compares individual findings by fingerprint (SHA-256 of category:file:pattern:severity). New findings not in the baseline are flagged individually by ID and file, enabling precise tracking.
+
+**Count-based mode (fallback, for projects without findings registry):**
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --category "[gate-name]" --current-count [failure-count]
 ```
 
+**Results:**
 - **PASS:** No failures — proceed
 - **TRACKED:** Failures within baseline (pre-existing) — log as tracked, proceed
 - **FAIL:** Failures exceed baseline (new issues) — trigger fix cycle
@@ -160,17 +215,37 @@ bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
 
 After successful gate pass with fewer failures than baseline, ratchet:
 ```bash
+# Finding-level ratchet (removes fixed findings from baseline)
+bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" ratchet \
+  --mode finding-level \
+  --baseline-file ".vibeos/baselines/midstream-baseline.json" \
+  --current-findings-file ".vibeos/findings-registry.json"
+
+# Count-based ratchet (fallback)
 bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" ratchet \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --category "[gate-name]" --current-count [failure-count]
 ```
 
-**On 3 failed cycles:** Escalate to user:
-> "Quality gates are still failing after 3 fix attempts. Here's what's failing: [details]. Would you like me to: (a) try again with a different approach, (b) skip these gates for now, or (c) let you fix it manually?"
+**On 3 failed cycles:** Escalate to user with consequences:
+> "Quality checks are still failing after 3 attempts. Here's what's failing: [specific issues].
+>
+> Your options:
+> 1. **Try a different approach** — I'll rethink how to implement this and try again. This may resolve the issue but will use more time.
+> 2. **Skip these checks for now** — Your code will be committed without passing [gate-name]. This means [specific risk, e.g., "type annotations won't be verified, which could let type-related bugs through"]. You can re-run these checks later with `/vibeos:gate`.
+> 3. **Fix it yourself** — I'll show you exactly what's failing and where, so you can fix it directly. I'll re-run the checks when you're ready.
+>
+> I recommend option 1 because [reason based on which gates are failing and their severity]."
 
 Log each gate run: `[timestamp] gate-runner WO-NNN pre_commit [PASS|FAIL] [details]`
 
 ### Step 8: Run Audit Cycle (Layer 2)
+
+**Progress banner:**
+> "[Step 5/8] Audit — Running 5 independent quality reviewers. This is the longest step and may take a minute..."
+
+**On result:** "Audit complete: [confirmed] confirmed findings, [warnings] warnings. [critical summary if any]."
+**On convergence retry:** "Fix applied. Re-running auditors to verify (iteration [N] of 5)..."
 
 After gates pass, run the full audit cycle for deeper quality enforcement.
 
@@ -222,14 +297,18 @@ For each fix cycle iteration:
 6. Update `PREV_HASH=$CURR_HASH` and store previous finding counts
 
 **Escalation format (STUCK or MAX_ITER):**
-> "Audit findings remain after [N] fix attempts ([reason from convergence check]).
-> Unresolved findings:
+> "After [N] fix attempts, these issues remain:
 > [list of findings with severity, file, description]
 >
 > These were flagged by: [auditor names]
 > Fix attempts: [what was tried]
 >
-> Would you like to: (a) try a different approach, (b) accept the remaining findings, or (c) fix manually?"
+> Your options:
+> 1. **Try a different approach** — I'll use a different strategy to fix these. May resolve them but no guarantee, and will use more time.
+> 2. **Accept these findings** — These issues will be documented as known and tracked. [If security]: This means [specific security risk] remains in your code until fixed later. [If architecture]: This means [specific maintenance risk]. They won't block future work but will appear in phase audits.
+> 3. **Fix yourself** — I'll give you the exact file locations and details. You fix them, I'll re-run the audit to verify.
+>
+> I recommend [X] because [specific reasoning based on finding severity and project context]."
 
 Log each audit run:
 ```
@@ -239,6 +318,9 @@ Log each audit run:
 Save the audit report to `.vibeos/audit-reports/WO-NNN-[timestamp].md`.
 
 ### Step 9: Dispatch Doc Writer Agent
+
+**Progress banner:**
+> "[Step 6/8] Documentation — Updating project docs and work order tracking..."
 
 Set agent identity: `echo "doc-writer" > .vibeos/current-agent.txt`
 
@@ -254,6 +336,9 @@ Log: `[timestamp] doc-writer WO-NNN document [COMPLETE]`
 
 ### Step 10: WO Completion
 
+**Progress banner:**
+> "[Step 7/8] Completing WO — Updating tracking documents..."
+
 After all agents succeed:
 1. Mark WO status as `Complete` in WO file (if doc-writer didn't already)
 2. Update WO-INDEX.md: move WO to Complete, add completion date
@@ -263,6 +348,16 @@ After all agents succeed:
    ```bash
    bash "${CLAUDE_PLUGIN_ROOT}/convergence/token-tracker.sh" overhead
    ```
+6. **Remediation aging check** (if `.vibeos/findings-registry.json` exists):
+   - Read fix-later items from findings-registry.json
+   - For each, check the `baselined_at_wo` field (set by WO-043 when the finding was baselined)
+   - Read aging threshold from `.vibeos/config.json` `remediation_aging_threshold` (default: 5 WOs)
+   - Count WOs completed since the finding was baselined
+   - If any fix-later item exceeds the threshold, remind the user:
+     > "Reminder: [N] fix-later remediation items have been deferred for [M] work orders. Consider scheduling them soon:
+     > - [finding title] (deferred since WO-NNN)
+     > - [finding title] (deferred since WO-NNN)
+     > Run `/vibeos:status` to see the full list."
 
 Report to user:
 > "WO-NNN ([title]) is complete.
@@ -271,10 +366,15 @@ Report to user:
 > - [L] audit findings resolved
 > - [K] files created/modified
 > - Documentation updated
+> - This work order dispatched [N] agents across [M] iterations ([X] gate retries, [Y] audit convergence cycles)
 >
+> Phase [P]: [completed]/[total] work orders complete.
 > Next: WO-NNN+1 ([next title]) is ready."
 
 ### Step 11: Multi-WO Orchestration & Autonomy Check
+
+**Progress banner:**
+> "[Step 8/8] Check-in — Here's what was built: [summary]"
 
 After WO completion, determine whether to continue with the next WO.
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,18 +15,18 @@ Every time the system presents the user with a choice, it includes the consequen
 ## Scope
 
 ### In Scope
-- [ ] Audit every decision point in all skills and identify missing consequence descriptions
-- [ ] Gate escalation: explain what each gate checks and what skipping means
-- [ ] Audit escalation: explain what each finding means and what accepting means
-- [ ] Autonomy selection: explain what each level means in practice (not just definition)
-- [ ] Finding disposition: explain what fix-now/fix-later/accepted-risk means concretely
-- [ ] Check-in options: explain what each choice leads to
-- [ ] Phase 0 skip: explain what deferring remediation means for code quality and security
-- [ ] Update all decision points in `skills/build/SKILL.md`
-- [ ] Update all decision points in `skills/plan/SKILL.md`
-- [ ] Update all decision points in `skills/audit/SKILL.md`
-- [ ] Update check-in report in `skills/build/SKILL.md` Step 11e
-- [ ] Define decision presentation template in Communication Contract
+- [x] Audit every decision point in all skills and identify missing consequence descriptions
+- [x] Gate escalation: explain what each gate checks and what skipping means
+- [x] Audit escalation: explain what each finding means and what accepting means
+- [x] Autonomy selection: explain what each level means in practice (not just definition)
+- [x] Finding disposition: explain what fix-now/fix-later/accepted-risk means concretely
+- [x] Check-in options: explain what each choice leads to
+- [x] Phase 0 skip: explain what deferring remediation means for code quality and security
+- [x] Update all decision points in `skills/build/SKILL.md`
+- [x] Update all decision points in `skills/plan/SKILL.md`
+- [x] Update all decision points in `skills/audit/SKILL.md`
+- [x] Update check-in report in `skills/build/SKILL.md` Step 11e
+- [x] Define decision presentation template in Communication Contract
 
 ### Out of Scope
 - Communication contract creation (WO-045)
@@ -37,9 +37,9 @@ Every time the system presents the user with a choice, it includes the consequen
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-045 | User communication contract | Draft |
-| WO-044 | Remediation roadmap (soft) | Draft |
-| WO-042 | Guided codebase audit (soft) | Draft |
+| WO-045 | User communication contract | Complete |
+| WO-044 | Remediation roadmap (soft) | Complete |
+| WO-042 | Guided codebase audit (soft) | Complete |
 
 **Soft dependency notes:**
 - WO-044 creates the Phase 0 skip decision point. If WO-044 is not implemented when WO-048 runs, the Phase 0 skip item (scope line 24) should be marked as conditional and implemented when Phase 0 enforcement exists.
@@ -53,15 +53,15 @@ Every time the system presents the user with a choice, it includes the consequen
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Every decision point in build skill includes consequences for each option
-- [ ] AC-2: Gate skip option explains what quality checks are bypassed
-- [ ] AC-3: Audit accept option explains specific risks being accepted
-- [ ] AC-4: Autonomy options explain practical experience (not just abstract definition)
-- [ ] AC-5: Finding dispositions explain what happens for each choice
-- [ ] AC-6: Phase 0 skip option explains security/quality implications
-- [ ] AC-7: No decision point presents options as bare labels (a/b/c without context)
-- [ ] AC-8: Recommendations include reasoning, not just "I recommend X"
-- [ ] AC-9: Decision presentation follows Communication Contract template
+- [x] AC-1: Every decision point in build skill includes consequences for each option
+- [x] AC-2: Gate skip option explains what quality checks are bypassed
+- [x] AC-3: Audit accept option explains specific risks being accepted
+- [x] AC-4: Autonomy options explain practical experience (not just abstract definition)
+- [x] AC-5: Finding dispositions explain what happens for each choice
+- [x] AC-6: Phase 0 skip option explains security/quality implications
+- [x] AC-7: No decision point presents options as bare labels (a/b/c without context)
+- [x] AC-8: Recommendations include reasoning, not just "I recommend X"
+- [x] AC-9: Decision presentation follows Communication Contract template
 
 ## Test Strategy
 
@@ -153,15 +153,15 @@ I recommend [option] because [specific reasoning based on project context]."
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Review every decision point in all skills for consequence completeness
 - Risk: Overly verbose consequence descriptions could slow down experienced users; keep them concise
 
 ## Evidence
 
-- [ ] All decision points have consequence descriptions
-- [ ] No bare label options remain
-- [ ] Gate skip consequences explain specific risks
-- [ ] Audit accept consequences explain specific implications
-- [ ] Recommendations include reasoning
-- [ ] Non-technical user can understand every option
+- [x] All decision points have consequence descriptions
+- [x] No bare label options remain
+- [x] Gate skip consequences explain specific risks
+- [x] Audit accept consequences explain specific implications
+- [x] Recommendations include reasoning
+- [x] Non-technical user can understand every option

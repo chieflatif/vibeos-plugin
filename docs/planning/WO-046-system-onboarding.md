@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,16 +15,16 @@ Create a first-time user experience that explains what VibeOS does, how it works
 ## Scope
 
 ### In Scope
-- [ ] First-run detection: identify when plugin is used for the first time on a project
-- [ ] Onboarding message: 30-second plain English orientation on first use
-- [ ] Explain the system: phases → WOs → agents → gates → audits → convergence
-- [ ] Explain the user's role: decision maker, not code writer
-- [ ] Explain what to expect: autonomous build with check-ins, not interactive coding
-- [ ] First-use concept introduction via Communication Contract instruction (WO-045 "introduce every concept on first use" rule) — no session-state tracking needed; the LLM follows the contract instruction naturally
-- [ ] Create `/vibeos:help` skill for on-demand concept clarification
-- [ ] Update `skills/discover/SKILL.md` to include onboarding before discovery starts (wraps around WO-041's midstream branch if present)
-- [ ] Update `skills/build/SKILL.md` to include onboarding check at start (second entry point)
-- [ ] Store onboarding-complete flag in `.vibeos/config.json`
+- [x] First-run detection: identify when plugin is used for the first time on a project
+- [x] Onboarding message: 30-second plain English orientation on first use
+- [x] Explain the system: phases → WOs → agents → gates → audits → convergence
+- [x] Explain the user's role: decision maker, not code writer
+- [x] Explain what to expect: autonomous build with check-ins, not interactive coding
+- [x] First-use concept introduction via Communication Contract instruction (WO-045 "introduce every concept on first use" rule) — no session-state tracking needed; the LLM follows the contract instruction naturally
+- [x] Create `/vibeos:help` skill for on-demand concept clarification
+- [x] Update `skills/discover/SKILL.md` to include onboarding before discovery starts (wraps around WO-041's midstream branch if present)
+- [x] Update `skills/build/SKILL.md` to include onboarding check at start (second entry point)
+- [x] Store onboarding-complete flag in `.vibeos/config.json`
 
 ### Out of Scope
 - Communication contract definition (WO-045)
@@ -35,8 +35,8 @@ Create a first-time user experience that explains what VibeOS does, how it works
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-045 | User communication contract | Draft |
-| WO-041 | Architecture-first midstream discovery (soft) | Draft |
+| WO-045 | User communication contract | Complete |
+| WO-041 | Architecture-first midstream discovery (soft) | Complete |
 
 **Soft dependency note:** WO-041 modifies `skills/discover/SKILL.md` to add the midstream branch. WO-046 wraps its onboarding check around this branch. WO-046 should be implemented after WO-041 for the discover skill, so onboarding fires before midstream discovery.
 
@@ -48,15 +48,15 @@ Create a first-time user experience that explains what VibeOS does, how it works
 
 ## Acceptance Criteria
 
-- [ ] AC-1: First-run detection works (checks `.vibeos/config.json` for onboarding flag)
-- [ ] AC-2: Onboarding message explains the system in under 200 words
-- [ ] AC-3: User understands their role (decision maker, reviewer) vs system's role (builder, auditor)
-- [ ] AC-4: User understands the flow (discover → plan → build → audit → repeat)
-- [ ] AC-5: `/vibeos:help` skill created and answers concept questions
-- [ ] AC-6: `/vibeos:help [term]` explains any glossary term from WO-045
-- [ ] AC-7: `/vibeos:help` without arguments shows available topics
-- [ ] AC-8: Onboarding skipped on subsequent runs (flag set)
-- [ ] AC-9: User can re-trigger onboarding with `/vibeos:help onboarding`
+- [x] AC-1: First-run detection works (checks `.vibeos/config.json` for onboarding flag)
+- [x] AC-2: Onboarding message explains the system in under 200 words
+- [x] AC-3: User understands their role (decision maker, reviewer) vs system's role (builder, auditor)
+- [x] AC-4: User understands the flow (discover → plan → build → audit → repeat)
+- [x] AC-5: `/vibeos:help` skill created and answers concept questions
+- [x] AC-6: `/vibeos:help [term]` explains any glossary term from WO-045
+- [x] AC-7: `/vibeos:help` without arguments shows available topics
+- [x] AC-8: Onboarding skipped on subsequent runs (flag set)
+- [x] AC-9: User can re-trigger onboarding with `/vibeos:help onboarding`
 
 ## Test Strategy
 
@@ -110,14 +110,14 @@ Add onboarding check at the top of `skills/discover/SKILL.md`:
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Review onboarding text for clarity, test help skill responses
 - Risk: Onboarding must be brief enough not to annoy returning users, comprehensive enough for first-timers
 
 ## Evidence
 
-- [ ] Onboarding fires on first use
-- [ ] Onboarding skipped on subsequent use
-- [ ] Help skill responds to all glossary terms
-- [ ] Onboarding text is clear to non-technical reader
-- [ ] Midstream variant mentions existing code
+- [x] Onboarding fires on first use
+- [x] Onboarding skipped on subsequent use
+- [x] Help skill responds to all glossary terms
+- [x] Onboarding text is clear to non-technical reader
+- [x] Midstream variant mentions existing code

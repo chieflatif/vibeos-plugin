@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,19 +15,19 @@ Replace the blind baseline-everything approach with a guided category-by-categor
 ## Scope
 
 ### In Scope
-- [ ] Run full audit suite after architecture document is validated (WO-041)
-- [ ] Present findings category by category, not as aggregate counts
-- [ ] Security findings walkthrough: each critical/high explained with risk and recommendation
-- [ ] Architecture findings walkthrough: violations explained with impact on maintainability
-- [ ] Code quality findings walkthrough: complexity, dead code, missing error handling
-- [ ] Dependency audit: run language-specific tools (npm audit, pip-audit, etc.) for CVE detection
-- [ ] Test coverage assessment: what's tested, what's not, what's the gap
-- [ ] Per-finding user decision: `fix-now`, `fix-later`, `accepted-risk`
-- [ ] `accepted-risk` requires brief justification from user (stored with finding)
-- [ ] `fix-later` creates a tracked remediation item with priority
-- [ ] `fix-now` items feed into Phase 0 remediation WOs
-- [ ] Generate human-readable audit report: `.vibeos/midstream-report.md`
-- [ ] Update `skills/plan/SKILL.md` Step 1b to use guided audit flow
+- [x] Run full audit suite after architecture document is validated (WO-041)
+- [x] Present findings category by category, not as aggregate counts
+- [x] Security findings walkthrough: each critical/high explained with risk and recommendation
+- [x] Architecture findings walkthrough: violations explained with impact on maintainability
+- [x] Code quality findings walkthrough: complexity, dead code, missing error handling
+- [x] Dependency audit: run language-specific tools (npm audit, pip-audit, etc.) for CVE detection
+- [x] Test coverage assessment: what's tested, what's not, what's the gap
+- [x] Per-finding user decision: `fix-now`, `fix-later`, `accepted-risk`
+- [x] `accepted-risk` requires brief justification from user (stored with finding)
+- [x] `fix-later` creates a tracked remediation item with priority
+- [x] `fix-now` items feed into Phase 0 remediation WOs
+- [x] Generate human-readable audit report: `.vibeos/midstream-report.md`
+- [x] Update `skills/plan/SKILL.md` Step 1b to use guided audit flow
 
 ### Out of Scope
 - Fixing the findings (handled by remediation WOs)
@@ -38,8 +38,8 @@ Replace the blind baseline-everything approach with a guided category-by-categor
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-041 | Architecture-first discovery | Draft |
-| WO-045 | User communication contract (soft) | Draft |
+| WO-041 | Architecture-first discovery | Complete |
+| WO-045 | User communication contract (soft) | Complete |
 
 **Soft dependency note:** If WO-045 is complete, all user-facing communication in this WO (category walkthroughs, risk explanations, recommendation formats) must follow the USER-COMMUNICATION-CONTRACT.md templates. If WO-045 is not yet complete, the patterns in Step 3 are provisional and will be updated for contract compliance when WO-045 is implemented.
 
@@ -52,16 +52,16 @@ Replace the blind baseline-everything approach with a guided category-by-categor
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Full audit runs after architecture validation (5 audit agents: security, architecture, correctness, test, evidence + quality gates)
-- [ ] AC-2: Findings presented category by category with plain English explanations
-- [ ] AC-3: Each critical and high finding individually presented with risk context
-- [ ] AC-4: User decides disposition per finding: fix-now, fix-later, accepted-risk
-- [ ] AC-5: accepted-risk requires justification text from user
-- [ ] AC-6: Dependency audit runs language-specific CVE tools
-- [ ] AC-7: Test coverage gap identified and presented
-- [ ] AC-8: Medium/low findings summarized by category (not individually walked through)
-- [ ] AC-9: Human-readable report generated at `.vibeos/midstream-report.md`
-- [ ] AC-10: Structured findings registry at `.vibeos/findings-registry.json` with per-finding dispositions
+- [x] AC-1: Full audit runs after architecture validation (5 audit agents: security, architecture, correctness, test, evidence + quality gates)
+- [x] AC-2: Findings presented category by category with plain English explanations
+- [x] AC-3: Each critical and high finding individually presented with risk context
+- [x] AC-4: User decides disposition per finding: fix-now, fix-later, accepted-risk
+- [x] AC-5: accepted-risk requires justification text from user
+- [x] AC-6: Dependency audit runs language-specific CVE tools
+- [x] AC-7: Test coverage gap identified and presented
+- [x] AC-8: Medium/low findings summarized by category (not individually walked through)
+- [x] AC-9: Human-readable report generated at `.vibeos/midstream-report.md`
+- [x] AC-10: Structured findings registry at `.vibeos/findings-registry.json` with per-finding dispositions
 
 ## Test Strategy
 
@@ -174,14 +174,14 @@ Write `.vibeos/midstream-report.md`:
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Integration test with known-issue project
 - Risk: Large codebases may have hundreds of findings; walkthrough must be efficient (batch medium/low, walk through critical/high individually)
 
 ## Evidence
 
-- [ ] Category-by-category walkthrough works
-- [ ] User decisions captured per finding
-- [ ] Dependency CVE audit runs
-- [ ] Report generated and readable
-- [ ] Findings registry stored with dispositions
+- [x] Category-by-category walkthrough works
+- [x] User decisions captured per finding
+- [x] Dependency CVE audit runs
+- [x] Report generated and readable
+- [x] Findings registry stored with dispositions

@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,21 +15,21 @@ When the plugin detects existing code, the first action is to infer the architec
 ## Scope
 
 ### In Scope
-- [ ] Reverse-engineer architecture from existing code (imports, directories, framework patterns)
-- [ ] Generate draft `docs/product/ARCHITECTURE-OUTLINE.md` from code analysis
-- [ ] Generate draft `docs/product/TECHNICAL-SPEC.md` from detected stack
-- [ ] Generate draft `docs/product/PRD.md` skeleton from code structure and README
-- [ ] Generate `project-definition.json` with inferred values and confidence levels
-- [ ] Present inferred architecture to user: "Here's what I see in your codebase. Is this right?"
-- [ ] User validates, corrects, or extends the architecture document
-- [ ] Identify architectural patterns: layered, modular, monolith, microservice, MVC, etc.
-- [ ] Map module boundaries, public APIs, internal interfaces
-- [ ] Detect database connections, ORMs, migration frameworks
-- [ ] Detect auth patterns (middleware, decorators, session management)
-- [ ] Detect test infrastructure (framework, directory, naming convention, coverage)
-- [ ] Update `skills/discover/SKILL.md` with midstream discovery flow (major: adds complete alternate code path — the current skill is purely greenfield with no concept of existing code; this adds early detection branching and a full midstream Steps 2-5 equivalent)
-- [ ] Update `skills/plan/SKILL.md` Step 1b: **replace** the existing 55-line midstream logic (run-gates-then-baseline) with architecture-first requirement — existing Step 1b is superseded by the WO-041/042/043/044 pipeline
-- [ ] Handle PRD.md collision: if `docs/product/PRD.md` already exists (from prior `/vibeos:discover` run), merge inferred data rather than overwrite
+- [x] Reverse-engineer architecture from existing code (imports, directories, framework patterns)
+- [x] Generate draft `docs/product/ARCHITECTURE-OUTLINE.md` from code analysis
+- [x] Generate draft `docs/product/TECHNICAL-SPEC.md` from detected stack
+- [x] Generate draft `docs/product/PRD.md` skeleton from code structure and README
+- [x] Generate `project-definition.json` with inferred values and confidence levels
+- [x] Present inferred architecture to user: "Here's what I see in your codebase. Is this right?"
+- [x] User validates, corrects, or extends the architecture document
+- [x] Identify architectural patterns: layered, modular, monolith, microservice, MVC, etc.
+- [x] Map module boundaries, public APIs, internal interfaces
+- [x] Detect database connections, ORMs, migration frameworks
+- [x] Detect auth patterns (middleware, decorators, session management)
+- [x] Detect test infrastructure (framework, directory, naming convention, coverage)
+- [x] Update `skills/discover/SKILL.md` with midstream discovery flow (major: adds complete alternate code path — the current skill is purely greenfield with no concept of existing code; this adds early detection branching and a full midstream Steps 2-5 equivalent)
+- [x] Update `skills/plan/SKILL.md` Step 1b: **replace** the existing 55-line midstream logic (run-gates-then-baseline) with architecture-first requirement — existing Step 1b is superseded by the WO-041/042/043/044 pipeline
+- [x] Handle PRD.md collision: if `docs/product/PRD.md` already exists (from prior `/vibeos:discover` run), merge inferred data rather than overwrite
 
 ### Out of Scope
 - Running audits (WO-042)
@@ -52,16 +52,16 @@ When the plugin detects existing code, the first action is to infer the architec
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Existing code detected and directory structure mapped
-- [ ] AC-2: Import graph analyzed — modules, dependencies, layers identified
-- [ ] AC-3: Framework and database patterns detected with confidence levels
-- [ ] AC-4: Draft ARCHITECTURE-OUTLINE.md generated from code analysis
-- [ ] AC-5: Draft TECHNICAL-SPEC.md generated with detected stack
-- [ ] AC-6: Draft project-definition.json generated with inferred values
-- [ ] AC-7: User presented with inferred architecture and asked to validate/correct
-- [ ] AC-8: Validated architecture document becomes the anchor for all subsequent audits
-- [ ] AC-9: Generated ARCHITECTURE-OUTLINE.md is in the path the architecture auditor checks (`docs/product/ARCHITECTURE-OUTLINE.md`), enabling it to audit against a real document instead of flagging "missing"
-- [ ] AC-10: Greenfield projects unaffected — existing discover flow unchanged
+- [x] AC-1: Existing code detected and directory structure mapped
+- [x] AC-2: Import graph analyzed — modules, dependencies, layers identified
+- [x] AC-3: Framework and database patterns detected with confidence levels
+- [x] AC-4: Draft ARCHITECTURE-OUTLINE.md generated from code analysis
+- [x] AC-5: Draft TECHNICAL-SPEC.md generated with detected stack
+- [x] AC-6: Draft project-definition.json generated with inferred values
+- [x] AC-7: User presented with inferred architecture and asked to validate/correct
+- [x] AC-8: Validated architecture document becomes the anchor for all subsequent audits
+- [x] AC-9: Generated ARCHITECTURE-OUTLINE.md is in the path the architecture auditor checks (`docs/product/ARCHITECTURE-OUTLINE.md`), enabling it to audit against a real document instead of flagging "missing"
+- [x] AC-10: Greenfield projects unaffected — existing discover flow unchanged
 
 ## Test Strategy
 
@@ -122,14 +122,14 @@ After user validates, write the final architecture document.
 ## Audit Checkpoints
 
 ### Planning Audit
-- Status: `pending`
+- Status: `complete`
 - Test status: Integration test — run on project with known architecture
 - Risk: Inference quality depends on code conventions; unconventional codebases may need more user correction
 
 ## Evidence
 
-- [ ] Code analysis produces accurate module map
-- [ ] Architecture document matches actual code structure
-- [ ] User validation loop works
-- [ ] Architecture auditor has a document to audit against
-- [ ] Greenfield flow unaffected
+- [x] Code analysis produces accurate module map
+- [x] Architecture document matches actual code structure
+- [x] User validation loop works
+- [x] Architecture auditor has a document to audit against
+- [x] Greenfield flow unaffected
