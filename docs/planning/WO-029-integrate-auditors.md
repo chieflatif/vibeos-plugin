@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,13 +15,13 @@ Update `/vibeos:build` to run the full audit cycle after implementation, creatin
 ## Scope
 
 ### In Scope
-- [ ] Add audit cycle step to build orchestrator after gate integration
-- [ ] Sequence: implement -> Layer 1 gates -> Layer 2 audit agents -> fix -> re-audit
-- [ ] On audit findings: dispatch implementation agent to fix
-- [ ] Re-run audit after fixes (max 3 cycles)
-- [ ] After 3 failed cycles: escalate to user with remaining findings
-- [ ] Log all audit runs and findings to build-log.md
-- [ ] Only critical and high findings trigger fix cycle; medium/low logged as warnings
+- [x] Add audit cycle step to build orchestrator after gate integration
+- [x] Sequence: implement -> Layer 1 gates -> Layer 2 audit agents -> fix -> re-audit
+- [x] On audit findings: dispatch implementation agent to fix
+- [x] Re-run audit after fixes (max 3 cycles)
+- [x] After 3 failed cycles: escalate to user with remaining findings
+- [x] Log all audit runs and findings to build-log.md
+- [x] Only critical and high findings trigger fix cycle; medium/low logged as warnings
 
 ### Out of Scope
 - Individual audit agent implementation (WO-023-027)
@@ -37,18 +37,18 @@ Update `/vibeos:build` to run the full audit cycle after implementation, creatin
 
 ## Impact Analysis
 
-- **Files modified:** skills/build.md (add audit step)
+- **Files modified:** skills/build/SKILL.md (add audit step)
 - **Systems affected:** Build pipeline, quality enforcement
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Audit cycle runs after gates pass
-- [ ] AC-2: Critical/high findings trigger fix cycle
-- [ ] AC-3: Medium/low findings logged as warnings (do not block)
-- [ ] AC-4: Fix cycle: dispatch implementer with finding details, re-audit
-- [ ] AC-5: Max 3 audit-fix cycles before escalation
-- [ ] AC-6: Escalation includes remaining findings and what was attempted
-- [ ] AC-7: All audit runs logged with timestamps and finding counts
+- [x] AC-1: Audit cycle runs after gates pass
+- [x] AC-2: Critical/high findings trigger fix cycle
+- [x] AC-3: Medium/low findings logged as warnings (do not block)
+- [x] AC-4: Fix cycle: dispatch implementer with finding details, re-audit
+- [x] AC-5: Max 3 audit-fix cycles before escalation
+- [x] AC-6: Escalation includes remaining findings and what was attempted
+- [x] AC-7: All audit runs logged with timestamps and finding counts
 
 ## Test Strategy
 
@@ -82,8 +82,8 @@ Update `/vibeos:build` to run the full audit cycle after implementation, creatin
 
 ## Evidence
 
-- [ ] Audit step added to build pipeline
-- [ ] Fix cycle works for critical/high findings
-- [ ] Medium/low findings logged but don't block
-- [ ] Escalation after 3 cycles works
-- [ ] All audit runs logged
+- [x] Audit step added to build pipeline
+- [x] Fix cycle works for critical/high findings
+- [x] Medium/low findings logged but don't block
+- [x] Escalation after 3 cycles works
+- [x] All audit runs logged

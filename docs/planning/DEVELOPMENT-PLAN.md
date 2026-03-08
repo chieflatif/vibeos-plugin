@@ -109,13 +109,13 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-023 | Security Auditor Agent | Phase 3 complete | Draft |
-| WO-024 | Architecture Auditor Agent | Phase 3 complete | Draft |
-| WO-025 | Correctness Auditor Agent | Phase 3 complete | Draft |
-| WO-026 | Test Auditor Agent | Phase 3 complete | Draft |
-| WO-027 | Evidence Auditor Agent | Phase 3 complete | Draft |
-| WO-028 | `/vibeos:audit` Skill (Full Audit Cycle) | WO-023-027 | Draft |
-| WO-029 | Integrate Auditors into Build Loop | WO-028, WO-021 | Draft |
+| WO-023 | Security Auditor Agent | Phase 3 complete | Complete |
+| WO-024 | Architecture Auditor Agent | Phase 3 complete | Complete |
+| WO-025 | Correctness Auditor Agent | Phase 3 complete | Complete |
+| WO-026 | Test Auditor Agent | Phase 3 complete | Complete |
+| WO-027 | Evidence Auditor Agent | Phase 3 complete | Complete |
+| WO-028 | `/vibeos:audit` Skill (Full Audit Cycle) | WO-023-027 | Complete |
+| WO-029 | Integrate Auditors into Build Loop | WO-028, WO-021 | Complete |
 
 ---
 

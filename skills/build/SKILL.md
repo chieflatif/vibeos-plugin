@@ -1,6 +1,6 @@
 ---
 name: build
-description: Autonomous build orchestrator that executes work orders end-to-end. Dispatches investigator, tester, implementation, and documentation agents in sequence with quality gate enforcement and error recovery.
+description: Autonomous build orchestrator that executes work orders end-to-end. Dispatches investigator, tester, implementation, and documentation agents in sequence with two-layer quality enforcement (Layer 1 gates + Layer 2 audit agents) and error recovery.
 argument-hint: "[optional: WO number to build, e.g. 'WO-001']"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
@@ -132,7 +132,52 @@ bash scripts/gate-runner.sh pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
 
 Log each gate run: `[timestamp] gate-runner WO-NNN pre_commit [PASS|FAIL] [details]`
 
-### Step 8: Dispatch Doc Writer Agent
+### Step 8: Run Audit Cycle (Layer 2)
+
+After gates pass, run the full audit cycle for deeper quality enforcement.
+
+Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — instead, dispatch the audit agents directly following the same pattern as `skills/audit/SKILL.md`):
+
+1. Dispatch all 5 audit agents in parallel where possible:
+   - `agents/security-auditor.md`
+   - `agents/architecture-auditor.md`
+   - `agents/correctness-auditor.md`
+   - `agents/test-auditor.md`
+   - `agents/evidence-auditor.md`
+
+2. Collect findings and apply consensus logic (see `skills/audit/SKILL.md` Step 4)
+
+3. Filter by severity:
+   - **Critical or High findings:** trigger audit-fix cycle
+   - **Medium or Low findings:** log as warnings in build log, do not block
+
+**Audit-fix cycle (max 3 cycles):**
+1. Extract critical/high findings with file paths and recommendations
+2. Re-dispatch the appropriate implementation agent (`backend` or `frontend`) with:
+   - The specific findings to fix
+   - The file paths and line numbers
+   - The recommended fixes from the auditors
+3. Re-run the audit agents that found the issues
+4. If findings resolved: proceed
+5. If findings persist after 3 cycles: escalate to user
+
+**Escalation format:**
+> "Audit findings remain after 3 fix attempts. Here are the unresolved findings:
+> [list of findings with severity, file, description]
+>
+> These were flagged by: [auditor names]
+> Fix attempts: [what was tried]
+>
+> Would you like to: (a) try a different approach, (b) accept the remaining findings, or (c) fix manually?"
+
+Log each audit run:
+```
+[timestamp] audit WO-NNN layer2-audit cycle-[N] [PASS|FINDINGS] critical:[N] high:[N] medium:[N] low:[N]
+```
+
+Save the audit report to `.vibeos/audit-reports/WO-NNN-[timestamp].md`.
+
+### Step 9: Dispatch Doc Writer Agent
 
 Set agent identity: `echo "doc-writer" > .vibeos/current-agent.txt`
 
@@ -146,7 +191,7 @@ Dispatch `agents/doc-writer.md` with:
 
 Log: `[timestamp] doc-writer WO-NNN document [COMPLETE]`
 
-### Step 9: WO Completion
+### Step 10: WO Completion
 
 After all agents succeed:
 1. Mark WO status as `Complete` in WO file (if doc-writer didn't already)
@@ -163,7 +208,7 @@ Report to user:
 >
 > Next: WO-NNN+1 ([next title]) is ready."
 
-### Step 10: Autonomy Check
+### Step 11: Autonomy Check
 
 Based on `.vibeos/config.json`:
 

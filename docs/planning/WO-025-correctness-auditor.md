@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create a correctness auditor agent that checks for logic errors, missing error p
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/correctness-auditor.md` with strict isolation
-- [ ] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: opus
-- [ ] Logic error detection: off-by-one, wrong operator, incorrect condition
-- [ ] Missing error paths: unhandled exceptions, missing null checks, no fallback
-- [ ] Incomplete implementations: partial features, missing branches, dead code
-- [ ] Hardcoded values: magic numbers, hardcoded URLs, environment-specific values
-- [ ] "Would a user notice?" trace: for each finding, describe the user-visible impact
-- [ ] Structured findings with severity and user impact description
+- [x] Create `agents/correctness-auditor.md` with strict isolation
+- [x] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: opus
+- [x] Logic error detection: off-by-one, wrong operator, incorrect condition
+- [x] Missing error paths: unhandled exceptions, missing null checks, no fallback
+- [x] Incomplete implementations: partial features, missing branches, dead code
+- [x] Hardcoded values: magic numbers, hardcoded URLs, environment-specific values
+- [x] "Would a user notice?" trace: for each finding, describe the user-visible impact
+- [x] Structured findings with severity and user impact description
 
 ### Out of Scope
 - Security analysis (WO-023)
@@ -42,14 +42,14 @@ Create a correctness auditor agent that checks for logic errors, missing error p
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent runs in isolated worktree
-- [ ] AC-2: Agent cannot use Write, Edit, or Agent tools
-- [ ] AC-3: Logic errors identified with explanation of the bug
-- [ ] AC-4: Missing error paths identified with failure scenario description
-- [ ] AC-5: Each finding includes "would a user notice?" impact statement
-- [ ] AC-6: Hardcoded values flagged with recommendation (config, env var, etc.)
-- [ ] AC-7: Uses opus model for deep reasoning about correctness
-- [ ] AC-8: Structured output with severity and user impact
+- [x] AC-1: Agent runs in isolated worktree
+- [x] AC-2: Agent cannot use Write, Edit, or Agent tools
+- [x] AC-3: Logic errors identified with explanation of the bug
+- [x] AC-4: Missing error paths identified with failure scenario description
+- [x] AC-5: Each finding includes "would a user notice?" impact statement
+- [x] AC-6: Hardcoded values flagged with recommendation (config, env var, etc.)
+- [x] AC-7: Uses opus model for deep reasoning about correctness
+- [x] AC-8: Structured output with severity and user impact
 
 ## Test Strategy
 
@@ -83,8 +83,8 @@ Create a correctness auditor agent that checks for logic errors, missing error p
 
 ## Evidence
 
-- [ ] Agent file created with correct isolation config
-- [ ] Planted bugs detected
-- [ ] User impact statements present for each finding
-- [ ] Structured findings returned
-- [ ] Tool restrictions enforced
+- [x] Agent file created with correct isolation config
+- [x] Planted bugs detected
+- [x] User impact statements present for each finding
+- [x] Structured findings returned
+- [x] Tool restrictions enforced

@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,13 +15,13 @@ Create a `/vibeos:audit` skill that dispatches all 5 audit agents, applies conse
 ## Scope
 
 ### In Scope
-- [ ] Create `skills/audit.md` as the audit orchestrator
-- [ ] Dispatch all 5 audit agents: security, architecture, correctness, test, evidence
-- [ ] Collect structured findings from each agent
-- [ ] Apply consensus logic: 2+ agents flag same issue = true positive, 1 agent = warning
-- [ ] Generate composite report combining all findings
-- [ ] Report in communication contract format (plain English, severity, action items)
-- [ ] Summary section: total findings by severity, consensus findings, warnings
+- [x] Create `skills/audit/SKILL.md` as the audit orchestrator
+- [x] Dispatch all 5 audit agents: security, architecture, correctness, test, evidence
+- [x] Collect structured findings from each agent
+- [x] Apply consensus logic: 2+ agents flag same issue = true positive, 1 agent = warning
+- [x] Generate composite report combining all findings
+- [x] Report in communication contract format (plain English, severity, action items)
+- [x] Summary section: total findings by severity, consensus findings, warnings
 
 ### Out of Scope
 - Individual audit agent implementation (WO-023-027)
@@ -40,18 +40,18 @@ Create a `/vibeos:audit` skill that dispatches all 5 audit agents, applies conse
 
 ## Impact Analysis
 
-- **Files created:** skills/audit.md
+- **Files created:** skills/audit/SKILL.md
 - **Systems affected:** Audit pipeline, build loop (future integration)
 
 ## Acceptance Criteria
 
-- [ ] AC-1: All 5 audit agents dispatched successfully
-- [ ] AC-2: Findings collected and merged into unified format
-- [ ] AC-3: Consensus logic applied: 2+ agents = true positive, 1 = warning
-- [ ] AC-4: Composite report generated with all findings grouped by severity
-- [ ] AC-5: Report uses communication contract language (plain English, no jargon)
-- [ ] AC-6: Summary includes: finding counts, consensus items, action items
-- [ ] AC-7: Report identifies which auditor(s) flagged each finding
+- [x] AC-1: All 5 audit agents dispatched successfully
+- [x] AC-2: Findings collected and merged into unified format
+- [x] AC-3: Consensus logic applied: 2+ agents = true positive, 1 = warning
+- [x] AC-4: Composite report generated with all findings grouped by severity
+- [x] AC-5: Report uses communication contract language (plain English, no jargon)
+- [x] AC-6: Summary includes: finding counts, consensus items, action items
+- [x] AC-7: Report identifies which auditor(s) flagged each finding
 
 ## Test Strategy
 
@@ -91,8 +91,8 @@ Create a `/vibeos:audit` skill that dispatches all 5 audit agents, applies conse
 
 ## Evidence
 
-- [ ] Skill file created
-- [ ] All 5 agents dispatched successfully
-- [ ] Consensus logic working (overlapping findings merged)
-- [ ] Composite report generated
-- [ ] Report uses communication contract language
+- [x] Skill file created
+- [x] All 5 agents dispatched successfully
+- [x] Consensus logic working (overlapping findings merged)
+- [x] Composite report generated
+- [x] Report uses communication contract language

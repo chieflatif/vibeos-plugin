@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create a test auditor agent that evaluates test quality: whether tests were writ
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/test-auditor.md` with strict isolation
-- [ ] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: sonnet
-- [ ] Spec-first check: do tests map to acceptance criteria (not reverse-engineered from code)?
-- [ ] Fallback masking detection: tests that pass because of catch-all/default behavior, not correct logic
-- [ ] Mock density check: excessive mocking that hides real behavior
-- [ ] Edge coverage: boundary conditions, empty inputs, error paths tested
-- [ ] Git history check: were test files modified after implementation files? (TDD violation indicator)
-- [ ] Structured findings with severity
+- [x] Create `agents/test-auditor.md` with strict isolation
+- [x] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: sonnet
+- [x] Spec-first check: do tests map to acceptance criteria (not reverse-engineered from code)?
+- [x] Fallback masking detection: tests that pass because of catch-all/default behavior, not correct logic
+- [x] Mock density check: excessive mocking that hides real behavior
+- [x] Edge coverage: boundary conditions, empty inputs, error paths tested
+- [x] Git history check: were test files modified after implementation files? (TDD violation indicator)
+- [x] Structured findings with severity
 
 ### Out of Scope
 - Security analysis (WO-023)
@@ -42,14 +42,14 @@ Create a test auditor agent that evaluates test quality: whether tests were writ
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent runs in isolated worktree
-- [ ] AC-2: Agent cannot use Write, Edit, or Agent tools
-- [ ] AC-3: Tests mapped to acceptance criteria — unmapped tests flagged
-- [ ] AC-4: Fallback masking patterns detected (catch-all returns, empty catch blocks in tests)
-- [ ] AC-5: Mock density reported (mocks per test, percentage of mocked dependencies)
-- [ ] AC-6: Missing edge case coverage identified
-- [ ] AC-7: Git history analyzed — test modifications after implementation flagged
-- [ ] AC-8: Structured output with findings and recommendations
+- [x] AC-1: Agent runs in isolated worktree
+- [x] AC-2: Agent cannot use Write, Edit, or Agent tools
+- [x] AC-3: Tests mapped to acceptance criteria — unmapped tests flagged
+- [x] AC-4: Fallback masking patterns detected (catch-all returns, empty catch blocks in tests)
+- [x] AC-5: Mock density reported (mocks per test, percentage of mocked dependencies)
+- [x] AC-6: Missing edge case coverage identified
+- [x] AC-7: Git history analyzed — test modifications after implementation flagged
+- [x] AC-8: Structured output with findings and recommendations
 
 ## Test Strategy
 
@@ -85,9 +85,9 @@ Create a test auditor agent that evaluates test quality: whether tests were writ
 
 ## Evidence
 
-- [ ] Agent file created with correct isolation config
-- [ ] Test-to-AC mapping works
-- [ ] Fallback masking detected
-- [ ] Mock density reported
-- [ ] Git history analyzed for TDD violations
-- [ ] Structured findings returned
+- [x] Agent file created with correct isolation config
+- [x] Test-to-AC mapping works
+- [x] Fallback masking detected
+- [x] Mock density reported
+- [x] Git history analyzed for TDD violations
+- [x] Structured findings returned

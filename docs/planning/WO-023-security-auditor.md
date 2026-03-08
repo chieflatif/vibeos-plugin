@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,16 +15,16 @@ Create a security auditor agent that performs OWASP Top 10 and general security 
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/security-auditor.md` with strict isolation
-- [ ] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: sonnet
-- [ ] OWASP Top 10 coverage: injection, broken auth, sensitive data exposure, XXE, broken access control, security misconfiguration, XSS, insecure deserialization, known vulnerabilities, insufficient logging
-- [ ] Secrets detection: hardcoded API keys, passwords, tokens, connection strings
-- [ ] SQL injection patterns
-- [ ] XSS patterns (stored, reflected, DOM-based)
-- [ ] CSRF vulnerability detection
-- [ ] Authentication bypass patterns
-- [ ] PII exposure (unencrypted, logged, returned in APIs)
-- [ ] Structured findings with severity (critical, high, medium, low, info)
+- [x] Create `agents/security-auditor.md` with strict isolation
+- [x] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: sonnet
+- [x] OWASP Top 10 coverage: injection, broken auth, sensitive data exposure, XXE, broken access control, security misconfiguration, XSS, insecure deserialization, known vulnerabilities, insufficient logging
+- [x] Secrets detection: hardcoded API keys, passwords, tokens, connection strings
+- [x] SQL injection patterns
+- [x] XSS patterns (stored, reflected, DOM-based)
+- [x] CSRF vulnerability detection
+- [x] Authentication bypass patterns
+- [x] PII exposure (unencrypted, logged, returned in APIs)
+- [x] Structured findings with severity (critical, high, medium, low, info)
 
 ### Out of Scope
 - Architecture analysis (WO-024)
@@ -44,13 +44,13 @@ Create a security auditor agent that performs OWASP Top 10 and general security 
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent runs in isolated worktree (cannot affect main working tree)
-- [ ] AC-2: Agent cannot use Write, Edit, or Agent tools
-- [ ] AC-3: All OWASP Top 10 categories checked
-- [ ] AC-4: Hardcoded secrets detected with file path and line number
-- [ ] AC-5: Each finding includes: category, severity, file, line, description, recommendation
-- [ ] AC-6: Findings returned as structured, parseable output
-- [ ] AC-7: False positive rate acceptable (findings include confidence level)
+- [x] AC-1: Agent runs in isolated worktree (cannot affect main working tree)
+- [x] AC-2: Agent cannot use Write, Edit, or Agent tools
+- [x] AC-3: All OWASP Top 10 categories checked
+- [x] AC-4: Hardcoded secrets detected with file path and line number
+- [x] AC-5: Each finding includes: category, severity, file, line, description, recommendation
+- [x] AC-6: Findings returned as structured, parseable output
+- [x] AC-7: False positive rate acceptable (findings include confidence level)
 
 ## Test Strategy
 
@@ -85,8 +85,8 @@ Create a security auditor agent that performs OWASP Top 10 and general security 
 
 ## Evidence
 
-- [ ] Agent file created with correct isolation config
-- [ ] Known vulnerabilities detected in test code
-- [ ] Structured findings returned
-- [ ] Tool restrictions enforced
-- [ ] All OWASP categories checked
+- [x] Agent file created with correct isolation config
+- [x] Known vulnerabilities detected in test code
+- [x] Structured findings returned
+- [x] Tool restrictions enforced
+- [x] All OWASP categories checked

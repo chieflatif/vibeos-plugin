@@ -56,13 +56,13 @@
 
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
-| WO-023 | Security Auditor Agent | Draft | Phase 3 |
-| WO-024 | Architecture Auditor Agent | Draft | Phase 3 |
-| WO-025 | Correctness Auditor Agent | Draft | Phase 3 |
-| WO-026 | Test Auditor Agent | Draft | Phase 3 |
-| WO-027 | Evidence Auditor Agent | Draft | Phase 3 |
-| WO-028 | `/vibeos:audit` Skill (Full Audit Cycle) | Draft | WO-023-027 |
-| WO-029 | Integrate Auditors into Build Loop | Draft | WO-028, WO-021 |
+| WO-023 | Security Auditor Agent | Complete | Phase 3 |
+| WO-024 | Architecture Auditor Agent | Complete | Phase 3 |
+| WO-025 | Correctness Auditor Agent | Complete | Phase 3 |
+| WO-026 | Test Auditor Agent | Complete | Phase 3 |
+| WO-027 | Evidence Auditor Agent | Complete | Phase 3 |
+| WO-028 | `/vibeos:audit` Skill (Full Audit Cycle) | Complete | WO-023-027 |
+| WO-029 | Integrate Auditors into Build Loop | Complete | WO-028, WO-021 |
 
 ### Phase 5: Convergence & Full Autonomous Loop
 
@@ -113,3 +113,10 @@
 | WO-020 | `/vibeos:build` Orchestrator — WO Lifecycle | 3 | 2026-03-07 |
 | WO-021 | `/vibeos:build` Orchestrator — Gate Integration | 3 | 2026-03-07 |
 | WO-022 | `/vibeos:wo` Skill (WO Management) | 3 | 2026-03-07 |
+| WO-023 | Security Auditor Agent | 4 | 2026-03-07 |
+| WO-024 | Architecture Auditor Agent | 4 | 2026-03-07 |
+| WO-025 | Correctness Auditor Agent | 4 | 2026-03-07 |
+| WO-026 | Test Auditor Agent | 4 | 2026-03-07 |
+| WO-027 | Evidence Auditor Agent | 4 | 2026-03-07 |
+| WO-028 | `/vibeos:audit` Skill (Full Audit Cycle) | 4 | 2026-03-07 |
+| WO-029 | Integrate Auditors into Build Loop | 4 | 2026-03-07 |

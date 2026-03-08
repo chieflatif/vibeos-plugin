@@ -2,7 +2,7 @@
 
 ## Status
 
-`Draft`
+`Complete`
 
 ## Phase
 
@@ -15,14 +15,14 @@ Create an architecture auditor agent that checks for layer violations, circular 
 ## Scope
 
 ### In Scope
-- [ ] Create `agents/architecture-auditor.md` with strict isolation
-- [ ] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: sonnet
-- [ ] Layer violation detection: imports crossing architectural boundaries
-- [ ] Circular dependency detection: modules importing each other
-- [ ] Contract breakage: public interfaces changed without updating consumers
-- [ ] Module boundary violations: internal details exposed outside module
-- [ ] Architecture rules compliance: check against ARCHITECTURE-OUTLINE.md
-- [ ] Structured findings with severity and evidence
+- [x] Create `agents/architecture-auditor.md` with strict isolation
+- [x] Agent config: isolation: worktree, disallowedTools: Write, Edit, Agent, model: sonnet
+- [x] Layer violation detection: imports crossing architectural boundaries
+- [x] Circular dependency detection: modules importing each other
+- [x] Contract breakage: public interfaces changed without updating consumers
+- [x] Module boundary violations: internal details exposed outside module
+- [x] Architecture rules compliance: check against ARCHITECTURE-OUTLINE.md
+- [x] Structured findings with severity and evidence
 
 ### Out of Scope
 - Security analysis (WO-023)
@@ -42,13 +42,13 @@ Create an architecture auditor agent that checks for layer violations, circular 
 
 ## Acceptance Criteria
 
-- [ ] AC-1: Agent runs in isolated worktree
-- [ ] AC-2: Agent cannot use Write, Edit, or Agent tools
-- [ ] AC-3: Layer violations detected with source and target module
-- [ ] AC-4: Circular dependencies detected with full cycle path
-- [ ] AC-5: Findings reference ARCHITECTURE-OUTLINE.md rules violated
-- [ ] AC-6: Each finding includes: violation type, severity, files involved, rule reference, recommendation
-- [ ] AC-7: Structured output returned to caller
+- [x] AC-1: Agent runs in isolated worktree
+- [x] AC-2: Agent cannot use Write, Edit, or Agent tools
+- [x] AC-3: Layer violations detected with source and target module
+- [x] AC-4: Circular dependencies detected with full cycle path
+- [x] AC-5: Findings reference ARCHITECTURE-OUTLINE.md rules violated
+- [x] AC-6: Each finding includes: violation type, severity, files involved, rule reference, recommendation
+- [x] AC-7: Structured output returned to caller
 
 ## Test Strategy
 
@@ -82,8 +82,8 @@ Create an architecture auditor agent that checks for layer violations, circular 
 
 ## Evidence
 
-- [ ] Agent file created with correct isolation config
-- [ ] Layer violations detected in test code
-- [ ] Circular dependencies detected
-- [ ] Findings reference architecture rules
-- [ ] Tool restrictions enforced
+- [x] Agent file created with correct isolation config
+- [x] Layer violations detected in test code
+- [x] Circular dependencies detected
+- [x] Findings reference architecture rules
+- [x] Tool restrictions enforced
