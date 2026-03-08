@@ -32,11 +32,11 @@ Create a `/vibeos:audit` skill that dispatches all 5 audit agents, applies conse
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-023 | Security auditor | Draft |
-| WO-024 | Architecture auditor | Draft |
-| WO-025 | Correctness auditor | Draft |
-| WO-026 | Test auditor | Draft |
-| WO-027 | Evidence auditor | Draft |
+| WO-023 | Security auditor | Complete |
+| WO-024 | Architecture auditor | Complete |
+| WO-025 | Correctness auditor | Complete |
+| WO-026 | Test auditor | Complete |
+| WO-027 | Evidence auditor | Complete |
 
 ## Impact Analysis
 

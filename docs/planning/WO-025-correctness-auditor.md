@@ -33,7 +33,7 @@ Create a correctness auditor agent that checks for logic errors, missing error p
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-023 | Must complete first | Draft |
+| WO-023 | Must complete first | Complete |
 
 ## Impact Analysis
 

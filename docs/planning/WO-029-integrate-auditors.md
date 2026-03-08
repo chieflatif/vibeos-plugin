@@ -32,8 +32,8 @@ Update `/vibeos:build` to run the full audit cycle after implementation, creatin
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-028 | Audit skill | Draft |
-| WO-021 | Gate integration | Draft |
+| WO-028 | Audit skill | Complete |
+| WO-021 | Gate integration | Complete |
 
 ## Impact Analysis
 

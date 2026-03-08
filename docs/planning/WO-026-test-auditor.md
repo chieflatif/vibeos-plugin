@@ -33,7 +33,7 @@ Create a test auditor agent that evaluates test quality: whether tests were writ
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-023 | Must complete first | Draft |
+| WO-023 | Must complete first | Complete |
 
 ## Impact Analysis
 

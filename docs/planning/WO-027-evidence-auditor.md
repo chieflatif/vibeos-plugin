@@ -33,8 +33,8 @@ Create an evidence auditor agent that validates documentation completeness, evid
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-023 | Must complete first | Draft |
-| WO-AUDIT-FRAMEWORK.md | Must exist | Created |
+| WO-023 | Must complete first | Complete |
+| WO-AUDIT-FRAMEWORK.md | Must exist | Complete |
 
 ## Impact Analysis
 

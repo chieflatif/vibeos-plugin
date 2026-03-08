@@ -33,7 +33,7 @@ Create an architecture auditor agent that checks for layer violations, circular 
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-023 | Must complete first | Draft |
+| WO-023 | Must complete first | Complete |
 
 ## Impact Analysis
 
