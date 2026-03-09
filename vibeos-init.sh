@@ -27,7 +27,12 @@ FRAMEWORK_VERSION="1.0.0"
 
 # ─── Defaults ────────────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SOURCE_DIR="$SCRIPT_DIR"
+# Auto-detect: if this script is at repo root and plugins/vibeos/ exists, use that as source
+if [ -d "$SCRIPT_DIR/plugins/vibeos/skills" ]; then
+    SOURCE_DIR="$SCRIPT_DIR/plugins/vibeos"
+else
+    SOURCE_DIR="$SCRIPT_DIR"
+fi
 TARGET_DIR="$(pwd)"
 UPGRADE_MODE=false
 UNINSTALL_MODE=false

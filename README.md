@@ -12,6 +12,22 @@ An autonomous, self-governing development engine for Claude Code. Describe what 
 
 ## Installation
 
+### Option 1: Claude Code Plugin (recommended)
+
+```bash
+# Add the VibeOS marketplace
+/plugin marketplace add chieflatif/vibeos-plugin
+
+# Install the plugin
+/plugin install vibeos@vibeos
+```
+
+That's it. All skills, agents, and hooks are automatically available in every Claude Code session.
+
+### Option 2: Project-Level Bootstrap
+
+If you prefer per-project installation (or use Cursor IDE):
+
 ```bash
 # Clone the framework
 git clone https://github.com/chieflatif/vibeos-plugin.git
@@ -23,19 +39,25 @@ cd your-project
 bash /path/to/vibeos-plugin/vibeos-init.sh
 ```
 
-This installs VibeOS governance into your project's `.claude/` and `.vibeos/` directories. Works with both Claude Code CLI and Cursor IDE.
+This installs VibeOS into your project's `.claude/` and `.vibeos/` directories.
 
 ### Upgrade
 
 ```bash
-cd your-project
+# Plugin: marketplace updates automatically
+/plugin marketplace update vibeos
+
+# Bootstrap:
 bash /path/to/vibeos-plugin/vibeos-init.sh --upgrade
 ```
 
 ### Uninstall
 
 ```bash
-cd your-project
+# Plugin:
+/plugin uninstall vibeos
+
+# Bootstrap:
 bash /path/to/vibeos-plugin/vibeos-init.sh --uninstall
 ```
 

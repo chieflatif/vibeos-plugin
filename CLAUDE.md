@@ -7,15 +7,19 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 ## Architecture
 
 ```
-.claude-plugin/plugin.json   ← Plugin manifest
-skills/                       ← 9 user-invocable skills (/vibeos:discover, :plan, :build, etc.)
-agents/                       ← 11 specialized subagents (auditors, tester, implementation, etc.)
-hooks/hooks.json              ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
-scripts/                      ← 25 deterministic gate scripts + gate-runner.sh (bash)
-decision-engine/              ← 8 decision tree files (markdown)
-reference/                    ← 40+ annotated reference files
-convergence/                  ← Loop control scripts (state hashing, convergence checks)
-docs/planning/                ← Development plan, WO index, individual WO files
+.claude-plugin/marketplace.json  ← Marketplace catalog (for plugin install)
+plugins/vibeos/                  ← Plugin root
+  .claude-plugin/plugin.json     ← Plugin manifest
+  skills/                        ← 9 user-invocable skills (/vibeos:discover, :plan, :build, etc.)
+  agents/                        ← 11 specialized subagents (auditors, tester, implementation, etc.)
+  hooks/hooks.json               ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
+  scripts/                       ← 25 deterministic gate scripts + gate-runner.sh (bash)
+  decision-engine/               ← 8 decision tree files (markdown)
+  reference/                     ← 40+ annotated reference files
+  convergence/                   ← Loop control scripts (state hashing, convergence checks)
+  docs/                          ← User communication contract
+docs/planning/                   ← Development plan, WO index, individual WO files
+vibeos-init.sh                   ← Bootstrap script (alternative install method)
 ```
 
 ## Key Constraints
@@ -86,13 +90,13 @@ Slash commands (`/vibeos:discover`, `/vibeos:build`, etc.) still work and always
 
 ```bash
 # Validate all scripts
-for f in scripts/*.sh; do bash -n "$f"; done
+for f in plugins/vibeos/scripts/*.sh; do bash -n "$f"; done
 
 # Validate JSON
 for f in $(find . -name "*.json" -not -path './.git/*'); do jq . "$f" > /dev/null; done
 
 # No placeholders
-grep -rn '{{.*}}' scripts/ hooks/ decision-engine/ || echo "Clean"
+grep -rn '{{.*}}' plugins/vibeos/scripts/ plugins/vibeos/hooks/ plugins/vibeos/decision-engine/ || echo "Clean"
 ```
 
 ## Source Material
