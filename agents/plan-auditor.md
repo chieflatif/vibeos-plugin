@@ -70,7 +70,7 @@ Assess overall risk. Is the WO touching security-critical paths, data migrations
 
 ## Communication Contract
 
-Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+Read and follow docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
 All findings must be explained in plain English with business impact.
 Technical terms must be accompanied by their glossary definition on first use.
 

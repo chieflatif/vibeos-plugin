@@ -11,7 +11,7 @@ Turn validated product documents into a complete development plan with governanc
 
 ## Communication Contract
 
-Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition
@@ -85,7 +85,7 @@ If this is a midstream project (existing code with architecture documents from S
 
 #### 1c-1. Run Comprehensive Audit
 
-1. **Run quality gates:** Execute `bash "${CLAUDE_PLUGIN_ROOT}/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"`. If `scripts/quality-gate-manifest.json` does not exist yet (midstream projects that have never used VibeOS), generate a temporary gate manifest from `project-definition.json` stack info. If that's not possible, run only universal gates (secrets scan, placeholder check, stub detection) and note framework-specific gates as "skipped — manifest not yet generated."
+1. **Run quality gates:** Execute `bash ".vibeos/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"`. If `scripts/quality-gate-manifest.json` does not exist yet (midstream projects that have never used VibeOS), generate a temporary gate manifest from `project-definition.json` stack info. If that's not possible, run only universal gates (secrets scan, placeholder check, stub detection) and note framework-specific gates as "skipped — manifest not yet generated."
 2. **Dispatch all 5 audit agents** (security, architecture, correctness, test, evidence) following `skills/audit/SKILL.md` protocol. Use `isolation: worktree` for each agent.
 3. **Run language-specific dependency audit** with graceful degradation — if the tool is not installed, skip and note it as "CVE audit skipped: [tool] not found":
    - Node.js: `npm audit --json`
@@ -193,7 +193,7 @@ Create the quality baseline from the findings registry. This establishes the "st
 
 ```bash
 mkdir -p .vibeos/baselines
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" create \
+bash ".vibeos/convergence/baseline-check.sh" create \
   --mode finding-level \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --current-findings-file ".vibeos/findings-registry.json"
@@ -294,7 +294,7 @@ Write the final answers to `project-definition.json` in the project root, mergin
 
 ### Step 4: Apply Decision Engine
 
-Read and apply the 5 decision engine trees from `${CLAUDE_SKILL_DIR}/../../decision-engine/`:
+Read and apply the 5 decision engine trees from `.vibeos/decision-engine/`:
 
 #### 4a. Gate Selection (`gate-selection.md`)
 
@@ -397,9 +397,9 @@ Produces: tier overrides and compliance-specific configuration.
 
 ### Step 5: Generate Development Plan
 
-Read `${CLAUDE_SKILL_DIR}/../../decision-engine/development-plan-generation.md` for the plan structure.
+Read `.vibeos/decision-engine/development-plan-generation.md` for the plan structure.
 
-Read `${CLAUDE_SKILL_DIR}/../../reference/governance/DEVELOPMENT-PLAN.md.ref` for the output template.
+Read `.vibeos/reference/governance/DEVELOPMENT-PLAN.md.ref` for the output template.
 
 Generate `docs/planning/DEVELOPMENT-PLAN.md` with:
 
@@ -440,7 +440,7 @@ Order WOs so dependencies complete before dependents. Typical WO size: one featu
 
 ### Step 6: Generate WO Index
 
-Read `${CLAUDE_SKILL_DIR}/../../reference/governance/WO-INDEX.md.ref` for the template.
+Read `.vibeos/reference/governance/WO-INDEX.md.ref` for the template.
 
 Generate `docs/planning/WO-INDEX.md` with all WOs listed, organized by phase, with columns:
 - WO Number
@@ -491,7 +491,7 @@ Create `scripts/architecture-rules.json` in the target project with the rules fr
 
 #### 7e. Copy Gate Scripts
 
-Copy gate scripts from `${CLAUDE_SKILL_DIR}/../../scripts/` to the target project's `scripts/` directory.
+Copy gate scripts from `.vibeos/scripts/` to the target project's `scripts/` directory.
 
 #### 7f. Generate CLAUDE.md
 

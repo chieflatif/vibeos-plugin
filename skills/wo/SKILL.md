@@ -11,7 +11,7 @@ Manage individual work orders: create new ones, check status, mark complete, or 
 
 ## Communication Contract
 
-Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition
@@ -42,7 +42,7 @@ If no subcommand is recognized, show help:
 
 Create a new work order from the WO template.
 
-1. Read `${CLAUDE_SKILL_DIR}/../../reference/governance/WO-TEMPLATE.md.ref` for the template structure
+1. Read `.vibeos/reference/governance/WO-TEMPLATE.md.ref` for the template structure
 2. Read `docs/planning/WO-INDEX.md` to determine the next WO number
 3. Ask the user for:
    - Title (required)

@@ -11,7 +11,7 @@ Execute work orders autonomously with TDD, layered agents, quality gates, and er
 
 ## Communication Contract
 
-Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition
@@ -212,7 +212,7 @@ After running gates, check each failure against known baselines.
 
 **Auto-migration:** If `.vibeos/baselines/midstream-baseline.json` exists with version 1.0 (old count-based format), auto-migrate to finding-level format:
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/migrate-baseline.sh" \
+bash ".vibeos/convergence/migrate-baseline.sh" \
   --input ".vibeos/baselines/midstream-baseline.json" \
   --output ".vibeos/baselines/midstream-baseline.json"
 ```
@@ -220,7 +220,7 @@ Tell user: "I upgraded your quality baseline to the new finding-level format. Th
 
 **No baseline exists:** If `.vibeos/baselines/midstream-baseline.json` does not exist and `.vibeos/findings-registry.json` exists, create the baseline:
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" create \
+bash ".vibeos/convergence/baseline-check.sh" create \
   --mode finding-level \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --current-findings-file ".vibeos/findings-registry.json"
@@ -233,7 +233,7 @@ The system supports two modes:
 
 **Finding-level mode (preferred, if `.vibeos/findings-registry.json` exists):**
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
+bash ".vibeos/convergence/baseline-check.sh" check \
   --mode finding-level \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --current-findings-file ".vibeos/findings-registry.json"
@@ -243,7 +243,7 @@ This compares individual findings by fingerprint (SHA-256 of category:file:patte
 
 **Count-based mode (fallback, for projects without findings registry):**
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
+bash ".vibeos/convergence/baseline-check.sh" check \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --category "[gate-name]" --current-count [failure-count]
 ```
@@ -265,13 +265,13 @@ bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
 After successful gate pass with fewer failures than baseline, ratchet:
 ```bash
 # Finding-level ratchet (removes fixed findings from baseline)
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" ratchet \
+bash ".vibeos/convergence/baseline-check.sh" ratchet \
   --mode finding-level \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --current-findings-file ".vibeos/findings-registry.json"
 
 # Count-based ratchet (fallback)
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" ratchet \
+bash ".vibeos/convergence/baseline-check.sh" ratchet \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --category "[gate-name]" --current-count [failure-count]
 ```
@@ -317,7 +317,7 @@ Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — ins
 
 Before starting the fix cycle, capture the initial state hash:
 ```bash
-PREV_HASH=$(bash "${CLAUDE_PLUGIN_ROOT}/convergence/state-hash.sh" --project-dir "${CLAUDE_PROJECT_DIR:-.}")
+PREV_HASH=$(bash ".vibeos/convergence/state-hash.sh" --project-dir "${CLAUDE_PROJECT_DIR:-.}")
 ```
 
 For each fix cycle iteration:
@@ -330,11 +330,11 @@ For each fix cycle iteration:
    - The recommended fixes from the auditors
 3. Capture new state hash after fixes:
    ```bash
-   CURR_HASH=$(bash "${CLAUDE_PLUGIN_ROOT}/convergence/state-hash.sh" --project-dir "${CLAUDE_PROJECT_DIR:-.}")
+   CURR_HASH=$(bash ".vibeos/convergence/state-hash.sh" --project-dir "${CLAUDE_PROJECT_DIR:-.}")
    ```
 4. Run convergence check:
    ```bash
-   bash "${CLAUDE_PLUGIN_ROOT}/convergence/convergence-check.sh" \
+   bash ".vibeos/convergence/convergence-check.sh" \
      --current-hash "$CURR_HASH" --previous-hash "$PREV_HASH" \
      --iteration $N --max-iterations 5 \
      --critical-count $CRITICAL --high-count $HIGH \

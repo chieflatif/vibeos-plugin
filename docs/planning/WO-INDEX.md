@@ -173,3 +173,9 @@
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
 | WO-054 | Voice-Led Intent Routing | Complete | Phase 8 |
+
+### Phase 10: Distribution & Runtime
+
+| WO | Title | Status | Dependencies |
+|---|---|---|---|
+| WO-055 | Architectural Pivot — Plugin to Project-Level Bootstrap | Complete | WO-054 |

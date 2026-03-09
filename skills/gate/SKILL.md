@@ -24,7 +24,7 @@ If `$ARGUMENTS` is a phase name (`pre_commit`, `wo_exit`, `full_audit`, `post_de
 
 2. **Run the gate runner** from the plugin's scripts directory:
    ```bash
-   bash "${CLAUDE_SKILL_DIR}/../../scripts/gate-runner.sh" <phase> --continue-on-failure --framework-dir "${CLAUDE_SKILL_DIR}/../.." [--wo NUMBER if provided]
+   bash ".vibeos/scripts/gate-runner.sh" <phase> --continue-on-failure --framework-dir ".vibeos" [--wo NUMBER if provided]
    ```
 
 3. **Report results** clearly:
@@ -95,7 +95,7 @@ If `$ARGUMENTS` starts with `disable`:
 
 ## Communication Contract
 
-Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition

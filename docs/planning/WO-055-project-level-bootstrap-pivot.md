@@ -1,0 +1,293 @@
+# WO-055: Architectural Pivot — Plugin to Project-Level Bootstrap
+
+## Status
+
+`Complete`
+
+## Phase
+
+Phase 10: Distribution & Runtime
+
+## Objective
+
+Replace the broken Claude Code plugin distribution model with a project-level bootstrap that installs VibeOS governance into any project's `.claude/` directory, using Claude Code's proven project-level config system (commands/skills, agents, hooks in settings.json).
+
+## Context
+
+The Claude Code plugin system (`claude plugin install`) silently fails for skills-based plugins. The `--plugin-dir` flag works but is session-only and not available in Cursor IDE. All 54 WOs of plugin content (skills, agents, hooks, scripts, decision engine, reference materials) are complete and working — the delivery mechanism is the only failure point.
+
+The project-level `.claude/` configuration system supports everything the plugin used:
+- `.claude/skills/*/SKILL.md` — same format as plugin skills
+- `.claude/agents/*.md` — same format as plugin agents
+- `.claude/settings.json` → `hooks` key — same hook events and script format
+- `CLAUDE.md` — same instruction injection
+- `$CLAUDE_PROJECT_DIR` — replaces `${CLAUDE_PLUGIN_ROOT}`
+
+VibeOS-2 (the predecessor) already used this model successfully. This WO brings the plugin's improvements back to the project-level model.
+
+## Scope
+
+### In Scope
+- [x] Design target project directory structure
+- [x] Create bootstrap script (`vibeos-init.sh`) that installs framework into any project
+- [x] Adapt all 9 skills to use project-relative paths instead of `${CLAUDE_PLUGIN_ROOT}`
+- [x] Adapt all 11 agents to use project-relative paths
+- [x] Adapt all 6 hook scripts to use `$CLAUDE_PROJECT_DIR` or relative paths
+- [x] Generate `.claude/settings.json` with hooks configuration
+- [x] Generate `.claude/CLAUDE.md` with voice-led routing rules and constraints
+- [x] Support greenfield (new project) and midstream (existing project) modes
+- [x] Support upgrade mode (update framework in existing project)
+- [x] Update README.md with new installation instructions
+- [x] Verify all skills, agents, and hooks work via project-level config
+
+### Out of Scope
+- Plugin system fixes (that's Anthropic's problem)
+- npm/pip package distribution (future WO if needed)
+- CI/CD integration (future WO)
+- Multi-project shared framework (future WO — each project gets its own copy)
+
+## Dependencies
+
+| Dependency | Type | Status |
+|---|---|---|
+| WO-054 | Voice-led routing content | Complete |
+| Phase 1-8 content | All skills, agents, hooks, scripts | Complete |
+| Claude Code project-level config | Platform capability | Verified |
+
+## Architecture
+
+### Target Project Structure After Bootstrap
+
+```
+target-project/
+├── .claude/
+│   ├── CLAUDE.md                  ← Voice-led routing, constraints, architecture rules
+│   ├── settings.json              ← Hooks config, permissions
+│   ├── settings.local.json        ← User-specific overrides (gitignored)
+│   ├── skills/                    ← 9 skills
+│   │   ├── discover/SKILL.md
+│   │   ├── plan/SKILL.md
+│   │   ├── build/SKILL.md
+│   │   ├── audit/SKILL.md
+│   │   ├── gate/SKILL.md
+│   │   ├── status/SKILL.md
+│   │   ├── checkpoint/SKILL.md
+│   │   ├── wo/SKILL.md
+│   │   └── help/SKILL.md
+│   ├── agents/                    ← 11 agents
+│   │   ├── plan-auditor.md
+│   │   ├── investigator.md
+│   │   ├── tester.md
+│   │   ├── backend.md
+│   │   ├── frontend.md
+│   │   ├── doc-writer.md
+│   │   ├── security-auditor.md
+│   │   ├── architecture-auditor.md
+│   │   ├── correctness-auditor.md
+│   │   ├── test-auditor.md
+│   │   └── evidence-auditor.md
+│   └── hooks/                     ← Hook scripts
+│       ├── intent-router.sh
+│       ├── secrets-scan.sh
+│       ├── frozen-files.sh
+│       ├── test-file-protection.sh
+│       ├── test-diff-audit.sh
+│       └── prereq-check.sh
+├── .vibeos/                       ← Framework runtime
+│   ├── config.json                ← Project config (autonomy level, metadata)
+│   ├── version.txt                ← Framework version for upgrades
+│   ├── scripts/                   ← 25 gate scripts + gate-runner.sh
+│   ├── decision-engine/           ← 8 decision trees
+│   ├── reference/                 ← 40+ annotated reference files
+│   ├── convergence/               ← State hashing, convergence checks
+│   └── baselines/                 ← Quality baselines (generated at runtime)
+├── docs/
+│   ├── USER-COMMUNICATION-CONTRACT.md
+│   └── planning/                  ← Generated by discover/plan skills
+│       ├── DEVELOPMENT-PLAN.md
+│       ├── WO-INDEX.md
+│       └── WO-*.md
+└── (user's project files)
+```
+
+### Path Resolution Changes
+
+| Plugin Path | Project Path |
+|---|---|
+| `${CLAUDE_PLUGIN_ROOT}/scripts/` | `.vibeos/scripts/` |
+| `${CLAUDE_PLUGIN_ROOT}/reference/` | `.vibeos/reference/` |
+| `${CLAUDE_PLUGIN_ROOT}/decision-engine/` | `.vibeos/decision-engine/` |
+| `${CLAUDE_PLUGIN_ROOT}/convergence/` | `.vibeos/convergence/` |
+| `${CLAUDE_PLUGIN_ROOT}/docs/` | `docs/` |
+| `${CLAUDE_PLUGIN_ROOT}/hooks/scripts/` | `.claude/hooks/` |
+
+### Hooks Configuration
+
+In `.claude/settings.json`:
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          { "type": "command", "command": "./.claude/hooks/prereq-check.sh" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "./.claude/hooks/intent-router.sh" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "./.claude/hooks/secrets-scan.sh" },
+          { "type": "command", "command": "./.claude/hooks/frozen-files.sh" },
+          { "type": "command", "command": "./.claude/hooks/test-file-protection.sh" },
+          { "type": "command", "command": "./.claude/hooks/test-diff-audit.sh" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review the response you just gave. Check for stubs (raise NotImplementedError, pass, ...), placeholders (TODO, FIXME, HACK, XXX), incomplete code ('implement later', 'add here'), swallowed errors (bare except: pass). If ANY found, flag them immediately."
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Bootstrap Script Design
+
+`vibeos-init.sh` — single entry point:
+
+```
+Usage: bash vibeos-init.sh [OPTIONS]
+  --source PATH    Path to VibeOS framework (default: auto-detect or prompt)
+  --upgrade        Update existing installation to latest framework
+  --uninstall      Remove VibeOS from project (clean removal)
+
+Modes (auto-detected):
+  Fresh install    No .vibeos/ directory exists
+  Upgrade          .vibeos/ exists, --upgrade flag or user confirms
+  Midstream        Source files detected in project (existing code)
+  Greenfield       No source files detected (new project)
+```
+
+Bootstrap steps:
+1. Detect mode (fresh/upgrade, greenfield/midstream)
+2. Copy `.claude/skills/`, `.claude/agents/`, `.claude/hooks/` from framework
+3. Copy `.vibeos/scripts/`, `.vibeos/decision-engine/`, `.vibeos/reference/`, `.vibeos/convergence/`
+4. Generate `.claude/settings.json` with hooks
+5. Generate `.claude/CLAUDE.md` with routing rules + project constraints
+6. Copy `docs/USER-COMMUNICATION-CONTRACT.md`
+7. Write `.vibeos/version.txt` with framework version
+8. Add `.vibeos/baselines/` and `.claude/settings.local.json` to `.gitignore`
+9. Print welcome message with next steps
+
+### What Gets Checked Into Git (Target Project)
+
+**Checked in** (shared with team):
+- `.claude/skills/`, `.claude/agents/`, `.claude/hooks/` — framework config
+- `.claude/settings.json` — hooks and permissions
+- `.claude/CLAUDE.md` — agent instructions
+- `.vibeos/scripts/`, `.vibeos/decision-engine/`, `.vibeos/reference/` — framework runtime
+- `.vibeos/config.json`, `.vibeos/version.txt` — project config
+- `docs/` — governance docs
+
+**Gitignored**:
+- `.claude/settings.local.json` — user overrides
+- `.vibeos/baselines/` — runtime state
+- `.vibeos/current-agent.txt` — runtime state
+
+## Impact Analysis
+
+- **Files created:** `vibeos-init.sh` bootstrap script
+- **Files modified:** All 9 SKILL.md files (path changes), all 11 agent .md files (path changes), all 6 hook scripts (path changes), README.md
+- **Files unchanged:** Gate scripts, decision engine, reference files, convergence scripts (content identical, just relocated)
+- **Systems affected:** Distribution model, installation flow, path resolution in all skills/agents/hooks
+
+## Acceptance Criteria
+
+- [ ] AC-1: `bash vibeos-init.sh` installs framework into a clean project directory
+- [ ] AC-2: All 9 skills appear when typing `/` in Claude Code session in target project
+- [ ] AC-3: SessionStart hook fires on new session in target project
+- [ ] AC-4: UserPromptSubmit hook fires on every message (intent routing works)
+- [ ] AC-5: PreToolUse hooks fire on Edit/Write (secrets scan, test protection)
+- [ ] AC-6: Gate scripts run successfully from `.vibeos/scripts/` via gate skill
+- [ ] AC-7: Subagent dispatch works for all 11 agents
+- [ ] AC-8: Upgrade mode updates framework files without destroying project-specific docs
+- [ ] AC-9: Works in both Cursor IDE and Claude Code CLI
+- [ ] AC-10: Works for both greenfield and midstream (existing project with code)
+
+## Test Strategy
+
+- **Smoke test:** Run `vibeos-init.sh` on empty directory, open in Claude Code, verify skills list
+- **Hook test:** Type a message, verify intent router injects routing hint
+- **Skill test:** Say "I want to build X", verify discover skill triggers
+- **Gate test:** Run `/gate` skill, verify gate scripts execute from `.vibeos/scripts/`
+- **Agent test:** Trigger build skill, verify agent dispatch works
+- **Midstream test:** Run bootstrap on project with existing code, verify midstream detection
+- **Upgrade test:** Run bootstrap twice, verify framework updates without data loss
+- **Cursor test:** Open bootstrapped project in Cursor, verify skills and hooks work
+
+## Implementation Plan
+
+### Step 1: Create bootstrap script
+- Write `vibeos-init.sh` with mode detection, file copying, config generation
+- Expected: Script that installs framework into any project directory
+
+### Step 2: Adapt path references
+- Find/replace `${CLAUDE_PLUGIN_ROOT}` → relative project paths in all skills, agents, hooks
+- Update all references to use `.vibeos/` for framework files
+- Expected: All files use project-relative paths
+
+### Step 3: Generate project-level config
+- Template for `.claude/settings.json` (hooks config)
+- Template for `.claude/CLAUDE.md` (routing rules, constraints)
+- Expected: Generated configs that Claude Code auto-discovers
+
+### Step 4: Verify in target project
+- Run bootstrap on test project
+- Open in Claude Code CLI and Cursor
+- Test each skill, hook, and agent
+- Expected: Full functionality equivalent to `--plugin-dir`
+
+### Step 5: Update documentation
+- Rewrite README.md with bootstrap installation
+- Update any internal docs referencing plugin paths
+- Expected: Clean user-facing documentation
+
+## Audit Checkpoints
+
+### Planning Audit
+- Status: `pending`
+- Findings: —
+- Test status: —
+
+### Pre-Implementation Audit
+- Status: `pending`
+- Findings: —
+- Test status: —
+
+### Pre-Commit Audit
+- Status: `pending`
+- Findings: —
+- Test status: —
+
+## Evidence
+
+- [ ] Implementation complete
+- [ ] Tests pass
+- [ ] Gates pass
+- [ ] Documentation updated

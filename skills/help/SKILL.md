@@ -11,7 +11,7 @@ Explain VibeOS concepts, glossary terms, and system orientation on demand.
 
 ## Communication Contract
 
-Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition
@@ -76,7 +76,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER
 
 ### If `$ARGUMENTS` is a glossary term or topic: Explain It
 
-Read the glossary from `${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md` and provide the definition along with:
+Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the definition along with:
 1. A plain English explanation
 2. Why it matters to the user
 3. An example from a typical project
@@ -116,4 +116,4 @@ Read the glossary from `${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.m
   - **Build:** Source code, test files, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state)
   - "All plugin state lives in the `.vibeos/` directory. For the full list, see `docs/FILE-INVENTORY.md` or run `/vibeos:help files`."
 
-For any term not listed above, read the glossary in `${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md` and explain it with the same pattern: plain English definition, why it matters, example.
+For any term not listed above, read the glossary in `docs/USER-COMMUNICATION-CONTRACT.md` and explain it with the same pattern: plain English definition, why it matters, example.

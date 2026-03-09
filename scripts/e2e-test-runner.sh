@@ -198,8 +198,8 @@ fi
 
 # Verify all hook script paths exist
 while IFS= read -r hook_cmd; do
-  # Replace ${CLAUDE_PLUGIN_ROOT} with actual plugin dir for testing
-  RESOLVED=$(echo "$hook_cmd" | sed "s|\${CLAUDE_PLUGIN_ROOT}|$PLUGIN_DIR|g")
+  # Replace ${CLAUDE_PLUGIN_ROOT} or ./.claude/hooks/ with actual paths for testing
+  RESOLVED=$(echo "$hook_cmd" | sed "s|\${CLAUDE_PLUGIN_ROOT}|$PLUGIN_DIR|g" | sed "s|^\./\.claude/hooks/|$PLUGIN_DIR/hooks/scripts/|g")
   if [ -f "$RESOLVED" ]; then
     BASENAME=$(basename "$RESOLVED")
     log_result "Hook script: $BASENAME" "PASS" "File exists and is accessible"

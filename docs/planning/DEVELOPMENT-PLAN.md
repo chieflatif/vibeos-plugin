@@ -21,7 +21,8 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 6 | Midstream Embedding & Polish | WO-035 — WO-040 | Existing projects, baselines, test quality, upgrade, e2e testing |
 | 7 | Informed Onboarding & User Comprehension | WO-041 — WO-048 | Architecture-first midstream, finding-level baselines, communication layer |
 | 8 | Resilience & Transparency | WO-049 — WO-053 | Mid-WO resume, decision engine explainability, baseline bootstrap, first-run polish, safety hardening |
-| 9 | Conversational Experience | WO-054+ | Voice-led intent routing, natural language interaction, slash command elimination |
+| 9 | Conversational Experience | WO-054 | Voice-led intent routing, natural language interaction, slash command elimination |
+| 10 | Distribution & Runtime | WO-055+ | Pivot from broken plugin system to project-level bootstrap model |
 
 ## Mandatory Audits
 
@@ -211,7 +212,21 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-054 | Voice-Led Intent Routing | Phase 8 complete | In Progress |
+| WO-054 | Voice-Led Intent Routing | Phase 8 complete | Complete |
+
+---
+
+## Phase 10: Distribution & Runtime
+
+**Goal:** Replace broken Claude Code plugin distribution with a project-level bootstrap model. User runs a single script that installs the full VibeOS governance framework into their project's `.claude/` and `.vibeos/` directories, using Claude Code's proven project-level config system.
+
+**Context:** The Claude Code plugin system (`claude plugin install`) silently fails for skills-based plugins. The `--plugin-dir` flag works but is session-only and unavailable in Cursor IDE. This phase pivots from plugin distribution to project-level bootstrap — same content, reliable delivery mechanism.
+
+**Exit Criteria:** `bash vibeos-init.sh` installs framework into any project. All 9 skills register, all hooks fire, all agents dispatch. Works in both Claude Code CLI and Cursor IDE. Supports greenfield, midstream, and upgrade modes.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-055 | Architectural Pivot — Plugin to Project-Level Bootstrap | WO-054 | Draft |
 
 ---
 

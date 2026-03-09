@@ -23,7 +23,7 @@
 # Environment:
 #   MANIFEST_PATH   — path to quality-gate-manifest.json
 #   PROJECT_ROOT    — project root (default: $CLAUDE_PROJECT_DIR or cwd)
-#   CLAUDE_PLUGIN_ROOT — plugin root where gate scripts live (auto-detected)
+#   VIBEOS_FRAMEWORK_DIR — framework root where gate scripts live (auto-detected from .vibeos/)
 #   GATE_TIMEOUT    — per-gate timeout in seconds (default: 120)
 #   WO_NUMBER       — work order number for variable substitution
 #   EVIDENCE_DIR    — evidence directory for variable substitution
@@ -77,7 +77,14 @@ die()  { err "$*"; exit 2; }
 
 # ─── Defaults ────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FRAMEWORK_DIR="${CLAUDE_PLUGIN_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
+# Auto-detect framework dir: .vibeos/ in project, or parent of scripts/ dir
+if [ -d "${CLAUDE_PROJECT_DIR:-.}/.vibeos/scripts" ]; then
+  FRAMEWORK_DIR="${CLAUDE_PROJECT_DIR:-.}/.vibeos"
+elif [ -n "${VIBEOS_FRAMEWORK_DIR:-}" ]; then
+  FRAMEWORK_DIR="$VIBEOS_FRAMEWORK_DIR"
+else
+  FRAMEWORK_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-${PROJECT_ROOT:-$(pwd)}}"
 DEFAULT_CLAUDE_MANIFEST="$PROJECT_ROOT/.claude/quality-gate-manifest.json"
 DEFAULT_ROOT_MANIFEST="$PROJECT_ROOT/quality-gate-manifest.json"

@@ -88,6 +88,18 @@ detect_lifecycle_state() {
     return
   fi
 
+  # Config exists but lifecycle_state explicitly set to virgin (freshly bootstrapped)
+  if [[ "$has_config" == true && "$has_definition" == false ]]; then
+    local stored_state=""
+    if command -v jq &>/dev/null; then
+      stored_state=$(jq -r '.lifecycle_state // ""' "$project_root/.vibeos/config.json" 2>/dev/null || echo "")
+    fi
+    if [[ "$stored_state" == "virgin" ]]; then
+      echo "virgin"
+      return
+    fi
+  fi
+
   # Has definition but no plan — discovery done, needs planning
   if [[ "$has_definition" == true && "$has_plan" == false ]]; then
     echo "discovered"

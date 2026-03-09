@@ -11,7 +11,7 @@ Turn a rough product idea into validated product documents before any code is wr
 
 ## Communication Contract
 
-Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition
@@ -79,11 +79,11 @@ Capture:
 
 **Do NOT ask stack/framework questions first.** Focus on business intent.
 
-Write the captured intent to `docs/product/PROJECT-IDEA.md` using the structure from `${CLAUDE_SKILL_DIR}/../../reference/product/PROJECT-IDEA.md.ref`.
+Write the captured intent to `docs/product/PROJECT-IDEA.md` using the structure from `.vibeos/reference/product/PROJECT-IDEA.md.ref`.
 
 ### Step 2: Draft Product Shape
 
-Read `${CLAUDE_SKILL_DIR}/../../decision-engine/product-shaping.md` and apply the decision tree to classify:
+Read `.vibeos/decision-engine/product-shaping.md` and apply the decision tree to classify:
 
 - **Product type**: web-saas, mobile-app, api-platform, internal-tool, marketplace, other
 - **Platform set**: web, mobile, api, internal
@@ -153,11 +153,11 @@ Create `project-definition.json` in the project root with this structure:
 }
 ```
 
-For technical recommendation, read `${CLAUDE_SKILL_DIR}/../../decision-engine/technical-recommendation.md` and apply the decision tree based on product type and constraints.
+For technical recommendation, read `.vibeos/decision-engine/technical-recommendation.md` and apply the decision tree based on product type and constraints.
 
 ### Step 5: Generate Product Artifacts
 
-Generate these 5 documents in the project's `docs/product/` directory, using the reference templates in `${CLAUDE_SKILL_DIR}/../../reference/product/`:
+Generate these 5 documents in the project's `docs/product/` directory, using the reference templates in `.vibeos/reference/product/`:
 
 1. **PRODUCT-BRIEF.md** — One-page summary (from `PRODUCT-BRIEF.md.ref`)
 2. **PRD.md** — Scope, requirements, user stories, acceptance criteria (from `PRD.md.ref`)
@@ -221,7 +221,7 @@ From the code analysis, generate draft documents in the project's `docs/product/
 
 #### M3a. ARCHITECTURE-OUTLINE.md
 
-Generate `docs/product/ARCHITECTURE-OUTLINE.md` using the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/ARCHITECTURE-OUTLINE.md.ref`. Include:
+Generate `docs/product/ARCHITECTURE-OUTLINE.md` using the reference template at `.vibeos/reference/product/ARCHITECTURE-OUTLINE.md.ref`. Include:
 - Detected layers and their boundaries
 - Module map with dependencies
 - Database schema overview (from migrations or models)
@@ -233,7 +233,7 @@ Mark inferred sections with confidence levels.
 
 #### M3b. TECHNICAL-SPEC.md
 
-Generate `docs/TECHNICAL-SPEC.md` using the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/TECHNICAL-SPEC.md.ref`. Include:
+Generate `docs/TECHNICAL-SPEC.md` using the reference template at `.vibeos/reference/product/TECHNICAL-SPEC.md.ref`. Include:
 - Detected language, framework, and runtime version
 - Database and ORM
 - Key dependencies and their purposes
@@ -242,7 +242,7 @@ Generate `docs/TECHNICAL-SPEC.md` using the reference template at `${CLAUDE_SKIL
 
 #### M3c. PRD.md (with collision handling)
 
-**If `docs/product/PRD.md` does not exist:** Generate a skeleton `docs/product/PRD.md` from the reference template at `${CLAUDE_SKILL_DIR}/../../reference/product/PRD.md.ref`. Populate with inferred product scope based on code structure, README content (if present), and API surface. Tag each section with source metadata:
+**If `docs/product/PRD.md` does not exist:** Generate a skeleton `docs/product/PRD.md` from the reference template at `.vibeos/reference/product/PRD.md.ref`. Populate with inferred product scope based on code structure, README content (if present), and API surface. Tag each section with source metadata:
 ```markdown
 <!-- source: inferred, updated: 2024-01-15T10:30:00Z -->
 ## Section Title

@@ -40,7 +40,7 @@ You MUST NEVER read implementation source files. You read only: WO files, archit
 
 ## Communication Contract
 
-Read and follow ${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
+Read and follow docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
 All findings must be explained in plain English with business impact.
 Technical terms must be accompanied by their glossary definition on first use.
 

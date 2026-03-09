@@ -11,7 +11,7 @@ Run all quality gates and all audit agents on the entire codebase at phase bound
 
 ## Communication Contract
 
-Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
+Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
 - Lead with outcome, follow with mechanism
 - Present decisions with consequences
 - Introduce every concept on first use with plain English definition
@@ -42,7 +42,7 @@ If `$ARGUMENTS` specifies a phase number, use that. Otherwise:
 
 Run the full gate suite on the entire codebase:
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
+bash ".vibeos/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
 ```
 
 Collect results: pass/fail per gate, total pass count.
@@ -110,7 +110,7 @@ Compare current results against previous baseline using dual ratchet (count-base
 **5b. Finding-level ratchet (precision tracking, if `.vibeos/findings-registry.json` exists):**
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/convergence/baseline-check.sh" check \
+bash ".vibeos/convergence/baseline-check.sh" check \
   --mode finding-level \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --current-findings-file ".vibeos/findings-registry.json"
