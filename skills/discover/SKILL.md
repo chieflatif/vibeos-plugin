@@ -1,6 +1,6 @@
 ---
 name: discover
-description: Run product discovery to turn a rough idea into validated product documents. Use when a user describes what they want to build and needs help defining scope, requirements, architecture, and technical approach. Generates 7 artifacts.
+description: Run product discovery to turn a rough idea into validated product documents. Use when a user describes what they want to build, shares a product idea, says "I want to build/create/make...", mentions a "new project/app/product", or needs help defining scope, requirements, architecture, and technical approach. Also use for existing codebases when the user wants to analyze what they have. Generates 7 artifacts.
 argument-hint: "[product idea or description]"
 allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion
 ---
@@ -41,6 +41,8 @@ Check if this is the user's first time using VibeOS on this project:
 > **Your role:** You make the decisions — what to build, what quality level to target, when to ship. I handle the implementation, testing, and quality enforcement.
 >
 > **What to expect:** You'll see progress updates as each piece is built. I'll explain what I'm doing in plain English. When I need your input, I'll present clear options with their implications.
+>
+> **How to interact:** Just talk to me naturally. Say things like "I want to build a task management app" or "how's progress?" or "continue building." You never need to type commands — I'll figure out what you need.
 
 3. Create `.vibeos/config.json` (or update it) with `"onboarding_complete": true`
 4. If existing code is detected (Step 0b below), append to the onboarding: "I see you already have code — I'll start by understanding what's here before we plan anything new."

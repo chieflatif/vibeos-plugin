@@ -21,6 +21,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 6 | Midstream Embedding & Polish | WO-035 — WO-040 | Existing projects, baselines, test quality, upgrade, e2e testing |
 | 7 | Informed Onboarding & User Comprehension | WO-041 — WO-048 | Architecture-first midstream, finding-level baselines, communication layer |
 | 8 | Resilience & Transparency | WO-049 — WO-053 | Mid-WO resume, decision engine explainability, baseline bootstrap, first-run polish, safety hardening |
+| 9 | Conversational Experience | WO-054+ | Voice-led intent routing, natural language interaction, slash command elimination |
 
 ## Mandatory Audits
 
@@ -199,6 +200,18 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | WO-051 | Midstream Baseline Bootstrap | Phase 7 complete | Draft |
 | WO-052 | First-Run Experience & Handoffs | Phase 7 complete | Draft |
 | WO-053 | Validation & Safety Hardening | Phase 7 complete | Draft |
+
+---
+
+## Phase 9: Conversational Experience
+
+**Goal:** Eliminate slash command dependency. Users interact with VibeOS through natural language. The system detects intent, reads project lifecycle state, and routes to the correct skill automatically.
+
+**Exit Criteria:** User can go from "I want to build a task management app" to discovery flow without typing any slash command. All lifecycle states route correctly. Disambiguation handles ambiguous intents. Slash commands still work as power-user shortcuts.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-054 | Voice-Led Intent Routing | Phase 8 complete | In Progress |
 
 ---
 

@@ -8,9 +8,9 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 
 ```
 .claude-plugin/plugin.json   ← Plugin manifest
-skills/                       ← 8 user-invocable skills (/vibeos:discover, :plan, :build, etc.)
-agents/                       ← 12 specialized subagents (planner, auditors, tester, etc.)
-hooks/hooks.json              ← Event-driven enforcement (secrets, stubs, frozen files)
+skills/                       ← 9 user-invocable skills (/vibeos:discover, :plan, :build, etc.)
+agents/                       ← 11 specialized subagents (auditors, tester, implementation, etc.)
+hooks/hooks.json              ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
 scripts/                      ← 25 deterministic gate scripts + gate-runner.sh (bash)
 decision-engine/              ← 8 decision tree files (markdown)
 reference/                    ← 40+ annotated reference files
@@ -45,6 +45,34 @@ docs/planning/                ← Development plan, WO index, individual WO file
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
 - No stubs, no placeholders, no TODOs in any file
+
+## Voice-Led Intent Routing
+
+VibeOS is conversational. Users should NEVER need to type slash commands. When a user speaks naturally, the `UserPromptSubmit` hook (`intent-router.sh`) analyzes their message and injects a routing hint into your context as `[VibeOS Intent Router]`.
+
+### How to Handle Routing Hints
+
+1. **High confidence** — Invoke the suggested skill immediately using the Skill tool. Do not ask the user to confirm. Example: user says "I want to build a task management app" → invoke `/vibeos:discover`.
+
+2. **Medium confidence** — Briefly confirm before invoking. One sentence, not an interrogation. Example: "It sounds like you want to run a code review. Should I start the audit?"
+
+3. **Low confidence** — Ask a brief clarifying question. Do not guess. Example: "I can help with that — are you looking to check project status, or would you like me to continue building?"
+
+4. **No hint (explicit slash command or direct help)** — The router stays silent. If the user typed a `/vibeos:*` command, invoke it normally. If the user is asking about specific code/errors, help them directly without invoking a skill.
+
+### Conflict Resolution: Skill vs. Direct Help
+
+Not every message should trigger a skill. Use these rules:
+
+- **File paths, line numbers, error messages, code snippets** → Help directly. Do not invoke a skill.
+- **Conceptual questions** ("what is ratcheting?", "how do phases work?") → Invoke `/vibeos:help`.
+- **Product ideas or feature requests** → Invoke `/vibeos:discover` (new project) or `/vibeos:wo` (existing project with plan).
+- **"Continue", "next", "keep going"** → Invoke `/vibeos:build`.
+- **Vague messages with no clear intent** → Check lifecycle state from the routing hint. At `virgin` stage, suggest discovery. At `building` stage, show status.
+
+### Slash Commands Are Power-User Shortcuts
+
+Slash commands (`/vibeos:discover`, `/vibeos:build`, etc.) still work and always take precedence. But never instruct users to type them. Instead of "Run `/vibeos:discover`", say "Just tell me what you want to build."
 
 ## Development Governance
 

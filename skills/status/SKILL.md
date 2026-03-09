@@ -1,6 +1,6 @@
 ---
 name: status
-description: Show project dashboard with current phase, active work orders, recent audit results, and recommended next action. Use when the user asks about project status, progress, or what to work on next.
+description: Show project dashboard with current phase, active work orders, recent audit results, and recommended next action. Use when the user asks "how's it going?", "what's the status?", "where are we?", "what's done?", "update me", or wants to see progress, what to work on next, or an overview of the project.
 allowed-tools: Read, Glob, Grep
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: build
-description: Autonomous build orchestrator that executes work orders end-to-end. Dispatches investigator, tester, implementation, and documentation agents in sequence with two-layer quality enforcement (Layer 1 gates + Layer 2 audit agents) and error recovery.
+description: Autonomous build orchestrator that executes work orders end-to-end. Use when the user says "continue", "keep going", "build the next thing", "resume", "start building", or wants to make progress on the development plan. Dispatches investigator, tester, implementation, and documentation agents in sequence with two-layer quality enforcement (Layer 1 gates + Layer 2 audit agents) and error recovery.
 argument-hint: "[optional: WO number to build, e.g. 'WO-001']"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 ---

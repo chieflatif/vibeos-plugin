@@ -36,20 +36,30 @@ EOF
 elif [ -n "$GIT_WARNING" ]; then
   cat << EOF
 {
-  "systemMessage": "VibeOS Plugin: All prerequisites available.${GIT_WARNING} Try \`/vibeos:discover\` to get started, or \`/vibeos:help\` to learn how VibeOS works.",
+  "systemMessage": "VibeOS Plugin: All prerequisites available.${GIT_WARNING} Just describe what you want to build, or ask me anything about how the system works.",
   "hookSpecificOutput": {
     "hookEventName": "SessionStart",
-    "additionalContext": "VibeOS Plugin prerequisites satisfied but git not detected.${GIT_WARNING}"
+    "additionalContext": "VibeOS Plugin prerequisites satisfied but git not detected.${GIT_WARNING} Voice-led routing is active — the user can speak naturally and the intent router will suggest the right skill."
   }
 }
 EOF
 else
-  cat << 'EOF'
+  # Detect lifecycle state for context-aware welcome
+  LIFECYCLE_HINT="new project"
+  if [ -f "project-definition.json" ] && [ -f "docs/planning/DEVELOPMENT-PLAN.md" ]; then
+    LIFECYCLE_HINT="existing project with a development plan — ready to build"
+  elif [ -f "project-definition.json" ]; then
+    LIFECYCLE_HINT="discovered project — ready for planning"
+  elif [ -d ".vibeos" ]; then
+    LIFECYCLE_HINT="project with VibeOS state"
+  fi
+
+  cat << EOF
 {
-  "systemMessage": "VibeOS Plugin: All prerequisites available. Try `/vibeos:discover` to get started with a new project, or `/vibeos:help` to learn how VibeOS works.",
+  "systemMessage": "VibeOS Plugin ready (${LIFECYCLE_HINT}). Just tell me what you want to do — describe your idea, ask about progress, or say 'continue' to keep building. No commands needed.",
   "hookSpecificOutput": {
     "hookEventName": "SessionStart",
-    "additionalContext": "VibeOS Plugin prerequisites satisfied. Suggest /vibeos:discover for new projects or /vibeos:help for orientation."
+    "additionalContext": "VibeOS Plugin prerequisites satisfied. Lifecycle: ${LIFECYCLE_HINT}. Voice-led routing is active — the user can speak naturally and the intent router will suggest the right skill. Follow the routing instructions in CLAUDE.md."
   }
 }
 EOF

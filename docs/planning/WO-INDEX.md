@@ -167,3 +167,9 @@
 | WO-051 | Midstream Baseline Bootstrap | 8 | 2026-03-08 |
 | WO-052 | First-Run Experience & Handoffs | 8 | 2026-03-08 |
 | WO-053 | Validation & Safety Hardening | 8 | 2026-03-08 |
+
+### Phase 9: Conversational Experience
+
+| WO | Title | Status | Dependencies |
+|---|---|---|---|
+| WO-054 | Voice-Led Intent Routing | Complete | Phase 8 |

@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Run project intake questionnaire, apply decision engine, and generate a complete development plan with phased work orders. Use after /vibeos:discover has produced product documents.
+description: Run project intake questionnaire, apply decision engine, and generate a complete development plan with phased work orders. Use when the user says "make a plan", "break this down", "organize the work", "create a roadmap", or wants to structure their project into phases. Requires product discovery to be complete first.
 argument-hint: "[optional: path to project-definition.json]"
 allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion
 ---

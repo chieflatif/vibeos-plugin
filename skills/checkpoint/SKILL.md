@@ -1,6 +1,6 @@
 ---
 name: checkpoint
-description: Phase boundary audit that runs all gates and all audit agents on the entire codebase, establishes quality baselines, and enforces ratcheting (finding count cannot increase between phases).
+description: Phase boundary audit that runs all gates and all audit agents on the entire codebase, establishes quality baselines, and enforces ratcheting (finding count cannot increase between phases). Use when the user says "phase is done", "wrap up this phase", "milestone check", or when all work orders in a phase are complete.
 argument-hint: "[optional: phase number, e.g. '3']"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 ---

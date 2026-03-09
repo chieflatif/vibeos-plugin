@@ -1,6 +1,6 @@
 ---
 name: wo
-description: Work order management with subcommands for creating, checking status, completing, and auditing individual work orders.
+description: Work order management with subcommands for creating, checking status, completing, and auditing individual work orders. Use when the user says "create a work order", "add a task", "what's the status of WO-X?", or wants to manage individual units of work.
 argument-hint: "<create|status|complete|audit> [WO number or title]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 ---

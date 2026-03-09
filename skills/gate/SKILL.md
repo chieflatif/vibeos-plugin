@@ -1,6 +1,6 @@
 ---
 name: gate
-description: Run quality gates for a specific WO lifecycle phase. Use when the user wants to check code quality, run pre-commit checks, validate before completing a work order, or perform a full audit.
+description: Run quality gates for a specific WO lifecycle phase. Use when the user says "check the code", "run quality checks", "are we passing?", "validate this", or wants to run pre-commit checks or verify code quality before completing a work order.
 argument-hint: "[phase] [--wo NUMBER]"
 allowed-tools: Bash, Read, Write, Edit, Glob, Grep, AskUserQuestion
 ---

@@ -1,6 +1,6 @@
 ---
 name: help
-description: Get help with VibeOS concepts, glossary terms, and system orientation. Use to understand any term or concept used by the plugin, or to re-trigger the onboarding introduction.
+description: Get help with VibeOS concepts, glossary terms, and system orientation. Use when the user asks "what is/are...", "explain...", "how does X work?", "what does Y mean?", or wants to understand any term or concept used by the plugin, or to re-trigger the onboarding introduction.
 argument-hint: "[topic or glossary term, e.g. 'work-orders', 'ratchet', 'onboarding']"
 allowed-tools: Read, Glob, Grep
 ---
@@ -65,12 +65,14 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`${CLAUDE_PLUGIN_ROOT}/docs/USER
 >
 > **What to expect:** You'll see progress updates as each piece is built. I'll explain what I'm doing in plain English. When I need your input, I'll present clear options with their implications.
 >
-> **Key commands:**
-> - `/vibeos:discover` — Start a new project or analyze existing code
-> - `/vibeos:plan` — Generate a development plan
-> - `/vibeos:build` — Start or continue building
-> - `/vibeos:status` — See current progress
-> - `/vibeos:help [topic]` — Learn about any concept
+> **How to interact:** Just talk to me naturally. No commands needed. For example:
+> - "I want to build a task management app" — starts product discovery
+> - "Make a plan" — generates a development plan
+> - "Keep going" or "continue" — resumes building
+> - "How's it going?" — shows current progress
+> - "What does ratcheting mean?" — explains any concept
+>
+> Power users can also use slash commands: `/vibeos:discover`, `/vibeos:plan`, `/vibeos:build`, `/vibeos:status`, `/vibeos:help`
 
 ### If `$ARGUMENTS` is a glossary term or topic: Explain It
 

@@ -1,6 +1,6 @@
 ---
 name: audit
-description: Full audit cycle that dispatches all 5 audit agents (security, architecture, correctness, test quality, evidence), applies consensus logic, and produces a composite report with actionable findings.
+description: Full audit cycle that dispatches all 5 audit agents (security, architecture, correctness, test quality, evidence), applies consensus logic, and produces a composite report with actionable findings. Use when the user says "audit the code", "review everything", "check for security issues", "do a full review", or wants a comprehensive multi-perspective code review.
 argument-hint: "[optional: 'security', 'architecture', 'correctness', 'test', 'evidence' to run a single auditor]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
