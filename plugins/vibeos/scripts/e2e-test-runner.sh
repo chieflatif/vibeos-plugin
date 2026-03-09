@@ -214,7 +214,7 @@ echo ""
 # ============================================================
 echo "=== Test 7: Convergence Scripts ==="
 
-for script in state-hash.sh convergence-check.sh token-tracker.sh baseline-check.sh; do
+for script in state-hash.sh convergence-check.sh baseline-check.sh migrate-baseline.sh; do
   SCRIPT_PATH="$PLUGIN_DIR/convergence/$script"
   if [ -f "$SCRIPT_PATH" ]; then
     if [ -x "$SCRIPT_PATH" ]; then
@@ -256,16 +256,27 @@ fi
 echo ""
 
 # ============================================================
-# Test 10: WO Tracking Consistency
+# Test 10: Governance References
 # ============================================================
-echo "=== Test 10: WO Tracking ==="
+echo "=== Test 10: Governance References ==="
 
-if [ -f "$PLUGIN_DIR/docs/planning/WO-INDEX.md" ]; then
-  COMPLETE_COUNT=$(grep -c '| Complete |' "$PLUGIN_DIR/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
-  DRAFT_COUNT=$(grep -c '| Draft |' "$PLUGIN_DIR/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
-  log_result "WO-INDEX.md" "PASS" "$COMPLETE_COUNT complete, $DRAFT_COUNT draft"
+REF_COUNT=0
+REF_FAIL=0
+for ref in WO-INDEX.md.ref DEVELOPMENT-PLAN.md.ref WO-AUDIT-FRAMEWORK.md.ref WO-TEMPLATE.md.ref; do
+  REF_PATH="$PLUGIN_DIR/reference/governance/$ref"
+  REF_COUNT=$((REF_COUNT + 1))
+  if [ -f "$REF_PATH" ]; then
+    log_result "Governance reference: $ref" "PASS" "Found"
+  else
+    log_result "Governance reference: $ref" "FAIL" "Missing"
+    REF_FAIL=$((REF_FAIL + 1))
+  fi
+done
+
+if [ "$REF_FAIL" -eq 0 ]; then
+  log_result "Governance reference bundle" "PASS" "$REF_COUNT governance reference files validated"
 else
-  log_result "WO-INDEX.md" "FAIL" "File missing"
+  log_result "Governance reference bundle" "FAIL" "$REF_FAIL/$REF_COUNT governance reference files missing"
 fi
 echo ""
 

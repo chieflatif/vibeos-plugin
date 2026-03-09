@@ -14,15 +14,24 @@ An autonomous, self-governing development engine for Claude Code. Describe what 
 
 ### Option 1: Claude Code Plugin (recommended)
 
+From your shell:
+
 ```bash
 # Add the VibeOS marketplace
-/plugin marketplace add chieflatif/vibeos-plugin
+claude plugin marketplace add chieflatif/vibeos-plugin
 
 # Install the plugin
+claude plugin install vibeos@vibeos
+```
+
+Inside an active Claude Code session, the equivalent commands are:
+
+```text
+/plugin marketplace add chieflatif/vibeos-plugin
 /plugin install vibeos@vibeos
 ```
 
-That's it. All skills, agents, and hooks are automatically available in every Claude Code session.
+After installing, restart Claude Code so the new plugin is loaded.
 
 ### Option 2: Project-Level Bootstrap
 
@@ -44,18 +53,23 @@ This installs VibeOS into your project's `.claude/` and `.vibeos/` directories.
 ### Upgrade
 
 ```bash
-# Plugin: marketplace updates automatically
-/plugin marketplace update vibeos
+# Refresh marketplace metadata (optional)
+claude plugin marketplace update vibeos
+
+# Update the installed plugin
+claude plugin update vibeos@vibeos
 
 # Bootstrap:
 bash /path/to/vibeos-plugin/vibeos-init.sh --upgrade
 ```
 
+After a plugin update, restart Claude Code to apply the new version.
+
 ### Uninstall
 
 ```bash
 # Plugin:
-/plugin uninstall vibeos
+claude plugin uninstall vibeos@vibeos
 
 # Bootstrap:
 bash /path/to/vibeos-plugin/vibeos-init.sh --uninstall
