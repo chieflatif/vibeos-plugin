@@ -13,6 +13,8 @@ Show a comprehensive project status overview.
 1. **Read project governance files** (if they exist in the current project):
    - `docs/planning/DEVELOPMENT-PLAN.md` — phases and WO assignments
    - `docs/planning/WO-INDEX.md` — WO statuses and dependencies
+   - `.vibeos/config.json` — autonomy preference and session overrides
+   - `.vibeos/session-state.json` — active or most recent autonomous session
    - `docs/product/PRODUCT-ANCHOR.md` — product promise and experience guardrails
    - `docs/ENGINEERING-PRINCIPLES.md` — quality bar and anti-shortcut rules
    - `docs/research/RESEARCH-REGISTRY.md` — current evidence for high-impact decisions
@@ -34,7 +36,12 @@ Show a comprehensive project status overview.
    - Are there open deviations?
    - Are there research entries for current high-impact technical decisions?
 
-4. **Report the dashboard**:
+5. **Check autonomy and session status**:
+   - negotiated autonomy level
+   - whether a full autonomous session override is active
+   - session id and WOs completed this session, if available
+
+6. **Report the dashboard**:
 
    ```
    ## Project Status
@@ -56,6 +63,13 @@ Show a comprehensive project status overview.
    - **Engineering Principles:** [present/missing]
    - **Research Registry:** [present/missing]
    - **Open Deviations:** [N]
+
+   ## Autonomy
+
+   - **Negotiated level:** [wo/phase/major or missing]
+   - **Full autonomous session:** [active/inactive]
+   - **Session progress:** [N] WOs completed in current or last session
+   - **Last session audit:** [path/date or "not run"]
 
    ## Next Recommended Action
    [What WO should be started next, based on dependency graph and phase ordering]

@@ -38,6 +38,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 > - `product-drift` — How VibeOS checks that the work still matches the original promise
 > - `research-freshness` — Why important technical decisions should use current evidence
 > - `prompt-engineering` — How VibeOS governs prompts and agent behavior changes
+> - `session-audit` — How VibeOS reviews everything completed in the current or last build session
 > - `convergence` — How the build loop reaches completion
 > - `baselines` — Quality snapshots and tracking
 > - `ratcheting` — One-way quality improvement
@@ -77,7 +78,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 > - "How's it going?" — shows current progress
 > - "What does ratcheting mean?" — explains any concept
 >
-> Power users can also use slash commands: `/vibeos:discover`, `/vibeos:plan`, `/vibeos:build`, `/vibeos:status`, `/vibeos:help`
+> Power users can also use slash commands: `/vibeos:discover`, `/vibeos:plan`, `/vibeos:build`, `/vibeos:autonomous`, `/vibeos:session-audit`, `/vibeos:status`, `/vibeos:help`
 
 ### If `$ARGUMENTS` is a glossary term or topic: Explain It
 
@@ -104,6 +105,8 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 
 - **prompt-engineering**: "Prompt engineering in VibeOS means prompts are treated like behavioral system assets, not casual text. If a work order changes agent prompts, instruction files, `CLAUDE.md`, or other behavior-governing files, VibeOS should route that work through the `prompt-engineer` agent and apply the embedded Prompt Engineering Bible profile that fits the target role."
 
+- **session-audit**: "A session audit is a closeout review of the work VibeOS completed in one build session. It looks at which work orders were finished, re-runs verification, checks for drift, and writes a report so you can see whether the session really ended in a healthy state."
+
 - **convergence**: "Convergence is the process of fix cycles getting closer to zero issues. After the build agent writes code, auditors review it, and any issues trigger a fix cycle. Convergence controls prevent infinite loops by tracking whether progress is being made."
 
 - **baselines**: "A baseline is a snapshot of your codebase's current quality level — the starting point. For new projects, the baseline is zero issues. For existing codebases (midstream), the baseline captures pre-existing issues so they don't block new work."
@@ -112,7 +115,7 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 
 - **tdd**: "Test-Driven Development means tests are written before code. The tester agent writes tests from the work order spec (never seeing the implementation), then the implementation agent writes code to make those tests pass. This ensures tests reflect requirements, not implementation."
 
-- **autonomy-levels**: "Autonomy levels control how often the system checks in with you. Level 'wo' pauses after every work order. Level 'phase' pauses after each phase (recommended). Level 'major' only pauses for important decisions."
+- **autonomy-levels**: "Autonomy levels control how often the system checks in with you. Level 'wo' pauses after every work order. Level 'phase' pauses after each phase (recommended). Level 'major' only pauses for important decisions. If you want an even stronger push mode for the current session, `/vibeos:autonomous` temporarily turns on a full autonomous session override and keeps going until a real blocker appears."
 
 - **layers**: "The quality enforcement system has 7 layers: L0 (hooks — real-time), L1 (gate scripts — pre-commit), L2 (audit agents — post-implementation), L3 (convergence — loop control), L4 (consensus — cross-agent verification), L5 (phase boundary — milestone check), L6 (human check-in — your review)."
 
@@ -126,7 +129,7 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
   - **Discovery:** `project-definition.json`, product docs in `docs/product/` (PRD, architecture, product anchor), plus `docs/ENGINEERING-PRINCIPLES.md`, `docs/research/RESEARCH-REGISTRY.md`, and `docs/decisions/DEVIATIONS.md`
   - **Planning:** `DEVELOPMENT-PLAN.md` and work orders in `docs/planning/`, gate scripts in `scripts/`, `CLAUDE.md`
   - **Midstream planning:** `.vibeos/findings-registry.json` (audit findings), `.vibeos/baselines/` (quality baseline), `ACCEPTED-RISKS.md`
-  - **Build:** Source code, test files, prompt or instruction files when behavior changes are in scope, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state)
+  - **Build:** Source code, test files, prompt or instruction files when behavior changes are in scope, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state), `.vibeos/session-state.json` (active or last autonomous session)
   - "All plugin state lives in the `.vibeos/` directory. For the full list, see `docs/FILE-INVENTORY.md` or run `/vibeos:help files`."
 
 For any term not listed above, read the glossary in `docs/USER-COMMUNICATION-CONTRACT.md` and explain it with the same pattern: plain English definition, why it matters, example.

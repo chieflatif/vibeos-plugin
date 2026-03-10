@@ -15,7 +15,7 @@ Parse `$ARGUMENTS` to determine the subcommand:
 
 ### Subcommand: Run Gates (default)
 
-If `$ARGUMENTS` is a phase name (`pre_commit`, `wo_exit`, `full_audit`, `post_deploy`, `session_start`), `--wo`, or empty:
+If `$ARGUMENTS` is a phase name (`pre_commit`, `wo_exit`, `full_audit`, `post_deploy`, `session_start`, `session_end`), `--wo`, or empty:
 
 1. **Determine the phase** from `$ARGUMENTS`:
    - If user specifies a phase (e.g., `pre_commit`, `wo_exit`, `full_audit`), use it
@@ -102,6 +102,7 @@ If `$ARGUMENTS` starts with `disable`:
 | `full_audit` | Comprehensive compliance check — includes wo_exit + OWASP, PII, tenant isolation |
 | `post_deploy` | After deployment — smoke tests, health checks |
 | `session_start` | Session prerequisites — tool availability |
+| `session_end` | End-of-session cleanup and closeout checks |
 
 ## Communication Contract
 

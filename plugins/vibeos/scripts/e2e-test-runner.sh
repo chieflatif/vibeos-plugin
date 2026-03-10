@@ -341,6 +341,36 @@ fi
 echo ""
 
 # ============================================================
+# Test 12: Session Commands & Autonomous Override
+# ============================================================
+echo "=== Test 12: Session Commands & Autonomous Override ==="
+
+if [ -f "$PLUGIN_DIR/skills/autonomous/SKILL.md" ] && [ -f "$PLUGIN_DIR/skills/session-audit/SKILL.md" ]; then
+  log_result "Session command skills" "PASS" "autonomous and session-audit skills found"
+else
+  log_result "Session command skills" "FAIL" "autonomous or session-audit skill missing"
+fi
+
+if grep -q "session_override" "$PLUGIN_DIR/skills/build/SKILL.md" && grep -q "session-state.json" "$PLUGIN_DIR/skills/build/SKILL.md"; then
+  log_result "Autonomous session wiring" "PASS" "Build flow tracks autonomous session override and session state"
+else
+  log_result "Autonomous session wiring" "FAIL" "Build flow missing session override or session state wiring"
+fi
+
+if grep -q "session-audit" "$PLUGIN_DIR/hooks/scripts/intent-router.sh" && grep -q "autonomous" "$PLUGIN_DIR/hooks/scripts/intent-router.sh"; then
+  log_result "Intent routing for session commands" "PASS" "Intent router recognizes autonomous and session-audit requests"
+else
+  log_result "Intent routing for session commands" "FAIL" "Intent router missing autonomous or session-audit patterns"
+fi
+
+if grep -q "/autonomous" "$PLUGIN_DIR/../../README.md" && grep -q "/session-audit" "$PLUGIN_DIR/../../README.md"; then
+  log_result "README session commands" "PASS" "README documents the two new commands"
+else
+  log_result "README session commands" "FAIL" "README missing autonomous or session-audit command docs"
+fi
+echo ""
+
+# ============================================================
 # Summary
 # ============================================================
 TOTAL=$((PASS_COUNT + FAIL_COUNT + SKIP_COUNT))

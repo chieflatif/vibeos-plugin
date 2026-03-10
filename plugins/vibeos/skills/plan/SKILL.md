@@ -612,6 +612,9 @@ Present three options in plain English:
 Make a recommendation:
 > "I recommend **Option B** (stop after every phase) for this project because [reason based on project complexity, team size, and risk level]. You can change this anytime by saying 'change autonomy level' during a check-in."
 
+Also explain:
+> "If you later want me to stop routine check-ins and just keep building until I hit a real blocker, you can use `/vibeos:autonomous` as a temporary full-autonomous session override."
+
 Store the selection in `.vibeos/config.json`:
 
 ```json

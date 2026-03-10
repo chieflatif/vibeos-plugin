@@ -41,6 +41,8 @@ Examples:
 | "I want to build a booking app for dog groomers" | Starts discovery and helps shape the product |
 | "Make a plan for this" | Creates a phased development plan |
 | "Keep going" | Continues the build loop |
+| "Go autonomous" | Puts VibeOS back into full autonomous session mode |
+| "Audit this session" | Reviews everything completed in the current or last build session |
 | "Check the code quality" | Runs quality gates and explains the result |
 | "What is ratcheting?" | Explains the concept in plain English |
 | "Help me understand this codebase" | Audits the project and maps what exists |
@@ -51,6 +53,7 @@ Examples:
 - **Planning** — Breaks the work into phases and work orders so progress stays organized
 - **Building** — Writes tests first, then implements the feature
 - **Quality Checks** — Runs automated checks and audits so problems get caught early
+- **Session Audits** — Reviews the current or most recent build session end-to-end so you can close out autonomous work with confidence
 - **Anti-Drift Anchors** — Keeps the build tied to the product promise, engineering standards, and current evidence instead of slowly drifting off course
 - **Prompt Engineering Standards** — Routes prompt and agent-instruction changes through a dedicated prompt-engineering path using the embedded Prompt Engineering Bible
 - **Progress Guidance** — Tells you what is happening, what is done, and what should happen next
@@ -164,6 +167,8 @@ VibeOS will audit your code, identify issues, and create a remediation plan befo
 - "What's the status?" — project dashboard
 - "Check the code quality" — run quality gates
 - "Continue building" — resume the build loop
+- "Go autonomous" — switch back into full autonomous session mode
+- "Audit this session" — run a closeout review of the current or last build session
 - "What is ratcheting?" — explain any concept
 - "What should I do next?" — recommend the next step
 - "Explain this in simple terms" — simplify technical language
@@ -177,7 +182,9 @@ Slash commands still work if you prefer them, but they are optional:
 | `/discover` | Product discovery — idea to product artifacts |
 | `/plan` | Generate development plan with governance |
 | `/build` | Autonomous build loop |
+| `/autonomous` | Full autonomous session override |
 | `/audit` | Run full audit cycle |
+| `/session-audit` | Audit the current or last build session |
 | `/gate` | Run quality gates |
 | `/wo` | Work order management |
 | `/status` | Project dashboard |
@@ -193,7 +200,7 @@ your-project/
 ├── .claude/
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
-│   ├── skills/            ← 9 skills (discover, plan, build, etc.)
+│   ├── skills/            ← 11 skills (discover, plan, build, autonomous, etc.)
 │   ├── agents/            ← 13 specialized subagents
 │   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
 ├── .vibeos/
@@ -252,6 +259,22 @@ It creates a few simple anchor documents during discovery:
 - a deviation log for any deliberate compromises
 
 That gives the system a memory of what it is trying to protect as it keeps building.
+
+### How do I send VibeOS back into full autonomous mode?
+
+Say:
+
+> "Go autonomous"
+
+That tells VibeOS to stop routine check-ins for the current session and keep building until it hits a real blocker, needs a decision, or finishes the available work.
+
+### How do I audit everything it did in a session?
+
+Say:
+
+> "Audit this session"
+
+VibeOS will review the work orders completed in that session, re-run verification, check for drift, and save a session audit report.
 
 ### How does VibeOS keep prompt and agent behavior high quality?
 

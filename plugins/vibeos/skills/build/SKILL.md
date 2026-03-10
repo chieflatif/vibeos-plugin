@@ -125,8 +125,27 @@ Read `.vibeos/config.json` if it exists:
 - `autonomy.level = "wo"` — pause after this WO completes
 - `autonomy.level = "phase"` — continue until phase completes
 - `autonomy.level = "major"` — continue until a major decision is needed
+- `autonomy.session_override.mode = "autonomous"` with `active = true` — temporarily suppress routine check-ins and keep building until blocked, complete, or explicitly stopped
 
 Default to "wo" if config doesn't exist.
+
+### Step 2b: Initialize or Refresh Session State
+
+Read `.vibeos/session-state.json` if it exists.
+
+If the autonomous session override is active:
+1. Create `.vibeos/session-state.json` if it does not exist
+2. Ensure it contains:
+   - `session_id`
+   - `mode`
+   - `active`
+   - `started_at`
+   - `last_updated`
+   - `started_from_wo`
+   - `completed_wos`
+   - `phase_checkpoints`
+3. If it already exists, preserve `completed_wos` and `phase_checkpoints`, update `last_updated`, and keep `active: true`
+4. If `.vibeos/build-log.md` does not exist, create it before logging any session events
 
 ### Step 3: Set Agent Identity
 
@@ -443,6 +462,10 @@ After all agents succeed:
      > - [finding title] (deferred since WO-NNN)
      > - [finding title] (deferred since WO-NNN)
      > Run `/vibeos:status` to see the full list."
+7. If `.vibeos/session-state.json` exists and the session is active:
+   - append this WO to `completed_wos` with WO number, title, completion time, and 1-line summary
+   - update `last_updated`
+   - if a phase checkpoint was run during this WO, append it to `phase_checkpoints`
 
 Report to user:
 > "WO-NNN ([title]) is complete.
@@ -466,7 +489,7 @@ Report to user:
 
 After WO completion, determine whether to continue with the next WO.
 
-**11a. Read autonomy config** from `.vibeos/config.json` (default: "wo").
+**11a. Read autonomy config** from `.vibeos/config.json` (default: "wo"), including any `autonomy.session_override`.
 
 **11b. Detect phase boundary:**
 - Read the current WO's phase from DEVELOPMENT-PLAN.md
@@ -474,6 +497,19 @@ After WO completion, determine whether to continue with the next WO.
 - If the next WO is in a different phase: this is a phase boundary
 
 **11c. Apply autonomy rules:**
+
+**If `autonomy.session_override.mode = "autonomous"` and `active = true`:**
+- Continue automatically to the next eligible WO without routine human check-ins
+- Do not pause at normal WO boundaries
+- If a phase boundary is reached, run the checkpoint flow automatically before entering the next phase
+- If the checkpoint passes, continue automatically into the next phase
+- Pause only if one of these happens:
+  - investigator returns BLOCK
+  - an escalation or explicit risk decision is required
+  - the automatic checkpoint finds a blocking regression
+  - no eligible WOs remain
+  - the user explicitly says stop, pause, or change autonomy
+- When pausing under this mode, explain that the pause is required by the governance rules, not a routine check-in
 
 **If level = "wo":** Stop. Report completion and wait for user to say "continue" or "proceed".
 
@@ -504,7 +540,13 @@ Before looping back to Step 1:
 
 **11e. Human check-in report:**
 
-When pausing (any autonomy level), generate a check-in report:
+When pausing (any autonomy level), generate a check-in report.
+
+If an autonomous session override is active and the pause is required, lead with:
+
+> "I stayed in full autonomous mode until I hit something that needs your decision or review. This pause is required by the rules, not a routine progress check-in."
+
+Then provide the standard report:
 
 > **Build Progress Check-in**
 >
@@ -529,10 +571,10 @@ When pausing (any autonomy level), generate a check-in report:
 >    - Pros: keeps the roadmap aligned with what you want now
 >    - Cons: adds planning time before more code is written
 >    - Technical note: this updates DEVELOPMENT-PLAN.md and WO-INDEX.md before continuing
-> 3. **Change autonomy** — switch between work-order, phase, or major-decision pauses.
+> 3. **Change autonomy** — switch between work-order, phase, major-decision, or full autonomous session mode.
 >    - Pros: better matches how hands-on you want the system to be
 >    - Cons: may create more check-ins or fewer opportunities to redirect early
->    - Technical note: this updates the autonomy setting in `.vibeos/config.json`
+>    - Technical note: this updates the autonomy setting or session override in `.vibeos/config.json`
 > 4. **Redirect** — work on something different by creating a new WO.
 >    - Pros: lets you respond to a new priority immediately
 >    - Cons: can interrupt the current roadmap and create dependency churn
@@ -547,15 +589,15 @@ When pausing (any autonomy level), generate a check-in report:
 **On user response:**
 - **Continue:** loop back to Step 1 with next eligible WO
 - **Adjust plan:** ask user for changes, update DEVELOPMENT-PLAN.md and WO-INDEX.md, then loop back to Step 1
-- **Change autonomy:** present the 3 levels, save selection to `.vibeos/config.json`, then loop back to Step 1
+- **Change autonomy:** present the 3 negotiated levels plus the temporary full autonomous session override, save selection to `.vibeos/config.json`, then loop back to Step 1
 - **Redirect:** create a new WO using the WO template from `reference/governance/WO-TEMPLATE.md.ref`, add to plan, then build it
-- **Stop:** log session end to build-log.md, report final progress summary, exit
+- **Stop:** log session end to build-log.md, clear any active autonomous session override, mark `.vibeos/session-state.json` inactive with an `ended_at` timestamp, report final progress summary, exit
 
 Log the check-in: `[timestamp] check-in WO-NNN [user-choice]`
 
 **11f. Loop or stop:**
 - If continuing: loop back to Step 1 with the next eligible WO
-- If stopping: report final progress summary and save build state
+- If stopping: report final progress summary, clear any active autonomous session override, mark `.vibeos/session-state.json` inactive with `ended_at`, and save build state
 
 ## Error Recovery
 
@@ -603,6 +645,7 @@ The build log is append-only — never overwrite previous entries.
 | Artifact | Path | Purpose |
 |---|---|---|
 | Build log | .vibeos/build-log.md | Append-only execution history |
+| Session state | .vibeos/session-state.json | Tracks the active or most recent autonomous build session |
 | Checkpoint | .vibeos/checkpoints/WO-NNN.json | Resume state (deleted after WO completes) |
 | Agent marker | .vibeos/current-agent.txt | Current agent identity for hooks |
 | Test files | {test_dir}/ | TDD tests written by tester agent |

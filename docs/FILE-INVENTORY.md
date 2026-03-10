@@ -6,7 +6,7 @@ All files the plugin creates in your project, organized by when they appear.
 
 | File | Purpose |
 |---|---|
-| `.vibeos/config.json` | Plugin configuration and onboarding state |
+| `.vibeos/config.json` | Plugin configuration, onboarding state, and autonomy preferences |
 | `project-definition.json` | Machine-readable project definition with confidence levels |
 | `docs/product/PROJECT-IDEA.md` | Raw user intent capture (greenfield only) |
 | `docs/product/PRODUCT-BRIEF.md` | One-page product summary (greenfield only) |
@@ -31,7 +31,7 @@ All files the plugin creates in your project, organized by when they appear.
 | `scripts/architecture-rules.json` | Architecture enforcement rules |
 | `scripts/*.sh` | Quality gate scripts (copied from plugin) |
 | `CLAUDE.md` | Agent instructions for your project |
-| `.vibeos/config.json` | Updated with autonomy preference |
+| `.vibeos/config.json` | Updated with autonomy preference and any temporary autonomous-session override |
 
 ### Midstream-Specific (existing codebases)
 
@@ -51,6 +51,7 @@ All files the plugin creates in your project, organized by when they appear.
 | Test files | Tests written from spec (TDD — tests first, then code) |
 | Prompt or instruction files | Updated when a WO changes agent behavior, using the prompt-engineer workflow |
 | `.vibeos/build-log.md` | Build history with decisions and outcomes |
+| `.vibeos/session-state.json` | Tracks the active or most recent autonomous build session |
 | `.vibeos/checkpoints/WO-NNN.json` | Build progress checkpoint (enables mid-WO resume) |
 | `.vibeos/baselines/midstream-baseline.json` | Updated after convergence cycles |
 | `docs/planning/WO-NNN-*.md` | Updated with completion evidence |
@@ -61,6 +62,7 @@ All files the plugin creates in your project, organized by when they appear.
 |---|---|
 | `.vibeos/audit-reports/` | Individual audit agent reports |
 | `.vibeos/consensus/` | Cross-agent consensus results |
+| `.vibeos/session-audits/` | Session closeout audit reports |
 
 ## Plugin State (`.vibeos/` directory)
 

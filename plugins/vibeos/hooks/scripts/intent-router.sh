@@ -171,6 +171,18 @@ classify_intent() {
 
   # --- Intent patterns (ordered by specificity) ---
 
+  # Full autonomous mode override
+  if printf '%s' "$lower" | grep -qE '\b(go autonomous|stay autonomous|full autonomous|autonomous mode|run autonomously|work autonomously|stop checking in|no more check.ins|dont check in|don.t check in)\b'; then
+    echo "autonomy|autonomous|high"
+    return
+  fi
+
+  # Session audit / session closeout review
+  if printf '%s' "$lower" | grep -qE '\b(session audit|audit this session|audit the session|review this session|review the session|close out this session|session review)\b'; then
+    echo "session-review|session-audit|high"
+    return
+  fi
+
   # Continue / Resume — highest priority when building
   if printf '%s' "$lower" | grep -qE '\b(continue|keep going|resume|carry on|pick up where|next one|go ahead)\b'; then
     echo "continue|build|high"
