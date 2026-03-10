@@ -42,6 +42,7 @@
 - **Why freshness matters here:** <!-- External API, framework version, auth, security, infra, or "N/A" -->
 - **Sources to verify before coding:** <!-- Link or reference docs/research/RESEARCH-REGISTRY.md entries, or "N/A" -->
 - **Last verified on:** <!-- Date or "N/A" -->
+- **Prompt engineering profile (if prompt/agent work):** <!-- Reference Prompt Engineering Bible profile from the VibeOS registry, or "N/A" -->
 
 ## Approved Deviations
 
@@ -71,6 +72,7 @@ Use `docs/planning/WO-AUDIT-FRAMEWORK.md` as the standard prompt set. Every chec
 - Are we drifting from the product promise or intended experience?
 - Are we drifting from the engineering principles or normalizing bad shortcuts?
 - Are any important decisions relying on stale knowledge instead of current evidence?
+- If this WO changes prompts or agent instructions, was the Prompt Engineering Bible applied through the prompt-engineer workflow?
 - What edge cases, regressions, rollback paths, and monitoring gaps exist?
 - What tests, fixtures, or validations are still missing?
 

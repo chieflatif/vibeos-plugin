@@ -308,6 +308,39 @@ fi
 echo ""
 
 # ============================================================
+# Test 11: Prompt Engineering Integration
+# ============================================================
+echo "=== Test 11: Prompt Engineering Integration ==="
+
+PROMPT_BIBLE_DIR="$PLUGIN_DIR/reference/prompt-engineering-bible"
+
+if [ -f "$PLUGIN_DIR/agents/prompt-engineer.md" ]; then
+  log_result "Prompt engineer agent" "PASS" "agents/prompt-engineer.md found"
+else
+  log_result "Prompt engineer agent" "FAIL" "agents/prompt-engineer.md missing"
+fi
+
+if [ -f "$PROMPT_BIBLE_DIR/README.md" ] && [ -f "$PROMPT_BIBLE_DIR/registry.yaml" ] && [ -f "$PROMPT_BIBLE_DIR/LICENSE" ]; then
+  DOC_COUNT=$(find "$PROMPT_BIBLE_DIR/bible" -type f 2>/dev/null | wc -l | tr -d ' ')
+  log_result "Prompt Engineering Bible bundle" "PASS" "$DOC_COUNT bundled reference files plus attribution"
+else
+  log_result "Prompt Engineering Bible bundle" "FAIL" "README, registry, or LICENSE missing"
+fi
+
+if grep -q "prompt-engineer" "$PLUGIN_DIR/skills/build/SKILL.md" && grep -q "Prompt engineering profile" "$PLUGIN_DIR/scripts/validate-work-order.sh" && grep -q "Prompt Engineering Readiness" "$PLUGIN_DIR/agents/investigator.md"; then
+  log_result "Prompt engineering wiring" "PASS" "Investigator, build flow, and WO validator enforce prompt-engineering routing"
+else
+  log_result "Prompt engineering wiring" "FAIL" "Investigator, build flow, or WO validator missing prompt-engineering wiring"
+fi
+
+if grep -q "Prompt Engineering Standards" "$PLUGIN_DIR/../../README.md"; then
+  log_result "README prompt guidance" "PASS" "README explains prompt-engineering behavior in plain English"
+else
+  log_result "README prompt guidance" "FAIL" "README missing prompt-engineering explanation"
+fi
+echo ""
+
+# ============================================================
 # Summary
 # ============================================================
 TOTAL=$((PASS_COUNT + FAIL_COUNT + SKIP_COUNT))

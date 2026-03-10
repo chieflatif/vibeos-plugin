@@ -49,6 +49,7 @@ All files the plugin creates in your project, organized by when they appear.
 |---|---|
 | Source code files | Implementation per work order spec |
 | Test files | Tests written from spec (TDD — tests first, then code) |
+| Prompt or instruction files | Updated when a WO changes agent behavior, using the prompt-engineer workflow |
 | `.vibeos/build-log.md` | Build history with decisions and outcomes |
 | `.vibeos/checkpoints/WO-NNN.json` | Build progress checkpoint (enables mid-WO resume) |
 | `.vibeos/baselines/midstream-baseline.json` | Updated after convergence cycles |

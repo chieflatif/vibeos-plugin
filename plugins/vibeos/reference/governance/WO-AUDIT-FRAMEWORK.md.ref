@@ -35,6 +35,7 @@ In addition to the standard audit questions, every checkpoint must explicitly an
 2. Are we drifting away from `docs/ENGINEERING-PRINCIPLES.md` — the build standard, reliability bar, or anti-shortcut rules?
 3. Are any high-impact decisions based on stale memory, guessed best practices, or uncited external knowledge instead of current evidence from `docs/research/RESEARCH-REGISTRY.md`?
 4. If there is a deliberate compromise, is it logged in `docs/decisions/DEVIATIONS.md` with scope, impact, and review date?
+5. If the work changes prompts or agent instructions, was the embedded Prompt Engineering Bible applied through the `prompt-engineer` workflow?
 
 ## Planning Audit
 

@@ -1,0 +1,11 @@
+version: 1.0.0
+artifacts:
+  - name: ""
+    canonical_path: ""
+    owner: ""
+    version: ""
+    dependent_systems: []
+    validation_status: ""
+    last_validated: ""
+    integrity_reference: ""
+    notes: ""

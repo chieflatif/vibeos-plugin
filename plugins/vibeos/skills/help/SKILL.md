@@ -37,6 +37,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 > - `anchors` — The product and engineering documents that keep the build from drifting
 > - `product-drift` — How VibeOS checks that the work still matches the original promise
 > - `research-freshness` — Why important technical decisions should use current evidence
+> - `prompt-engineering` — How VibeOS governs prompts and agent behavior changes
 > - `convergence` — How the build loop reaches completion
 > - `baselines` — Quality snapshots and tracking
 > - `ratcheting` — One-way quality improvement
@@ -101,6 +102,8 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 
 - **research-freshness**: "Research freshness means not trusting stale model memory for important external decisions. If work depends on APIs, framework versions, auth, billing, infrastructure, or security behavior, VibeOS should look for current evidence and record it in the Research Registry."
 
+- **prompt-engineering**: "Prompt engineering in VibeOS means prompts are treated like behavioral system assets, not casual text. If a work order changes agent prompts, instruction files, `CLAUDE.md`, or other behavior-governing files, VibeOS should route that work through the `prompt-engineer` agent and apply the embedded Prompt Engineering Bible profile that fits the target role."
+
 - **convergence**: "Convergence is the process of fix cycles getting closer to zero issues. After the build agent writes code, auditors review it, and any issues trigger a fix cycle. Convergence controls prevent infinite loops by tracking whether progress is being made."
 
 - **baselines**: "A baseline is a snapshot of your codebase's current quality level — the starting point. For new projects, the baseline is zero issues. For existing codebases (midstream), the baseline captures pre-existing issues so they don't block new work."
@@ -123,7 +126,7 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
   - **Discovery:** `project-definition.json`, product docs in `docs/product/` (PRD, architecture, product anchor), plus `docs/ENGINEERING-PRINCIPLES.md`, `docs/research/RESEARCH-REGISTRY.md`, and `docs/decisions/DEVIATIONS.md`
   - **Planning:** `DEVELOPMENT-PLAN.md` and work orders in `docs/planning/`, gate scripts in `scripts/`, `CLAUDE.md`
   - **Midstream planning:** `.vibeos/findings-registry.json` (audit findings), `.vibeos/baselines/` (quality baseline), `ACCEPTED-RISKS.md`
-  - **Build:** Source code, test files, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state)
+  - **Build:** Source code, test files, prompt or instruction files when behavior changes are in scope, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state)
   - "All plugin state lives in the `.vibeos/` directory. For the full list, see `docs/FILE-INVENTORY.md` or run `/vibeos:help files`."
 
 For any term not listed above, read the glossary in `docs/USER-COMMUNICATION-CONTRACT.md` and explain it with the same pattern: plain English definition, why it matters, example.

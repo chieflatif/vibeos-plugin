@@ -52,6 +52,7 @@ Examples:
 - **Building** — Writes tests first, then implements the feature
 - **Quality Checks** — Runs automated checks and audits so problems get caught early
 - **Anti-Drift Anchors** — Keeps the build tied to the product promise, engineering standards, and current evidence instead of slowly drifting off course
+- **Prompt Engineering Standards** — Routes prompt and agent-instruction changes through a dedicated prompt-engineering path using the embedded Prompt Engineering Bible
 - **Progress Guidance** — Tells you what is happening, what is done, and what should happen next
 - **Zero Technical Debt** — No stubs, no placeholders, no pretending something is finished when it is not
 
@@ -193,12 +194,12 @@ your-project/
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
 │   ├── skills/            ← 9 skills (discover, plan, build, etc.)
-│   ├── agents/            ← 12 specialized subagents
+│   ├── agents/            ← 13 specialized subagents
 │   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
 ├── .vibeos/
 │   ├── scripts/           ← 25 quality gate scripts
 │   ├── decision-engine/   ← 8 decision trees
-│   ├── reference/         ← 40+ annotated reference files
+│   ├── reference/         ← 40+ annotated reference files plus prompt-engineering guidance
 │   └── convergence/       ← Loop control scripts
 └── docs/
     ├── planning/          ← Generated development plan and work orders
@@ -251,6 +252,12 @@ It creates a few simple anchor documents during discovery:
 - a deviation log for any deliberate compromises
 
 That gives the system a memory of what it is trying to protect as it keeps building.
+
+### How does VibeOS keep prompt and agent behavior high quality?
+
+If a work order changes prompts, agent instructions, `CLAUDE.md`, or other behavior-governing files, VibeOS should route that work through its dedicated prompt-engineering path.
+
+That path uses an embedded local snapshot of the Prompt Engineering Bible so prompt changes are treated like governed system assets, not casual copy edits.
 
 ### What should I type first?
 

@@ -32,6 +32,7 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     echo "  - Anchor Alignment"
     echo "  - Research & Freshness"
     echo "  - Approved Deviations"
+    echo "  - Prompt engineering profile (or explicit N/A)"
     echo "  - Test Strategy (TDD: required before implementation)"
     echo "  - Tasks or Phase"
     echo "  - Status field"
@@ -153,8 +154,10 @@ fi
 
 if [[ -z "$research_freshness_block" ]]; then
     errors+=("Missing 'Research & Freshness' section")
-elif ! echo "$research_freshness_block" | grep -qiE '(Current evidence required|Why freshness matters|Sources to verify|Last verified on)'; then
-    errors+=("'Research & Freshness' must include evidence requirement, source, and verification details (or explicit N/A)")
+elif ! echo "$research_freshness_block" | grep -qiE '(Current evidence required|Why freshness matters|Sources to verify|Last verified on|Prompt engineering profile)'; then
+    errors+=("'Research & Freshness' must include evidence requirement, source, verification details, and prompt engineering profile (or explicit N/A)")
+elif ! echo "$research_freshness_block" | grep -qiE 'Prompt engineering profile'; then
+    errors+=("'Research & Freshness' must include a 'Prompt engineering profile' line (use a profile name or explicit N/A)")
 fi
 
 if [[ -z "$approved_deviations_block" ]]; then

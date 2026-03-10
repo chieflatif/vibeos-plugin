@@ -1,0 +1,106 @@
+version: 1.0.0
+upstream:
+  repo: https://github.com/chieflatif/prompt-engineering-bible
+  commit: 409b78c96d0231673cad911d8a1a03036dc19da0
+  profile: curated-local-snapshot
+
+core_docs:
+  - bible/00-positioning/first-principles.md
+  - bible/01-core/prompt-contracts-and-structured-semantics.md
+  - bible/01-core/prompt-lifecycle-and-governance.md
+  - bible/01-core/evaluation-framework.md
+  - bible/01-core/context-engineering.md
+  - bible/01-core/voice-and-interaction-design.md
+  - bible/04-profiles/generic.md
+
+templates:
+  - bible/05-templates/system-prompt-template.md
+  - bible/05-templates/prompt-registry-template.yaml
+
+agent_type_profiles:
+  orchestrator:
+    bible_docs:
+      - bible/02-agent-types/chatbot-assistant.md
+      - bible/02-agent-types/orchestrator.md
+    applies_to:
+      - top-level routing and orchestration prompts
+      - front-door agent behavior
+      - user-facing workflow coordinators
+
+  coding-worker:
+    bible_docs:
+      - bible/02-agent-types/coding-agent.md
+      - bible/02-agent-types/specialist-worker.md
+    applies_to:
+      - backend
+      - frontend
+      - tester
+      - doc-writer
+      - prompt-engineer
+
+  validator-worker:
+    bible_docs:
+      - bible/02-agent-types/validator-reviewer.md
+      - bible/02-agent-types/specialist-worker.md
+    applies_to:
+      - security-auditor
+      - architecture-auditor
+      - correctness-auditor
+      - test-auditor
+      - evidence-auditor
+      - plan-auditor
+      - product-drift-auditor
+
+  research-worker:
+    bible_docs:
+      - bible/02-agent-types/research-agent.md
+      - bible/02-agent-types/specialist-worker.md
+    applies_to:
+      - investigator
+      - research or source-comparison prompt work
+
+vibeos_agent_map:
+  build-orchestrator:
+    profile: orchestrator
+  discover:
+    profile: orchestrator
+  plan:
+    profile: orchestrator
+  build:
+    profile: orchestrator
+  status:
+    profile: orchestrator
+  help:
+    profile: orchestrator
+  backend:
+    profile: coding-worker
+  frontend:
+    profile: coding-worker
+  tester:
+    profile: coding-worker
+  doc-writer:
+    profile: coding-worker
+  prompt-engineer:
+    profile: coding-worker
+  investigator:
+    profile: research-worker
+  security-auditor:
+    profile: validator-worker
+  architecture-auditor:
+    profile: validator-worker
+  correctness-auditor:
+    profile: validator-worker
+  test-auditor:
+    profile: validator-worker
+  evidence-auditor:
+    profile: validator-worker
+  plan-auditor:
+    profile: validator-worker
+  product-drift-auditor:
+    profile: validator-worker
+
+selection_rules:
+  - If the target artifact creates or changes system prompts, agent prompts, instruction files, prompt registries, or prompt contracts, route through prompt-engineer.
+  - Load all core_docs plus the mapped agent_type_profile docs.
+  - If the target agent type is unclear, infer the closest profile from role, authority, tool policy, and output contract, then state that inference explicitly.
+  - Prompt changes are governed behavioral assets and should carry canonical-source, owner, version, and validation metadata when consequential.

@@ -1,6 +1,6 @@
 ---
 name: build
-description: Autonomous build orchestrator that executes work orders end-to-end. Use when the user says "continue", "keep going", "build the next thing", "resume", "start building", or wants to make progress on the development plan. Dispatches investigator, tester, implementation, and documentation agents in sequence with two-layer quality enforcement (Layer 1 gates + Layer 2 audit agents) and error recovery, while checking for product drift and stale high-impact decisions.
+description: Autonomous build orchestrator that executes work orders end-to-end. Use when the user says "continue", "keep going", "build the next thing", "resume", "start building", or wants to make progress on the development plan. Dispatches investigator, tester, prompt-engineering, implementation, and documentation agents in sequence with two-layer quality enforcement (Layer 1 gates + Layer 2 audit agents) and error recovery, while checking for product drift and stale high-impact decisions.
 argument-hint: "[optional: WO number to build, e.g. 'WO-001']"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
@@ -176,30 +176,40 @@ Dispatch `agents/tester.md` with:
 
 Log: `[timestamp] tester WO-NNN write-tests [count] tests written, all failing`
 
-### Step 6: Dispatch Implementation Agent
+### Step 6: Dispatch Prompt Engineer / Implementation Agent
 
 **Progress banner:**
-> "[Step 3/8] [Backend/Frontend] — Writing the code to make all tests pass..."
+> "[Step 3/8] [Prompt Engineer/Backend/Frontend] — Applying prompt standards where needed and writing the implementation to satisfy the work order..."
 
 Determine which agent to use:
-- Read WO scope to determine if it's backend, frontend, or both
-- If backend: dispatch `agents/backend.md`
-- If frontend: dispatch `agents/frontend.md`
-- If both: dispatch backend first, then frontend
+- Read WO scope and the investigation report to determine if it changes prompt artifacts, backend code, frontend code, or a combination
+- Prompt artifacts include `agents/*.md`, `skills/*/SKILL.md`, `CLAUDE.md`, instruction files, prompt registries, or other behavior-governing prompt assets
+- If prompt artifacts are in scope: dispatch `agents/prompt-engineer.md` first
+- If backend code is in scope: dispatch `agents/backend.md`
+- If frontend code is in scope: dispatch `agents/frontend.md`
+- If both backend and frontend are in scope: run `prompt-engineer` first if needed, then backend, then frontend
 
-Set agent identity before each: `echo "backend" > .vibeos/current-agent.txt`
+Set agent identity before each dispatch:
+- `echo "prompt-engineer" > .vibeos/current-agent.txt`
+- `echo "backend" > .vibeos/current-agent.txt`
+- `echo "frontend" > .vibeos/current-agent.txt`
 
-Dispatch with:
+Dispatch `agents/prompt-engineer.md` with:
+- **Input:** WO file path, investigation report, target prompt artifact paths, target agent type
+- **Purpose:** Apply the embedded Prompt Engineering Bible before any prompt or agent-instruction changes are written
+
+Dispatch implementation agents with:
 - **Input:** WO file path, test file paths, investigation report
 - **Purpose:** Implement code to make tests pass
 
 **On result:**
+- If `prompt-engineer` ran, verify its report names the Bible profile used and the prompt files updated
 - Check test results — all tests should pass
 - Check self-check results — no stubs, no secrets, types present
 - If tests still failing: retry once with specific failure details
 - If retry fails: escalate to user
 
-Log: `[timestamp] backend WO-NNN implement [PASS|FAIL] [test count] tests`
+Log: `[timestamp] [agent-name] WO-NNN implement [PASS|FAIL] [details]`
 
 ### Step 7: Run Quality Gates
 
@@ -403,7 +413,7 @@ Save the audit report to `.vibeos/audit-reports/WO-NNN-[timestamp].md`.
 Set agent identity: `echo "doc-writer" > .vibeos/current-agent.txt`
 
 Dispatch `agents/doc-writer.md` with:
-- **Input:** WO file path, implementation report, test report
+- **Input:** WO file path, implementation report, test report, prompt-engineering report (if any)
 - **Purpose:** Update documentation, WO file, and tracking docs
 
 **On result:**
@@ -596,5 +606,6 @@ The build log is append-only — never overwrite previous entries.
 | Checkpoint | .vibeos/checkpoints/WO-NNN.json | Resume state (deleted after WO completes) |
 | Agent marker | .vibeos/current-agent.txt | Current agent identity for hooks |
 | Test files | {test_dir}/ | TDD tests written by tester agent |
+| Prompt assets | {prompt_paths}/ | Behavior-governing prompt files updated by prompt-engineer when a WO changes agent behavior |
 | Source files | {source_dirs}/ | Implementation by backend/frontend agents |
 | Updated WO | docs/planning/ | Implementation notes and evidence |
