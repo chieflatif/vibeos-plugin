@@ -124,6 +124,19 @@ fi
 echo ""
 
 # ============================================================
+# Test 3b: Communication Contract Validation
+# ============================================================
+echo "=== Test 3b: Communication Contract ==="
+
+if bash "$PLUGIN_DIR/scripts/validate-communication-contract.sh" "$PLUGIN_DIR" > /dev/null 2>&1; then
+  log_result "Communication contract validation" "PASS" "Decision prompts require plain-English framing, pros/cons, and recommendations"
+else
+  COMM_RESULT=$(bash "$PLUGIN_DIR/scripts/validate-communication-contract.sh" "$PLUGIN_DIR" 2>&1 | tail -1)
+  log_result "Communication contract validation" "FAIL" "${COMM_RESULT:-validation failed}"
+fi
+echo ""
+
+# ============================================================
 # Test 4: Skill Validation
 # ============================================================
 echo "=== Test 4: Skill Validation ==="

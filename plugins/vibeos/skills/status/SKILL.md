@@ -63,3 +63,5 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 Skill-specific addenda:
 - Keep the output scannable — use tables and bullet points
 - Flag blockers proactively
+- Explain the recommended next step in plain English first; add technical detail only when it helps the user understand why
+- If a choice is needed, present options with pros, cons, and a recommendation

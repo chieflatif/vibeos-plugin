@@ -19,6 +19,8 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 **Skill-specific addenda:**
 - Report progress as each gate suite and auditor completes
 - Explain any ratchet violations clearly: what regressed, by how much, which files
+- Explain outcomes in plain English first; add technical detail only when it helps the user understand the regression
+- Every checkpoint decision must include options, pros, cons, and a recommendation
 
 ## Prerequisites
 
@@ -134,9 +136,18 @@ If ratchet fails, report which categories regressed with consequences:
 > - New findings detected: [finding IDs] (not in baseline, even though total count unchanged)
 >
 > Your options:
-> 1. **Fix the regressions** — I'll identify which changes introduced the new issues and fix them. This is the recommended path because it keeps quality improving.
-> 2. **Review and accept** — You review each new finding and decide: some may be acceptable trade-offs. Accepted findings update the baseline. This means these issues become the new 'normal' and won't be flagged again.
-> 3. **Roll back and rebuild** — Revert the changes that introduced regressions and try a different approach. Most thorough but costs more time.
+> 1. **Fix the regressions** — I'll identify the changes that introduced the new issues and correct them.
+>    - Pros: keeps quality improving and preserves the ratchet
+>    - Cons: adds more work before the phase can close
+>    - Technical note: the current phase baseline stays unchanged until the regressions are cleared
+> 2. **Review and accept** — You inspect each new finding and explicitly choose which ones to keep.
+>    - Pros: useful when a trade-off is intentional and understood
+>    - Cons: those issues become the new normal and will stop being flagged as regressions
+>    - Technical note: accepted findings update the baseline
+> 3. **Roll back and rebuild** — Revert the changes that introduced regressions and try a different implementation path.
+>    - Pros: cleanest recovery path when the current approach is fundamentally flawed
+>    - Cons: loses recent work and takes longer
+>    - Technical note: this restores the codebase to the previous known-good state before rebuilding
 >
 > I recommend option 1 because regressions are usually unintentional and fixing them now prevents compounding issues in later phases."
 

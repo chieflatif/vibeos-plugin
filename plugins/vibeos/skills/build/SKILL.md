@@ -18,6 +18,8 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 
 **Skill-specific addenda:**
 - Never ask "what do you want to build?" — read the plan and execute
+- Explain results in plain English first; add technical detail after that only when it helps the user understand the impact
+- Every escalation or check-in choice must include options, pros, cons, and a recommendation
 
 ## First-Run Onboarding
 
@@ -98,8 +100,14 @@ If `$ARGUMENTS` contains a WO number, use that. Otherwise:
    > "Phase 0 (remediation) has [N] incomplete fix-now items. These critical issues must be resolved before starting feature work. Building WO-NNN ([title]) next.
    >
    > Your options:
-   > 1. **Build Phase 0 first** (recommended) — Fix the [N] critical issues before feature work. Your codebase starts clean and these issues won't compound as you add code.
-   > 2. **Skip Phase 0 for now** — Start feature work immediately. The [N] issues remain unfixed: [top 2-3 finding summaries]. This will be logged as a risk acceptance. You can return to Phase 0 later.
+   > 1. **Build Phase 0 first** — Fix the [N] critical issues before feature work.
+   >    - Pros: your codebase starts cleaner and the issues will not compound as you add code
+   >    - Cons: delays feature work in the short term
+   >    - Technical note: Phase 0 is the remediation phase for fix-now findings
+   > 2. **Skip Phase 0 for now** — Start feature work immediately while leaving the [N] issues unresolved.
+   >    - Pros: fastest path to visible feature progress
+   >    - Cons: unresolved issues may spread into new code and this will be logged as an accepted risk
+   >    - Technical note: the skipped Phase 0 work orders remain in the plan and can be resumed later
    >
    > I recommend option 1 because [specific reasoning based on finding severity — e.g., 'the security findings could expose user data if exploited']."
 
@@ -280,9 +288,18 @@ bash ".vibeos/convergence/baseline-check.sh" ratchet \
 > "Quality checks are still failing after 3 attempts. Here's what's failing: [specific issues].
 >
 > Your options:
-> 1. **Try a different approach** — I'll rethink how to implement this and try again. This may resolve the issue but will use more time.
-> 2. **Skip these checks for now** — Your code will be committed without passing [gate-name]. This means [specific risk, e.g., "type annotations won't be verified, which could let type-related bugs through"]. You can re-run these checks later with `/vibeos:gate`.
-> 3. **Fix it yourself** — I'll show you exactly what's failing and where, so you can fix it directly. I'll re-run the checks when you're ready.
+> 1. **Try a different approach** — I'll rethink the implementation and try again.
+>    - Pros: best chance of preserving quality without asking you to step in
+>    - Cons: uses more time and may still fail
+>    - Technical note: this triggers another implementation plus gate-validation cycle
+> 2. **Skip these checks for now** — I'll move forward without passing [gate-name].
+>    - Pros: fastest path to continuing the work
+>    - Cons: [specific risk, e.g., "type annotations won't be verified, which could let type-related bugs through"]
+>    - Technical note: the gate remains failing until rerun and should be treated as deferred risk
+> 3. **Fix it yourself** — I'll show you exactly what's failing and where, then wait for your change.
+>    - Pros: you keep full control over the fix
+>    - Cons: requires manual work from you
+>    - Technical note: I'll re-run the same gate after your update
 >
 > I recommend option 1 because [reason based on which gates are failing and their severity]."
 
@@ -355,9 +372,18 @@ For each fix cycle iteration:
 > Fix attempts: [what was tried]
 >
 > Your options:
-> 1. **Try a different approach** — I'll use a different strategy to fix these. May resolve them but no guarantee, and will use more time.
-> 2. **Accept these findings** — These issues will be documented as known and tracked. [If security]: This means [specific security risk] remains in your code until fixed later. [If architecture]: This means [specific maintenance risk]. They won't block future work but will appear in phase audits.
-> 3. **Fix yourself** — I'll give you the exact file locations and details. You fix them, I'll re-run the audit to verify.
+> 1. **Try a different approach** — I'll use a different strategy and run the audit again.
+>    - Pros: best chance of clearing the findings without leaving risk behind
+>    - Cons: uses more time and may still not resolve everything
+>    - Technical note: this starts another fix-and-audit cycle
+> 2. **Accept these findings** — Keep moving and track these issues as known risks.
+>    - Pros: preserves momentum on the current work order
+>    - Cons: [If security]: [specific security risk] remains in the code. [If architecture]: [specific maintenance risk] remains and may resurface later
+>    - Technical note: accepted findings remain in the audit trail and will appear again at checkpoints
+> 3. **Fix it yourself** — I'll give you exact file locations and details, then verify your changes.
+>    - Pros: you control the exact remediation
+>    - Cons: requires manual intervention from you
+>    - Technical note: I'll re-run the audit after your changes
 >
 > I recommend [X] because [specific reasoning based on finding severity and project context]."
 
@@ -484,11 +510,28 @@ When pausing (any autonomy level), generate a check-in report:
 > [1-sentence description of what this WO will build]
 >
 > **Your options:**
-> 1. **Continue** — proceed with the next WO
-> 2. **Adjust plan** — modify WO scope, reorder priorities, or add new WOs
-> 3. **Change autonomy** — switch between wo/phase/major levels
-> 4. **Redirect** — work on something different (creates new WO)
-> 5. **Stop** — save progress and end the build session
+> 1. **Continue** — move straight into the next work order.
+>    - Pros: keeps momentum and reduces context switching
+>    - Cons: you review less between steps
+>    - Technical note: the build loop immediately selects the next eligible WO from the plan
+> 2. **Adjust plan** — change scope, reorder priorities, or add new work orders.
+>    - Pros: keeps the roadmap aligned with what you want now
+>    - Cons: adds planning time before more code is written
+>    - Technical note: this updates DEVELOPMENT-PLAN.md and WO-INDEX.md before continuing
+> 3. **Change autonomy** — switch between work-order, phase, or major-decision pauses.
+>    - Pros: better matches how hands-on you want the system to be
+>    - Cons: may create more check-ins or fewer opportunities to redirect early
+>    - Technical note: this updates the autonomy setting in `.vibeos/config.json`
+> 4. **Redirect** — work on something different by creating a new WO.
+>    - Pros: lets you respond to a new priority immediately
+>    - Cons: can interrupt the current roadmap and create dependency churn
+>    - Technical note: the new work is added to the plan as a new work order
+> 5. **Stop** — save progress and end the build session.
+>    - Pros: safe pause point with no lost state
+>    - Cons: progress waits until you resume later
+>    - Technical note: session state is written to the build log and checkpoints are preserved if needed
+>
+> I recommend **Continue** when the current phase is still aligned with your priorities and there are no blockers. If priorities changed, choose **Adjust plan** instead."
 
 **On user response:**
 - **Continue:** loop back to Step 1 with next eligible WO

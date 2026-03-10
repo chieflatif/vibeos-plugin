@@ -18,6 +18,8 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 
 Skill-specific addenda:
 - When presenting WO status, include what matters: what's done, what's blocked, what's next
+- Explain outcomes in plain English first; add technical detail only when it helps the user understand the implication
+- If the user must choose, present options with pros, cons, and a recommendation
 
 ## Subcommand Routing
 

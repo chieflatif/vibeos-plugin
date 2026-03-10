@@ -6,6 +6,10 @@ This contract defines how all agents and skills communicate with the user. Every
 
 The goal: keep the user oriented, explain what is happening in plain English, make every recommendation understandable, and guide the user through each step with reasons.
 
+Default explanation pattern:
+- Plain English first — what this means for the user or project
+- Technical detail second — only when it helps the user understand the choice, risk, or implementation
+
 ## Audience
 
 Default audience:
@@ -23,7 +27,7 @@ Assume the user does **not** already understand frameworks, package managers, ma
 
 Start with what happened or what's about to happen in business terms. Technical details come second.
 
-- **Do:** "Your code passed 12 quality checks — it's ready to commit."
+- **Do:** "Your code passed 12 quality checks — it's ready to commit. Technically, that means the gate runner found no blocking issues."
 - **Don't:** "gate-runner.sh executed pre_commit phase with exit code 0."
 
 ### 2. Introduce Every Concept on First Use
@@ -36,7 +40,7 @@ Use the real technical term and explain it in plain language. Never replace the 
 
 ### 3. Present Decisions with Consequences
 
-Every choice includes what happens if the user picks it. Never present bare labels. Always recommend one option with reasoning.
+Every choice includes what happens if the user picks it. Never present bare labels. Always recommend one option with reasoning. If a technical detail matters, explain it after the plain-English summary, not before.
 
 - **Do:** "Skip these quality checks — your code will be committed without verifying type annotations, which could let type-related bugs through. You can re-run them later with `/vibeos:gate`."
 - **Don't:** "Skip gates? (y/n)"
@@ -77,8 +81,9 @@ Tell the user:
 When the user faces a choice:
 1. **Explain each option** in outcome language first, technology second
 2. **State pros and cons** for each option
-3. **Make a recommendation** based on evidence (project goals, constraints, risks)
-4. **Explain your rationale** — why you recommend that option given what you know
+3. **Add a technical note when helpful** — one short sentence explaining the relevant technical detail
+4. **Make a recommendation** based on evidence (project goals, constraints, risks)
+5. **Explain your rationale** — why you recommend that option given what you know
 
 Never present options without recommending one. Never recommend without explaining why.
 
@@ -130,8 +135,14 @@ These are the base schemas for common output types. Skills and agents must confo
 "[Context — what happened and why a decision is needed]
 
 Your options:
-1. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
-2. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
+1. **[Option name]** — [What happens in plain English]. [When to choose this].
+   - Pros: [benefit]
+   - Cons: [tradeoff]
+   - Technical note: [only if helpful]
+2. **[Option name]** — [What happens in plain English]. [When to choose this].
+   - Pros: [benefit]
+   - Cons: [tradeoff]
+   - Technical note: [only if helpful]
 
 I recommend [option] because [specific reasoning based on project context]."
 ```
@@ -140,9 +151,18 @@ I recommend [option] because [specific reasoning based on project context]."
 > Quality checks are still failing after 3 attempts. Here's what's failing: type annotations incomplete in 2 files.
 >
 > Your options:
-> 1. **Try a different approach** — I'll rethink the implementation. This may resolve the issue but will use more time.
-> 2. **Skip these checks** — Your code will be committed without type verification, which could let type-related bugs through. You can re-run later with `/vibeos:gate`.
-> 3. **Fix it yourself** — I'll show you exactly what's failing. I'll re-run checks when you're ready.
+> 1. **Try a different approach** — I'll rethink the implementation and try again.
+>    - Pros: best chance of keeping quality intact without your manual work
+>    - Cons: uses more time
+>    - Technical note: this means another implementation and validation cycle
+> 2. **Skip these checks** — I'll move forward without passing the type check.
+>    - Pros: fastest path
+>    - Cons: type-related bugs could slip through
+>    - Technical note: the type-validation gate will remain failing until rerun
+> 3. **Fix it yourself** — I'll show you exactly what's failing and wait for you.
+>    - Pros: you keep full control over the fix
+>    - Cons: requires your manual intervention
+>    - Technical note: I'll re-run the same gate after your change
 >
 > I recommend option 1 because the type issues are in core API files where bugs would be hardest to catch later.
 
@@ -179,8 +199,14 @@ ESCALATION_DECISION:
 "[Context — what happened and what failed]
 
 Your options:
-1. **[Option name]** — [What happens]. [Consequence for project]. [When to choose this].
-2. **[Option name]** — [What happens]. [Consequence for project]. [When to choose this].
+1. **[Option name]** — [What happens in plain English]. [When to choose this].
+   - Pros: [benefit]
+   - Cons: [tradeoff]
+   - Technical note: [only if helpful]
+2. **[Option name]** — [What happens in plain English]. [When to choose this].
+   - Pros: [benefit]
+   - Cons: [tradeoff]
+   - Technical note: [only if helpful]
 
 I recommend [option] because [specific reasoning]."
 
@@ -188,7 +214,37 @@ DISPOSITION_DECISION:
 "[Finding explanation in plain English]
 - Risk: [what could happen if this isn't fixed]
 - Recommendation: [what to do]
-- What do you want to do? fix now (fix before feature work) / fix later (tracked, reminded periodically) / accept risk (documented, you explain why)"
+
+Your options:
+1. **Fix now** — Resolve it before moving on.
+   - Pros: removes the risk immediately
+   - Cons: slows current feature progress
+   - Technical note: the finding is cleared before the next work order
+2. **Fix later** — Track it and continue for now.
+   - Pros: keeps momentum on current work
+   - Cons: the risk stays in the codebase until scheduled
+   - Technical note: the finding stays in the registry and reminder system
+3. **Accept risk** — Document why you are intentionally leaving it.
+   - Pros: fastest path when the trade-off is intentional
+   - Cons: the risk remains and becomes an explicit project decision
+   - Technical note: accepted risks become part of the audit trail
+
+I recommend [option] because [specific reasoning]."
+
+INFERRED_DEFAULT_DECISION:
+"I inferred [value] from [plain-English evidence].
+
+Your options:
+1. **Keep it** — Use the inferred value.
+   - Pros: faster and usually correct when the evidence is strong
+   - Cons: may preserve a bad assumption if the context changed
+   - Technical note: the inferred value will be written into project-definition.json or config
+2. **Change it** — Replace the inferred value now.
+   - Pros: gives you direct control over the project setup
+   - Cons: takes longer because we need to revisit the downstream choices
+   - Technical note: changing it may affect stack, gates, or work-order generation
+
+I recommend [option] because [specific reasoning]."
 
 SKIP_DECISION:
 "[What you're about to skip] — this means [specific quality check or enforcement] won't run. [What could happen as a result]. You can re-run it later with [command]."
@@ -253,11 +309,12 @@ The agent runs scripts, validates the environment, and reports results — the u
 Every major user-facing response should satisfy these questions:
 
 1. Did we use the technical term and explain it in plain language?
-2. Did we explain what we're about to do before doing it?
-3. Did we explain what happened after doing it?
-4. Did we explain why it matters?
-5. Did we explain the next step and why it comes next?
-6. When presenting choices: did we explain pros/cons, make a recommendation, and give the rationale?
-7. Did we avoid unexplained jargon?
-8. Did we present options in outcome language first?
-9. Did we avoid telling the user to run scripts?
+2. Did we explain the plain-English meaning before the technical detail?
+3. Did we explain what we're about to do before doing it?
+4. Did we explain what happened after doing it?
+5. Did we explain why it matters?
+6. Did we explain the next step and why it comes next?
+7. When presenting choices: did we explain pros/cons, make a recommendation, and give the rationale?
+8. Did we avoid unexplained jargon?
+9. Did we present options in outcome language first?
+10. Did we avoid telling the user to run scripts?

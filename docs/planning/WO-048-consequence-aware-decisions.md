@@ -109,14 +109,20 @@ Audit all skills for decision points:
 > "Quality checks are still failing after 3 attempts. Here's what's failing: [specific issues].
 >
 > Your options:
-> 1. **Try a different approach** — I'll rethink how to implement this and try again. This may resolve the issue but will use more time and tokens.
-> 2. **Skip these checks for now** — Your code will be committed without passing [gate-name]. This means [specific risk, e.g., "type annotations won't be verified, which could let type-related bugs through"]. You can re-run these checks later with `/vibeos:gate`.
-> 3. **Fix it yourself** — I'll show you exactly what's failing and where, so you can fix it directly. I'll re-run the checks when you're ready.
+> 1. **Try a different approach**
+>    - Pros: best chance of resolving the issue without your manual work
+>    - Cons: uses more time and tokens and may still fail
+> 2. **Skip these checks for now**
+>    - Pros: fastest path to continuing the build
+>    - Cons: [specific risk, e.g., "type annotations won't be verified, which could let type-related bugs through"] remains until the checks are revisited
+> 3. **Fix it yourself**
+>    - Pros: gives you direct control over the exact remediation
+>    - Cons: requires manual effort from you before the build can continue cleanly
 >
 > I recommend option 1 because [reason]."
 
-**Audit escalation (current):**
-> "Would you like to: (a) try a different approach, (b) accept the remaining findings, or (c) fix manually?"
+**Audit escalation (legacy/problematic):**
+> "The older version only asked the user to pick between shorthand choices without explaining the consequences or giving a recommendation."
 
 **Audit escalation (improved):**
 > "After [N] fix attempts, these issues remain:
@@ -124,9 +130,15 @@ Audit all skills for decision points:
 > - [finding 2 with severity and file]
 >
 > Your options:
-> 1. **Try a different approach** — I'll use a different strategy to fix these. May resolve them but no guarantee.
-> 2. **Accept these findings** — These issues will be documented as known and tracked. [If security]: This means [specific security risk] remains in your code. [If architecture]: This means [specific maintenance risk]. They won't block future work but will appear in phase audits.
-> 3. **Fix yourself** — I'll give you the exact details. You fix them, I'll verify.
+> 1. **Try a different approach**
+>    - Pros: best chance of clearing the findings without leaving risk behind
+>    - Cons: uses more time and may still not resolve everything
+> 2. **Accept these findings**
+>    - Pros: preserves momentum on the current work
+>    - Cons: [If security]: [specific security risk] remains in your code. [If architecture]: [specific maintenance risk] remains and may resurface later
+> 3. **Fix it yourself**
+>    - Pros: gives you full control over the remediation
+>    - Cons: requires manual intervention before the issues are cleared
 >
 > I recommend [X] because [reason]."
 
@@ -143,9 +155,18 @@ DECISION_TEMPLATE:
 "[Context — what happened and why a decision is needed]
 
 Your options:
-1. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
-2. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
-3. **[Option name]** — [What happens]. [Consequence in business terms]. [When to choose this].
+1. **[Option name]**
+   - Pros: [benefit]
+   - Cons: [tradeoff]
+   - Technical note: [optional technical detail when useful]
+2. **[Option name]**
+   - Pros: [benefit]
+   - Cons: [tradeoff]
+   - Technical note: [optional technical detail when useful]
+3. **[Option name]**
+   - Pros: [benefit]
+   - Cons: [tradeoff]
+   - Technical note: [optional technical detail when useful]
 
 I recommend [option] because [specific reasoning based on project context]."
 ```
@@ -160,6 +181,7 @@ I recommend [option] because [specific reasoning based on project context]."
 ## Evidence
 
 - [x] All decision points have consequence descriptions
+- [x] Decision options include clear pros, cons, and a recommendation
 - [x] No bare label options remain
 - [x] Gate skip consequences explain specific risks
 - [x] Audit accept consequences explain specific implications

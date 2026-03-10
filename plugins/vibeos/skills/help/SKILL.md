@@ -19,6 +19,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 **Skill-specific addenda:**
 - Always explain terms in plain English first, then provide the technical detail
 - Use examples from the user's project context when possible
+- When a topic includes a user-facing choice, present options with pros, cons, and a recommendation
 
 ## Help Flow
 

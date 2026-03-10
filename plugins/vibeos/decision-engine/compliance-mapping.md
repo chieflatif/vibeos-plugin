@@ -274,13 +274,23 @@ IF compliance includes ["soc2", "gdpr", "owasp"]:
 IF team_size == "solo" AND compliance != ["none"]:
   WARN to user:
     "Running full compliance governance as a solo developer adds significant overhead.
-     Recommendation: Start with compliance gates at tier 2 (important but non-blocking).
-     You can upgrade to tier 1 (blocking) when your team grows.
+     
+     Your options:
+     1. Keep compliance at tier 1 (full enforcement)
+        - Pros: strongest compliance posture
+        - Cons: highest day-to-day friction for a solo builder
+        - Technical note: compliance gates remain blocking
+     2. Set compliance gates to tier 2 (important but non-blocking)
+        - Pros: good balance of guidance and momentum
+        - Cons: some issues may be deferred instead of blocked immediately
+        - Technical note: compliance gates stay enabled but stop blocking work
+     3. Set compliance gates to tier 3 (advisory only)
+        - Pros: lightest process overhead
+        - Cons: easiest way to miss important compliance issues
+        - Technical note: compliance signals become informational only
 
-     Would you like to:
-     a) Keep compliance at tier 1 (full enforcement)
-     b) Set compliance gates to tier 2 (important but non-blocking) — RECOMMENDED
-     c) Set compliance gates to tier 3 (advisory only)"
+     Recommendation: Start with compliance gates at tier 2 (important but non-blocking).
+     You can upgrade to tier 1 (blocking) when your team grows."
 
   IF user chooses b:
     Downgrade all compliance-specific gates to tier 2, blocking=false

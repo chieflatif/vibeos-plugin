@@ -79,7 +79,7 @@ Define the **template structure** for common outputs. These are the base schemas
 - **Progress update:** `"[Step N/M] [agent-name] — [what it's doing in plain English]"` — WO-047 adds specific build loop step variants
 - **Gate result:** `"Quality check: [N] passed, [M] need attention. [Top issue in plain English]"` — WO-047 adds inline gate reporting format
 - **Audit finding:** `"[severity]: [what's wrong] in [file]. [Why it matters]. [What to do about it]."`
-- **Decision point:** `"[Context]. Option A: [description] — [consequence]. Option B: [description] — [consequence]. I recommend [X] because [reason]."` — WO-048 adds domain-specific decision rewrites that conform to this schema
+- **Decision point:** `"[Context in plain English]. Your options: 1. [Option name] — [what happens]. Pros: [benefit]. Cons: [tradeoff]. 2. [Option name] — [what happens]. Pros: [benefit]. Cons: [tradeoff]. I recommend [X] because [reason]."` — WO-048 adds domain-specific decision rewrites that conform to this schema
 - **Error/escalation:** `"Something went wrong: [what happened in plain English]. I tried: [what was attempted]. Your options: [list with consequences]."`
 - **System notification:** `"[notification type]: [message in plain English]"` — for non-step messages like aging reminders (WO-044), convergence updates, etc.
 

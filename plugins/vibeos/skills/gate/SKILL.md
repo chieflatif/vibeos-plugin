@@ -75,9 +75,19 @@ If `$ARGUMENTS` starts with `disable`:
    > "Cannot disable **[gate-name]** — [reason]. [If compliance]: This gate is required by your [compliance target]. [If tier 0]: This is a core safety gate that catches [critical issue type]."
    Stop. Do not disable.
 4. If not locked, present consequences before disabling:
-   > "Disabling **[gate-name]** means [specific quality check] won't run during [phase]. This could allow [specific risk in plain English].
+   > "Disabling **[gate-name]** means [specific quality check] won't run during [phase].
    >
-   > Are you sure you want to disable it? You can re-enable it anytime with `/vibeos:gate enable [gate-name]`."
+   > Your options:
+   > 1. **Keep it enabled** — leave the protection in place.
+   >    - Pros: safer default and fewer gaps in your quality checks
+   >    - Cons: may slow progress if this gate is noisy or not yet configured well
+   >    - Technical note: the gate continues to run on its configured phase
+   > 2. **Disable it for now** — stop running this gate until you re-enable it.
+   >    - Pros: removes immediate friction
+   >    - Cons: [specific risk in plain English] could slip through without being checked
+   >    - Technical note: you can re-enable it later with `/vibeos:gate enable [gate-name]`
+   >
+   > I recommend option 1 unless this gate is clearly misconfigured, because disabling a gate removes a safety check from your workflow."
 5. Wait for user confirmation
 6. Set `enabled: false` in the manifest
 7. Write updated manifest
@@ -103,3 +113,5 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 Skill-specific addenda:
 - Distinguish between blocking failures and advisory warnings
 - Always recommend a specific next step
+- Explain in plain English first; add technical detail only when it helps the user understand the risk
+- When the user must choose, include options, pros, cons, and a recommendation

@@ -111,8 +111,12 @@ In build skill Step 1 (Phase 0 enforcement section):
   > "Phase 0 has [N] unresolved remediation items including [top finding summary].
   >
   > Your options:
-  > 1. **Build Phase 0 first** — Fix the critical issues before feature work. This means your codebase starts clean. Recommended for security-sensitive projects.
-  > 2. **Skip Phase 0 for now** — Start feature work immediately. The [N] issues remain unfixed and could compound as you add code. You can return to them later with `/vibeos:build` (Phase 0 WOs will still be there). This decision will be logged as a risk acceptance.
+  > 1. **Build Phase 0 first**
+  >    - Pros: removes the critical issues before feature work begins
+  >    - Cons: delays visible feature progress in the short term
+  > 2. **Skip Phase 0 for now**
+  >    - Pros: lets feature work start immediately
+  >    - Cons: the [N] issues remain unfixed, may compound as you add code, and will be logged as an accepted risk
   >
   > I recommend option 1 because [specific reasoning based on finding severity]."
 - If user chooses skip: log to build-log.md and append to ACCEPTED-RISKS.md with justification

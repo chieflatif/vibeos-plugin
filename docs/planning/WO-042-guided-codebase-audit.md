@@ -105,12 +105,22 @@ Present each category to the user:
 > 1. **Hardcoded API key** in `src/config.py:42`
 >    - Risk: Anyone with access to your code can use this key to access [service]
 >    - Recommendation: Move to environment variable
->    - What do you want to do? [fix now / fix later / accept risk]
+>    - Your options:
+>      1. **Fix now**
+>         - Pros: removes the exposure before more code is built on top of it
+>         - Cons: slows feature work in the short term
+>      2. **Fix later**
+>         - Pros: keeps current feature momentum
+>         - Cons: the secret stays exposed until the remediation work is completed
+>      3. **Accept risk**
+>         - Pros: fastest path only if the trade-off is deliberate and temporary
+>         - Cons: the secret remains live in the codebase and must be explicitly documented
+>    - I recommend **Fix now** because hardcoded credentials are high-impact and easy to exploit if the repository is shared or leaked.
 >
 > 2. **SQL injection vulnerability** in `src/db/queries.py:118`
 >    - Risk: An attacker could read or modify your entire database
 >    - Recommendation: Use parameterized queries
->    - What do you want to do? [fix now / fix later / accept risk]
+>    - Use the same options format for every critical finding: explain the plain-English impact, list the pros and cons of each path, and recommend the safest reasonable option.
 >
 > **High:**
 > 3. **Missing CSRF protection** on 4 POST endpoints

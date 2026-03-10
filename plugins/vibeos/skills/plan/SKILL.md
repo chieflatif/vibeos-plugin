@@ -17,8 +17,9 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 - Introduce every concept on first use with plain English definition
 
 **Skill-specific addenda:**
-- Present inferred defaults explicitly: "I inferred X from your product definition. Keep or change?"
+- Present inferred defaults as decisions with evidence, pros, cons, and a recommendation
 - Before each question, briefly explain what you're asking and why it matters
+- Explain in plain English first; add technical detail only when it helps the user understand the trade-off
 
 ## Prerequisites
 
@@ -119,7 +120,20 @@ Present findings category by category. For each category:
 > 1. **[title]** in `[file]:[line]`
 >    - Risk: [plain English impact on business/users]
 >    - Recommendation: [what to do]
->    - What do you want to do? [fix now / fix later / accept risk]
+>    - Your options:
+>      1. **Fix now** — resolve it before feature work continues.
+>         - Pros: removes the risk immediately
+>         - Cons: slows current progress
+>         - Technical note: this becomes Phase 0 remediation work
+>      2. **Fix later** — track it and continue for now.
+>         - Pros: keeps momentum on the current plan
+>         - Cons: the risk remains until scheduled later
+>         - Technical note: it stays in findings-registry.json and reminder flows
+>      3. **Accept risk** — keep it intentionally and document why.
+>         - Pros: fastest path when the trade-off is deliberate
+>         - Cons: the issue remains and becomes part of the audit record
+>         - Technical note: accepted risks become part of the baseline and audit trail
+>    - I recommend [option] because [specific reasoning based on severity, project risk, and user goals]
 
 **Medium and low findings:** Summarize by pattern (not individually walked through).
 
@@ -230,8 +244,20 @@ Validate Q2 matches `^[a-z][a-z0-9-]*$`.
 | Q9 | Package manager | Derive from language |
 | Q10 | Database | `technical_recommendation.database.value` |
 
-For each pre-filled answer with medium+ confidence, present it:
-> "I inferred [language] based on your product type. Keep or change?"
+For each pre-filled answer with medium+ confidence, present it as a recommendation:
+> "I inferred [language] based on [plain-English evidence].
+>
+> Your options:
+> 1. **Keep it** — use [language] as the default.
+>    - Pros: faster and likely correct when the evidence is strong
+>    - Cons: could preserve a wrong assumption if your constraints changed
+>    - Technical note: this value affects framework, tooling, and generated work orders
+> 2. **Change it** — pick a different value now.
+>    - Pros: gives you direct control over the stack
+>    - Cons: takes longer because downstream recommendations must change too
+>    - Technical note: changing this may affect gates, testing setup, and architecture rules
+>
+> I recommend option [1 or 2] because [specific reasoning]."
 
 For low-confidence or missing answers, ask the full question with options, pros/cons, and recommendation.
 
@@ -255,7 +281,23 @@ Framework options are filtered by language:
 | Q15 | Production URLs (never target) | Ask |
 
 **Solo compliance warning**: If team_size is "solo" AND compliance targets are not "none":
-> "Running full compliance governance as a solo developer adds overhead. I recommend starting with compliance gates at tier 2 (important but non-blocking) until your team grows. Options: (a) Keep tier 1 (full enforcement), (b) Set to tier 2 (recommended), (c) Set to tier 3 (advisory only)"
+> "Running full compliance governance as a solo developer adds overhead.
+>
+> Your options:
+> 1. **Keep tier 1** — full enforcement from the start.
+>    - Pros: strongest compliance posture
+>    - Cons: highest friction and most interruptions while building
+>    - Technical note: compliance gates stay blocking
+> 2. **Set tier 2** — important checks stay on, but they do not block work.
+>    - Pros: good balance of safety and speed
+>    - Cons: some compliance issues may wait until later to be fixed
+>    - Technical note: compliance gates remain enabled but non-blocking
+> 3. **Set tier 3** — advisory only.
+>    - Pros: lightest process overhead
+>    - Cons: weakest enforcement and easiest way to miss important issues
+>    - Technical note: compliance guidance becomes informational only
+>
+> I recommend option 2 because it keeps the signals visible without overwhelming a solo developer."
 
 #### Round 4: Agent Preferences (Q16-Q18)
 
@@ -513,12 +555,21 @@ Present three options in plain English:
 
 **Option A — Stop after every work order (most control):**
 > "I'll build one thing at a time and check in with you after each piece. For example, after building your user authentication, I'll show you what was built, what tests pass, and ask before moving to the next feature. **You'll review about [N] check-ins for this project.** Best if this is your first time using VibeOS or you want to stay closely involved."
+> - Pros: maximum visibility and easiest course-correction
+> - Cons: slowest overall pace because there are more pauses
+> - Technical note: autonomy level `wo`
 
 **Option B — Stop after every phase (recommended):**
 > "I'll build a complete group of related features, then check in. For example, I'll build all of Phase 1 (project scaffolding, database, auth) in one go, then show you the result before starting Phase 2. **You'll review about [P] check-ins for this project.** Good balance of speed and oversight."
+> - Pros: balanced oversight without too many interruptions
+> - Cons: less frequent review than work-order mode
+> - Technical note: autonomy level `phase`
 
 **Option C — Stop at major decisions only (most autonomous):**
 > "I'll build continuously and only pause when I hit something that needs your input — like a design choice, an unexpected problem, or a security decision. **This is the fastest option but you'll see less intermediate work.** I'll still run all quality checks and audits automatically. If something breaks, I'll pause and ask."
+> - Pros: fastest path and lowest interaction cost
+> - Cons: least visibility into intermediate progress
+> - Technical note: autonomy level `major`
 
 Make a recommendation:
 > "I recommend **Option B** (stop after every phase) for this project because [reason based on project complexity, team size, and risk level]. You can change this anytime by saying 'change autonomy level' during a check-in."

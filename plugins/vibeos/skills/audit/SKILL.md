@@ -19,6 +19,8 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 **Skill-specific addenda:**
 - Report which auditors are being dispatched
 - After each auditor completes, summarize its top findings
+- Explain findings in plain English first; add technical detail after that when it helps the user understand the risk
+- If the user must choose how to handle findings, present options with pros, cons, and a recommendation
 
 ## Prerequisites
 

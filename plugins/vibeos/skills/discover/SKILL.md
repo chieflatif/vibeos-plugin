@@ -19,6 +19,8 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 Skill-specific addenda:
 - Never ask the user to choose technologies before they understand the business difference
 - Summarize what was learned after each meaningful step
+- Explain in plain English first; add technical detail after that only when it helps the user understand the recommendation
+- If the user needs to choose, present options with pros, cons, and a recommendation
 
 ## Discovery Flow
 
