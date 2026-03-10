@@ -13,17 +13,30 @@ FRAMEWORK_VERSION="1.0.0"
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null || echo "")
 
-if [ -z "$FILE_PATH" ]; then
-  echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
+allow() {
+  cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow"
+  }
+}
+EOF
   exit 0
+}
+
+if [ -z "$FILE_PATH" ]; then
+  allow
 fi
 
 deny() {
+  local message="BLOCKED: $1"
   cat << EOF
 {
   "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "BLOCKED: $1"
+    "permissionDecisionReason": "$message"
   }
 }
 EOF
@@ -56,8 +69,7 @@ esac
 
 # If it's not a test file, always allow
 if [ "$IS_TEST_FILE" = false ]; then
-  echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
-  exit 0
+  allow
 fi
 
 # It's a test file — check agent identity
@@ -72,8 +84,7 @@ fi
 # Agents allowed to modify test files
 case "$CURRENT_AGENT" in
   tester|test-auditor)
-    echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
-    exit 0
+    allow
     ;;
   backend|frontend|doc-writer)
     # Log block event to build-log.md for transparency
@@ -92,12 +103,10 @@ case "$CURRENT_AGENT" in
       TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
       echo "| $TIMESTAMP | test-file-protection | WARNING: Agent identity unknown, allowing write to $FILE_PATH | Fail-open |" >> "$BUILD_LOG" 2>/dev/null || true
     fi
-    echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
-    exit 0
+    allow
     ;;
   *)
     # Unknown agent — allow (fail open with caution)
-    echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
-    exit 0
+    allow
     ;;
 esac

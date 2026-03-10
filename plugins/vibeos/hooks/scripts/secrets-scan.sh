@@ -12,18 +12,31 @@ FRAMEWORK_VERSION="1.0.0"
 INPUT=$(cat)
 CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // .tool_input.new_string // empty' 2>/dev/null || echo "")
 
+allow() {
+  cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow"
+  }
+}
+EOF
+  exit 0
+}
+
 # If no content to check, allow
 if [ -z "$CONTENT" ]; then
-  echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
-  exit 0
+  allow
 fi
 
 deny() {
+  local message="BLOCKED: $1. Store secrets in environment variables or a vault, never in code."
   cat << EOF
 {
   "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "BLOCKED: $1. Store secrets in environment variables or a vault, never in code."
+    "permissionDecisionReason": "$message"
   }
 }
 EOF
@@ -67,4 +80,4 @@ if [[ "$FILE_PATH" == *".env"* && "$FILE_PATH" != *".env.example"* && "$FILE_PAT
 fi
 
 # Allow the operation
-echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
+allow

@@ -78,8 +78,8 @@ if [ "$TOOL_NAME" = "Edit" ]; then
   # This is a heuristic — look for comparison operators with changed values
 
   # Check for test deletion (old has test function, new is empty or smaller)
-  OLD_TEST_COUNT=$(echo "$OLD_STRING" | grep -c 'def test_\|it(\|describe(\|test(\|func Test' 2>/dev/null || echo "0")
-  NEW_TEST_COUNT=$(echo "$NEW_STRING" | grep -c 'def test_\|it(\|describe(\|test(\|func Test' 2>/dev/null || echo "0")
+  OLD_TEST_COUNT=$(echo "$OLD_STRING" | grep -c 'def test_\|it(\|describe(\|test(\|func Test' 2>/dev/null || true)
+  NEW_TEST_COUNT=$(echo "$NEW_STRING" | grep -c 'def test_\|it(\|describe(\|test(\|func Test' 2>/dev/null || true)
 
   if [ "$OLD_TEST_COUNT" -gt "$NEW_TEST_COUNT" ]; then
     WEAKENING="true"
@@ -88,8 +88,8 @@ if [ "$TOOL_NAME" = "Edit" ]; then
   fi
 
   # Check for added skip/pending markers
-  NEW_SKIP_COUNT=$(echo "$NEW_STRING" | grep -c '@skip\|@pytest.mark.skip\|xit(\|xdescribe(\|pending(\|\.skip' 2>/dev/null || echo "0")
-  OLD_SKIP_COUNT=$(echo "$OLD_STRING" | grep -c '@skip\|@pytest.mark.skip\|xit(\|xdescribe(\|pending(\|\.skip' 2>/dev/null || echo "0")
+  NEW_SKIP_COUNT=$(echo "$NEW_STRING" | grep -c '@skip\|@pytest.mark.skip\|xit(\|xdescribe(\|pending(\|\.skip' 2>/dev/null || true)
+  OLD_SKIP_COUNT=$(echo "$OLD_STRING" | grep -c '@skip\|@pytest.mark.skip\|xit(\|xdescribe(\|pending(\|\.skip' 2>/dev/null || true)
 
   if [ "$NEW_SKIP_COUNT" -gt "$OLD_SKIP_COUNT" ]; then
     WEAKENING="true"
@@ -99,7 +99,17 @@ if [ "$TOOL_NAME" = "Edit" ]; then
 
   if [ "$WEAKENING" = "true" ]; then
     # Block: test weakening detected
-    echo '{"hookSpecificOutput": {"permissionDecision": "deny", "reason": "Test weakening detected by '"$CURRENT_AGENT"' agent: '"$REASON"'. Test modifications that remove assertions, delete tests, or add skip markers require review. If this modification is justified, have the tester agent make the change instead."}}'
+    AGENT_LABEL="${CURRENT_AGENT:-unknown}"
+    MESSAGE="Test weakening detected by $AGENT_LABEL agent: $REASON. Test modifications that remove assertions, delete tests, or add skip markers require review. If this modification is justified, have the tester agent make the change instead."
+    cat << EOF
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "$MESSAGE"
+  }
+}
+EOF
     exit 0
   fi
 fi

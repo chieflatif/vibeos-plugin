@@ -13,17 +13,30 @@ FRAMEWORK_VERSION="1.0.0"
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null || echo "")
 
-if [ -z "$FILE_PATH" ]; then
-  echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
+allow() {
+  cat <<'EOF'
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow"
+  }
+}
+EOF
   exit 0
+}
+
+if [ -z "$FILE_PATH" ]; then
+  allow
 fi
 
 deny() {
+  local message="BLOCKED: $1"
   cat << EOF
 {
   "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
     "permissionDecision": "deny",
-    "permissionDecisionReason": "BLOCKED: $1"
+    "permissionDecisionReason": "$message"
   }
 }
 EOF
@@ -46,4 +59,4 @@ if [ -f "$FROZEN_CONFIG" ]; then
 fi
 
 # Allow the operation
-echo '{"hookSpecificOutput": {"permissionDecision": "allow"}}'
+allow

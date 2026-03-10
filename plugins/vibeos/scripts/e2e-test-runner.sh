@@ -220,6 +220,33 @@ while IFS= read -r hook_cmd; do
     log_result "Hook script: $hook_cmd" "FAIL" "File not found"
   fi
 done < <(jq -r '.hooks | to_entries[] | .value[] | .hooks[] | select(.type == "command") | .command' "$PLUGIN_DIR/hooks/hooks.json" 2>/dev/null || true)
+
+HOOK_FORMAT_FAIL=0
+for hook_file in \
+  "$PLUGIN_DIR/hooks/scripts/frozen-files.sh" \
+  "$PLUGIN_DIR/hooks/scripts/secrets-scan.sh" \
+  "$PLUGIN_DIR/hooks/scripts/test-file-protection.sh" \
+  "$PLUGIN_DIR/hooks/scripts/test-diff-audit.sh"; do
+  [ -f "$hook_file" ] || continue
+  HOOK_BASENAME=$(basename "$hook_file")
+
+  if grep -q '"hookEventName": "PreToolUse"' "$hook_file"; then
+    : # expected
+  else
+    log_result "Hook format: $HOOK_BASENAME" "FAIL" "Missing hookEventName for PreToolUse response"
+    HOOK_FORMAT_FAIL=$((HOOK_FORMAT_FAIL + 1))
+    continue
+  fi
+
+  if grep -q '^  "permissionDecision":' "$hook_file" || grep -q '^  "reason":' "$hook_file"; then
+    log_result "Hook format: $HOOK_BASENAME" "FAIL" "PreToolUse response mixes nested and top-level decision fields"
+    HOOK_FORMAT_FAIL=$((HOOK_FORMAT_FAIL + 1))
+  fi
+done
+
+if [ "$HOOK_FORMAT_FAIL" -eq 0 ]; then
+  log_result "PreToolUse hook response format" "PASS" "Hook scripts use hookSpecificOutput with hookEventName and no ambiguous top-level decision fields"
+fi
 echo ""
 
 # ============================================================
