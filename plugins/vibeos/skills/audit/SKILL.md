@@ -1,13 +1,13 @@
 ---
 name: audit
-description: Full audit cycle that dispatches all 5 audit agents (security, architecture, correctness, test quality, evidence), applies consensus logic, and produces a composite report with actionable findings. Use when the user says "audit the code", "review everything", "check for security issues", "do a full review", or wants a comprehensive multi-perspective code review.
-argument-hint: "[optional: 'security', 'architecture', 'correctness', 'test', 'evidence' to run a single auditor]"
+description: Full audit cycle that dispatches all 6 audit agents (security, architecture, correctness, test quality, evidence, product drift), applies consensus logic, and produces a composite report with actionable findings. Use when the user says "audit the code", "review everything", "check for security issues", "do a full review", or wants a comprehensive multi-perspective code review.
+argument-hint: "[optional: 'security', 'architecture', 'correctness', 'test', 'evidence', or 'product-drift' to run a single auditor]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
 
 # /vibeos:audit — Full Audit Cycle
 
-Dispatch all 5 audit agents, merge findings with consensus logic, and produce a composite report.
+Dispatch all 6 audit agents, merge findings with consensus logic, and produce a composite report.
 
 ## Communication Contract
 
@@ -34,7 +34,7 @@ If no source code exists, report "No source code to audit" and stop.
 
 ### Step 1: Determine Scope
 
-If `$ARGUMENTS` specifies a single auditor name (`security`, `architecture`, `correctness`, `test`, `evidence`), run only that auditor. Otherwise, run all 5.
+If `$ARGUMENTS` specifies a single auditor name (`security`, `architecture`, `correctness`, `test`, `evidence`, `product-drift`), run only that auditor. Otherwise, run all 6.
 
 Read `project-definition.json` for:
 - Source directories
@@ -55,6 +55,7 @@ Dispatch the selected audit agents. Each runs in an isolated worktree and cannot
 | Correctness | `agents/correctness-auditor.md` | opus | Logic errors, missing error paths, user impact |
 | Test Quality | `agents/test-auditor.md` | sonnet | Spec-first, assertion quality, mock density |
 | Evidence | `agents/evidence-auditor.md` | sonnet | Documentation completeness, tracking accuracy |
+| Product Drift | `agents/product-drift-auditor.md` | sonnet | Product promise drift, experience drift, stale decisions |
 
 Dispatch agents that can run independently in parallel where possible. Pass each agent:
 - The `project-definition.json` path
@@ -111,7 +112,7 @@ Write the report to stdout (displayed to user). Format:
 
 **Date:** [today]
 **Scope:** [directories audited]
-**Auditors dispatched:** [list of 5 or subset]
+**Auditors dispatched:** [list of 6 or subset]
 **Auditors completed:** [count]/[dispatched]
 
 ### Executive Summary
@@ -144,6 +145,7 @@ Write the report to stdout (displayed to user). Format:
 | Correctness | [complete/failed] | [count] | [top finding or "clean"] |
 | Test Quality | [complete/failed] | [count] | [top finding or "clean"] |
 | Evidence | [complete/failed] | [count] | [top finding or "clean"] |
+| Product Drift | [complete/failed] | [count] | [top finding or "clean"] |
 
 ### Overall Assessment
 

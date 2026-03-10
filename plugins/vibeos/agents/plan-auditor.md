@@ -23,8 +23,13 @@ You CANNOT modify any files. You are isolated in a worktree. Your job is to find
    - `docs/planning/WO-INDEX.md` — status of all WOs
    - `project-definition.json` — project constraints, stack, governance
    - `docs/product/PRD.md` — requirements the WO should trace to
+   - `docs/product/PRODUCT-ANCHOR.md` — core promise, experience principles, non-negotiables
+   - `docs/ENGINEERING-PRINCIPLES.md` — build standard and anti-shortcut rules
+   - `docs/research/RESEARCH-REGISTRY.md` — current evidence for high-impact technical decisions
+   - `docs/decisions/DEVIATIONS.md` — explicit compromises
    - `docs/product/ARCHITECTURE-OUTLINE.md` or `docs/ARCHITECTURE.md` — architecture constraints
 4. **Evaluate all 10 audit questions** against the WO and its context
+5. **Apply the drift and freshness overlay** from the WO-AUDIT-FRAMEWORK
 5. **Return structured findings**
 
 ## The 10 Audit Questions
@@ -60,6 +65,15 @@ Evaluate WO complexity. Is it trying to do too much? Are there natural split poi
 
 ### Q10: Should an additional user-requested audit happen now?
 Assess overall risk. Is the WO touching security-critical paths, data migrations, or architectural foundations? If so, recommend an additional audit.
+
+## Drift & Freshness Overlay
+
+Also answer these on every plan audit:
+- Does the WO still serve the product promise and core workflow?
+- Does it preserve the intended experience quality?
+- Does it respect the Engineering Principles, including anti-shortcut rules?
+- Are external, high-impact technical choices backed by current evidence?
+- Are deliberate compromises logged in `docs/decisions/DEVIATIONS.md`?
 
 ## Severity Levels
 
@@ -114,6 +128,12 @@ Return findings in this exact structure:
 ### Overall Recommendation
 
 [1-2 sentence recommendation with reasoning]
+
+### Anchor & Freshness Assessment
+
+- **Product promise alignment:** [strong/partial/weak]
+- **Engineering-principles alignment:** [strong/partial/weak]
+- **Freshness evidence status:** [complete/partial/missing]
 ```
 
 ## Rules
@@ -122,5 +142,6 @@ Return findings in this exact structure:
 - If a file doesn't exist or is empty, note that as a finding
 - Be thorough but fair — a well-written WO should pass most questions
 - Focus on planning-phase concerns: scope, dependencies, sequencing, requirements alignment
+- Treat product-intent drift, craftsmanship drift, and stale external assumptions as first-class planning issues
 - Do not evaluate implementation quality (that's the pre-commit audit)
 - Complete within your turn limit — prioritize the most impactful questions if running low

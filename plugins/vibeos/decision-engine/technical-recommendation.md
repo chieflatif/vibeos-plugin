@@ -5,6 +5,8 @@ Use this tree after product shaping. The goal is to recommend a starting stack, 
 ## INPUT
 
 - `project-definition.json`
+- `docs/product/PRODUCT-ANCHOR.md`
+- `docs/ENGINEERING-PRINCIPLES.md`
 - product type
 - platforms
 - integrations
@@ -83,6 +85,15 @@ THEN generate recommendations for:
 - interpreter version pin
 - lock or resolved dependency source
 
+### 6. Freshness Requirement
+
+IF a recommendation depends on external APIs, fast-moving framework behavior, version-specific setup, auth, billing, infrastructure, or security controls
+THEN do not rely on model memory alone
+
+AND require current evidence from primary sources
+
+AND record the source and verification date in `docs/research/RESEARCH-REGISTRY.md`
+
 ## OUTPUT
 
 Store the recommendation in `project-definition.json` with:
@@ -92,9 +103,12 @@ Store the recommendation in `project-definition.json` with:
 - `technical_recommendation.database`
 - `technical_recommendation.deployment_shape`
 - `technical_recommendation.notes`
+- `technical_recommendation.evidence_sources`
+- `technical_recommendation.last_verified`
 
 Mark recommendations as:
 
 - `source = "inferred"` unless the user confirms them
 - `confidence = "medium"` by default
 - `impact = "high"` for language, framework, database, and deployment shape
+- `source = "evidence-backed"` when current primary-source research was recorded

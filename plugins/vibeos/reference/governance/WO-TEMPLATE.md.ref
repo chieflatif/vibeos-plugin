@@ -28,6 +28,26 @@
 
 <!-- What existing functionality could be affected? -->
 
+## Anchor Alignment
+
+- **Product promise served:** <!-- What part of PRODUCT-ANCHOR.md does this WO advance? -->
+- **Core workflow / user outcome:** <!-- Which PRD workflow or user outcome is being protected? -->
+- **Experience principles protected:** <!-- Which experience principles matter most here? -->
+- **Non-goals / boundaries respected:** <!-- What this WO must not accidentally turn the product into -->
+- **Engineering principles in play:** <!-- Which engineering principles are most relevant to this WO? -->
+
+## Research & Freshness
+
+- **Current evidence required?** <!-- yes/no -->
+- **Why freshness matters here:** <!-- External API, framework version, auth, security, infra, or "N/A" -->
+- **Sources to verify before coding:** <!-- Link or reference docs/research/RESEARCH-REGISTRY.md entries, or "N/A" -->
+- **Last verified on:** <!-- Date or "N/A" -->
+
+## Approved Deviations
+
+- **Known deviations for this WO:** <!-- Reference docs/decisions/DEVIATIONS.md entries, or "None" -->
+- **What shortcuts remain unacceptable:** <!-- Remind the implementer where not to cut corners -->
+
 ## Test Strategy <!-- REQUIRED: Define tests, or explicitly waive if no code changes. -->
 
 <!-- For code WOs: define what will be tested and how. For docs/config-only WOs: use the waiver below. -->
@@ -48,6 +68,9 @@ Use `docs/planning/WO-AUDIT-FRAMEWORK.md` as the standard prompt set. Every chec
 - What assumptions might break implementation?
 - What dependencies, integrations, migrations, or env requirements are missing?
 - What did we make up without evidence?
+- Are we drifting from the product promise or intended experience?
+- Are we drifting from the engineering principles or normalizing bad shortcuts?
+- Are any important decisions relying on stale knowledge instead of current evidence?
 - What edge cases, regressions, rollback paths, and monitoring gaps exist?
 - What tests, fixtures, or validations are still missing?
 

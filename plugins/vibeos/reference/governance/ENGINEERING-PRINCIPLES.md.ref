@@ -1,0 +1,36 @@
+<!-- REQUIRED -->
+# {{PROJECT_NAME}} Engineering Principles
+
+<!-- REQUIRED -->
+## Standard of Craft
+<!-- ADAPT: One paragraph describing the build philosophy. -->
+{{CRAFT_STANDARD}}
+
+<!-- REQUIRED -->
+## Core Principles
+<!-- ADAPT: 4-7 principles that define how the team builds. -->
+- {{PRINCIPLE_1}}
+- {{PRINCIPLE_2}}
+- {{PRINCIPLE_3}}
+- {{PRINCIPLE_4}}
+
+<!-- REQUIRED -->
+## Unacceptable Shortcuts
+<!-- ADAPT: Things the system should not normalize. -->
+- {{UNACCEPTABLE_SHORTCUT_1}}
+- {{UNACCEPTABLE_SHORTCUT_2}}
+
+<!-- REQUIRED -->
+## Research Freshness Policy
+<!-- ADAPT: Explain when model memory is not enough and current evidence is required. -->
+- Use current primary sources for external APIs, framework versions, deployment standards, and security-sensitive implementation details.
+- Prefer official documentation, specifications, or authoritative release notes over memory or third-party summaries.
+- Record what was checked and when in `docs/research/RESEARCH-REGISTRY.md`.
+- If current evidence is missing for a high-impact choice, pause and resolve that gap before implementation proceeds.
+
+<!-- REQUIRED -->
+## Deviation Policy
+<!-- ADAPT: How deliberate trade-offs are handled. -->
+- Every intentional compromise must be logged in `docs/decisions/DEVIATIONS.md`.
+- Each deviation should state the reason, impact, owner, and review date.
+- Temporary shortcuts must not silently become permanent defaults.

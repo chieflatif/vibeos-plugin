@@ -13,6 +13,10 @@ Show a comprehensive project status overview.
 1. **Read project governance files** (if they exist in the current project):
    - `docs/planning/DEVELOPMENT-PLAN.md` — phases and WO assignments
    - `docs/planning/WO-INDEX.md` — WO statuses and dependencies
+   - `docs/product/PRODUCT-ANCHOR.md` — product promise and experience guardrails
+   - `docs/ENGINEERING-PRINCIPLES.md` — quality bar and anti-shortcut rules
+   - `docs/research/RESEARCH-REGISTRY.md` — current evidence for high-impact decisions
+   - `docs/decisions/DEVIATIONS.md` — explicit trade-offs
    - Active WO files (any with status `In Progress` or `Active`)
 
 2. **Determine current state**:
@@ -24,6 +28,11 @@ Show a comprehensive project status overview.
    - Count fix-now findings and their resolution status
    - Count fix-later findings and how many are overdue
    - Count accepted-risk findings
+
+4. **Check anti-drift status**:
+   - Are the Product Anchor and Engineering Principles present?
+   - Are there open deviations?
+   - Are there research entries for current high-impact technical decisions?
 
 4. **Report the dashboard**:
 
@@ -40,6 +49,13 @@ Show a comprehensive project status overview.
    - **Fix Now:** [N] resolved / [M] total
    - **Fix Later:** [N] resolved / [M] total ([K] overdue)
    - **Accepted Risks:** [N] documented
+
+   ## Anti-Drift Status
+
+   - **Product Anchor:** [present/missing]
+   - **Engineering Principles:** [present/missing]
+   - **Research Registry:** [present/missing]
+   - **Open Deviations:** [N]
 
    ## Next Recommended Action
    [What WO should be started next, based on dependency graph and phase ordering]

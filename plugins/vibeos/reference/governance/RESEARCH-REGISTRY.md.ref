@@ -1,0 +1,22 @@
+<!-- REQUIRED -->
+# Research Registry
+
+Record the current evidence used for important technical decisions so the build does not drift onto stale assumptions.
+
+## Freshness Rules
+
+- Use primary sources first: official docs, specifications, release notes, vendor docs, or first-party security guidance.
+- Re-check evidence before implementing decisions that touch external APIs, framework versions, auth, billing, infrastructure, security controls, or compliance.
+- If a decision is high-impact and no current evidence is logged, treat that as a gap to resolve before coding.
+
+## Active Evidence
+
+| Area | Decision / Question | Source Type | Source | Verified On | Applies To | Notes |
+|---|---|---|---|---|---|---|
+| {{AREA}} | {{QUESTION}} | official-docs | {{SOURCE_TITLE_OR_URL}} | {{DATE}} | {{WO_OR_PHASE}} | {{WHY_IT_MATTERS}} |
+
+## Retired Evidence
+
+| Area | Replaced On | Replaced By | Notes |
+|---|---|---|---|
+| {{AREA}} | {{DATE}} | {{NEW_SOURCE}} | {{REASON}} |

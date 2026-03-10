@@ -2,11 +2,14 @@
 
 ## Purpose
 
-Generate `docs/planning/DEVELOPMENT-PLAN.md` from the PRD, architecture, and project definition. The plan defines phases and ordered Work Orders. **The agent never asks the user "what do you want to build?"** — it uses this plan to determine the next WO.
+Generate `docs/planning/DEVELOPMENT-PLAN.md` from the PRD, Product Anchor, Engineering Principles, architecture, and project definition. The plan defines phases and ordered Work Orders. **The agent never asks the user "what do you want to build?"** — it uses this plan to determine the next WO.
 
 ## Input
 
 - `docs/product/PRD.md`
+- `docs/product/PRODUCT-ANCHOR.md`
+- `docs/ENGINEERING-PRINCIPLES.md`
+- `docs/research/RESEARCH-REGISTRY.md`
 - `project-definition.json` (scope.core_workflows, scope.v1_features, governance_profile.deployment_context)
 - `docs/ARCHITECTURE.md` or `docs/product/ARCHITECTURE-OUTLINE.md`
 - Existing WO-INDEX (if midstream)
@@ -85,8 +88,10 @@ See `reference/governance/DEVELOPMENT-PLAN.md.ref`.
 ## Rules
 
 1. **Align with architecture** — WOs must respect module boundaries from ARCHITECTURE.md
-2. **Infer from PRD** — core_workflows and v1_features map directly to phases and WOs
+2. **Infer from PRD and Product Anchor** — core_workflows and v1_features map directly to phases and WOs, but the Product Anchor decides what experience and non-negotiables must be preserved
 3. **Explicit dependencies** — no implicit ordering; every WO lists what it depends on
-4. **Update after completion** — when a WO completes: (1) mark Status Complete in plan table, (2) move to WO-INDEX Completed, (3) set Next to next pending WO
-5. **Never ask the user** — "What WO do you want to build?" is wrong. Use the plan.
-6. **Alignment enforced** — `validate-development-plan-alignment.sh` runs at wo_exit and full_audit. It fails if DEVELOPMENT-PLAN, WO-INDEX, or WO files drift.
+4. **Trace every WO back to the anchors** — each WO must explain which product promise, experience principle, and engineering principle it serves
+5. **Require freshness where it matters** — if a WO depends on high-impact external behavior, note the required current evidence from `docs/research/RESEARCH-REGISTRY.md`
+6. **Update after completion** — when a WO completes: (1) mark Status Complete in plan table, (2) move to WO-INDEX Completed, (3) set Next to next pending WO
+7. **Never ask the user** — "What WO do you want to build?" is wrong. Use the plan.
+8. **Alignment enforced** — `validate-development-plan-alignment.sh` runs at wo_exit and full_audit. It fails if DEVELOPMENT-PLAN, WO-INDEX, or WO files drift.

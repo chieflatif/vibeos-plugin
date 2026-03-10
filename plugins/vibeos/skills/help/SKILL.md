@@ -34,6 +34,9 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 > - `work-orders` — Detailed task specifications
 > - `quality-gates` — Automated quality checks
 > - `audit-agents` — Specialized code reviewers
+> - `anchors` — The product and engineering documents that keep the build from drifting
+> - `product-drift` — How VibeOS checks that the work still matches the original promise
+> - `research-freshness` — Why important technical decisions should use current evidence
 > - `convergence` — How the build loop reaches completion
 > - `baselines` — Quality snapshots and tracking
 > - `ratcheting` — One-way quality improvement
@@ -90,7 +93,13 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 
 - **quality-gates**: "Quality gates are automated checks that run before code is committed. They catch issues like missing type annotations, placeholder code, security vulnerabilities, and style violations. Think of them as a safety inspection."
 
-- **audit-agents**: "Audit agents are specialized AI reviewers that examine your code for specific types of issues. There are 5: security, architecture, correctness, test coverage, and evidence. They run independently and their findings are cross-referenced for consensus."
+- **audit-agents**: "Audit agents are specialized AI reviewers that examine your code for specific types of issues. There are 6: security, architecture, correctness, test coverage, evidence, and product drift. They run independently and their findings are cross-referenced for consensus."
+
+- **anchors**: "Anchors are the documents that preserve what the project is really trying to be. The Product Anchor protects the promise and user experience. Engineering Principles protect the quality bar. The Research Registry tracks current evidence for important technical decisions. The Deviation Log records explicit compromises so they do not become invisible drift."
+
+- **product-drift**: "Product drift is when the code keeps moving, but it slowly stops serving the original promise, user workflow, or intended experience. VibeOS now checks for that explicitly so a local shortcut does not quietly reshape the whole product."
+
+- **research-freshness**: "Research freshness means not trusting stale model memory for important external decisions. If work depends on APIs, framework versions, auth, billing, infrastructure, or security behavior, VibeOS should look for current evidence and record it in the Research Registry."
 
 - **convergence**: "Convergence is the process of fix cycles getting closer to zero issues. After the build agent writes code, auditors review it, and any issues trigger a fix cycle. Convergence controls prevent infinite loops by tracking whether progress is being made."
 
@@ -111,7 +120,7 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 - **midstream**: "Midstream means the plugin is being added to a project that already has code. The system analyzes the existing codebase, maps its architecture, runs audits, and creates a baseline before planning new work."
 
 - **files**: "The plugin creates files in your project at different stages. Here's a summary by phase:"
-  - **Discovery:** `project-definition.json`, product docs in `docs/product/` (PRD, architecture, tech spec)
+  - **Discovery:** `project-definition.json`, product docs in `docs/product/` (PRD, architecture, product anchor), plus `docs/ENGINEERING-PRINCIPLES.md`, `docs/research/RESEARCH-REGISTRY.md`, and `docs/decisions/DEVIATIONS.md`
   - **Planning:** `DEVELOPMENT-PLAN.md` and work orders in `docs/planning/`, gate scripts in `scripts/`, `CLAUDE.md`
   - **Midstream planning:** `.vibeos/findings-registry.json` (audit findings), `.vibeos/baselines/` (quality baseline), `ACCEPTED-RISKS.md`
   - **Build:** Source code, test files, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state)

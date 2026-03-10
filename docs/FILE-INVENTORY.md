@@ -11,7 +11,11 @@ All files the plugin creates in your project, organized by when they appear.
 | `docs/product/PROJECT-IDEA.md` | Raw user intent capture (greenfield only) |
 | `docs/product/PRODUCT-BRIEF.md` | One-page product summary (greenfield only) |
 | `docs/product/PRD.md` | Requirements, user stories, acceptance criteria |
+| `docs/product/PRODUCT-ANCHOR.md` | Core promise, experience principles, and anti-goals |
 | `docs/TECHNICAL-SPEC.md` | Stack, modules, security posture |
+| `docs/ENGINEERING-PRINCIPLES.md` | Build standards, anti-shortcut rules, freshness policy |
+| `docs/research/RESEARCH-REGISTRY.md` | Current evidence for high-impact technical decisions |
+| `docs/decisions/DEVIATIONS.md` | Explicit compromise log with review dates |
 | `docs/product/ARCHITECTURE-OUTLINE.md` | System components, data flow, module map |
 | `docs/product/ASSUMPTIONS-AND-RISKS.md` | Open questions and risks (greenfield only) |
 

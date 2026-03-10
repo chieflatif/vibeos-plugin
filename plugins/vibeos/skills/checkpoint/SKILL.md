@@ -7,7 +7,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 
 # /vibeos:checkpoint — Phase Boundary Audit (Layer 5)
 
-Run all quality gates and all audit agents on the entire codebase at phase boundaries. Establish baselines and enforce quality ratcheting.
+Run all quality gates and all audit agents on the entire codebase at phase boundaries. Establish baselines, enforce quality ratcheting, and check for product/standards drift.
 
 ## Communication Contract
 
@@ -51,9 +51,9 @@ Collect results: pass/fail per gate, total pass count.
 
 ### Step 3: Run Full Audit Cycle
 
-Dispatch all 5 audit agents following the same protocol as `skills/audit/SKILL.md`:
+Dispatch all 6 audit agents following the same protocol as `skills/audit/SKILL.md`:
 
-1. Dispatch all 5 agents (security, architecture, correctness, test, evidence)
+1. Dispatch all 6 agents (security, architecture, correctness, test, evidence, product-drift)
 2. Collect structured findings from each
 3. Apply consensus logic (2+ agents = true positive, 1 = warning)
 4. Generate composite findings list
@@ -93,7 +93,8 @@ Baseline schema:
     "architecture": {"status": "complete|failed", "findings": N},
     "correctness": {"status": "complete|failed", "findings": N},
     "test": {"status": "complete|failed", "findings": N},
-    "evidence": {"status": "complete|failed", "findings": N}
+    "evidence": {"status": "complete|failed", "findings": N},
+    "product-drift": {"status": "complete|failed", "findings": N}
   }
 }
 ```

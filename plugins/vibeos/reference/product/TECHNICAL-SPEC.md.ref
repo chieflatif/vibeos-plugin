@@ -60,3 +60,10 @@
 - Dependency policy: {{DEPENDENCY_POLICY}}
 - Environments: {{ENVIRONMENT_SHAPE}}
 - Testing strategy: {{TEST_STRATEGY}}
+- Research freshness: {{RESEARCH_FRESHNESS_POLICY}}
+
+<!-- OPTIONAL: Include when external APIs, frameworks, or security-sensitive integrations matter -->
+## Evidence Sources
+<!-- ADAPT: Cite primary sources and when they were checked. -->
+- Official docs / specs: {{SOURCE_1}}
+- Verified on: {{VERIFIED_DATE_1}}

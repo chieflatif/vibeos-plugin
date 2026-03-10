@@ -1,0 +1,46 @@
+<!-- REQUIRED -->
+# {{PROJECT_NAME}} Product Anchor
+
+<!-- REQUIRED -->
+## Product Promise
+<!-- ADAPT: One short paragraph. What experience are we trying to create, for whom, and why does it matter? -->
+{{PRODUCT_PROMISE}}
+
+<!-- REQUIRED -->
+## Core User Outcome
+<!-- ADAPT: What should the primary user be able to achieve if this product is working properly? -->
+- {{CORE_OUTCOME_1}}
+- {{CORE_OUTCOME_2}}
+
+<!-- REQUIRED -->
+## Experience Principles
+<!-- ADAPT: 3-5 principles that define what "good" feels like for this product. -->
+- {{EXPERIENCE_PRINCIPLE_1}}
+- {{EXPERIENCE_PRINCIPLE_2}}
+- {{EXPERIENCE_PRINCIPLE_3}}
+
+<!-- REQUIRED -->
+## Non-Negotiables
+<!-- ADAPT: Hard lines the product should not cross. -->
+- {{NON_NEGOTIABLE_1}}
+- {{NON_NEGOTIABLE_2}}
+
+<!-- REQUIRED -->
+## Anti-Goals
+<!-- ADAPT: What we explicitly do not want this product to become. -->
+- {{ANTI_GOAL_1}}
+- {{ANTI_GOAL_2}}
+
+<!-- REQUIRED -->
+## Decision Filter
+<!-- ADAPT: Short checklist used whenever a WO, implementation decision, or trade-off is evaluated. -->
+Before approving a shortcut or change, ask:
+1. Does this improve or protect the core user outcome?
+2. Does this preserve the intended experience quality?
+3. Does this stay inside the non-negotiables?
+4. If it is a trade-off, is the compromise explicit and worth it?
+
+<!-- REQUIRED -->
+## Change Control
+<!-- ADAPT: Explain how this anchor is updated. -->
+If a later work order conflicts with this document, stop and resolve the conflict explicitly. Do not silently drift.

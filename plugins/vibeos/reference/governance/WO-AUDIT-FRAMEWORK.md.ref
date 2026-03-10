@@ -27,6 +27,15 @@ Ask these every time:
 9. What should be simplified, split, or resequenced before proceeding?
 10. Should an additional user-requested audit happen now because the risk is high or uncertainty remains?
 
+## Drift & Freshness Overlay (Every Checkpoint)
+
+In addition to the standard audit questions, every checkpoint must explicitly answer:
+
+1. Are we drifting away from `docs/product/PRODUCT-ANCHOR.md` — the core promise, experience principles, or non-negotiables?
+2. Are we drifting away from `docs/ENGINEERING-PRINCIPLES.md` — the build standard, reliability bar, or anti-shortcut rules?
+3. Are any high-impact decisions based on stale memory, guessed best practices, or uncited external knowledge instead of current evidence from `docs/research/RESEARCH-REGISTRY.md`?
+4. If there is a deliberate compromise, is it logged in `docs/decisions/DEVIATIONS.md` with scope, impact, and review date?
+
 ## Planning Audit
 
 Run before approving the WO for implementation.
@@ -39,6 +48,8 @@ Focus on:
 - wrong sequencing
 - unrealistic acceptance criteria
 - missing rollback or migration thinking
+- drift from the Product Anchor or Engineering Principles
+- unsupported technical choices that should have current evidence
 
 ## Pre-Implementation Audit
 
@@ -52,6 +63,8 @@ Focus on:
 - external contracts
 - test strategy
 - setup and environment prerequisites
+- product-intent drift before code starts
+- missing research freshness for external dependencies or frameworks
 
 ## Pre-Commit Audit
 
@@ -64,6 +77,8 @@ Focus on:
 - test gaps
 - incorrect documentation
 - unhandled failure paths
+- shortcuts that violate the engineering principles
+- experience regressions against the Product Anchor
 
 ## Staging Audit
 
@@ -75,6 +90,8 @@ Focus on:
 - monitoring and alerting gaps
 - rollback readiness
 - follow-up work before production
+- gaps between the shipped experience and the promised experience
+- temporary deviations that should be closed before release
 
 ## TDD Requirement (Every Checkpoint)
 
@@ -98,4 +115,6 @@ For each checkpoint, record:
 - accepted risks
 - evidence or commands run
 - **test status** — what tests exist, what passed, what gaps remain
+- **anchor status** — whether the work still aligns with the Product Anchor and Engineering Principles
+- **freshness status** — whether high-impact external decisions were backed by current evidence
 - whether an extra user-requested audit was recommended

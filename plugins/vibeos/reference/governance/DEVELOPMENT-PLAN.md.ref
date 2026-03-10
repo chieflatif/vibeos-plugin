@@ -8,6 +8,12 @@
 
 <!-- ADAPT: 2-3 sentence summary of the plan, aligned with PRD and architecture -->
 
+## Anchors
+
+- **Product promise:** <!-- ADAPT: One sentence from PRODUCT-ANCHOR.md -->
+- **Experience principles:** <!-- ADAPT: 2-3 short bullets from PRODUCT-ANCHOR.md -->
+- **Engineering bar:** <!-- ADAPT: 2-3 short bullets from ENGINEERING-PRINCIPLES.md -->
+
 ## Phases
 
 <!-- ADAPT: Generate from PRD core_workflows, v1_features, architecture. Each phase has a clear outcome and ordered Work Orders. -->
@@ -54,6 +60,7 @@
 
 - Phases are ordered. Complete Phase N before Phase N+1 unless a WO explicitly spans phases.
 - Within a phase, WOs are ordered by dependencies. Complete dependencies before dependents.
+- Every WO should trace back to the Product Anchor, PRD, and Engineering Principles. If a WO cannot explain that alignment, revise it before implementation.
 - **When a WO completes:** (1) Mark its Status `Complete` in this plan's table, (2) Move it to WO-INDEX Completed table, (3) Set **Next** to the next pending WO.
 - DEVELOPMENT-PLAN, WO-INDEX, and WO-*.md files must stay aligned. The `validate-development-plan-alignment` gate runs at wo_exit and full_audit and fails if there is drift.
 - If the plan changes (user request, discovery), update this document and WO-INDEX together.

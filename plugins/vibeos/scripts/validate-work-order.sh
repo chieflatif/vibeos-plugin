@@ -29,6 +29,9 @@ if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
     echo "Validates that a WO file has required sections:"
     echo "  - Objective or Scope"
     echo "  - Acceptance Criteria or Definition of Done"
+    echo "  - Anchor Alignment"
+    echo "  - Research & Freshness"
+    echo "  - Approved Deviations"
     echo "  - Test Strategy (TDD: required before implementation)"
     echo "  - Tasks or Phase"
     echo "  - Status field"
@@ -138,6 +141,29 @@ if ! echo "$content" | grep -qiE '(^status:|^#{1,3}\s+Status|Status:\s+)'; then
 fi
 
 # Check 5: Test Strategy section (TDD — required for code WOs; can be waived for docs/config-only)
+anchor_alignment_block="$(section_block_h2 "Anchor Alignment")"
+research_freshness_block="$(section_block_h2 "Research & Freshness")"
+approved_deviations_block="$(section_block_h2 "Approved Deviations")"
+
+if [[ -z "$anchor_alignment_block" ]]; then
+    errors+=("Missing 'Anchor Alignment' section")
+elif ! echo "$anchor_alignment_block" | grep -qiE '(product promise|core workflow|experience|engineering principles)'; then
+    errors+=("'Anchor Alignment' must explain how the WO supports the product promise, experience, or engineering principles")
+fi
+
+if [[ -z "$research_freshness_block" ]]; then
+    errors+=("Missing 'Research & Freshness' section")
+elif ! echo "$research_freshness_block" | grep -qiE '(Current evidence required|Why freshness matters|Sources to verify|Last verified on)'; then
+    errors+=("'Research & Freshness' must include evidence requirement, source, and verification details (or explicit N/A)")
+fi
+
+if [[ -z "$approved_deviations_block" ]]; then
+    errors+=("Missing 'Approved Deviations' section")
+elif ! echo "$approved_deviations_block" | grep -qiE '(Known deviations|None|shortcut|deviation)'; then
+    errors+=("'Approved Deviations' must state the known deviations or explicitly say 'None'")
+fi
+
+# Check 6: Test Strategy section (TDD — required for code WOs; can be waived for docs/config-only)
 test_strategy_block="$(section_block_h2 "Test Strategy")"
 test_requirement_waived=false
 if [[ -z "$test_strategy_block" ]]; then
@@ -153,13 +179,19 @@ elif [[ "$WO_VALIDATION_MODE" == "entry" || "$WO_VALIDATION_MODE" == "completion
     fi
 fi
 
-# Check 6: For completion — Evidence must reference tests (unless waived)
+# Check 7: For completion — Evidence must reference tests (unless waived)
 if [[ "$WO_VALIDATION_MODE" == "completion" ]] && [[ "$test_requirement_waived" != "true" ]]; then
     evidence_block="$(section_block_h2 "Evidence")"
     if [[ -z "$evidence_block" ]]; then
         errors+=("Missing 'Evidence' section — required for WO completion")
     elif ! echo "$evidence_block" | grep -qiE '(test|pytest|jest|vitest|coverage|gate-runner|wo_exit)'; then
         errors+=("'Evidence' must reference test results or gate output — TDD requires test evidence for completion")
+    fi
+fi
+
+if [[ "$WO_VALIDATION_MODE" == "completion" ]]; then
+    if ! echo "$approved_deviations_block" | grep -qiE '(None|DEV-[0-9]+|deviation)'; then
+        errors+=("'Approved Deviations' must either reference logged deviations or explicitly state 'None' before completion")
     fi
 fi
 

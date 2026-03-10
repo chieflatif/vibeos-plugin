@@ -1,0 +1,22 @@
+<!-- REQUIRED -->
+# Deviation Log
+
+Track intentional departures from the product anchor, engineering principles, architecture, or freshness policy.
+
+## Open Deviations
+
+| ID | Date | Scope | Decision | Why Allowed | Impact | Review By | Status |
+|---|---|---|---|---|---|---|---|
+| DEV-001 | {{DATE}} | {{WO_OR_AREA}} | {{DEVIATION}} | {{RATIONALE}} | {{IMPACT}} | {{REVIEW_DATE}} | open |
+
+## Closed Deviations
+
+| ID | Date Closed | Resolution | Notes |
+|---|---|---|---|
+| DEV-000 | {{DATE}} | {{RESOLUTION}} | {{NOTES}} |
+
+## Rules
+
+- Do not log normal implementation choices here. Only log explicit trade-offs, accepted risks, or temporary compromises.
+- If a deviation affects users, trust, security, or long-term maintainability, spell that out plainly.
+- Closing a deviation should include what changed and why the original compromise is no longer needed.

@@ -51,6 +51,7 @@ Examples:
 - **Planning** — Breaks the work into phases and work orders so progress stays organized
 - **Building** — Writes tests first, then implements the feature
 - **Quality Checks** — Runs automated checks and audits so problems get caught early
+- **Anti-Drift Anchors** — Keeps the build tied to the product promise, engineering standards, and current evidence instead of slowly drifting off course
 - **Progress Guidance** — Tells you what is happening, what is done, and what should happen next
 - **Zero Technical Debt** — No stubs, no placeholders, no pretending something is finished when it is not
 
@@ -192,7 +193,7 @@ your-project/
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
 │   ├── skills/            ← 9 skills (discover, plan, build, etc.)
-│   ├── agents/            ← 11 specialized subagents
+│   ├── agents/            ← 12 specialized subagents
 │   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
 ├── .vibeos/
 │   ├── scripts/           ← 25 quality gate scripts
@@ -200,7 +201,10 @@ your-project/
 │   ├── reference/         ← 40+ annotated reference files
 │   └── convergence/       ← Loop control scripts
 └── docs/
-    └── planning/          ← Generated development plan and work orders
+    ├── planning/          ← Generated development plan and work orders
+    ├── product/           ← PRD, architecture, and product anchor
+    ├── research/          ← Current evidence for high-impact decisions
+    └── decisions/         ← Explicit trade-offs and deviations
 ```
 
 ## Requirements
@@ -236,6 +240,17 @@ It should explain the choice in simple terms first, then give the tradeoffs:
 - which option it recommends and why
 
 You should not have to guess what a choice means or why one path is better.
+
+### How does VibeOS avoid drifting away from what I asked for?
+
+It creates a few simple anchor documents during discovery:
+
+- a product anchor that keeps the core promise and user experience clear
+- engineering principles that define the quality bar
+- a research registry for important up-to-date technical decisions
+- a deviation log for any deliberate compromises
+
+That gives the system a memory of what it is trying to protect as it keeps building.
 
 ### What should I type first?
 

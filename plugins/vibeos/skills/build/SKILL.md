@@ -1,6 +1,6 @@
 ---
 name: build
-description: Autonomous build orchestrator that executes work orders end-to-end. Use when the user says "continue", "keep going", "build the next thing", "resume", "start building", or wants to make progress on the development plan. Dispatches investigator, tester, implementation, and documentation agents in sequence with two-layer quality enforcement (Layer 1 gates + Layer 2 audit agents) and error recovery.
+description: Autonomous build orchestrator that executes work orders end-to-end. Use when the user says "continue", "keep going", "build the next thing", "resume", "start building", or wants to make progress on the development plan. Dispatches investigator, tester, implementation, and documentation agents in sequence with two-layer quality enforcement (Layer 1 gates + Layer 2 audit agents) and error recovery, while checking for product drift and stale high-impact decisions.
 argument-hint: "[optional: WO number to build, e.g. 'WO-001']"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
@@ -146,7 +146,7 @@ Update this file before each agent dispatch.
 
 Dispatch `agents/investigator.md` with:
 - **Input:** WO file path, development plan path
-- **Purpose:** Revalidate assumptions, check dependencies, analyze codebase, flag risks
+- **Purpose:** Revalidate assumptions, check dependencies, analyze codebase, flag risks, and verify anchor/freshness readiness
 
 **On result:**
 - If recommendation is BLOCK (critical issues): pause, report to user, ask how to proceed
@@ -308,7 +308,7 @@ Log each gate run: `[timestamp] gate-runner WO-NNN pre_commit [PASS|FAIL] [detai
 ### Step 8: Run Audit Cycle (Layer 2)
 
 **Progress banner:**
-> "[Step 5/8] Audit — Running 5 independent quality reviewers. This is the longest step and may take a minute..."
+> "[Step 5/8] Audit — Running 6 independent quality reviewers, including a product-drift check. This is the longest step and may take a minute..."
 
 **On result:** "Audit complete: [confirmed] confirmed findings, [warnings] warnings. [critical summary if any]."
 **On convergence retry:** "Fix applied. Re-running auditors to verify (iteration [N] of 5)..."
@@ -317,12 +317,13 @@ After gates pass, run the full audit cycle for deeper quality enforcement.
 
 Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — instead, dispatch the audit agents directly following the same pattern as `skills/audit/SKILL.md`):
 
-1. Dispatch all 5 audit agents in parallel where possible:
+1. Dispatch all 6 audit agents in parallel where possible:
    - `agents/security-auditor.md`
    - `agents/architecture-auditor.md`
    - `agents/correctness-auditor.md`
    - `agents/test-auditor.md`
    - `agents/evidence-auditor.md`
+   - `agents/product-drift-auditor.md`
 
 2. Collect findings and apply consensus logic (see `skills/audit/SKILL.md` Step 4)
 
@@ -378,8 +379,8 @@ For each fix cycle iteration:
 >    - Technical note: this starts another fix-and-audit cycle
 > 2. **Accept these findings** — Keep moving and track these issues as known risks.
 >    - Pros: preserves momentum on the current work order
->    - Cons: [If security]: [specific security risk] remains in the code. [If architecture]: [specific maintenance risk] remains and may resurface later
->    - Technical note: accepted findings remain in the audit trail and will appear again at checkpoints
+>    - Cons: [If security]: [specific security risk] remains in the code. [If architecture]: [specific maintenance risk] remains and may resurface later. [If product drift]: the work may move away from the intended experience until corrected
+>    - Technical note: accepted findings remain in the audit trail and should be logged in `docs/decisions/DEVIATIONS.md` when they are deliberate compromises
 > 3. **Fix it yourself** — I'll give you exact file locations and details, then verify your changes.
 >    - Pros: you control the exact remediation
 >    - Cons: requires manual intervention from you

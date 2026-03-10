@@ -269,14 +269,22 @@ fi
 echo ""
 
 # ============================================================
-# Test 10: Governance References
+# Test 10: Governance & Anchor References
 # ============================================================
-echo "=== Test 10: Governance References ==="
+echo "=== Test 10: Governance & Anchor References ==="
 
 REF_COUNT=0
 REF_FAIL=0
-for ref in WO-INDEX.md.ref DEVELOPMENT-PLAN.md.ref WO-AUDIT-FRAMEWORK.md.ref WO-TEMPLATE.md.ref; do
-  REF_PATH="$PLUGIN_DIR/reference/governance/$ref"
+for ref in \
+  "governance/WO-INDEX.md.ref" \
+  "governance/DEVELOPMENT-PLAN.md.ref" \
+  "governance/WO-AUDIT-FRAMEWORK.md.ref" \
+  "governance/WO-TEMPLATE.md.ref" \
+  "governance/ENGINEERING-PRINCIPLES.md.ref" \
+  "governance/DEVIATIONS.md.ref" \
+  "governance/RESEARCH-REGISTRY.md.ref" \
+  "product/PRODUCT-ANCHOR.md.ref"; do
+  REF_PATH="$PLUGIN_DIR/reference/$ref"
   REF_COUNT=$((REF_COUNT + 1))
   if [ -f "$REF_PATH" ]; then
     log_result "Governance reference: $ref" "PASS" "Found"
@@ -287,9 +295,15 @@ for ref in WO-INDEX.md.ref DEVELOPMENT-PLAN.md.ref WO-AUDIT-FRAMEWORK.md.ref WO-
 done
 
 if [ "$REF_FAIL" -eq 0 ]; then
-  log_result "Governance reference bundle" "PASS" "$REF_COUNT governance reference files validated"
+  log_result "Governance reference bundle" "PASS" "$REF_COUNT governance and anchor reference files validated"
 else
   log_result "Governance reference bundle" "FAIL" "$REF_FAIL/$REF_COUNT governance reference files missing"
+fi
+
+if grep -q "product-drift-auditor" "$PLUGIN_DIR/skills/audit/SKILL.md" && grep -q "Anchor Alignment" "$PLUGIN_DIR/scripts/validate-work-order.sh"; then
+  log_result "Anti-drift wiring" "PASS" "Audit skill and WO validator enforce anchor-aware drift checks"
+else
+  log_result "Anti-drift wiring" "FAIL" "Audit skill or WO validator missing anti-drift wiring"
 fi
 echo ""
 

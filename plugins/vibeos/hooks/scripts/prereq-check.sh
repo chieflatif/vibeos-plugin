@@ -46,6 +46,7 @@ EOF
 else
   # Detect lifecycle state for context-aware welcome
   LIFECYCLE_HINT="new project"
+  ANCHOR_HINT=""
   if [ -f "project-definition.json" ] && [ -f "docs/planning/DEVELOPMENT-PLAN.md" ]; then
     LIFECYCLE_HINT="existing project with a development plan — ready to build"
   elif [ -f "project-definition.json" ]; then
@@ -54,12 +55,28 @@ else
     LIFECYCLE_HINT="project with VibeOS state"
   fi
 
+  if [ -f "project-definition.json" ]; then
+    MISSING_ANCHORS=()
+    for f in "docs/product/PRODUCT-ANCHOR.md" "docs/ENGINEERING-PRINCIPLES.md" "docs/research/RESEARCH-REGISTRY.md" "docs/decisions/DEVIATIONS.md"; do
+      if [ ! -f "$f" ]; then
+        MISSING_ANCHORS+=("$f")
+      fi
+    done
+    if [ ${#MISSING_ANCHORS[@]} -gt 0 ]; then
+      ANCHOR_LIST=$(printf ', %s' "${MISSING_ANCHORS[@]}")
+      ANCHOR_LIST="${ANCHOR_LIST:2}"
+      ANCHOR_HINT=" Anchor docs missing: $ANCHOR_LIST."
+    else
+      ANCHOR_HINT=" Product, engineering, research, and deviation anchors are present."
+    fi
+  fi
+
   cat << EOF
 {
-  "systemMessage": "VibeOS Plugin ready (${LIFECYCLE_HINT}). Just tell me what you want to do — describe your idea, ask about progress, or say 'continue' to keep building. No commands needed.",
+  "systemMessage": "VibeOS Plugin ready (${LIFECYCLE_HINT}).${ANCHOR_HINT} Just tell me what you want to do — describe your idea, ask about progress, or say 'continue' to keep building. No commands needed.",
   "hookSpecificOutput": {
     "hookEventName": "SessionStart",
-    "additionalContext": "VibeOS Plugin prerequisites satisfied. Lifecycle: ${LIFECYCLE_HINT}. Voice-led routing is active — the user can speak naturally and the intent router will suggest the right skill. Follow the routing instructions in CLAUDE.md."
+    "additionalContext": "VibeOS Plugin prerequisites satisfied. Lifecycle: ${LIFECYCLE_HINT}.${ANCHOR_HINT} Voice-led routing is active — the user can speak naturally and the intent router will suggest the right skill. Follow the routing instructions in CLAUDE.md. Use the Product Anchor, Engineering Principles, Research Registry, and Deviation Log as the anti-drift memory of the project."
   }
 }
 EOF
