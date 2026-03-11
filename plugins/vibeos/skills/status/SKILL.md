@@ -16,7 +16,7 @@ Show a tactical status briefing for the current or most recent VibeOS work sessi
    - `.vibeos/checkpoints/*.json` — in-progress resume state
    - `.vibeos/config.json` — autonomy preference and session override
    - `docs/planning/WO-INDEX.md` — active and recently completed work orders
-   - active WO files (status `In Progress` or `Active`)
+   - active WO files (status `In Progress`, `Active`, `Implemented Locally`, `Awaiting Gate Cleanup`, `Awaiting Real-Path Verification`, `Dev-Mode Complete`, `Awaiting Checkpoint`, `Awaiting Evidence`, or `Pre-Commit Audit`)
    - the latest file in `.vibeos/session-audits/`, if present
 
 2. **Determine current tactical state**:
@@ -25,6 +25,7 @@ Show a tactical status briefing for the current or most recent VibeOS work sessi
    - What has been completed in this session?
    - What is still in motion right now?
    - What blocker, failed check, or pending decision is slowing this session down?
+   - Whether the active WO is in a truthful partial state such as `Implemented Locally`, `Awaiting Gate Cleanup`, `Awaiting Real-Path Verification`, `Dev-Mode Complete`, `Awaiting Checkpoint`, `Awaiting Evidence`, or `Pre-Commit Audit`
 
 3. **Check tactical governance and quality signals**:
    - whether the autonomous session override is active

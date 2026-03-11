@@ -86,6 +86,17 @@ Every audit checkpoint must explicitly address tests. No checkpoint passes witho
 
 A WO cannot be considered complete if any checkpoint omits or defers the test question.
 
+## Real-Path Requirement (Every Checkpoint)
+
+Every audit checkpoint must ask whether the changed behavior works through the real execution path, not just through isolated helpers or mocked internals.
+
+- **Planning:** What is the real entrypoint: route, handler, job runner, CLI, webhook, scheduler, or other runtime trigger?
+- **Pre-implementation:** Is the primary path mapped all the way to the intended service or dependency chain?
+- **Pre-commit:** Was the real path exercised through integration, smoke, or equivalent runtime verification?
+- **Staging:** Does the production-like path work without relying on a fallback that hides a broken primary path?
+
+If the real path is still unverified, the WO should use a truthful partial state such as `Implemented Locally`, `Awaiting Real-Path Verification`, or `Dev-Mode Complete` instead of `Complete`.
+
 ## Required Output Format
 
 For each checkpoint, record:
@@ -97,4 +108,6 @@ For each checkpoint, record:
 - accepted risks
 - evidence or commands run
 - **test status** — what tests exist, what passed, what gaps remain
+- **real-path status** — what runtime path was verified, what evidence exists, what gap remains
+- **repo recoverability** — whether the repo is left in a clean resumable or handoff-safe state
 - whether an extra user-requested audit was recommended

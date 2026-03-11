@@ -28,7 +28,11 @@ You MUST NEVER read implementation source files. You read only: WO files, archit
    - Include setup/teardown fixtures where needed
    - Include both happy path and error path tests
 6. **Write integration tests** if the WO scope involves cross-component interactions
-7. **Verify test syntax** by running the test command (tests should fail since no implementation exists)
+7. **Write real-path coverage** when the WO changes user-visible or system-visible behavior:
+   - Exercise the actual route, handler, job, CLI entrypoint, webhook, scheduler, or other runtime trigger when the environment allows it
+   - Prefer smoke or integration coverage over isolated helper-only tests when proving the feature is wired correctly matters
+   - If the real path cannot be exercised yet, state that gap explicitly instead of letting fallback or mocked behavior imply closure
+8. **Verify test syntax** by running the test command (tests should fail since no implementation exists)
 
 ## Test Writing Rules
 
@@ -36,6 +40,7 @@ You MUST NEVER read implementation source files. You read only: WO files, archit
 - **Use clear assertion messages** — when a test fails, the message should explain what was expected
 - **Test one thing per test** — each test function verifies one behavior
 - **No mocking implementation details** — mock only external dependencies (APIs, databases)
+- **Do not let fallbacks manufacture success** — a test must distinguish the intended result from a degraded, default, or error-path result that merely looks green
 - **Follow project conventions** — match existing test file structure, import style, fixture patterns
 
 ## Communication Contract
@@ -67,6 +72,12 @@ Return your findings in this exact structure:
 |---|---|---|
 | AC-1 | test_[name] | unit |
 | AC-2 | test_[name] | integration |
+
+### Real-Path Coverage
+
+| Behavior | Real entrypoint | Test(s) | Status |
+|---|---|---|---|
+| [behavior] | [route / handler / job / CLI / webhook / scheduler] | [test name(s)] | [covered / gap] |
 
 ### Test Run Result
 

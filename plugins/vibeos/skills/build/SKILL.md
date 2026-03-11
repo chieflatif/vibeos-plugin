@@ -53,6 +53,44 @@ Before starting, verify these exist:
 
 If planning files are missing, tell the user to run `/vibeos:plan` first.
 
+## Completion Discipline
+
+Use process only where it materially protects software quality, truthful status, security, architecture, and recoverability.
+
+**A WO is only `Complete` when all of these are true:**
+- the intended behavior is implemented
+- the real execution path is verified
+- relevant tests pass
+- relevant quality checks pass
+- the status artifacts are truthful
+- the repo is left in a clean resumable state
+
+**Hard blockers:**
+- broken real path
+- failing tests for changed behavior
+- meaningful architecture violations
+- security or compliance regressions
+- fallback behavior hiding a broken primary path
+- ambiguous repo state or misleading status updates
+
+**Do not block on low-value bureaucracy:**
+- formatting and import ordering
+- cosmetic doc polish
+- minor wording issues
+- unrelated cleanup outside the touched scope
+
+Auto-fix trivial hygiene when cheap. Log or defer low-value cleanup when it does not materially affect correctness or trust.
+
+**Truthful partial WO states:**
+- `Implemented Locally` — code exists, but the real path is not yet proven
+- `Awaiting Gate Cleanup` — behavior exists, but blocking gates still fail
+- `Awaiting Real-Path Verification` — tests or modules pass, but the actual entrypoint is not yet exercised
+- `Dev-Mode Complete` — works in a dev or mocked path, but not yet through the production-like path
+- `Awaiting Checkpoint` — WO-level work is clear, but required checkpoint or ratchet closure is still pending
+- `Awaiting Evidence` — behavior may be done, but documentation, audit evidence, or handoff state is not yet truthful
+
+Never mark fallback-only, degraded-only, or skip-the-gates work as `Complete`.
+
 ## WO Checkpoint & Resume
 
 The build loop saves progress after each agent completes. If interrupted (context window reset, user pause, crash), the build resumes from where it left off.
@@ -115,7 +153,17 @@ If `$ARGUMENTS` contains a WO number, use that. Otherwise:
 4. Find the current phase (first phase with incomplete WOs)
 5. Within that phase, find the first WO whose:
    - Dependencies are all Complete
-   - Status is Draft or Implementation Ready
+   - Status is one of:
+     - `Draft`
+     - `Implementation Ready`
+     - `In Progress`
+     - `Implemented Locally`
+     - `Awaiting Gate Cleanup`
+     - `Awaiting Real-Path Verification`
+     - `Dev-Mode Complete`
+     - `Awaiting Checkpoint`
+     - `Awaiting Evidence`
+     - `Pre-Commit Audit`
 
 If no WO is available, report that all WOs in the current phase are complete and suggest running `/vibeos:status` for the current session view or `/vibeos:project-status` for the overall project picture.
 
@@ -171,6 +219,7 @@ Dispatch `agents/investigator.md` with:
 - If recommendation is BLOCK (critical issues): pause, report to user, ask how to proceed
 - If recommendation is PROCEED WITH CAUTION: log risks, continue
 - If recommendation is PROCEED: continue
+- If the investigation report cannot identify the real entrypoint for the changed behavior (route, handler, job, CLI, webhook, scheduler), treat that as a material readiness gap. Do not allow the WO to close as `Complete` until that path is mapped or explicitly accepted as a partial state.
 
 Log the dispatch to `.vibeos/build-log.md`:
 ```
@@ -192,6 +241,7 @@ Dispatch `agents/tester.md` with:
 - Verify test files were created
 - Verify tests fail (correct TDD behavior — no implementation yet)
 - If tests somehow pass: investigate (might indicate the feature already exists)
+- If the WO changes user-visible or system-visible behavior, require at least one integration or smoke-style test for the real path when the environment allows it. If the tester cannot exercise the real path yet, record the exact gap and carry the WO as a partial state instead of silently treating unit coverage as closure.
 
 Log: `[timestamp] tester WO-NNN write-tests [count] tests written, all failing`
 
@@ -227,16 +277,26 @@ Dispatch implementation agents with:
 - Check self-check results — no stubs, no secrets, types present
 - If tests still failing: retry once with specific failure details
 - If retry fails: escalate to user
+- If the implementation only works through a mocked, fallback, or dev-only path, classify the WO as `Implemented Locally` or `Dev-Mode Complete` until the primary path is verified.
 
 Log: `[timestamp] [agent-name] WO-NNN implement [PASS|FAIL] [details]`
 
-### Step 7: Run Quality Gates
+### Step 7: Run Real-Path Verification and Quality Gates
 
 **Progress banner:**
 > "[Step 4/8] Quality Gates — Running [N] automated quality checks..."
 
 **On result:** Report inline: "Quality checks: [passed]/[total] passed. [top issue if any]."
 **On retry:** "[issue description]. Fixing and re-checking (attempt [N] of 3)..."
+
+**Real-path verification is mandatory for meaningful behavior changes.**
+
+Before treating gate output as closure evidence:
+1. Read the investigator's real-path map.
+2. Identify the actual route, handler, job runner, CLI entrypoint, webhook, scheduler, or other runtime trigger.
+3. Exercise that path through the most realistic available verification method: integration test, smoke test, scripted request, CLI invocation, job run, or equivalent.
+4. Confirm the primary path works without relying on a fallback, default branch, or degraded behavior that could manufacture success.
+5. If the environment cannot exercise the real path, stop short of `Complete`. Use `Awaiting Real-Path Verification`, `Dev-Mode Complete`, or `Implemented Locally`, and record exactly what still needs to be proven.
 
 Run pre_commit gates:
 ```bash
@@ -324,7 +384,7 @@ bash ".vibeos/convergence/baseline-check.sh" ratchet \
 > 2. **Skip these checks for now** — I'll move forward without passing [gate-name].
 >    - Pros: fastest path to continuing the work
 >    - Cons: [specific risk, e.g., "type annotations won't be verified, which could let type-related bugs through"]
->    - Technical note: the gate remains failing until rerun and should be treated as deferred risk
+>    - Technical note: the gate remains failing until rerun and should be treated as deferred risk; the WO status must remain `Awaiting Gate Cleanup` or another truthful partial state
 > 3. **Fix it yourself** — I'll show you exactly what's failing and where, then wait for your change.
 >    - Pros: you keep full control over the fix
 >    - Cons: requires manual work from you
@@ -447,12 +507,24 @@ Log: `[timestamp] doc-writer WO-NNN document [COMPLETE]`
 > "[Step 7/8] Completing WO — Updating tracking documents..."
 
 After all agents succeed:
-1. Mark WO status as `Complete` in WO file (if doc-writer didn't already)
-2. Update WO-INDEX.md: move WO to Complete, add completion date
-3. Update DEVELOPMENT-PLAN.md: set WO status to Complete
-4. Clean up `.vibeos/current-agent.txt`
-5. Delete checkpoint file: remove `.vibeos/checkpoints/WO-NNN.json` (if `.vibeos/checkpoints/` is empty, remove directory)
-6. **Remediation aging check** (if `.vibeos/findings-registry.json` exists):
+1. Check completion truthfulness before updating any status artifacts:
+   - intended behavior implemented
+   - real path verified
+   - relevant tests passing
+   - relevant blocking gates and audits resolved
+   - repo left in a resumable, unambiguous state
+2. If any item above is still false, do **not** mark the WO `Complete`. Use the most accurate partial state instead:
+   - `Implemented Locally`
+   - `Awaiting Gate Cleanup`
+   - `Awaiting Real-Path Verification`
+   - `Dev-Mode Complete`
+   - `Awaiting Checkpoint`
+   - `Awaiting Evidence`
+3. Mark WO status as `Complete` in the WO file only when the truthfulness check passes (if doc-writer didn't already)
+4. Update WO-INDEX.md and DEVELOPMENT-PLAN.md to match the truthful final state and add the completion date only when the WO is actually `Complete`
+5. Clean up `.vibeos/current-agent.txt`
+6. Delete checkpoint file only on true completion; otherwise preserve or refresh resumable state so the next session can pick up cleanly
+7. **Remediation aging check** (if `.vibeos/findings-registry.json` exists):
    - Read fix-later items from findings-registry.json
    - For each, check the `baselined_at_wo` field (set by WO-043 when the finding was baselined)
    - Read aging threshold from `.vibeos/config.json` `remediation_aging_threshold` (default: 5 WOs)
@@ -462,7 +534,7 @@ After all agents succeed:
      > - [finding title] (deferred since WO-NNN)
      > - [finding title] (deferred since WO-NNN)
      > Run `/vibeos:status` for the current session view or `/vibeos:project-status` for the big-picture project view."
-7. If `.vibeos/session-state.json` exists and the session is active:
+8. If `.vibeos/session-state.json` exists and the session is active:
    - append this WO to `completed_wos` with WO number, title, completion time, and 1-line summary
    - update `last_updated`
    - if a phase checkpoint was run during this WO, append it to `phase_checkpoints`
@@ -479,6 +551,13 @@ Report to user:
 >
 > Phase [P]: [completed]/[total] work orders complete.
 > Next: WO-NNN+1 ([next title]) is ready."
+
+If the WO is left in a truthful partial state, the closeout must say so plainly:
+> "WO-NNN ([title]) is not fully closed yet.
+> - Current state: [Implemented Locally / Awaiting Gate Cleanup / Awaiting Real-Path Verification / Dev-Mode Complete / Awaiting Checkpoint / Awaiting Evidence]
+> - What is real today: [working behavior that is actually evidenced]
+> - What remains unresolved: [material blocker]
+> - Exact next step: [the next action to reach true completion]"
 
 **TDD metric source:** Count lines matching `test-file-protection | BLOCKED` in `.vibeos/build-log.md` since this WO started (compare timestamps against checkpoint `started_at`).
 

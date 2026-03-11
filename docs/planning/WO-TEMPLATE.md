@@ -2,7 +2,9 @@
 
 ## Status
 
-`Draft` | `Active - Phase 0` | `Internally Audited` | `Accepted - Awaiting Entry Audit` | `Implementation Ready` | `In Progress` | `Pre-Commit Audit` | `Complete` | `Blocked`
+`Draft` | `Active - Phase 0` | `Internally Audited` | `Accepted - Awaiting Entry Audit` | `Implementation Ready` | `In Progress` | `Implemented Locally` | `Awaiting Gate Cleanup` | `Awaiting Real-Path Verification` | `Dev-Mode Complete` | `Awaiting Checkpoint` | `Awaiting Evidence` | `Pre-Commit Audit` | `Complete` | `Blocked`
+
+Use the partial states truthfully. `Complete` is reserved for work that is implemented, real-path verified, passing relevant tests and gates, and left in a recoverable state.
 
 ## Phase
 
@@ -43,6 +45,7 @@ One-sentence description of what this WO achieves and why it matters.
 
 - **Unit tests:** what to test
 - **Integration tests:** what to test
+- **Real-path verification:** exact route, handler, job, command, or user flow to exercise
 - **Verification command:** how to confirm
 
 ## Implementation Plan

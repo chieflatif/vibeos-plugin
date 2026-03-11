@@ -75,7 +75,7 @@ detect_lifecycle_state() {
   local total_wos=0
   if [[ "$has_wo_index" == true ]]; then
     # Count WOs with different statuses from the index
-    active_wos=$(grep -cE '\|\s*(In Progress|Active)' "$project_root/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
+    active_wos=$(grep -cE '\|\s*(In Progress|Active|Implemented Locally|Awaiting Gate Cleanup|Awaiting Real-Path Verification|Dev-Mode Complete|Awaiting Checkpoint|Awaiting Evidence|Pre-Commit Audit)' "$project_root/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
     complete_wos=$(grep -cE '\|\s*Complete\s*\|' "$project_root/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
     total_wos=$(grep -cE '\|\s*WO-[0-9]' "$project_root/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
   fi
@@ -123,7 +123,7 @@ detect_lifecycle_state() {
     # All WOs accounted for and none active — could be phase boundary or complete
     # Check if there are pending/draft WOs remaining
     local pending_wos
-    pending_wos=$(grep -cE '\|\s*(Draft|Pending|Blocked)' "$project_root/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
+    pending_wos=$(grep -cE '\|\s*(Draft|Pending|Blocked|Implementation Ready|In Progress|Active|Implemented Locally|Awaiting Gate Cleanup|Awaiting Real-Path Verification|Dev-Mode Complete|Awaiting Checkpoint|Awaiting Evidence|Pre-Commit Audit)' "$project_root/docs/planning/WO-INDEX.md" 2>/dev/null || echo "0")
     if [[ "$pending_wos" -eq 0 ]]; then
       echo "complete"
     else
