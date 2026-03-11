@@ -21,6 +21,7 @@ node_modules/
 # VibeOS runtime
 .vibeos/
 build-log.md
+plugins/vibeos/hooks/scripts/*.bak-*
 
 # Environment
 .env

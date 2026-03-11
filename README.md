@@ -1,6 +1,6 @@
 # VibeOS — Autonomous Development Engine
 
-VibeOS turns Claude Code into a hands-on development partner. You do not need to learn a complicated workflow to get started. Open your project, describe what you want in plain English, and VibeOS figures out whether to discover, plan, audit, explain, or keep building.
+VibeOS turns Claude Code, Cursor, and Codex into a hands-on development partner. You do not need to learn a complicated workflow to get started. Open your project in the runtime you prefer, describe what you want in plain English, and VibeOS figures out whether to discover, plan, audit, explain, or keep building.
 
 Think of it like this:
 
@@ -16,7 +16,7 @@ You can learn a few commands later if you want, but the normal way to use VibeOS
 If you are not technical, this is the only part you really need:
 
 1. Install VibeOS.
-2. Open Claude Code inside your project.
+2. Open Claude Code, Cursor, or Codex inside your project.
 3. Say what you want, like:
    - "I want to build a task management app"
    - "Help me understand this codebase"
@@ -104,6 +104,23 @@ bash /path/to/vibeos-plugin/vibeos-init.sh
 
 This installs VibeOS into your project's `.claude/` and `.vibeos/` directories.
 
+### Option 3: Codex Project Bootstrap
+
+Use this if you want the Codex runtime surface alongside the shared VibeOS engine:
+
+```bash
+# Clone the framework
+git clone https://github.com/chieflatif/vibeos-plugin.git
+
+# Navigate to your project
+cd your-project
+
+# Run the Codex bootstrap
+bash /path/to/vibeos-plugin/vibeos-init-codex.sh
+```
+
+This installs VibeOS into your project's `AGENTS.md`, `.codex/`, and `.vibeos/` surfaces. If `.claude/` or `CLAUDE.md` already exist, they are preserved so Claude/Cursor and Codex can work side-by-side in the same project.
+
 ### Upgrade
 
 ```bash
@@ -115,6 +132,9 @@ claude plugin update vibeos@vibeos
 
 # Bootstrap:
 bash /path/to/vibeos-plugin/vibeos-init.sh --upgrade
+
+# Codex bootstrap:
+bash /path/to/vibeos-plugin/vibeos-init-codex.sh --upgrade
 ```
 
 After a plugin update, restart Claude Code to apply the new version.
@@ -127,6 +147,9 @@ claude plugin uninstall vibeos@vibeos
 
 # Bootstrap:
 bash /path/to/vibeos-plugin/vibeos-init.sh --uninstall
+
+# Codex bootstrap:
+bash /path/to/vibeos-plugin/vibeos-init-codex.sh --uninstall
 ```
 
 ## Quick Start
@@ -135,7 +158,7 @@ VibeOS is voice-led. You do not need to type slash commands to use it.
 
 ### The Simplest Way To Use It
 
-Open Claude Code in your project and start with a sentence like:
+Open Claude Code, Cursor, or Codex in your project and start with a sentence like:
 
 > "I want to build a task management app"
 
@@ -155,7 +178,7 @@ That is the main workflow.
 
 ### New Project
 
-Open your project in Claude Code or Cursor and say:
+Open your project in Claude Code, Cursor, or Codex and say:
 
 > "I want to build a task management app"
 
@@ -204,13 +227,17 @@ Most people do not need to think about this section day to day, but this is what
 
 ```
 your-project/
-├── .claude/
+├── AGENTS.md              ← Codex control plane (if Codex bootstrap used)
+├── .codex/                ← Codex-local skills and agent templates
+│   ├── skills/            ← 12 VibeOS Codex skills
+│   └── agents/            ← Role contracts reused by Codex workflows
+├── .claude/               ← Claude/Cursor surface (if Claude bootstrap used)
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
 │   ├── skills/            ← 12 skills (discover, plan, build, status, project-status, etc.)
 │   ├── agents/            ← 13 specialized subagents
 │   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
-├── .vibeos/
+├── .vibeos/               ← Shared runtime used by both surfaces
 │   ├── scripts/           ← 25 quality gate scripts
 │   ├── decision-engine/   ← 8 decision trees
 │   ├── reference/         ← 40+ annotated reference files plus prompt-engineering guidance
@@ -224,7 +251,7 @@ your-project/
 
 ## Requirements
 
-- Claude Code (CLI or Cursor IDE)
+- Claude Code (CLI or Cursor IDE) and/or OpenAI Codex
 - bash 3.2+
 - python3 3.7+
 - jq
@@ -285,7 +312,7 @@ VibeOS will review the work orders completed in that session, re-run verificatio
 
 ### How does VibeOS keep prompt and agent behavior high quality?
 
-If a work order changes prompts, agent instructions, `CLAUDE.md`, or other behavior-governing files, VibeOS should route that work through its dedicated prompt-engineering path.
+If a work order changes prompts, agent instructions, `CLAUDE.md`, `AGENTS.md`, or other behavior-governing files, VibeOS should route that work through its dedicated prompt-engineering path.
 
 That path uses an embedded local snapshot of the Prompt Engineering Bible so prompt changes are treated like governed system assets, not casual copy edits.
 

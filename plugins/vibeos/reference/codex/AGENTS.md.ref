@@ -1,98 +1,123 @@
 # <!-- ADAPT: Agent generates AGENTS.md customized to the project -->
-# <!-- Codex does not support hooks — governance rules must be embedded as text instructions -->
 
-# $PROJECT_NAME — Agent Instructions
+# $PROJECT_NAME — VibeOS for Codex
 
-## Governance Rules
+This file is the Codex control plane for a VibeOS-governed project.
+It is designed to coexist with `CLAUDE.md`, `.claude/`, and Cursor rules when those are also installed.
 
-### Three Laws
-1. No remediation without a Work Order
-2. No Work Order without an evidence-backed finding
-3. No finding without investigation
+## Dual Runtime Model
 
-### Work Order Protocol
-- **docs/planning/DEVELOPMENT-PLAN.md** — Phased roadmap. Determines what to build next. Never ask "what do you want to build?" — use the plan.
-- Track all work in `docs/planning/WO-INDEX.md`
-- Quality gate manifest stored at `quality-gate-manifest.json`
-- Use `docs/planning/WO-AUDIT-FRAMEWORK.md` for every WO audit checkpoint
-- Run planning self-audit before approving a WO
-- Run pre-implementation deep audit before coding starts
-- Treat plan acceptance as `Accepted - Awaiting Entry Audit`, not implementation approval
-- Run `bash scripts/gate-runner.sh wo_entry --continue-on-failure --wo <NUMBER>` before coding starts
-- Run `bash scripts/gate-runner.sh pre_commit` before every commit
-- Run pre-commit deep audit before commit
-- Run `bash scripts/gate-runner.sh wo_exit` after completing a Work Order
-- Run staging audit after push/staging verification before moving on
-- Use commit format: `feat(wo-NNN): description`
+- `AGENTS.md`, `.codex/skills/`, and `.codex/agents/` are the Codex surface.
+- `CLAUDE.md` and `.claude/` remain the Claude/Cursor surface.
+- `.vibeos/` is the shared runtime: scripts, decision engine, references, convergence rules, logs, and checkpoints.
+- Keep the runtimes additive. Do not break Claude/Cursor behavior while improving Codex behavior, and do not break Codex behavior while improving Claude/Cursor behavior.
 
-### Communication Style
-- Use the real technical term and explain it: "PRD (product requirements doc)", "quality gates [checks that run before you commit]". Never replace the term entirely — users learn the vocabulary.
-- Before acting: tell the user what you're about to do and why it matters
-- After acting: start with the business meaning, then explain the technical work in plain English
-- After each major step, explain what is next and why
-- When presenting choices: explain each option, state pros/cons, make a recommendation based on evidence, and explain your rationale
-- Present options in outcome language first, not raw technology names
-- Keep the user oriented; do not reply with terse WO/status messages without explanation
+## Core Laws
 
-### Zero-Stub Policy
-No stubs, placeholders, or TODO comments in committed code. If something cannot be fully implemented, document the blocker in the Work Order.
+1. No remediation without a Work Order.
+2. No Work Order without an evidence-backed finding.
+3. No finding without investigation.
 
-## Security Rules
+## Read Order
 
-- NEVER hardcode secrets in source code
-- NEVER use string formatting for SQL queries
-- NEVER target production URLs
-- NEVER force push
-- ALWAYS use parameterized queries
-- ALWAYS store secrets in environment variables
-- ALWAYS validate external input at system boundaries
+Read these first when they exist:
 
-## Architecture
+1. `project-definition.json`
+2. `docs/product/PRODUCT-ANCHOR.md`
+3. `docs/ENGINEERING-PRINCIPLES.md`
+4. `docs/planning/DEVELOPMENT-PLAN.md`
+5. `docs/planning/WO-INDEX.md`
+6. `docs/USER-COMMUNICATION-CONTRACT.md`
 
-<!-- ADAPT: Agent generates from project config -->
-<!-- EXAMPLE:
-### Module Boundaries
-- API layer cannot import from data layer
-- Business logic must not contain I/O operations
-- No circular dependencies
--->
+## Session Controls
 
-## Quality Gates
+Run shared VibeOS gates directly from `.vibeos/`:
 
 ```bash
-bash scripts/gate-runner.sh pre_commit --continue-on-failure
-bash scripts/gate-runner.sh wo_exit --continue-on-failure
-bash scripts/gate-runner.sh full_audit --continue-on-failure
+bash ".vibeos/scripts/gate-runner.sh" session_start --continue-on-failure
+bash ".vibeos/scripts/gate-runner.sh" pre_commit --continue-on-failure
+bash ".vibeos/scripts/gate-runner.sh" wo_exit --continue-on-failure
+bash ".vibeos/scripts/gate-runner.sh" full_audit --continue-on-failure
 ```
 
-## Standard Audit Questions
+## Communication Rules
 
-- What did we miss?
-- What did we get wrong?
-- What assumptions might fail?
-- What dependencies, configs, migrations, or integrations are missing?
-- What details are invented or not backed by evidence?
-- What tests, fixtures, validations, or monitoring are missing?
-- Should an additional user-requested audit happen now?
+- Lead with outcome, then explain the mechanism.
+- Use the real technical term and explain it in plain English on first use.
+- Present choices with consequences, pros, cons, and a recommendation.
+- Never invent completion, verification, or test results.
+- Keep tactical updates separate from strategic project status.
 
-## Required Response Pattern
+## Safety Rules
 
-1. What we just achieved
-2. What changed under the hood
-3. Why it matters
-4. Recommended next step and why
+- Never hardcode secrets in code, prompts, docs, or config.
+- Never target production unless the user explicitly approves it.
+- Never mark a WO `Complete` unless the real path, relevant tests, and blocking gates are evidenced.
+- If verification is partial, use a truthful partial state such as `Implemented Locally`, `Awaiting Gate Cleanup`, or `Awaiting Real-Path Verification`.
 
-## Development
+## Codex Skill Inventory
 
-<!-- ADAPT: Agent fills from project config -->
+These skills are local to the repo and should be used when the match is clear:
 
-```bash
-# Setup
-# <!-- ADAPT: language-specific setup commands -->
+- `vibeos-discover`
+  - Discovery, codebase understanding, and product anchor setup.
+  - File: `.codex/skills/vibeos-discover/SKILL.md`
+- `vibeos-plan`
+  - Planning, work-order generation, and governance setup.
+  - File: `.codex/skills/vibeos-plan/SKILL.md`
+- `vibeos-build`
+  - Autonomous work-order execution with truthful completion rules.
+  - File: `.codex/skills/vibeos-build/SKILL.md`
+- `vibeos-audit`
+  - Focused or full audit flows using VibeOS auditors and gates.
+  - File: `.codex/skills/vibeos-audit/SKILL.md`
+- `vibeos-gate`
+  - Run quality gates and explain the results in plain English.
+  - File: `.codex/skills/vibeos-gate/SKILL.md`
+- `vibeos-status`
+  - Tactical session-level update.
+  - File: `.codex/skills/vibeos-status/SKILL.md`
+- `vibeos-project-status`
+  - Executive, founder-style project briefing.
+  - File: `.codex/skills/vibeos-project-status/SKILL.md`
+- `vibeos-session-audit`
+  - Closeout review of the current or most recent build session.
+  - File: `.codex/skills/vibeos-session-audit/SKILL.md`
+- `vibeos-checkpoint`
+  - Phase boundary checkpoint and ratchet review.
+  - File: `.codex/skills/vibeos-checkpoint/SKILL.md`
+- `vibeos-wo`
+  - Individual Work Order creation, status, completion, and audit.
+  - File: `.codex/skills/vibeos-wo/SKILL.md`
+- `vibeos-help`
+  - Explain VibeOS concepts and route the user to the right workflow.
+  - File: `.codex/skills/vibeos-help/SKILL.md`
+- `vibeos-autonomous`
+  - Enable a full autonomous-session override and continue building.
+  - File: `.codex/skills/vibeos-autonomous/SKILL.md`
 
-# Test
-# <!-- ADAPT: test commands -->
+## Routing Rules
 
-# Lint
-# <!-- ADAPT: lint commands -->
-```
+- If the user request clearly matches one of the skills above, use it.
+- If the user references specific files, errors, logs, or line numbers, help directly instead of forcing a skill.
+- Prefer voice-led behavior. Do not require slash commands; users should be able to speak naturally.
+
+## Agent Templates
+
+Files in `.codex/agents/*.md` are role contracts, not executable subagents.
+
+When a workflow calls for investigator, tester, backend, frontend, prompt engineer, doc writer, or auditors:
+
+1. Read the matching template in `.codex/agents/`
+2. Use it to structure the phase
+3. Perform the phase yourself
+4. Report the result honestly with evidence
+
+## Side-By-Side Compatibility
+
+- If `.claude/` exists, preserve it.
+- If `CLAUDE.md` exists, preserve it.
+- Shared project state belongs in `.vibeos/` so Claude/Cursor and Codex see the same plan, checkpoints, logs, and evidence.
+- Runtime-specific instructions belong in the runtime-specific surface:
+  - Codex: `AGENTS.md`, `.codex/skills/`, `.codex/agents/`
+  - Claude/Cursor: `CLAUDE.md`, `.claude/`, `.cursorrules`
