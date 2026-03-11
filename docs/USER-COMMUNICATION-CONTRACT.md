@@ -186,7 +186,7 @@ I recommend [option] because [specific reasoning based on project context]."
 
 For non-step messages like aging reminders, convergence updates, etc.
 
-**Compliant:** "Reminder: 3 security issues have been deferred for 6 work orders. Consider scheduling fixes soon — run `/vibeos:status` to see the full list."
+**Compliant:** "Reminder: 3 security issues have been deferred for 6 work orders. Consider scheduling fixes soon — run `/vibeos:project-status` to see the full project-level list."
 
 **Non-compliant:** "WARN: 3 fix-later items exceed aging threshold (5 WOs)" (jargon, no actionable guidance)
 

@@ -414,6 +414,20 @@ else
   log_result "Intent routing for project status" "FAIL" "Intent router missing project-status patterns"
 fi
 
+SESSION_ROUTE_OUTPUT=$(printf '{"prompt":"What''s the status?","cwd":"%s"}' "$PWD" | bash "$PLUGIN_DIR/hooks/scripts/intent-router.sh" 2>/dev/null || true)
+if printf '%s' "$SESSION_ROUTE_OUTPUT" | grep -q '/vibeos:status'; then
+  log_result "Session status routing behavior" "PASS" "Generic status requests route to tactical session status"
+else
+  log_result "Session status routing behavior" "FAIL" "Generic status request did not route to /vibeos:status"
+fi
+
+PROJECT_ROUTE_OUTPUT=$(printf '{"prompt":"Where the fuck are we overall in the project?","cwd":"%s"}' "$PWD" | bash "$PLUGIN_DIR/hooks/scripts/intent-router.sh" 2>/dev/null || true)
+if printf '%s' "$PROJECT_ROUTE_OUTPUT" | grep -q '/vibeos:project-status'; then
+  log_result "Project status routing behavior" "PASS" "Executive status requests route to /vibeos:project-status"
+else
+  log_result "Project status routing behavior" "FAIL" "Executive status request did not route to /vibeos:project-status"
+fi
+
 if grep -q "/project-status" "$PLUGIN_DIR/../../README.md" && grep -q "Give me a project status" "$PLUGIN_DIR/../../README.md"; then
   log_result "README dual status docs" "PASS" "README explains both tactical and executive status views"
 else
