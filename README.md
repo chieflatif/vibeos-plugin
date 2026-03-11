@@ -22,6 +22,7 @@ If you are not technical, this is the only part you really need:
    - "Help me understand this codebase"
    - "Continue building"
    - "What's the status?"
+   - "Give me a project status"
 
 That is enough to get started.
 
@@ -41,6 +42,8 @@ Examples:
 | "I want to build a booking app for dog groomers" | Starts discovery and helps shape the product |
 | "Make a plan for this" | Creates a phased development plan |
 | "Keep going" | Continues the build loop |
+| "What's the status?" | Gives a tactical update on the current or most recent session |
+| "Give me a project status" | Gives an executive big-picture briefing on the whole project |
 | "Go autonomous" | Puts VibeOS back into full autonomous session mode |
 | "Audit this session" | Reviews everything completed in the current or last build session |
 | "Check the code quality" | Runs quality gates and explains the result |
@@ -144,6 +147,8 @@ Then keep talking to it naturally:
 >
 > "What's the status?"
 >
+> "Give me a project status"
+>
 > "Keep going"
 
 That is the main workflow.
@@ -164,7 +169,8 @@ VibeOS will audit your code, identify issues, and create a remediation plan befo
 
 ### Other Useful Things You Can Say
 
-- "What's the status?" — project dashboard
+- "What's the status?" — tactical session update
+- "Give me a project status" — overall founder-level project briefing
 - "Check the code quality" — run quality gates
 - "Continue building" — resume the build loop
 - "Go autonomous" — switch back into full autonomous session mode
@@ -187,7 +193,8 @@ Slash commands still work if you prefer them, but they are optional:
 | `/session-audit` | Audit the current or last build session |
 | `/gate` | Run quality gates |
 | `/wo` | Work order management |
-| `/status` | Project dashboard |
+| `/status` | Tactical session status |
+| `/project-status` | Executive project briefing |
 | `/checkpoint` | Phase boundary report |
 | `/help` | Explain any concept |
 
@@ -200,7 +207,7 @@ your-project/
 ├── .claude/
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
-│   ├── skills/            ← 11 skills (discover, plan, build, autonomous, etc.)
+│   ├── skills/            ← 12 skills (discover, plan, build, status, project-status, etc.)
 │   ├── agents/            ← 13 specialized subagents
 │   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
 ├── .vibeos/
@@ -294,7 +301,7 @@ For an existing project:
 
 For a project already in progress:
 
-> "What's the status?" or "Continue building"
+> "What's the status?", "Give me a project status", or "Continue building"
 
 ## Status
 

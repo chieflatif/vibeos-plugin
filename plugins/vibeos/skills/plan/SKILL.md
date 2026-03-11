@@ -653,7 +653,7 @@ Report the result:
 >
 > Run `/vibeos:build` to start. I'll write tests first, then implement the code, run [K] quality checks, and have 6 independent auditors review the result, including a product-drift check. I'll check in after each [work order/phase] based on your autonomy preference ([level]).
 >
-> Use `/vibeos:status` anytime to see progress, or `/vibeos:gate list` to review your quality gates."
+> Use `/vibeos:status` anytime for the tactical session view, `/vibeos:project-status` for the overall project briefing, or `/vibeos:gate list` to review your quality gates."
 
 If any gate fails, explain what's missing and offer to fix it.
 

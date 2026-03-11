@@ -398,6 +398,30 @@ fi
 echo ""
 
 # ============================================================
+# Test 13: Dual Status Modes
+# ============================================================
+echo "=== Test 13: Dual Status Modes ==="
+
+if [ -f "$PLUGIN_DIR/skills/status/SKILL.md" ] && [ -f "$PLUGIN_DIR/skills/project-status/SKILL.md" ]; then
+  log_result "Status skills" "PASS" "status and project-status skills found"
+else
+  log_result "Status skills" "FAIL" "status or project-status skill missing"
+fi
+
+if grep -q "project-status" "$PLUGIN_DIR/hooks/scripts/intent-router.sh"; then
+  log_result "Intent routing for project status" "PASS" "Intent router recognizes executive project-status requests"
+else
+  log_result "Intent routing for project status" "FAIL" "Intent router missing project-status patterns"
+fi
+
+if grep -q "/project-status" "$PLUGIN_DIR/../../README.md" && grep -q "Give me a project status" "$PLUGIN_DIR/../../README.md"; then
+  log_result "README dual status docs" "PASS" "README explains both tactical and executive status views"
+else
+  log_result "README dual status docs" "FAIL" "README missing project-status guidance"
+fi
+echo ""
+
+# ============================================================
 # Summary
 # ============================================================
 TOTAL=$((PASS_COUNT + FAIL_COUNT + SKIP_COUNT))

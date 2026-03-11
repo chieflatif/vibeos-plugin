@@ -189,8 +189,14 @@ classify_intent() {
     return
   fi
 
+  # Executive / overall project status
+  if printf '%s' "$lower" | grep -qE '\b(project status|overall project status|overall status|big picture|where are we overall|where do we stand overall|executive briefing|executive update|founder update|program status|strategic status|reorient me overall)\b'; then
+    echo "project-progress|project-status|high"
+    return
+  fi
+
   # Progress / Status — check BEFORE explain, because "what is the status" should be status, not explain
-  if printf '%s' "$lower" | grep -qE '\b(status|progress|where are we|what.s done|what.s left|dashboard|overview|how far)\b' || printf '%s' "$lower" | grep -qE 'how.*(going|doing|coming along|looking)|update me|what is the status'; then
+  if printf '%s' "$lower" | grep -qE '\b(status|progress|where are we|what.s done|what.s left|dashboard|overview|how far|reorient me|re-orient me|orient me)\b' || printf '%s' "$lower" | grep -qE 'how.*(going|doing|coming along|looking)|update me|what is the status'; then
     echo "progress|status|high"
     return
   fi

@@ -117,7 +117,7 @@ If `$ARGUMENTS` contains a WO number, use that. Otherwise:
    - Dependencies are all Complete
    - Status is Draft or Implementation Ready
 
-If no WO is available, report that all WOs in the current phase are complete and suggest running `/vibeos:status`.
+If no WO is available, report that all WOs in the current phase are complete and suggest running `/vibeos:status` for the current session view or `/vibeos:project-status` for the overall project picture.
 
 ### Step 2: Read Autonomy Config
 
@@ -461,7 +461,7 @@ After all agents succeed:
      > "Reminder: [N] fix-later remediation items have been deferred for [M] work orders. Consider scheduling them soon:
      > - [finding title] (deferred since WO-NNN)
      > - [finding title] (deferred since WO-NNN)
-     > Run `/vibeos:status` to see the full list."
+     > Run `/vibeos:status` for the current session view or `/vibeos:project-status` for the big-picture project view."
 7. If `.vibeos/session-state.json` exists and the session is active:
    - append this WO to `completed_wos` with WO number, title, completion time, and 1-line summary
    - update `last_updated`

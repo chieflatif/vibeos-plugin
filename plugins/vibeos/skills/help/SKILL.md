@@ -38,6 +38,8 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 > - `product-drift` — How VibeOS checks that the work still matches the original promise
 > - `research-freshness` — Why important technical decisions should use current evidence
 > - `prompt-engineering` — How VibeOS governs prompts and agent behavior changes
+> - `project-status` — Founder-style executive briefing on the overall program
+> - `session-status` — Tactical status of the current or most recent build session
 > - `session-audit` — How VibeOS reviews everything completed in the current or last build session
 > - `convergence` — How the build loop reaches completion
 > - `baselines` — Quality snapshots and tracking
@@ -75,10 +77,11 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 > - "I want to build a task management app" — starts product discovery
 > - "Make a plan" — generates a development plan
 > - "Keep going" or "continue" — resumes building
-> - "How's it going?" — shows current progress
+> - "What's the status?" — shows tactical session progress
+> - "Give me a project status" — shows the overall executive big picture
 > - "What does ratcheting mean?" — explains any concept
 >
-> Power users can also use slash commands: `/vibeos:discover`, `/vibeos:plan`, `/vibeos:build`, `/vibeos:autonomous`, `/vibeos:session-audit`, `/vibeos:status`, `/vibeos:help`
+> Power users can also use slash commands: `/vibeos:discover`, `/vibeos:plan`, `/vibeos:build`, `/vibeos:autonomous`, `/vibeos:status`, `/vibeos:project-status`, `/vibeos:session-audit`, `/vibeos:help`
 
 ### If `$ARGUMENTS` is a glossary term or topic: Explain It
 
@@ -104,6 +107,10 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 - **research-freshness**: "Research freshness means not trusting stale model memory for important external decisions. If work depends on APIs, framework versions, auth, billing, infrastructure, or security behavior, VibeOS should look for current evidence and record it in the Research Registry."
 
 - **prompt-engineering**: "Prompt engineering in VibeOS means prompts are treated like behavioral system assets, not casual text. If a work order changes agent prompts, instruction files, `CLAUDE.md`, or other behavior-governing files, VibeOS should route that work through the `prompt-engineer` agent and apply the embedded Prompt Engineering Bible profile that fits the target role."
+
+- **project-status**: "Project status is the big-picture, founder-level briefing. It answers where the project really stands overall, what meaningful progress has been made, what still needs to happen, what risks matter, and what decisions are needed from you. It should translate technical evidence into business meaning instead of dumping work-order details."
+
+- **session-status**: "Session status is the tactical, near-term update. It tells you what this session has done, what is in motion right now, what issues are slowing it down, and what should happen next in the current burst of work."
 
 - **session-audit**: "A session audit is a closeout review of the work VibeOS completed in one build session. It looks at which work orders were finished, re-runs verification, checks for drift, and writes a report so you can see whether the session really ended in a healthy state."
 

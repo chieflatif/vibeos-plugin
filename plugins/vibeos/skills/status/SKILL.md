@@ -1,87 +1,71 @@
 ---
 name: status
-description: Show project dashboard with current phase, active work orders, recent audit results, and recommended next action. Use when the user asks "how's it going?", "what's the status?", "where are we?", "what's done?", "update me", or wants to see progress, what to work on next, or an overview of the project.
+description: Show tactical session status for the current or most recent work session. Use when the user asks "what's the status?", "where are we in this session?", "remind me what we're doing", "what's in flight?", "what still needs doing right now?", or wants a micro-level update on the active work.
 allowed-tools: Read, Glob, Grep
 ---
 
-# /vibeos:status — Project Dashboard
+# /vibeos:status — Session Status
 
-Show a comprehensive project status overview.
+Show a tactical status briefing for the current or most recent VibeOS work session.
 
 ## Instructions
 
-1. **Read project governance files** (if they exist in the current project):
-   - `docs/planning/DEVELOPMENT-PLAN.md` — phases and WO assignments
-   - `docs/planning/WO-INDEX.md` — WO statuses and dependencies
-   - `.vibeos/config.json` — autonomy preference and session overrides
-   - `.vibeos/session-state.json` — active or most recent autonomous session
-   - `docs/product/PRODUCT-ANCHOR.md` — product promise and experience guardrails
-   - `docs/ENGINEERING-PRINCIPLES.md` — quality bar and anti-shortcut rules
-   - `docs/research/RESEARCH-REGISTRY.md` — current evidence for high-impact decisions
-   - `docs/decisions/DEVIATIONS.md` — explicit trade-offs
-   - Active WO files (any with status `In Progress` or `Active`)
+1. **Read the tactical session evidence** (if it exists):
+   - `.vibeos/session-state.json` — active or most recent session record
+   - `.vibeos/build-log.md` — recent execution history
+   - `.vibeos/checkpoints/*.json` — in-progress resume state
+   - `.vibeos/config.json` — autonomy preference and session override
+   - `docs/planning/WO-INDEX.md` — active and recently completed work orders
+   - active WO files (status `In Progress` or `Active`)
+   - the latest file in `.vibeos/session-audits/`, if present
 
-2. **Determine current state**:
-   - Which phase is the project in? (based on WO completion status)
-   - Which WOs are active, blocked, or recently completed?
-   - What dependencies are unblocked and ready to start?
+2. **Determine current tactical state**:
+   - Is there an active session, or only a recent one?
+   - What is the current focus in plain English?
+   - What has been completed in this session?
+   - What is still in motion right now?
+   - What blocker, failed check, or pending decision is slowing this session down?
 
-3. **Check remediation status** (if `.vibeos/findings-registry.json` exists):
-   - Count fix-now findings and their resolution status
-   - Count fix-later findings and how many are overdue
-   - Count accepted-risk findings
+3. **Check tactical governance and quality signals**:
+   - whether the autonomous session override is active
+   - whether a checkpoint exists
+   - whether the latest session audit found unresolved issues
+   - whether the current or recent WOs show blocked status or unresolved acceptance criteria
 
-4. **Check anti-drift status**:
-   - Are the Product Anchor and Engineering Principles present?
-   - Are there open deviations?
-   - Are there research entries for current high-impact technical decisions?
+4. **Report the session briefing**:
 
-5. **Check autonomy and session status**:
-   - negotiated autonomy level
-   - whether a full autonomous session override is active
-   - session id and WOs completed this session, if available
+   ```markdown
+   ## Session Status
 
-6. **Report the dashboard**:
+   **Bottom line:** [1-2 sentence tactical summary]
+   **Session state:** [active / paused / no active session]
+   **Current focus:** [plain English description]
+   **Mode:** [standard / autonomous override]
 
-   ```
-   ## Project Status
+   ### Done In This Session
+   - [plain English outcome]
+   - [plain English outcome]
 
-   **Phase:** [current phase name]
-   **Active WOs:** [list or "none"]
-   **Recently Completed:** [last 3 completed WOs]
+   ### Still In Motion
+   - [current implementation or follow-up work]
+   - [current verification or audit work]
 
-   ## Remediation Status
-   (only shown for midstream projects with findings)
+   ### Issues Or Blockers
+   - [none, or plain English blocker]
+   - [risk, failed check, or missing decision]
 
-   - **Fix Now:** [N] resolved / [M] total
-   - **Fix Later:** [N] resolved / [M] total ([K] overdue)
-   - **Accepted Risks:** [N] documented
+   ### Next Tactical Move
+   [What should happen next in this session]
+   [Why that is the right immediate move]
 
-   ## Anti-Drift Status
-
-   - **Product Anchor:** [present/missing]
-   - **Engineering Principles:** [present/missing]
-   - **Research Registry:** [present/missing]
-   - **Open Deviations:** [N]
-
-   ## Autonomy
-
-   - **Negotiated level:** [wo/phase/major or missing]
-   - **Full autonomous session:** [active/inactive]
-   - **Session progress:** [N] WOs completed in current or last session
-   - **Last session audit:** [path/date or "not run"]
-
-   ## Next Recommended Action
-   [What WO should be started next, based on dependency graph and phase ordering]
-   [Why this is the right next step]
-   [If Phase 0 has incomplete fix-now items, recommend those first]
-
-   ## Blockers
-   [Any blocked WOs with reason, or "None"]
-   [If Phase 0 incomplete and user trying to start Phase 1, flag it]
+   ### Decision Needed From You
+   [Only if a decision is truly needed. Otherwise say "None right now."]
    ```
 
-5. **If no governance files exist**: Report that the project hasn't been set up with VibeOS governance yet, and suggest running `/vibeos:discover` to start.
+5. **If there is no active session**:
+   - say that clearly
+   - summarize the most recent session only if there is credible evidence
+   - recommend asking for **project status** if the user wants the overall founder-level view
 
 ## Communication Contract
 
@@ -91,7 +75,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 - Introduce every concept on first use with plain English definition
 
 Skill-specific addenda:
-- Keep the output scannable — use tables and bullet points
-- Flag blockers proactively
-- Explain the recommended next step in plain English first; add technical detail only when it helps the user understand why
+- Keep this tactical and near-term, not strategic
+- Avoid leading with WO numbers, issue IDs, or backlog references; translate them into plain English first
+- If IDs help, put them after the plain English explanation, not before it
 - If a choice is needed, present options with pros, cons, and a recommendation
