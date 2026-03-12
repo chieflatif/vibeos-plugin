@@ -360,6 +360,9 @@ bash ".vibeos/convergence/baseline-check.sh" check \
 - **TRACKED:** Failures within baseline (pre-existing) — log as tracked, proceed
 - **FAIL:** Failures exceed baseline (new issues) — trigger fix cycle
 
+**VC-Audit-Aligned gates (advisory by default, blocking for production+):**
+The gate suite includes gates targeting VC technical due diligence dimensions: code complexity, API contracts, observability, data integrity, auth boundaries, AI integration, resilience patterns, and dev environment. These are configured by the decision engine based on `deployment_context` and `ai_provider` in `project-definition.json`. Advisory failures from these gates should be logged and addressed when practical — they represent areas that a VC auditor would flag during due diligence.
+
 **Gate fix loop (max 3 cycles):**
 1. Parse gate results for new failures (exceeding baseline)
 2. If all pass or tracked: proceed to Step 8

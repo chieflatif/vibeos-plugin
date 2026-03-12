@@ -71,6 +71,22 @@ Check for:
 - Unsafe deserialization (`pickle.loads`, `marshal.loads`)
 - Dynamic imports from user input (`__import__`)
 
+### Phase 6: Auth Boundary Coverage (VC Audit D2)
+
+Check for:
+- **Unprotected endpoints:** Enumerate all API routes/handlers and verify each has auth middleware/decorator. Explicitly public endpoints (health, docs, login) are excluded. Flag any route file without auth dependency.
+- **IDOR vulnerabilities:** Look for route parameters (`/users/{id}`, `/items/:id`) where the ID is used to query data without verifying the requesting user owns/has access to that resource. Flag `get(id)` / `findById(id)` patterns without ownership checks.
+- **Session management:** Verify JWT/token expiry is configured. Flag tokens passed in URL query parameters. Check cookie security flags (httponly, secure, samesite).
+- **Password hashing strength:** Confirm bcrypt/argon2/scrypt/pbkdf2 is used. Flag MD5/SHA1/SHA256 used for password hashing. Flag potential plaintext password storage.
+- **Git history secrets:** If feasible within turn limit, sample recent commits for leaked credentials (AWS keys, API tokens, private keys). Note that the `validate-auth-boundaries.sh` gate performs automated scanning.
+
+### Phase 7: Supply Chain & Blast Radius (VC Audit D2/D8)
+
+Check for:
+- **SBOM generation:** Is there evidence of CycloneDX, Syft, SPDX, or other SBOM tooling in CI/scripts?
+- **Blast radius analysis:** If a single API key, session token, or database credential is compromised, what is the maximum damage? Can the attacker pivot laterally? Map the trust boundaries.
+- **Dependency license risks:** Flag any GPL/AGPL/SSPL licensed dependencies that could affect IP in a SaaS context.
+
 ## Communication Contract
 
 Read and follow docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.

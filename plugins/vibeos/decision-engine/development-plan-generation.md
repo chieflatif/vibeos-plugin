@@ -71,6 +71,38 @@ ADD Phase: Security Hardening (beyond production baseline)
 
 Each WO gets a number, dependencies, and status like other WOs. They appear in the plan table and "Next Work Order" flows to them. Prototype projects get no extra phases.
 
+### API Contract Phase (Conditional on product type)
+
+**IF** product type is `web-saas`, `api-platform`, or `marketplace` AND has API routes:
+
+ADD to Phase 1 (Foundation) or early Phase 2:
+- WO: API Contract Setup — Define and implement error response schema, request/response validation, correlation IDs, API versioning strategy
+
+### AI Integration Phase (Conditional on AI usage)
+
+**IF** `ai_provider` is set OR features mention AI/LLM/ML:
+
+ADD to Phase 1 (Foundation):
+- WO: AI Provider Setup — API client configuration, model version pinning, timeout/retry, basic cost tracking
+
+**IF** AI depth is `core_pipeline` or above (see `decision-engine/ai-integration-patterns.md`):
+
+ADD Phase: AI Safety & Cost Control
+- WO: AI Cost Control — Token counting, per-user rate limits, spend alerts, response caching
+- WO: AI Safety Guardrails — Input sanitization, output validation, content moderation
+
+**IF** AI depth is `autonomous`:
+
+ADD WO to AI Safety phase:
+- WO: AI Human-in-the-Loop — Approval workflow for autonomous actions, audit logging
+
+### Data Integrity Phase (Conditional on database usage)
+
+**IF** database is not `none` AND deployment_context is `production` or above:
+
+ADD to Phase 1 (Foundation) or relevant core workflow phase:
+- WO: Data Model Review — Verify migrations are versioned and reversible, database constraints exist (NOT NULL, UNIQUE, FK), transaction boundaries are correct for multi-step operations
+
 ## Work Order Sequencing
 
 - Each WO has explicit Dependencies (other WO numbers).

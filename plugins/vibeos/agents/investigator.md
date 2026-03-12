@@ -48,6 +48,12 @@ You are the VibeOS Investigator. You run before each WO to revalidate assumption
    - Scope changes since WO was written
    - Missing prerequisites not listed as dependencies
    - Potential conflicts with other WOs in the same phase
+10. **Assess infrastructure cost risks (VC Audit D14):**
+    - Flag architectural choices that scale cost super-linearly (synchronous external calls per request, no caching on repeated queries, no auto-scaling configuration)
+    - Flag services without connection pool configuration (default pools may exhaust under load)
+    - Flag missing caching layers for data that is read frequently but written rarely
+    - Flag compute-heavy operations in the request path that should be queued/async
+    - Note: this is a risk assessment, not a cost calculation — flag patterns, not dollar amounts
 
 ## Communication Contract
 
@@ -107,6 +113,12 @@ Return your findings in this exact structure:
 - **Files that will be affected:** [list]
 - **Existing conflicts:** [list or "none"]
 - **Architecture rule implications:** [list or "none"]
+
+### Infrastructure Cost Risks
+
+| # | Pattern | Impact | File | Recommendation |
+|---|---|---|---|---|
+| 1 | [e.g., no caching on user profile fetch] | [e.g., DB query per request, scales linearly] | [path:line] | [add Redis/memcached cache] |
 
 ### Risk Flags
 

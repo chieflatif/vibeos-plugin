@@ -63,6 +63,16 @@ Search for:
 - Timeout values without configuration
 - Capacity limits without documentation
 
+### Phase 4b: Data Integrity & Concurrency (VC Audit D3/D7)
+
+Analyze patterns that cause data corruption or silent failures at scale:
+
+- **N+1 queries:** Look for ORM queries inside loops (e.g., `for item in items: item.related.load()`, `items.map(i => db.find(i.id))`). These cause linear query growth and become critical at scale.
+- **Transaction boundaries:** Verify that multi-step write operations (create + update, transfer between accounts, webhook processing) are wrapped in database transactions. Flag read-modify-write patterns without locking.
+- **Race conditions:** Look for shared mutable state accessed from concurrent contexts without locks, mutexes, or atomic operations. Check for `SELECT` then `UPDATE` patterns without `SELECT FOR UPDATE` or optimistic locking.
+- **Resource leaks:** Check for database connections, file handles, HTTP clients, or streams that are opened but never explicitly closed or managed with context managers / `defer` / `finally`.
+- **Idempotency gaps:** Check if webhook handlers, queue consumers, and retry-able operations can safely be called twice with the same input without creating duplicates or side effects.
+
 ### Phase 5: User Impact Trace
 
 For every finding from Phases 1-4:

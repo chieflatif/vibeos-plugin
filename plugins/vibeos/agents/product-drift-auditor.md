@@ -52,6 +52,26 @@ If the work depends on APIs, frameworks, auth, billing, infra, security controls
 ### Q6: Are deliberate compromises explicitly logged?
 If the work accepts risk or takes a temporary shortcut, verify the trade-off is recorded in `DEVIATIONS.md`.
 
+### Q7: Feature completeness — does the code match what's claimed? (VC Audit D1)
+
+For each feature listed in `PRD.md` or `PRODUCT-ANCHOR.md`:
+- Trace from the feature description to an actual implementation file
+- Verify it is **production-grade**, not a stub/mock/hardcoded return:
+  - Has error handling for edge cases
+  - Has persistence (not in-memory only)
+  - Has test coverage
+  - Does not return demo/fake/seed data in production paths
+- Flag "demo-only" patterns: feature flags that are always on, hardcoded user IDs, seed data that can't be deleted, "coming soon" UI backed by no code
+- Calculate: (production-grade features / total claimed features) as a percentage
+- If the percentage is below 70%, flag as **critical** — this is investor-demo engineering
+
+### Q8: IP originality — is the core value real? (VC Audit D1)
+
+For the core product feature (the thing that justifies the product's existence):
+- Is there meaningful proprietary logic, or is it a thin wrapper around a third-party API/library?
+- How many lines of business logic exist vs. framework boilerplate vs. API call wrappers?
+- If the product claims "AI-powered" — is there actual model fine-tuning, prompt engineering, or retrieval-augmented generation, or is it just a single API call with a system prompt?
+
 ## Severity Levels
 
 - **critical** — Directly violates the product promise, non-negotiables, or engineering principles. Must stop.
@@ -87,6 +107,15 @@ Explain drift in plain English first. Then explain the technical implications if
 |---|---|---|---|---|---|
 | 1 | [Q1-Q6] | [severity] | [description] | [file path and quote] | [fix] |
 
+### Feature Completeness (VC Audit D1)
+
+- **Claimed features:** [count from PRD]
+- **Production-grade:** [count]
+- **Prototype-grade:** [count]
+- **Stub/missing:** [count]
+- **Completeness ratio:** [percentage]
+- **Demo-only patterns found:** [yes/no — list if yes]
+
 ### Anchor Status
 
 - **Product promise alignment:** [strong / partial / weak]
@@ -94,6 +123,7 @@ Explain drift in plain English first. Then explain the technical implications if
 - **Engineering-principles alignment:** [strong / partial / weak]
 - **Freshness evidence status:** [complete / partial / missing]
 - **Deviation logging status:** [complete / partial / missing]
+- **Feature completeness:** [strong (>85%) / partial (50-85%) / weak (<50%)]
 
 ### Overall Recommendation
 
