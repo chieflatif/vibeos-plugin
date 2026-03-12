@@ -672,6 +672,57 @@ def _collect_files(project_root: Path, scan_dirs: list[str], extensions: list[st
     return sorted(files)
 
 
+def _check_empty_file(file_path: Path, project_root: Path, lines: list[str]) -> list[Finding]:
+    """Check for empty files and empty __init__.py without exports (R2 + R3)."""
+    findings: list[Finding] = []
+    rel_path = str(file_path.relative_to(project_root))
+    suffix = file_path.suffix
+
+    # R2: Empty file detection — a file with 0 non-blank lines is suspicious
+    non_blank = [l for l in lines if l.strip()]
+    # Also filter lines that are only comments or docstrings
+    code_lines = [l for l in non_blank
+                  if not l.strip().startswith("#")
+                  and not l.strip().startswith("//")
+                  and not l.strip().startswith("/*")
+                  and not l.strip().startswith("*")]
+
+    if suffix == ".py" and len(non_blank) == 0 and file_path.parent != project_root:
+        findings.append(Finding(
+            finding_id="",
+            severity="CRITICAL",
+            file_path=rel_path,
+            line_number=0,
+            rule="empty-file",
+            message=f"Empty Python file: {rel_path}. "
+                    f"If this is a package marker, it should export the module's public API.",
+            line_content="(empty file)",
+        ))
+
+    # R3: __init__.py export validation — empty init with sibling modules
+    if file_path.name == "__init__.py" and len(non_blank) == 0:
+        sibling_modules = [
+            f for f in file_path.parent.glob("*.py")
+            if f.name != "__init__.py" and f.is_file()
+        ]
+        if len(sibling_modules) > 0:
+            sibling_names = ", ".join(f.stem for f in sibling_modules[:5])
+            extra = f" (+{len(sibling_modules) - 5} more)" if len(sibling_modules) > 5 else ""
+            findings.append(Finding(
+                finding_id="",
+                severity="WARNING",
+                file_path=rel_path,
+                line_number=0,
+                rule="empty-package-init",
+                message=f"Package {file_path.parent.name}/ has {len(sibling_modules)} "
+                        f"module(s) but __init__.py exports nothing. "
+                        f"Sibling modules: {sibling_names}{extra}",
+                line_content="(empty __init__.py)",
+            ))
+
+    return findings
+
+
 def _scan_file(
     file_path: Path,
     project_root: Path,
@@ -694,6 +745,10 @@ def _scan_file(
     # Skip this script itself
     if file_path.name == "detect-stubs-placeholders.py":
         return findings
+
+    # R2 + R3: Check for empty files and empty __init__.py before line scanning
+    if suffix == ".py" and not is_test:
+        findings.extend(_check_empty_file(file_path, project_root, lines))
 
     for rule_name, severity, pattern, description, extensions, skip_tests, validator in rules:
         if extensions is not None and suffix not in extensions:

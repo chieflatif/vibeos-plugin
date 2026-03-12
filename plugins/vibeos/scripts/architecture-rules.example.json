@@ -30,6 +30,14 @@
           "message": "Service functions should accept db session via dependency injection"
         },
         {
+          "name": "config-exports",
+          "type": "require_exports",
+          "source_module": "src/config",
+          "required_symbols": ["Settings", "get_settings", "Environment"],
+          "severity": "error",
+          "message": "Module src/config must export its public API per ARCHITECTURE.md"
+        },
+        {
           "name": "no-raw-sql",
           "type": "forbidden_patterns",
           "source_module": "src/",

@@ -573,7 +573,17 @@ Create `scripts/architecture-rules.json` in the target project with the rules fr
 
 Copy gate scripts from `.vibeos/scripts/` to the target project's `scripts/` directory.
 
-#### 7f. Generate CLAUDE.md
+#### 7f. Install Git Pre-Commit Hook
+
+Run `setup-git-hooks.sh` to install a git pre-commit hook that runs quality gates before each commit:
+
+```bash
+bash ".vibeos/scripts/setup-git-hooks.sh" --project-dir "${CLAUDE_PROJECT_DIR:-.}"
+```
+
+This ensures local commits cannot bypass quality gates. The hook auto-detects the gate runner location and runs `pre_commit` phase gates.
+
+#### 7g. Generate CLAUDE.md
 
 Generate the target project's `CLAUDE.md` with:
 - Project name and description

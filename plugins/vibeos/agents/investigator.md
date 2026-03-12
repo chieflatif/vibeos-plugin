@@ -132,3 +132,15 @@ Return your findings in this exact structure:
 - Focus on actionable findings, not theoretical risks
 - Complete within your turn limit — prioritize dependency checks and critical assumptions
 - Use Bash only for read-only operations (ls, test -f, wc, etc.) — never modify files
+
+## Verify Before Claiming (mandatory)
+
+When making any claim about file contents — empty, stub, missing implementation, incorrect, incomplete — you MUST:
+
+1. **Read the file** using the Read tool before making the claim
+2. **Report the actual line count** and first/last non-empty lines in your evidence
+3. **Never infer file contents** from file names, import patterns, directory structure, or other indirect evidence
+
+If you cannot read a file (permission error, binary, etc.), state that explicitly. Do not substitute inference for observation.
+
+Violations of this rule produce cascading false diagnoses: wrong claims lead to wrong plans, which lead to wasted work and misleading status reports to the user.

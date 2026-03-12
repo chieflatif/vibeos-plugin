@@ -13,7 +13,7 @@ plugins/vibeos/                  ← Plugin root
   skills/                        ← 9 user-invocable skills (/vibeos:discover, :plan, :build, etc.)
   agents/                        ← 11 specialized subagents (auditors, tester, implementation, etc.)
   hooks/hooks.json               ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
-  scripts/                       ← 25 deterministic gate scripts + gate-runner.sh (bash)
+  scripts/                       ← 29 deterministic gate scripts + gate-runner.sh (bash)
   decision-engine/               ← 8 decision tree files (markdown)
   reference/                     ← 40+ annotated reference files
   convergence/                   ← Loop control scripts (state hashing, convergence checks)
@@ -103,7 +103,7 @@ grep -rn '{{.*}}' plugins/vibeos/scripts/ plugins/vibeos/hooks/ plugins/vibeos/d
 
 This plugin was built from VibeOS-2 (dev-local: `/Users/latifhorst/cursor projects/VibeOS-2/`, not required at runtime). Key source files:
 
-- `scripts/` — 25 gate scripts + gate-runner.sh (copied, paths adapted)
+- `scripts/` — 29 gate scripts + gate-runner.sh (copied, paths adapted)
 - `decision-engine/` — 8 decision trees (copy as-is)
 - `reference/` — 40+ annotated references (copy as-is)
 - `reference/hooks/` — 8 hook .ref files (convert to executable hooks)

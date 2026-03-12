@@ -15,6 +15,7 @@
 #   forbidden_patterns   — Pattern X must not appear in Module A
 #   require_parameter    — Function definitions in Module A must include parameter P
 #   io_purity            — Module A cannot perform I/O operations
+#   require_exports      — Module A's __init__.py must export specified symbols
 #
 # Exit codes:
 #   0 = All rules satisfied
@@ -39,6 +40,7 @@ Rule Types:
   forbidden_patterns   Pattern X must not appear in Module A
   require_parameter    Functions in Module A must include parameter P
   io_purity            Module A cannot perform I/O operations
+  require_exports      Module A's __init__.py must export specified symbols
 EOF
 }
 
@@ -342,6 +344,47 @@ for rule in rules:
                     if rx.search(line):
                         rule_violations.append(f"  {rel_path}:{i}: {line.strip()[:200]}")
                         break
+
+    # ----------------------------------------------------------------
+    # REQUIRE EXPORTS (R9)
+    # ----------------------------------------------------------------
+    elif rule_type == "require_exports":
+        required_symbols = rule.get("required_symbols", [])
+        if not required_symbols:
+            continue
+
+        # For Python: check __init__.py in the source_module directory
+        init_file = project_root / source_module / "__init__.py"
+        if not init_file.exists():
+            rule_violations.append(f"  {source_module}/__init__.py: file does not exist")
+        else:
+            init_content = read_file(init_file)
+            if not init_content.strip():
+                rule_violations.append(
+                    f"  {source_module}/__init__.py: file is empty — "
+                    f"expected exports: {', '.join(required_symbols)}"
+                )
+            else:
+                # Check for each required symbol in the init file
+                # Look for: from .module import Symbol, import Symbol,
+                # Symbol = ..., __all__ containing Symbol
+                for symbol in required_symbols:
+                    # Check direct import/assignment patterns
+                    found = False
+                    symbol_patterns = [
+                        re.compile(rf"\bimport\s+.*\b{re.escape(symbol)}\b"),
+                        re.compile(rf"\bfrom\s+\.\w+\s+import\s+.*\b{re.escape(symbol)}\b"),
+                        re.compile(rf"^{re.escape(symbol)}\s*=", re.MULTILINE),
+                        re.compile(rf'["\']{re.escape(symbol)}["\']'),  # in __all__
+                    ]
+                    for sp in symbol_patterns:
+                        if sp.search(init_content):
+                            found = True
+                            break
+                    if not found:
+                        rule_violations.append(
+                            f"  {source_module}/__init__.py: missing export '{symbol}'"
+                        )
 
     else:
         print(f"[enforce-architecture] WARN: Unknown rule type '{rule_type}' in rule '{name}'")

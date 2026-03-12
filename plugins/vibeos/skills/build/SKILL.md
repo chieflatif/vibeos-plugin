@@ -221,6 +221,16 @@ Dispatch `agents/investigator.md` with:
 - If recommendation is PROCEED: continue
 - If the investigation report cannot identify the real entrypoint for the changed behavior (route, handler, job, CLI, webhook, scheduler), treat that as a material readiness gap. Do not allow the WO to close as `Complete` until that path is mapped or explicitly accepted as a partial state.
 
+**Cross-validate agent claims about code state (mandatory):**
+
+When the investigator (or any auditor) reports that a file is empty, a stub, missing, or broken:
+1. Read the file directly using the Read tool — do not trust the agent's claim without verification
+2. Compare the actual file contents (line count, first/last non-empty lines) against the agent's report
+3. If the claim does not match actual contents: log the discrepancy in the build log, use the actual file state for all downstream decisions
+4. If the claim matches: proceed normally
+
+This prevents cascading false diagnoses where a single agent hallucination leads to wrong plans, wasted reimplementation, and misleading status reports.
+
 Log the dispatch to `.vibeos/build-log.md`:
 ```
 [timestamp] investigator WO-NNN investigate [PROCEED|CAUTION|BLOCK]
