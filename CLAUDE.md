@@ -10,7 +10,7 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 .claude-plugin/marketplace.json  ← Marketplace catalog (for plugin install)
 plugins/vibeos/                  ← Plugin root
   .claude-plugin/plugin.json     ← Plugin manifest
-  skills/                        ← 9 user-invocable skills (/vibeos:discover, :plan, :build, etc.)
+  skills/                        ← 13 user-invocable skills (/vibeos:discover, :plan, :build, :upgrade, etc.)
   agents/                        ← 11 specialized subagents (auditors, tester, implementation, etc.)
   hooks/hooks.json               ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
   scripts/                       ← 37 deterministic gate scripts + gate-runner.sh (bash)
@@ -72,6 +72,7 @@ Not every message should trigger a skill. Use these rules:
 - **Conceptual questions** ("what is ratcheting?", "how do phases work?") → Invoke `/vibeos:help`.
 - **Product ideas or feature requests** → Invoke `/vibeos:discover` (new project) or `/vibeos:wo` (existing project with plan).
 - **"Continue", "next", "keep going"** → Invoke `/vibeos:build`.
+- **"Upgrade", "update the framework", "pulled the latest"** → Invoke `/vibeos:upgrade`.
 - **Vague messages with no clear intent** → Check lifecycle state from the routing hint. At `virgin` stage, suggest discovery. At `building` stage, show status.
 
 ### Slash Commands Are Power-User Shortcuts

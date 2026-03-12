@@ -148,6 +148,10 @@ uninstall() {
     rm -rf "$TARGET_DIR/.claude/skills/checkpoint"
     rm -rf "$TARGET_DIR/.claude/skills/wo"
     rm -rf "$TARGET_DIR/.claude/skills/help"
+    rm -rf "$TARGET_DIR/.claude/skills/upgrade"
+    rm -rf "$TARGET_DIR/.claude/skills/autonomous"
+    rm -rf "$TARGET_DIR/.claude/skills/project-status"
+    rm -rf "$TARGET_DIR/.claude/skills/session-audit"
 
     rm -f "$TARGET_DIR/.claude/agents/plan-auditor.md"
     rm -f "$TARGET_DIR/.claude/agents/investigator.md"
@@ -225,7 +229,7 @@ copy_skills() {
     echo "[vibeos-init] Installing skills..."
     mkdir -p "$TARGET_DIR/.claude/skills"
 
-    local skills=("discover" "plan" "build" "audit" "gate" "status" "checkpoint" "wo" "help")
+    local skills=("discover" "plan" "build" "audit" "gate" "status" "checkpoint" "wo" "help" "upgrade" "autonomous" "project-status" "session-audit")
     for skill in "${skills[@]}"; do
         mkdir -p "$TARGET_DIR/.claude/skills/$skill"
         cp "$SOURCE_DIR/skills/$skill/SKILL.md" "$TARGET_DIR/.claude/skills/$skill/SKILL.md"
@@ -414,11 +418,11 @@ An autonomous, self-governing development engine. You guide users through produc
 ## Architecture
 
 ```
-.claude/skills/          ← 9 user-invocable skills (/discover, /plan, /build, etc.)
+.claude/skills/          ← 13 user-invocable skills (/discover, /plan, /build, /upgrade, etc.)
 .claude/agents/          ← 11 specialized subagents (auditors, tester, implementation, etc.)
 .claude/hooks/           ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
-.vibeos/scripts/         ← 25 deterministic gate scripts + gate-runner.sh
-.vibeos/decision-engine/ ← 8 decision tree files
+.vibeos/scripts/         ← 37 deterministic gate scripts + gate-runner.sh
+.vibeos/decision-engine/ ← 10 decision tree files
 .vibeos/reference/       ← 40+ annotated reference files
 .vibeos/convergence/     ← Loop control scripts (state hashing, convergence checks)
 docs/planning/           ← Development plan, WO index, individual WO files
@@ -454,6 +458,7 @@ Not every message should trigger a skill. Use these rules:
 - **Conceptual questions** ("what is ratcheting?", "how do phases work?") → Invoke `/help`.
 - **Product ideas or feature requests** → Invoke `/discover` (new project) or `/wo` (existing project with plan).
 - **"Continue", "next", "keep going"** → Invoke `/build`.
+- **"Upgrade", "update the framework", "pulled the latest"** → Invoke `/upgrade`.
 - **Vague messages with no clear intent** → Check lifecycle state from the routing hint. At `virgin` stage, suggest discovery. At `building` stage, show status.
 
 ### Slash Commands Are Power-User Shortcuts

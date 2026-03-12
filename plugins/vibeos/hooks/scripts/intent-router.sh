@@ -177,6 +177,12 @@ classify_intent() {
     return
   fi
 
+  # Upgrade / Update framework
+  if printf '%s' "$lower" | grep -qE '\b(upgrade vibeos|update vibeos|upgrade the framework|update the framework|run the upgrade|apply the upgrade|pulled the latest|new version of vibeos|framework upgrade|vibeos upgrade)\b'; then
+    echo "upgrade|upgrade|high"
+    return
+  fi
+
   # Session audit / session closeout review
   if printf '%s' "$lower" | grep -qE '\b(session audit|audit this session|audit the session|review this session|review the session|close out this session|session review)\b'; then
     echo "session-review|session-audit|high"
