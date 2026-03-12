@@ -48,7 +48,14 @@ You are the VibeOS Investigator. You run before each WO to revalidate assumption
    - Scope changes since WO was written
    - Missing prerequisites not listed as dependencies
    - Potential conflicts with other WOs in the same phase
-10. **Assess infrastructure cost risks (VC Audit D14):**
+10. **Assess integration pattern risks (CLI vs MCP):**
+    - Scan for MCP server dependencies (`.claude/settings.json` mcpServers, `CLAUDE.md` MCP references, any `mcp` packages in lockfiles or requirements)
+    - For each MCP server found: check whether the service has a CLI equivalent (`gh`, `aws`, `kubectl`, `stripe`, etc.)
+    - If a CLI exists and MCP is used anyway: flag as a recommendation to migrate — CLIs are composable, human-debuggable, and process-free; MCP adds a background process, a new auth surface, and breaks shell composition
+    - If no CLI exists: MCP is acceptable, note it as a justified dependency
+    - If the WO being investigated proposes a new MCP integration: require the WO to document why CLI is not sufficient in `docs/decisions/DEVIATIONS.md`
+    - See `plugins/vibeos/reference/cli-vs-mcp.md` for full criteria
+11. **Assess infrastructure cost risks (VC Audit D14):**
     - Flag architectural choices that scale cost super-linearly (synchronous external calls per request, no caching on repeated queries, no auto-scaling configuration)
     - Flag services without connection pool configuration (default pools may exhaust under load)
     - Flag missing caching layers for data that is read frequently but written rarely
@@ -113,6 +120,14 @@ Return your findings in this exact structure:
 - **Files that will be affected:** [list]
 - **Existing conflicts:** [list or "none"]
 - **Architecture rule implications:** [list or "none"]
+
+### Integration Pattern Assessment
+
+| Service | Integration | CLI Exists? | Verdict | Recommendation |
+|---|---|---|---|---|
+| [e.g., GitHub] | [MCP/CLI] | [yes/no] | [JUSTIFIED/MIGRATE] | [e.g., replace with gh CLI] |
+
+_Omit this table if no external service integrations exist in this WO._
 
 ### Infrastructure Cost Risks
 

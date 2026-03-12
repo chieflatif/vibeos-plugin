@@ -61,6 +61,22 @@ Look for:
 - Shared state between modules that should be independent
 - Framework-specific violations (from architecture-rules.json)
 
+### Phase 6: Audit Integration Patterns (CLI vs MCP)
+
+Scan for MCP server usage:
+- Check `.claude/settings.json` for `mcpServers` entries
+- Check `CLAUDE.md` or `AGENTS.md` for MCP references
+- Check `package.json`, `requirements.txt`, `pyproject.toml` for MCP packages
+
+For each MCP server found, determine if a CLI alternative exists:
+- Services with mature CLIs (`gh`, `aws`, `kubectl`, `stripe`, `gcloud`, etc.) — flag as architecture recommendation to prefer CLI
+- Services with no CLI — document as justified MCP dependency
+- Custom internal MCP servers — acceptable, note as internal infrastructure dependency
+
+Why this matters: MCP servers are background processes (failure points), require per-server auth (friction), and break shell composability (no piping through `jq`, `grep`). CLIs are binaries on disk, use existing auth, and compose freely.
+
+See `plugins/vibeos/reference/cli-vs-mcp.md` for full decision criteria.
+
 ## Communication Contract
 
 Read and follow docs/USER-COMMUNICATION-CONTRACT.md when producing any user-facing output.
@@ -94,6 +110,14 @@ Technical terms must be accompanied by their glossary definition on first use.
 | # | Type | Severity | Source | Target | Rule | Description | Recommendation |
 |---|---|---|---|---|---|---|---|
 | 1 | [layer_violation/circular_dep/boundary/rule] | [severity] | [file] | [file] | [rule name] | [description] | [fix] |
+
+### Integration Pattern Review
+
+| Service | Integration Type | CLI Exists? | Verdict | Recommendation |
+|---|---|---|---|---|
+| [service name] | [MCP/CLI/HTTP] | [yes/no] | [JUSTIFIED/MIGRATE/N/A] | [action or "none required"] |
+
+_Omit if no external service integrations exist._
 
 ### Architecture Compliance Score
 

@@ -85,7 +85,29 @@ THEN generate recommendations for:
 - interpreter version pin
 - lock or resolved dependency source
 
-### 6. Freshness Requirement
+### 6. External Service Integration Pattern
+
+When the product needs to integrate with external services (APIs, SaaS tools, cloud platforms):
+
+IF the service has a mature, well-documented CLI (`gh`, `aws`, `kubectl`, `stripe`, `heroku`, etc.)
+THEN default to CLI integration — do not recommend MCP
+
+WHY: LLMs use CLIs reliably without additional tooling. CLIs are composable (pipe through `jq`, `grep`), human-debuggable (same command runs for both agent and developer), and use existing auth flows. MCP adds a background process, a new auth surface, and removes composability.
+
+IF the service has no CLI equivalent
+OR the team owns and operates the MCP server as internal infrastructure
+THEN MCP is acceptable — document the reason in `docs/decisions/DEVIATIONS.md`
+
+IF the product builds an AI agent that calls external services
+THEN evaluate each integration against the CLI-first rule before proposing MCP
+
+See `plugins/vibeos/reference/cli-vs-mcp.md` for full decision criteria and audit questions.
+
+Store the decision in `project-definition.json` under `integration_pattern`:
+- `default: "cli"` (the baseline)
+- `mcp_exceptions: []` (list only services with no CLI alternative, each with a documented reason)
+
+### 7. Freshness Requirement
 
 IF a recommendation depends on external APIs, fast-moving framework behavior, version-specific setup, auth, billing, infrastructure, or security controls
 THEN do not rely on model memory alone
