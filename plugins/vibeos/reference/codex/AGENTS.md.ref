@@ -1,16 +1,24 @@
 # <!-- ADAPT: Agent generates AGENTS.md customized to the project -->
 
-# $PROJECT_NAME — VibeOS for Codex
+# $PROJECT_NAME — VibeOS for Codex (Experimental)
 
-This file is the Codex control plane for a VibeOS-governed project.
-It is designed to coexist with `CLAUDE.md`, `.claude/`, and Cursor rules when those are also installed.
+This file provides Codex with structured instructions for a VibeOS-governed project.
+It coexists with `CLAUDE.md` and `.claude/` when those are also installed.
 
-## Dual Runtime Model
+## What This Surface Provides
 
-- `AGENTS.md`, `.codex/skills/`, and `.codex/agents/` are the Codex surface.
-- `CLAUDE.md` and `.claude/` remain the Claude/Cursor surface.
-- `.vibeos/` is the shared runtime: scripts, decision engine, references, convergence rules, logs, and checkpoints.
-- Keep the runtimes additive. Do not break Claude/Cursor behavior while improving Codex behavior, and do not break Codex behavior while improving Claude/Cursor behavior.
+- Structured build instructions and role contracts for each development phase
+- Quality gate scripts in `.vibeos/scripts/` (run manually via bash)
+- Decision engine and reference materials in `.vibeos/`
+- Shared project state: plans, checkpoints, baselines, and logs
+
+## What This Surface Does Not Provide
+
+- **No hooks.** There is no intent routing, secrets scanning, test file protection, or automatic stub detection. These require Claude Code's hook system.
+- **No subagent spawning.** Files in `.codex/agents/` are role contracts. Read them and perform each phase yourself — there is no isolation or parallel execution.
+- **No automatic enforcement.** Gates must be run manually. Nothing blocks a bad write automatically.
+
+If you also have the Claude/Cursor surface installed (`.claude/`), that surface has full enforcement. Shared state in `.vibeos/` is visible to both runtimes.
 
 ## Core Laws
 
@@ -102,20 +110,20 @@ These skills are local to the repo and should be used when the match is clear:
 - If the user references specific files, errors, logs, or line numbers, help directly instead of forcing a skill.
 - Prefer voice-led behavior. Do not require slash commands; users should be able to speak naturally.
 
-## Agent Templates
+## Agent Templates (Role Contracts)
 
-Files in `.codex/agents/*.md` are role contracts, not executable subagents.
-
-When a workflow calls for investigator, tester, backend, frontend, prompt engineer, doc writer, or auditors:
+Files in `.codex/agents/*.md` are role contracts, not executable subagents. Codex cannot spawn isolated agents. When a workflow calls for investigator, tester, backend, frontend, prompt engineer, doc writer, or auditors:
 
 1. Read the matching template in `.codex/agents/`
-2. Use it to structure the phase
-3. Perform the phase yourself
+2. Use it to structure the phase (scope, inputs, expected outputs, quality criteria)
+3. Perform the phase yourself in the current context
 4. Report the result honestly with evidence
+
+This means Codex handles all phases sequentially in one context window. There is no isolation between audit and implementation, no parallel execution, and no enforcement boundary between test-writing and implementation. Be disciplined about following the role contract even though nothing enforces it.
 
 ## Side-By-Side Compatibility
 
-- If `.claude/` exists, preserve it.
+- If `.claude/` exists, preserve it. Do not modify Claude/Cursor assets.
 - If `CLAUDE.md` exists, preserve it.
 - Shared project state belongs in `.vibeos/` so Claude/Cursor and Codex see the same plan, checkpoints, logs, and evidence.
 - Runtime-specific instructions belong in the runtime-specific surface:

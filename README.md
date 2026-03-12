@@ -104,9 +104,9 @@ bash /path/to/vibeos-plugin/vibeos-init.sh
 
 This installs VibeOS into your project's `.claude/` and `.vibeos/` directories.
 
-### Option 3: Codex Project Bootstrap
+### Option 3: Codex (Experimental)
 
-Use this if you want the Codex runtime surface alongside the shared VibeOS engine:
+Codex support is available but limited. Codex does not support hooks, subagent spawning, or runtime enforcement, so it receives structured instructions and shared gate scripts but not the full enforcement layer that Claude/Cursor gets. Think of it as "guided mode" vs. the full "enforced mode."
 
 ```bash
 # Clone the framework
@@ -119,7 +119,11 @@ cd your-project
 bash /path/to/vibeos-plugin/vibeos-init-codex.sh
 ```
 
-This installs VibeOS into your project's `AGENTS.md`, `.codex/`, and `.vibeos/` surfaces. If `.claude/` or `CLAUDE.md` already exist, they are preserved so Claude/Cursor and Codex can work side-by-side in the same project.
+This installs `AGENTS.md`, `.codex/skills/`, `.codex/agents/` (as role contracts), and the shared `.vibeos/` runtime. If `.claude/` or `CLAUDE.md` already exist, they are preserved so both runtimes can coexist.
+
+**What Codex gets:** Structured build instructions, quality gate scripts (run manually), decision engine, reference materials, and role contracts that guide each build phase.
+
+**What Codex does not get:** Intent routing hooks, secrets scanning, test file protection, parallel audit agents, or automatic enforcement boundaries. These require Claude Code's hook and subagent system.
 
 ### Upgrade
 
@@ -229,11 +233,11 @@ Most people do not need to think about this section day to day, but this is what
 
 ```
 your-project/
-├── AGENTS.md              ← Codex control plane (if Codex bootstrap used)
-├── .codex/                ← Codex-local skills and agent templates
-│   ├── skills/            ← 12 VibeOS Codex skills
-│   └── agents/            ← Role contracts reused by Codex workflows
-├── .claude/               ← Claude/Cursor surface (if Claude bootstrap used)
+├── AGENTS.md              ← Codex instructions (if Codex bootstrap used, experimental)
+├── .codex/                ← Codex-local skills and role contracts (no runtime enforcement)
+│   ├── skills/            ← 12 VibeOS Codex skills (instruction-based, not hook-enforced)
+│   └── agents/            ← Role contracts (read by agent, not spawned as subagents)
+├── .claude/               ← Claude/Cursor surface (full enforcement)
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
 │   ├── skills/            ← 13 skills (discover, plan, build, upgrade, status, project-status, etc.)
@@ -253,7 +257,8 @@ your-project/
 
 ## Requirements
 
-- Claude Code (CLI or Cursor IDE) and/or OpenAI Codex
+- Claude Code (CLI or Cursor IDE) — full enforcement
+- OpenAI Codex — experimental, instruction-only (no hooks or subagents)
 - bash 3.2+
 - python3 3.7+
 - jq

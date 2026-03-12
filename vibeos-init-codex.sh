@@ -256,28 +256,33 @@ uninstall() {
 print_welcome() {
   cat <<EOF
 
-[vibeos-init-codex] PASS: Codex VibeOS installed into $TARGET_DIR
+[vibeos-init-codex] PASS: Codex VibeOS installed into $TARGET_DIR (experimental)
 
 What was installed:
-- AGENTS.md                         (Codex control plane)
-- .codex/skills/                   (12 VibeOS Codex skills)
-- .codex/agents/                   (role-contract templates)
-- .vibeos/                         (shared VibeOS runtime)
+- AGENTS.md                         (Codex instructions)
+- .codex/skills/                   (12 VibeOS Codex skills — instruction-based)
+- .codex/agents/                   (role contracts — read by agent, not spawned)
+- .vibeos/                         (shared VibeOS runtime: gate scripts, decision engine, references)
 - docs/USER-COMMUNICATION-CONTRACT.md
 
-Side-by-side runtime model:
-- Codex uses: AGENTS.md + .codex/
-- Claude/Cursor use: CLAUDE.md + .claude/
-- Shared state lives in: .vibeos/
+What Codex gets:
+- Structured build instructions and quality gate scripts (run manually)
+- Decision engine, reference materials, and convergence logic
+- Shared project state (plans, checkpoints, baselines, logs)
 
-Claude/Cursor compatibility:
-- Existing .claude/ and CLAUDE.md were preserved
-- Existing .cursorrules or Cursor rules were preserved
+What Codex does NOT get:
+- No hooks (no intent routing, secrets scanning, or test file protection)
+- No subagent spawning (role contracts are read, not executed as isolated agents)
+- No automatic enforcement (gates must be run manually)
+
+For full enforcement, use Claude Code or Cursor:
+  bash /path/to/vibeos-plugin/vibeos-init.sh
+
+Existing .claude/, CLAUDE.md, and Cursor rules were preserved.
 
 Next steps:
 1. Open the project in Codex
 2. Start naturally: "help me understand this codebase", "make a plan", or "continue building"
-3. If you also want Claude/Cursor support, run: bash /path/to/vibeos-plugin/vibeos-init.sh
 EOF
 }
 
