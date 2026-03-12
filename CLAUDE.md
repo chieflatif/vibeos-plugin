@@ -11,7 +11,7 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 plugins/vibeos/                  ← Plugin root
   .claude-plugin/plugin.json     ← Plugin manifest
   skills/                        ← 13 user-invocable skills (/vibeos:discover, :plan, :build, :upgrade, etc.)
-  agents/                        ← 11 specialized subagents (auditors, tester, implementation, etc.)
+  agents/                        ← 13 specialized subagents (auditors, tester, implementation, etc.)
   hooks/hooks.json               ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
   scripts/                       ← 37 deterministic gate scripts + gate-runner.sh (bash)
   decision-engine/               ← 10 decision tree files (markdown)

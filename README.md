@@ -199,6 +199,7 @@ VibeOS will audit your code, identify issues, and create a remediation plan befo
 - "Go autonomous" — switch back into full autonomous session mode
 - "Audit this session" — run a closeout review of the current or last build session
 - "What is ratcheting?" — explain any concept
+- "Upgrade VibeOS" — upgrade framework and sweep the project with new capabilities
 - "What should I do next?" — recommend the next step
 - "Explain this in simple terms" — simplify technical language
 
@@ -219,6 +220,7 @@ Slash commands still work if you prefer them, but they are optional:
 | `/status` | Tactical session status |
 | `/project-status` | Executive project briefing |
 | `/checkpoint` | Phase boundary report |
+| `/upgrade` | Framework upgrade and re-audit |
 | `/help` | Explain any concept |
 
 ## What Gets Installed
@@ -234,12 +236,12 @@ your-project/
 ├── .claude/               ← Claude/Cursor surface (if Claude bootstrap used)
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
-│   ├── skills/            ← 12 skills (discover, plan, build, status, project-status, etc.)
+│   ├── skills/            ← 13 skills (discover, plan, build, upgrade, status, project-status, etc.)
 │   ├── agents/            ← 13 specialized subagents
 │   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
 ├── .vibeos/               ← Shared runtime used by both surfaces
-│   ├── scripts/           ← 25 quality gate scripts
-│   ├── decision-engine/   ← 8 decision trees
+│   ├── scripts/           ← 37 quality gate scripts
+│   ├── decision-engine/   ← 10 decision trees
 │   ├── reference/         ← 40+ annotated reference files plus prompt-engineering guidance
 │   └── convergence/       ← Loop control scripts
 └── docs/

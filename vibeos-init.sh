@@ -419,7 +419,7 @@ An autonomous, self-governing development engine. You guide users through produc
 
 ```
 .claude/skills/          ← 13 user-invocable skills (/discover, /plan, /build, /upgrade, etc.)
-.claude/agents/          ← 11 specialized subagents (auditors, tester, implementation, etc.)
+.claude/agents/          ← 13 specialized subagents (auditors, tester, implementation, etc.)
 .claude/hooks/           ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
 .vibeos/scripts/         ← 37 deterministic gate scripts + gate-runner.sh
 .vibeos/decision-engine/ ← 10 decision tree files
