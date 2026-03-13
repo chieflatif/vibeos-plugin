@@ -64,92 +64,65 @@ Examples:
 
 ## Installation
 
-### Option 1: Claude Code Plugin (recommended)
-
-If you just want the easiest setup, use this option.
-
-From your shell:
+### The recommended way: project-level bootstrap
 
 ```bash
-# Add the VibeOS marketplace
-claude plugin marketplace add chieflatif/vibeos-plugin
-
-# Install the plugin
-claude plugin install vibeos@vibeos
-```
-
-Inside an active Claude Code session, the equivalent commands are:
-
-```text
-/plugin marketplace add chieflatif/vibeos-plugin
-/plugin install vibeos@vibeos
-```
-
-After installing, restart Claude Code so the new plugin is loaded.
-
-### Option 2: Project-Level Bootstrap
-
-Use this if you prefer per-project installation or if you use Cursor:
-
-```bash
-# Clone the framework
+# Clone VibeOS
 git clone https://github.com/chieflatif/vibeos-plugin.git
 
-# Navigate to your project
+# Go to your project
 cd your-project
 
-# Run the bootstrap
+# Install
 bash /path/to/vibeos-plugin/vibeos-init.sh
 ```
 
-This installs VibeOS into your project's `.claude/` and `.vibeos/` directories.
-
-### Option 3: Codex (Experimental)
-
-Codex support is available but limited. Codex does not support hooks, subagent spawning, or runtime enforcement, so it receives structured instructions and shared gate scripts but not the full enforcement layer that Claude/Cursor gets. Think of it as "guided mode" vs. the full "enforced mode."
+Or with a one-liner if you don't want to clone first:
 
 ```bash
-# Clone the framework
-git clone https://github.com/chieflatif/vibeos-plugin.git
+bash <(curl -s https://raw.githubusercontent.com/chieflatif/vibeos-plugin/main/vibeos-init.sh)
+```
 
-# Navigate to your project
-cd your-project
+This installs VibeOS into your project's `.claude/` and `.vibeos/` directories. Skills, agents, hooks, and gate scripts are all wired up and ready immediately — no restart required.
 
-# Run the Codex bootstrap
+### Why bootstrap instead of plugin install?
+
+VibeOS is a skills-based plugin. Claude Code's `plugin install` command works reliably for MCP-based plugins (those that run a background server process), but as of early 2026 there is [an open bug](https://github.com/anthropics/claude-code/issues/10568) where skills-based plugins silently fail on marketplace install — the command exits with no error but the skills are never registered.
+
+The project-level bootstrap sidesteps this entirely. Claude Code has always discovered skills and agents placed directly in a project's `.claude/skills/` and `.claude/agents/` directories, so that is what the bootstrap does. The result is the same end state you would get from a working plugin install, without the flaky intermediate step.
+
+We maintain a [custom marketplace catalog](https://github.com/chieflatif/vibeos-plugin/blob/main/.claude-plugin/marketplace.json) so that the standard `plugin marketplace add` and `plugin install` flow is available. If Anthropic fixes the skills registration bug, users who prefer the plugin install path can switch to it with no changes to their projects. Until then, the bootstrap is the reliable path.
+
+### Codex (Experimental)
+
+Codex support is available but limited. Codex does not support hooks, subagent spawning, or runtime enforcement — it gets structured instructions and shared gate scripts but not the full enforcement layer that Claude Code gets. Think of it as "guided mode" vs. the full "enforced mode."
+
+```bash
 bash /path/to/vibeos-plugin/vibeos-init-codex.sh
 ```
 
-This installs `AGENTS.md`, `.codex/skills/`, `.codex/agents/` (as role contracts), and the shared `.vibeos/` runtime. If `.claude/` or `CLAUDE.md` already exist, they are preserved so both runtimes can coexist.
+This installs `AGENTS.md`, `.codex/skills/`, `.codex/agents/` (as role contracts), and the shared `.vibeos/` runtime alongside any existing `.claude/` setup.
 
-**What Codex gets:** Structured build instructions, quality gate scripts (run manually), decision engine, reference materials, and role contracts that guide each build phase.
+**What Codex gets:** Structured build instructions, quality gate scripts (run manually), decision engine, reference materials, and role contracts for each build phase.
 
 **What Codex does not get:** Intent routing hooks, secrets scanning, test file protection, parallel audit agents, or automatic enforcement boundaries. These require Claude Code's hook and subagent system.
 
 ### Upgrade
 
 ```bash
-# Refresh marketplace metadata (optional)
-claude plugin marketplace update vibeos
-
-# Update the installed plugin
-claude plugin update vibeos@vibeos
-
-# Bootstrap:
+# Bootstrap (Claude/Cursor):
 bash /path/to/vibeos-plugin/vibeos-init.sh --upgrade
 
-# Codex bootstrap:
+# Bootstrap (Codex):
 bash /path/to/vibeos-plugin/vibeos-init-codex.sh --upgrade
 ```
 
-After a plugin update, restart Claude Code to apply the new version.
+Or inside an active Claude Code session, say: *"Upgrade VibeOS"* and provide the path to the updated framework.
 
 ### Uninstall
 
 ```bash
-# Plugin:
-claude plugin uninstall vibeos@vibeos
-
-# Bootstrap:
+# Claude/Cursor bootstrap:
 bash /path/to/vibeos-plugin/vibeos-init.sh --uninstall
 
 # Codex bootstrap:
