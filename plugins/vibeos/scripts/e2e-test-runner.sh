@@ -254,7 +254,7 @@ echo ""
 # ============================================================
 echo "=== Test 7: Convergence Scripts ==="
 
-for script in state-hash.sh convergence-check.sh baseline-check.sh migrate-baseline.sh; do
+for script in state-hash.sh convergence-check.sh baseline-check.sh migrate-baseline.sh findings-lifecycle.sh; do
   SCRIPT_PATH="$PLUGIN_DIR/convergence/$script"
   if [ -f "$SCRIPT_PATH" ]; then
     if [ -x "$SCRIPT_PATH" ]; then

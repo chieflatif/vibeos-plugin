@@ -1,7 +1,7 @@
 # Gate Selection Decision Tree
 
 ## PURPOSE
-Determine which of the 34 gate scripts to enable based on project config. (gate-runner.sh is always included as the orchestrator.)
+Determine which of the 41 gate scripts to enable based on project config. (gate-runner.sh is always included as the orchestrator.)
 
 ## INPUTS
 - `stack.language`

@@ -9,7 +9,7 @@
     {
       "name": "vibeos",
       "description": "Autonomous development engine — product discovery, planning, TDD build loop, and 7-layer quality audits",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "author": {
         "name": "Latif Horst"
       },

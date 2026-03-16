@@ -214,12 +214,12 @@ your-project/
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
 │   ├── skills/            ← 13 skills (discover, plan, build, upgrade, status, project-status, etc.)
-│   ├── agents/            ← 13 specialized subagents
+│   ├── agents/            ← 15 specialized subagents
 │   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
 ├── .vibeos/               ← Shared runtime used by both surfaces
-│   ├── scripts/           ← 37 quality gate scripts
+│   ├── scripts/           ← 41 quality gate scripts
 │   ├── decision-engine/   ← 10 decision trees
-│   ├── reference/         ← 40+ annotated reference files plus prompt-engineering guidance
+│   ├── reference/         ← 45+ annotated reference files plus prompt-engineering guidance
 │   └── convergence/       ← Loop control scripts
 └── docs/
     ├── planning/          ← Generated development plan and work orders

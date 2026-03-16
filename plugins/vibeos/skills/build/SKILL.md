@@ -428,7 +428,7 @@ Log each gate run: `[timestamp] gate-runner WO-NNN pre_commit [PASS|FAIL] [detai
 ### Step 8: Run Audit Cycle (Layer 2)
 
 **Progress banner:**
-> "[Step 5/8] Audit — Running 6 independent quality reviewers, including a product-drift check. This is the longest step and may take a minute..."
+> "[Step 5/8] Audit — Running 8 independent quality reviewers, including red-team adversarial checks and a product-drift check. This is the longest step and may take a minute..."
 
 **On result:** "Audit complete: [confirmed] confirmed findings, [warnings] warnings. [critical summary if any]."
 **On convergence retry:** "Fix applied. Re-running auditors to verify (iteration [N] of 5)..."

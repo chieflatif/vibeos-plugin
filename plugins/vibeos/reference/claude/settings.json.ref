@@ -6,7 +6,7 @@
       "ADAPT": "Agent customizes based on project config",
       "OPTIONAL": "Include only if condition is met"
     },
-    "framework_version": "1.0.0"
+    "framework_version": "2.0.0"
   },
 
   "_instructions": [

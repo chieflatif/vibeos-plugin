@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 
 # ─── VibeOS Bootstrap ────────────────────────────────────────────────────────
 # Installs VibeOS governance framework into a target project's .claude/ and
@@ -164,6 +164,10 @@ uninstall() {
     rm -f "$TARGET_DIR/.claude/agents/correctness-auditor.md"
     rm -f "$TARGET_DIR/.claude/agents/test-auditor.md"
     rm -f "$TARGET_DIR/.claude/agents/evidence-auditor.md"
+    rm -f "$TARGET_DIR/.claude/agents/product-drift-auditor.md"
+    rm -f "$TARGET_DIR/.claude/agents/contract-validator.md"
+    rm -f "$TARGET_DIR/.claude/agents/red-team-auditor.md"
+    rm -f "$TARGET_DIR/.claude/agents/prompt-engineer.md"
 
     rm -f "$TARGET_DIR/.claude/hooks/intent-router.sh"
     rm -f "$TARGET_DIR/.claude/hooks/secrets-scan.sh"
@@ -419,11 +423,11 @@ An autonomous, self-governing development engine. You guide users through produc
 
 ```
 .claude/skills/          ← 13 user-invocable skills (/discover, /plan, /build, /upgrade, etc.)
-.claude/agents/          ← 13 specialized subagents (auditors, tester, implementation, etc.)
+.claude/agents/          ← 15 specialized subagents (auditors, tester, implementation, red-team, etc.)
 .claude/hooks/           ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
-.vibeos/scripts/         ← 37 deterministic gate scripts + gate-runner.sh
+.vibeos/scripts/         ← 41 deterministic gate scripts + gate-runner.sh
 .vibeos/decision-engine/ ← 10 decision tree files
-.vibeos/reference/       ← 40+ annotated reference files
+.vibeos/reference/       ← 45+ annotated reference files
 .vibeos/convergence/     ← Loop control scripts (state hashing, convergence checks)
 docs/planning/           ← Development plan, WO index, individual WO files
 ```
@@ -520,7 +524,7 @@ init_project_config() {
     mkdir -p "$TARGET_DIR/.vibeos"
     cat > "$config_file" << 'CONFIG_EOF'
 {
-  "framework_version": "1.0.0",
+  "framework_version": "2.0.0",
   "autonomy_level": "wo",
   "project_mode": "pending",
   "lifecycle_state": "virgin"

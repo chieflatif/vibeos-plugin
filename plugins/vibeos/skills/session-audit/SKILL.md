@@ -70,7 +70,7 @@ Capture:
    ```bash
    bash ".vibeos/scripts/gate-runner.sh" session_end --continue-on-failure --project-dir "${CLAUDE_PROJECT_DIR:-.}"
    ```
-3. Dispatch the 6 audit agents (security, architecture, correctness, test, evidence, product-drift).
+3. Dispatch the 8 audit agents (security, architecture, correctness, test, evidence, product-drift, red-team, contract-validator).
 
 Pass each auditor:
 - the project-definition path

@@ -269,7 +269,7 @@ Categorize results into three buckets:
 
 ### Step 9: Full Audit Cycle (Discovery Mode)
 
-Dispatch all 6 audit agents with their enhanced capabilities:
+Dispatch all 8 audit agents with their enhanced capabilities:
 
 1. Dispatch agents (in parallel where possible):
    - `agents/security-auditor.md` — now includes auth boundary coverage, supply chain analysis

@@ -104,7 +104,7 @@ grep -rn '{{.*}}' plugins/vibeos/scripts/ plugins/vibeos/hooks/ plugins/vibeos/d
 
 This plugin was built from VibeOS-2 (dev-local: `/Users/latifhorst/cursor projects/VibeOS-2/`, not required at runtime). Key source files:
 
-- `scripts/` — 37 gate scripts + gate-runner.sh (copied, paths adapted)
+- `scripts/` — 41 gate scripts + gate-runner.sh (copied, paths adapted)
 - `decision-engine/` — 10 decision trees (copy as-is)
 - `reference/` — 40+ annotated references (copy as-is)
 - `reference/hooks/` — 8 hook .ref files (convert to executable hooks)

@@ -1,13 +1,13 @@
 ---
 name: audit
-description: Full audit cycle that dispatches all 6 audit agents (security, architecture, correctness, test quality, evidence, product drift), applies consensus logic, and produces a composite report with actionable findings. Use when the user says "audit the code", "review everything", "check for security issues", "do a full review", or wants a comprehensive multi-perspective code review.
+description: Full audit cycle that dispatches all 8 audit agents (security, architecture, correctness, test quality, evidence, product drift, red team, contract validator), applies consensus logic, and produces a composite report with actionable findings. Use when the user says "audit the code", "review everything", "check for security issues", "do a full review", or wants a comprehensive multi-perspective code review.
 argument-hint: "[optional: 'security', 'architecture', 'correctness', 'test', 'evidence', or 'product-drift' to run a single auditor]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
 
 # /vibeos:audit — Full Audit Cycle
 
-Dispatch all 6 audit agents, merge findings with consensus logic, and produce a composite report.
+Dispatch all 8 audit agents, merge findings with consensus logic, and produce a composite report.
 
 ## Communication Contract
 
@@ -34,7 +34,7 @@ If no source code exists, report "No source code to audit" and stop.
 
 ### Step 1: Determine Scope
 
-If `$ARGUMENTS` specifies a single auditor name (`security`, `architecture`, `correctness`, `test`, `evidence`, `product-drift`), run only that auditor. Otherwise, run all 6.
+If `$ARGUMENTS` specifies a single auditor name (`security`, `architecture`, `correctness`, `test`, `evidence`, `product-drift`, `red-team`, `contract`), run only that auditor. Otherwise, run all 8.
 
 Read `project-definition.json` for:
 - Source directories
