@@ -9,7 +9,7 @@ set -euo pipefail
 # Supports one-way ratcheting: baseline can only decrease, never increase.
 # Exit 0 with JSON result on stdout; exit 1 on error.
 
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 
 usage() {
   echo "Usage:"
@@ -116,8 +116,25 @@ if [ "$MODE" = "finding-level" ]; then
         exit 0
       fi
 
-      # Extract fingerprints from baseline
-      BASELINE_FPS=$(jq -r '.findings[]?.fingerprint // empty' "$BASELINE_FILE" 2>/dev/null | sort)
+      # Extract fingerprints from baseline, checking for expiry
+      # Baseline entries with phase_added that are >2 phases old are expired
+      CURRENT_PHASE="${CURRENT_PHASE:-0}"
+      EXPIRY_THRESHOLD="${EXPIRY_THRESHOLD:-2}"
+
+      if [ "$CURRENT_PHASE" -gt 0 ]; then
+        # Filter out expired baseline entries — they no longer suppress findings
+        EXPIRED_COUNT=$(jq --argjson phase "$CURRENT_PHASE" --argjson threshold "$EXPIRY_THRESHOLD" \
+          '[.findings[]? | select(.phase_added != null and ($phase - .phase_added) > $threshold)] | length' \
+          "$BASELINE_FILE" 2>/dev/null || echo "0")
+        if [ "$EXPIRED_COUNT" -gt 0 ]; then
+          echo "[baseline-check] WARN: $EXPIRED_COUNT baseline entries expired (older than $EXPIRY_THRESHOLD phases) — these findings are no longer suppressed"
+        fi
+        BASELINE_FPS=$(jq -r --argjson phase "$CURRENT_PHASE" --argjson threshold "$EXPIRY_THRESHOLD" \
+          '.findings[]? | select(.phase_added == null or ($phase - .phase_added) <= $threshold) | .fingerprint // empty' \
+          "$BASELINE_FILE" 2>/dev/null | sort)
+      else
+        BASELINE_FPS=$(jq -r '.findings[]?.fingerprint // empty' "$BASELINE_FILE" 2>/dev/null | sort)
+      fi
 
       # Compute fingerprints for current findings and compare
       NEW_COUNT=0

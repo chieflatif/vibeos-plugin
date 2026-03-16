@@ -35,7 +35,7 @@
 #   3 = Lock held by another runner
 set -euo pipefail
 
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 RUNNER_NAME="gate-runner"
 
 # ─── Usage ───────────────────────────────────────────────────────

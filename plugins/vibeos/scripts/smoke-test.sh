@@ -15,7 +15,7 @@
 #   2 = No endpoints configured (skip)
 set -euo pipefail
 
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 GATE_NAME="smoke-test"
 
 usage() {

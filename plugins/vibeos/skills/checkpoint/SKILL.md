@@ -51,12 +51,20 @@ Collect results: pass/fail per gate, total pass count.
 
 ### Step 3: Run Full Audit Cycle
 
-Dispatch all 6 audit agents following the same protocol as `skills/audit/SKILL.md`:
+Dispatch all 8 audit agents following the same protocol as `skills/audit/SKILL.md`:
 
-1. Dispatch all 6 agents (security, architecture, correctness, test, evidence, product-drift)
+1. Dispatch all 8 agents (security, architecture, correctness, test, evidence, product-drift, red-team, contract-validator)
 2. Collect structured findings from each
 3. Apply consensus logic (2+ agents = true positive, 1 = warning)
 4. Generate composite findings list
+
+**Scale-aware dispatch:** For codebases over 15K lines, use module-targeted dispatch:
+- Identify the top-level modules (e.g., `src/gateway/`, `src/orchestrator/`, `frontend/src/`)
+- Dispatch auditors per-module rather than per-audit-type
+- Each auditor gets a focused scope
+- Aggregate findings across modules after all agents complete
+- Run cross-cutting checks (circular dependencies, contract mismatches) as a separate pass
+- Timeout scaling: base 120s per module per auditor, +30s per 5K lines, max 600s per agent
 
 ### Step 4: Load Previous Baseline
 

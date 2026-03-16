@@ -182,9 +182,10 @@ Generate the core anchor and product documents using the reference templates in 
 4. **ARCHITECTURE-OUTLINE.md** — Systems, data flow, components (from `ARCHITECTURE-OUTLINE.md.ref`)
 5. **ASSUMPTIONS-AND-RISKS.md** — Unresolved questions, risks, compliance concerns (from `ASSUMPTIONS-AND-RISKS.md.ref`)
 6. **PRODUCT-ANCHOR.md** — Core promise, experience principles, non-negotiables, anti-goals (from `reference/product/PRODUCT-ANCHOR.md.ref`) — write to `docs/product/PRODUCT-ANCHOR.md`
-7. **ENGINEERING-PRINCIPLES.md** — Build philosophy, anti-shortcut rules, freshness policy (from `reference/governance/ENGINEERING-PRINCIPLES.md.ref`) — write to `docs/ENGINEERING-PRINCIPLES.md`
-8. **RESEARCH-REGISTRY.md** — Active evidence for high-impact technical decisions (from `reference/governance/RESEARCH-REGISTRY.md.ref`) — write to `docs/research/RESEARCH-REGISTRY.md`
-9. **DEVIATIONS.md** — Explicit compromise log (from `reference/governance/DEVIATIONS.md.ref`) — write to `docs/decisions/DEVIATIONS.md`
+7. **QUALITY-ANCHOR.md** — Frozen, human-authored alignment target defining what "Complete" means, forbidden testing patterns, verification integrity requirements, and anti-corruption detection rules. Generate a project-appropriate draft from `reference/governance/QUALITY-ANCHOR-TEMPLATE.md`; the human reviews and freezes it. Write to `docs/QUALITY-ANCHOR.md`. Add `docs/QUALITY-ANCHOR.md` to the frozen files list in `.vibeos/frozen-files.json` so that no agent can modify it after the human approves it.
+8. **ENGINEERING-PRINCIPLES.md** — Build philosophy, anti-shortcut rules, freshness policy (from `reference/governance/ENGINEERING-PRINCIPLES.md.ref`) — write to `docs/ENGINEERING-PRINCIPLES.md`
+9. **RESEARCH-REGISTRY.md** — Active evidence for high-impact technical decisions (from `reference/governance/RESEARCH-REGISTRY.md.ref`) — write to `docs/research/RESEARCH-REGISTRY.md`
+10. **DEVIATIONS.md** — Explicit compromise log (from `reference/governance/DEVIATIONS.md.ref`) — write to `docs/decisions/DEVIATIONS.md`
 
 Replace all `{{PLACEHOLDER}}` values with real content from the discovery conversation. Do not leave any placeholders.
 
@@ -379,6 +380,7 @@ Report the result:
 | PRODUCT-BRIEF.md | docs/product/ | One-page summary |
 | PRD.md | docs/product/ | Requirements and user stories |
 | PRODUCT-ANCHOR.md | docs/product/ | Core promise and experience guardrails |
+| QUALITY-ANCHOR.md | docs/ | Frozen quality standard — what "Complete" means, forbidden patterns |
 | TECHNICAL-SPEC.md | docs/ | Stack and implementation approach |
 | ENGINEERING-PRINCIPLES.md | docs/ | Build philosophy and freshness rules |
 | RESEARCH-REGISTRY.md | docs/research/ | Current evidence for high-impact decisions |

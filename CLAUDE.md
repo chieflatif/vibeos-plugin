@@ -11,9 +11,9 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 plugins/vibeos/                  ← Plugin root
   .claude-plugin/plugin.json     ← Plugin manifest
   skills/                        ← 13 user-invocable skills (/vibeos:discover, :plan, :build, :upgrade, etc.)
-  agents/                        ← 13 specialized subagents (auditors, tester, implementation, etc.)
+  agents/                        ← 15 specialized subagents (auditors, tester, implementation, red-team, contract-validator, etc.)
   hooks/hooks.json               ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
-  scripts/                       ← 37 deterministic gate scripts + gate-runner.sh (bash)
+  scripts/                       ← 41 deterministic gate scripts + gate-runner.sh (bash)
   decision-engine/               ← 10 decision tree files (markdown)
   reference/                     ← 40+ annotated reference files
   convergence/                   ← Loop control scripts (state hashing, convergence checks)
@@ -45,7 +45,7 @@ vibeos-init.sh                   ← Bootstrap script (alternative install metho
 - Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
-- Version: `FRAMEWORK_VERSION="1.0.0"` in every script
+- Version: `FRAMEWORK_VERSION="2.0.0"` in every script
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
 - No stubs, no placeholders, no TODOs in any file

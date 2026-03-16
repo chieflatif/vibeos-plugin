@@ -4,7 +4,7 @@
 #
 # Hook type: SessionStart
 # Framework version: 1.0.0
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 set -euo pipefail
 
 sanitize_json_text() {

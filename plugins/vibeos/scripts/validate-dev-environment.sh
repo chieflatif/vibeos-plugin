@@ -14,7 +14,7 @@ set -euo pipefail
 #   PROJECT_ROOT      — Project root directory (default: pwd)
 #   EXCLUDE_DIRS      — Colon-separated directories to exclude
 
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 GATE_NAME="validate-dev-environment"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

@@ -56,6 +56,21 @@ Dispatch the selected audit agents. Each runs in an isolated worktree and cannot
 | Test Quality | `agents/test-auditor.md` | sonnet | Spec-first, assertion quality, mock density |
 | Evidence | `agents/evidence-auditor.md` | sonnet | Documentation completeness, tracking accuracy |
 | Product Drift | `agents/product-drift-auditor.md` | sonnet | Product promise drift, experience drift, stale decisions |
+| Red Team | `agents/red-team-auditor.md` | opus | Adversarial corruption hunting, cheating detection |
+| Contract | `agents/contract-validator.md` | sonnet | Frontend-backend contract verification (cross-boundary only) |
+
+### Audit Dispatch Strategy
+
+For codebases under 15K lines: dispatch each auditor on the full codebase (current behavior).
+
+For codebases over 15K lines: use module-targeted dispatch:
+1. Identify the top-level modules (e.g., `src/gateway/`, `src/orchestrator/`, `frontend/src/`)
+2. Dispatch auditors per-module rather than per-audit-type
+3. Each auditor gets a focused scope: "Audit security for src/platform_api/ only"
+4. Aggregate findings across modules after all agents complete
+5. Run cross-cutting checks (circular dependencies, contract mismatches) as a separate pass
+
+For per-WO audits during build: only audit the files changed by this WO (incremental audit), plus their immediate dependencies. Do not audit the full codebase.
 
 Dispatch agents that can run independently in parallel where possible. Pass each agent:
 - The `project-definition.json` path

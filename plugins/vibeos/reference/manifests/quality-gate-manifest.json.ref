@@ -7,7 +7,7 @@
       "OPTIONAL": "Include only if condition is met",
       "EXAMPLE": "Concrete pattern the agent uses"
     },
-    "framework_version": "1.0.0"
+    "framework_version": "2.0.0"
   },
 
   "_instructions": [
@@ -22,7 +22,7 @@
     "The gate-runner.sh supports variable substitution: $WO_NUMBER, $EVIDENCE_DIR, $PROJECT_ROOT"
   ],
 
-  "version": "1.0.0",
+  "version": "2.0.0",
 
   "project": {
     "_comment_ADAPT": "Agent fills from PROJECT-INTAKE.md answers",
@@ -137,6 +137,22 @@
             "TEST_CMD": "",
             "LANGUAGE": ""
           }
+        },
+        {
+          "name": "worktree-freshness",
+          "script": "scripts/validate-worktree-freshness.sh",
+          "tier": 0,
+          "_comment": "REQUIRED v2.0: Detects stale worktrees before audits produce false positives."
+        },
+        {
+          "name": "testing-antipatterns",
+          "script": "scripts/detect-testing-antipatterns.py",
+          "tier": 1,
+          "_comment": "REQUIRED v2.0: Detects silent pass guards, vacuous assertions, mock-only integration.",
+          "env": {
+            "_comment_ADAPT": "Set scan-dirs to project test directories",
+            "SCAN_DIRS": "tests frontend/__tests__"
+          }
         }
       ]
     },
@@ -214,6 +230,26 @@
             "DEPLOYMENT_CONTEXT": "",
             "WO_DIR": "docs/planning",
             "PROJECT_DEFINITION": "project-definition.json"
+          }
+        },
+        {
+          "name": "wo-status-integrity",
+          "script": "scripts/validate-wo-status-integrity.sh",
+          "tier": 1,
+          "_comment": "REQUIRED v2.0: Prevents status inflation — cross-checks claimed status against evidence.",
+          "env": {
+            "WO_NUMBER": "$WO_NUMBER",
+            "PROJECT_DIR": "$PROJECT_ROOT"
+          }
+        },
+        {
+          "name": "cross-boundary-contracts",
+          "script": "scripts/validate-cross-boundary-contracts.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "v2.0: Include when project has both backend and frontend directories.",
+          "env": {
+            "BACKEND_DIR": "src",
+            "FRONTEND_DIR": "frontend/src"
           }
         },
         {

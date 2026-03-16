@@ -24,7 +24,7 @@ set -euo pipefail
 #   EXCLUDE_DIRS        — Colon-separated directories to exclude
 #   EXCLUDE_PATTERNS    — Colon-separated file patterns to exclude
 
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 GATE_NAME="validate-code-complexity"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

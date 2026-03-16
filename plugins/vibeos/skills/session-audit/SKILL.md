@@ -125,6 +125,23 @@ Format the output like this:
 [1-3 sentence recommendation on whether to continue, fix follow-ups first, or run a checkpoint]
 ```
 
+### Step 4b: Automated Retrospective
+
+After compiling the session audit, generate a pattern analysis:
+
+1. **Read the findings registry** (`.vibeos/findings-registry.json`) if it exists
+2. **Identify recurring patterns:**
+   - If >3 findings in one agent run were later marked `false_positive` with tag `stale_worktree` — recommend enabling worktree freshness guard
+   - If >2 findings tagged `contract_drift` — recommend promoting contract validation gate to blocking
+   - If >5 findings tagged `silent_pass` — recommend running detect-testing-antipatterns.py at pre_commit phase
+   - If any gate has been "within baseline" for >2 phases — flag for resolution or removal
+3. **Generate recommendations** for framework configuration changes
+4. **Store retrospective** at `.vibeos/retrospectives/phase-{N}-retro.md`
+
+Create `.vibeos/retrospectives/` if it does not exist.
+
+The retrospective is informational — it recommends changes but does not make them. The human decides whether to apply recommendations.
+
 ### Step 5: Save the Report
 
 Save the report to:

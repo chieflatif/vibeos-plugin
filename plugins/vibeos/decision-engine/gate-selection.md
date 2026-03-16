@@ -47,7 +47,13 @@ QUALITY & ARCHITECTURE (3 gates — always on):
   validate-dev-environment.sh        tier=3  blocking=false   ← README, lockfile, CI config, task runner
   test-quality-gate.sh               tier=2  blocking=false   ← mock density, TDD compliance
 
-Total always-on: 16 gates
+VERIFICATION INTEGRITY (4 gates — always on, new in v2.0):
+  validate-worktree-freshness.sh     tier=0  blocking=true    ← audit worktree staleness detection
+  detect-testing-antipatterns.py     tier=1  blocking=true    ← silent pass guards, vacuous assertions, mock-only integration
+  validate-wo-status-integrity.sh    tier=1  blocking=true    ← status inflation prevention (wo_exit only)
+  validate-cross-boundary-contracts.sh  tier=1  blocking=true ← frontend-backend contract validation (cross-boundary only)
+
+Total always-on: 20 gates
 
 ---
 
@@ -131,6 +137,14 @@ IF compliance == ["none"]:
     validate-audit-completeness.sh   tier=3  blocking=false
     validate-pii-handling.sh         tier=3  blocking=false
     validate-owasp-alignment.sh      tier=3  blocking=false
+```
+
+### Cross-Boundary Validation
+```
+IF stack.language contains both a backend language AND a frontend framework (e.g., Python + TypeScript)
+OR IF directories matching both backend (src/, app/, server/) and frontend (frontend/, client/, web/) exist
+THEN enable:
+  validate-cross-boundary-contracts.sh  tier=1  blocking=true  (wo_exit and full_audit)
 ```
 
 ### Post-Deploy Gates

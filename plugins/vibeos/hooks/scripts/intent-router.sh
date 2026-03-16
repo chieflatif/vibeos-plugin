@@ -5,7 +5,7 @@
 # the user's intent to inject routing context for the model.
 #
 # Framework version: 1.0.0
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 
 # Note: no pipefail — stdin/jq patterns need lenient error handling (documented exception)
 set -eu

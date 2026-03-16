@@ -7,7 +7,7 @@
 # Framework version: 1.0.0
 # Note: No set -euo pipefail — hook reads stdin via cat and uses || fallbacks
 # that would trigger errexit. This is intentional per hook convention.
-FRAMEWORK_VERSION="1.0.0"
+FRAMEWORK_VERSION="2.0.0"
 
 INPUT=$(cat)
 CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // .tool_input.new_string // empty' 2>/dev/null || echo "")

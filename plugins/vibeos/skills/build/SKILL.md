@@ -407,6 +407,24 @@ bash ".vibeos/convergence/baseline-check.sh" ratchet \
 
 Log each gate run: `[timestamp] gate-runner WO-NNN pre_commit [PASS|FAIL] [details]`
 
+### Step 7b: Ground Truth Checkpoint
+
+**For WOs that modify API endpoints or UI:**
+
+- If the WO added or modified backend API routes:
+  - Boot the test server (if a test fixture exists for this)
+  - Hit the actual endpoint with a real HTTP request (not a test client mock)
+  - Verify the response shape matches what the frontend or consumer expects
+  - Log the actual response in the evidence bundle
+- If the WO added or modified frontend pages:
+  - Verify the API URLs in the frontend code match actual backend routes
+  - Verify field names in TypeScript types match Pydantic model field names
+  - If build succeeds without errors, log "Frontend builds clean"
+- If ground truth verification is not possible (e.g., requires live Azure services):
+  - Status MUST be capped at "Dev-Mode Complete" or "Awaiting Real-Path Verification"
+  - Document exactly what's needed for full verification in the evidence bundle
+- Evidence from this step goes into `docs/evidence/WO-{N}/ground-truth.md`
+
 ### Step 8: Run Audit Cycle (Layer 2)
 
 **Progress banner:**
@@ -417,15 +435,21 @@ Log each gate run: `[timestamp] gate-runner WO-NNN pre_commit [PASS|FAIL] [detai
 
 After gates pass, run the full audit cycle for deeper quality enforcement.
 
+**Stale finding discard:** When consuming audit agent results, verify the commit SHA in the findings matches the current HEAD of the working branch. If the SHA is stale (differs from HEAD), discard the findings and log: "Discarded stale audit findings from commit {SHA} (HEAD is {HEAD_SHA})" in the build log. Do not act on stale findings.
+
 Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — instead, dispatch the audit agents directly following the same pattern as `skills/audit/SKILL.md`):
 
-1. Dispatch all 6 audit agents in parallel where possible:
+1. Dispatch all 7 audit agents in parallel where possible:
    - `agents/security-auditor.md`
    - `agents/architecture-auditor.md`
    - `agents/correctness-auditor.md`
    - `agents/test-auditor.md`
    - `agents/evidence-auditor.md`
    - `agents/product-drift-auditor.md`
+   - `agents/red-team-auditor.md` (adversarial verification — reports corruption score)
+
+   For cross-boundary WOs (frontend + backend), also dispatch:
+   - `agents/contract-validator.md` (validates frontend-backend contracts)
 
 2. Collect findings and apply consensus logic (see `skills/audit/SKILL.md` Step 4)
 
