@@ -1,5 +1,9 @@
 # VibeOS — Autonomous Development Engine
 
+> **v2.0.0 — Verification Integrity Upgrade (2026-03-16)**
+>
+> Six systemic failure modes found during production use: 67% false positive rate from stale worktrees, frontend-backend contract drift, silent pass guards masking broken tests, WO status inflation, audit timeouts on large codebases, and no finding memory across sessions. This release adds **4 verification integrity gates**, **2 new audit agents** (red-team + contract validator), **5 convergence scripts** with finding lifecycle management, **baseline expiry** (2-phase limit), **ground truth checkpoints**, and **module-targeted audit dispatch**. Gate count: 24 → 42. Agent count: 13 → 15. See the [upgrade instructions](#upgrade) or say *"Upgrade VibeOS"* inside any active session.
+
 VibeOS turns Claude Code, Cursor, and Codex into a hands-on development partner. You do not need to learn a complicated workflow to get started. Open your project in the runtime you prefer, describe what you want in plain English, and VibeOS figures out whether to discover, plan, audit, explain, or keep building.
 
 Think of it like this:
