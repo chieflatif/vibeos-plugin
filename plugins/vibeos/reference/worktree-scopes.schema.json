@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VibeOS Worktree Scope Manifest",
+  "description": "Defines per-branch exclusive territories and shared paths for parallel worktree execution. Read at runtime by worktree-bash-guard.sh and worktree-scope-guard.sh.",
+  "type": "object",
+  "required": ["branches", "shared_paths"],
+  "additionalProperties": false,
+  "properties": {
+    "branches": {
+      "type": "object",
+      "description": "Map of branch name → scope definition. Keys must be feat/* branch names.",
+      "patternProperties": {
+        "^feat/.+$": {
+          "type": "object",
+          "required": ["wo_ids", "exclusive_paths", "description"],
+          "additionalProperties": false,
+          "properties": {
+            "wo_ids": {
+              "type": "array",
+              "description": "Work order IDs owned by this branch.",
+              "items": { "type": "string", "pattern": "^WO-[0-9]+" },
+              "minItems": 1
+            },
+            "exclusive_paths": {
+              "type": "array",
+              "description": "File paths or path prefixes that only this branch may edit. Other branches are blocked by worktree-scope-guard.sh.",
+              "items": { "type": "string" }
+            },
+            "alembic_versions": {
+              "type": "array",
+              "description": "Optional. Alembic migration filename prefixes owned by this branch. Informational — not enforced by gates.",
+              "items": { "type": "string" }
+            },
+            "description": {
+              "type": "string",
+              "description": "Human-readable summary of this branch's scope and purpose."
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "shared_paths": {
+      "type": "array",
+      "description": "File paths or path prefixes that any branch may edit. Expect merge conflicts on these — resolve via rebase. Add any file touched by multiple WOs here.",
+      "items": { "type": "string" },
+      "examples": [
+        "src/config/settings.py",
+        "src/api/router.py",
+        "tests/conftest.py",
+        "alembic/versions/",
+        "pyproject.toml"
+      ]
+    }
+  }
+}
