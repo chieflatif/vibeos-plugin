@@ -1,0 +1,83 @@
+{
+  "version": "2.1.0",
+  "description": "Declarative hook documentation — catalogs all hooks with event type, purpose, and configuration. The authoritative hook registration remains in hooks.json or settings.json; this file documents and describes the hooks.",
+  "hooks": [
+    {
+      "name": "prereq-check",
+      "event_type": "SessionStart",
+      "script": "hooks/scripts/prereq-check.sh",
+      "purpose": "Validates tool prerequisites (bash, python3, jq, git) and provides rich session context on startup including recovery hints, lifecycle detection, and anchor checks",
+      "blocking": false,
+      "timeout": 10000
+    },
+    {
+      "name": "intent-router",
+      "event_type": "UserPromptSubmit",
+      "script": "hooks/scripts/intent-router.sh",
+      "purpose": "Detects project lifecycle state (virgin, discovered, planned, building, checkpoint, complete) and routes natural language user prompts to the appropriate VibeOS skill",
+      "blocking": false,
+      "timeout": 5000
+    },
+    {
+      "name": "secrets-scan",
+      "event_type": "PreToolUse",
+      "matcher": "Edit|Write",
+      "script": "hooks/scripts/secrets-scan.sh",
+      "purpose": "Scans file content for secret patterns (API keys, tokens, connection strings) and blocks writes containing secrets",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "frozen-files",
+      "event_type": "PreToolUse",
+      "matcher": "Edit|Write",
+      "script": "hooks/scripts/frozen-files.sh",
+      "purpose": "Blocks edits to frozen files (CLAUDE.md, .env, and any files listed in frozen-files.json)",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "test-file-protection",
+      "event_type": "PreToolUse",
+      "matcher": "Edit|Write",
+      "script": "hooks/scripts/test-file-protection.sh",
+      "purpose": "Blocks implementation agents (backend, frontend, doc-writer) from modifying test files. Enforces TDD discipline: only tester and test-auditor agents may write tests",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "test-diff-audit",
+      "event_type": "PreToolUse",
+      "matcher": "Edit|Write",
+      "script": "hooks/scripts/test-diff-audit.sh",
+      "purpose": "Detects test weakening — removal of assertions, deletion of test functions, addition of skip markers. Warns when test coverage decreases",
+      "blocking": false,
+      "timeout": 5000
+    },
+    {
+      "name": "worktree-scope-guard",
+      "event_type": "PreToolUse",
+      "matcher": "Edit|Write",
+      "script": "hooks/scripts/worktree-scope-guard.sh",
+      "purpose": "Enforces exclusive path territories during parallel worktree execution. Reads .vibeos/worktree-scopes.json to prevent cross-branch file modifications",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "worktree-bash-guard",
+      "event_type": "PreToolUse",
+      "matcher": "Bash",
+      "script": "hooks/scripts/worktree-bash-guard.sh",
+      "purpose": "Blocks dangerous git and database operations in parallel worktree branches (no checkout main, no cross-branch merge, no force push, no destructive DB ops)",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "stub-detection",
+      "event_type": "Stop",
+      "type": "prompt",
+      "purpose": "Post-response check for stubs, placeholders, TODOs, incomplete code, and swallowed errors. Flags issues for immediate remediation",
+      "blocking": false
+    }
+  ]
+}

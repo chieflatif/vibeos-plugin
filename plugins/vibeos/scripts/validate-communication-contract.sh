@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 GATE_NAME="communication-contract"
 
 PLUGIN_DIR="${1:-$(cd "$(dirname "$0")/.." && pwd)}"

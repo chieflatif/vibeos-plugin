@@ -23,6 +23,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 8 | Resilience & Transparency | WO-049 — WO-053 | Mid-WO resume, decision engine explainability, baseline bootstrap, first-run polish, safety hardening |
 | 9 | Conversational Experience | WO-054 | Voice-led intent routing, natural language interaction, slash command elimination |
 | 10 | Distribution & Runtime | WO-055+ | Pivot from broken plugin system to project-level bootstrap model |
+| 11 | Advanced Governance (v2.1) | WO-056 — WO-065 | Joan-extracted enhancements: same-tree auditing, Codex integration, scope guards, parallel worktree isolation |
 
 ## Mandatory Audits
 
@@ -227,6 +228,38 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
 | WO-055 | Architectural Pivot — Plugin to Project-Level Bootstrap | WO-054 | Draft |
+
+---
+
+## Phase 11: Advanced Governance (v2.1) — Joan Extraction
+
+**Goal:** Extract battle-tested governance enhancements from Joan into generalizable VibeOS platform capabilities. Same-tree auditing, Codex complementary auditing, scope discipline, proof protection, parallel worktree isolation, and enhanced build/audit skill integration.
+
+**Source:** `/Users/latifhorst/Joan` — production-hardened VibeOS deployment with 27 agents, 14 skills, 62 gate scripts, 11 hooks.
+
+**Exit Criteria:** All 20 enhancement items extracted from Joan, generalized (no Joan-specific references), integrated into existing skills/agents/hooks, version bumped to 2.1.0, upgrade script updated. Framework installs and runs cleanly on any project.
+
+**Implementation Strategy:** Copy-and-adapt from Joan. Each WO reads the Joan source, strips Joan-specific references (kernel, NWO, Microsoft boundary, canon index), generalizes the pattern, and integrates into the VibeOS plugin structure.
+
+**Implementation Order (optimized for parallelism):**
+1. WO-056 (foundation — all others depend on this)
+2. WO-057, WO-058, WO-059, WO-060, WO-061, WO-063 (all parallel after WO-056)
+3. WO-062 (after WO-058)
+4. WO-064 (after WO-057, WO-058, WO-062)
+5. WO-065 (after all)
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-056 | Session State & Gate Manifest Infrastructure | Phase 10 | Complete |
+| WO-057 | Same-Tree Audit Agents | WO-056 | Draft |
+| WO-058 | Audit Visibility & Registration System | WO-056 | Draft |
+| WO-059 | Scope Discipline & File Budget Guards | WO-056 | Draft |
+| WO-060 | Proof Protection & Governance Guard Hooks | WO-056 | Draft |
+| WO-061 | Enhanced Parallel Worktree Isolation | WO-056 | Draft |
+| WO-062 | Codex Audit Integration | WO-058 | Draft |
+| WO-063 | Enhanced Investigator & CLI-vs-MCP Reference | WO-056 | Draft |
+| WO-064 | Build/Audit Skill Enhancements | WO-057, WO-058, WO-062 | Draft |
+| WO-065 | v2.1 Release Packaging | WO-056-064 | Draft |
 
 ---
 

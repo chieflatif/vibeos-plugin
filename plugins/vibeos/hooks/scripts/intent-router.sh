@@ -4,8 +4,8 @@
 # Fires on every user message. Reads project lifecycle state and classifies
 # the user's intent to inject routing context for the model.
 #
-# Framework version: 1.0.0
-FRAMEWORK_VERSION="2.0.0"
+# Framework version: 2.1.0
+FRAMEWORK_VERSION="2.1.0"
 
 # Note: no pipefail — stdin/jq patterns need lenient error handling (documented exception)
 set -eu
@@ -180,6 +180,12 @@ classify_intent() {
   # Upgrade / Update framework
   if printf '%s' "$lower" | grep -qE '\b(upgrade vibeos|update vibeos|upgrade the framework|update the framework|run the upgrade|apply the upgrade|pulled the latest|new version of vibeos|framework upgrade|vibeos upgrade)\b'; then
     echo "upgrade|upgrade|high"
+    return
+  fi
+
+  # Codex / complementary / dual-model audit
+  if printf '%s' "$lower" | grep -qE '\b(codex audit|audit with codex|independent audit|dual audit|dual-audit|complementary audit|audit this with codex)\b'; then
+    echo "codex-review|codex-audit|high"
     return
   fi
 

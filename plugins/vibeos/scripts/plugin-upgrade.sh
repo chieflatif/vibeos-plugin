@@ -6,7 +6,7 @@ set -euo pipefail
 # and custom gates. Supports rollback via pre-upgrade snapshot.
 # Exit 0 = success, 1 = error
 
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 
 usage() {
   echo "Usage:"
@@ -49,6 +49,48 @@ PRESERVED_PATHS=(
   ".vibeos/token-usage.json"
   ".vibeos/build-log.md"
   ".vibeos/audit-reports"
+  ".vibeos/session-state.json"
+  ".vibeos/quality-gate-manifest.json"
+)
+
+# New files added in 2.1.0 that must be copied on upgrade
+V21_NEW_GATE_SCRIPTS=(
+  "activate-session.sh"
+  "codex-audit-adapter.sh"
+  "codex-audit-broker.sh"
+  "detect-significance.sh"
+  "register-audit-report.sh"
+  "register-session-audit-report.sh"
+  "select-audit-visibility-mode.sh"
+  "validate-audit-visibility.sh"
+  "validate-independent-audit.sh"
+  "validate-model-versions.sh"
+  "validate-scope-discipline.sh"
+  "validate-session-start.sh"
+  "validate-worktree-freshness.sh"
+)
+
+V21_NEW_HOOK_SCRIPTS=(
+  "governance-guard.sh"
+  "proof-protection.sh"
+  "file-budget.sh"
+  "worktree-scope-guard.sh"
+  "worktree-bash-guard.sh"
+)
+
+V21_NEW_AGENT_FILES=(
+  "security-auditor-same-tree.md"
+  "architecture-auditor-same-tree.md"
+  "correctness-auditor-same-tree.md"
+  "test-auditor-same-tree.md"
+  "evidence-auditor-same-tree.md"
+  "product-drift-auditor-same-tree.md"
+  "contract-validator-same-tree.md"
+  "red-team-auditor-same-tree.md"
+)
+
+V21_NEW_SKILLS=(
+  "codex-audit"
 )
 
 get_plugin_version() {
@@ -127,6 +169,62 @@ case "$COMMAND" in
           echo "[plugin-upgrade] Preserving custom gate: $BASENAME"
         fi
       done
+    fi
+
+    # Step 2b: Run version-specific migration tasks
+    if [ "$INSTALLED" = "2.0.0" ] && [ "$AVAILABLE" = "2.1.0" ]; then
+      echo "[plugin-upgrade] Running 2.0.0 → 2.1.0 migration..."
+
+      # Install new gate scripts
+      VIBEOS_SCRIPTS_DIR="${PROJECT_DIR:-.}/.vibeos/scripts"
+      if [ -d "$PLUGIN_DIR/scripts" ] && [ -d "$VIBEOS_SCRIPTS_DIR" ]; then
+        for script in "${V21_NEW_GATE_SCRIPTS[@]}"; do
+          if [ -f "$PLUGIN_DIR/scripts/$script" ]; then
+            cp "$PLUGIN_DIR/scripts/$script" "$VIBEOS_SCRIPTS_DIR/$script"
+            chmod +x "$VIBEOS_SCRIPTS_DIR/$script"
+            echo "[plugin-upgrade] Installed new gate script: $script"
+          fi
+        done
+      fi
+
+      # Install new hook scripts
+      CLAUDE_HOOKS_DIR="${PROJECT_DIR:-.}/.claude/hooks"
+      if [ -d "$PLUGIN_DIR/hooks/scripts" ] && [ -d "$CLAUDE_HOOKS_DIR" ]; then
+        for hook in "${V21_NEW_HOOK_SCRIPTS[@]}"; do
+          if [ -f "$PLUGIN_DIR/hooks/scripts/$hook" ]; then
+            cp "$PLUGIN_DIR/hooks/scripts/$hook" "$CLAUDE_HOOKS_DIR/$hook"
+            chmod +x "$CLAUDE_HOOKS_DIR/$hook"
+            echo "[plugin-upgrade] Installed new hook: $hook"
+          fi
+        done
+      fi
+
+      # Install same-tree agent variants
+      CLAUDE_AGENTS_DIR="${PROJECT_DIR:-.}/.claude/agents"
+      if [ -d "$PLUGIN_DIR/agents" ] && [ -d "$CLAUDE_AGENTS_DIR" ]; then
+        for agent in "${V21_NEW_AGENT_FILES[@]}"; do
+          if [ -f "$PLUGIN_DIR/agents/$agent" ]; then
+            cp "$PLUGIN_DIR/agents/$agent" "$CLAUDE_AGENTS_DIR/$agent"
+            echo "[plugin-upgrade] Installed same-tree agent: $agent"
+          fi
+        done
+      fi
+
+      # Install new skills
+      CLAUDE_SKILLS_DIR="${PROJECT_DIR:-.}/.claude/skills"
+      if [ -d "$PLUGIN_DIR/skills" ] && [ -d "$CLAUDE_SKILLS_DIR" ]; then
+        for skill in "${V21_NEW_SKILLS[@]}"; do
+          if [ -f "$PLUGIN_DIR/skills/$skill/SKILL.md" ]; then
+            mkdir -p "$CLAUDE_SKILLS_DIR/$skill"
+            cp "$PLUGIN_DIR/skills/$skill/SKILL.md" "$CLAUDE_SKILLS_DIR/$skill/SKILL.md"
+            echo "[plugin-upgrade] Installed new skill: $skill"
+          fi
+        done
+      fi
+
+      echo "[plugin-upgrade] PASS: 2.0.0 → 2.1.0 migration complete"
+      echo "[plugin-upgrade] NOTE: Review .claude/settings.json to add new hooks if needed"
+      echo "[plugin-upgrade] NOTE: New hooks: governance-guard.sh, proof-protection.sh, file-budget.sh, worktree-scope-guard.sh, worktree-bash-guard.sh"
     fi
 
     # Step 3: Update version tracking
@@ -221,6 +319,32 @@ case "$COMMAND" in
     if [ -d "$PLUGIN_DIR/hooks/scripts" ]; then
       NEW_HOOKS=$(ls -1 "$PLUGIN_DIR/hooks/scripts/"*.sh 2>/dev/null | wc -l | tr -d ' ')
       echo "**Hook scripts:** $NEW_HOOKS"
+    fi
+
+    # Version-specific changelog
+    if [ "$AVAILABLE" = "2.1.0" ]; then
+      echo ""
+      echo "## v2.1.0 — Advanced Governance (Phase 11)"
+      echo ""
+      echo "**New capabilities:**"
+      echo "  - Same-tree audit agents (8 variants): run in current context without worktree isolation"
+      echo "  - Audit visibility modes: inline, isolated (worktree), or codex (external CLI)"
+      echo "  - Codex audit integration: /codex-audit skill + broker/adapter scripts"
+      echo "  - Session state infrastructure: session-state.json + quality-gate-manifest.json"
+      echo "  - Scope discipline gate: validate-scope-discipline.sh blocks WO scope creep"
+      echo "  - Proof protection hook: blocks writes to audit evidence artifacts"
+      echo "  - Governance guard hook: enforces WO-driven session discipline at prompt time"
+      echo "  - File budget hook: blocks sessions exceeding file-change budget"
+      echo "  - Parallel worktree scope guard: blocks cross-scope writes in parallel agents"
+      echo "  - Worktree bash guard: enforces bash command boundaries in worktree context"
+      echo "  - Enhanced investigator agent: CLI-vs-MCP reference awareness"
+      echo "  - Build and audit skill enhancements: significance detection, audit report registration"
+      echo ""
+      echo "**File counts (2.1.0):**"
+      echo "  - Gate scripts: 53 (up from 41)"
+      echo "  - Agents: 23 (15 base + 8 same-tree)"
+      echo "  - Skills: 14 (added codex-audit)"
+      echo "  - Hook scripts: 11 (added governance-guard, proof-protection, file-budget, worktree-scope-guard, worktree-bash-guard)"
     fi
     ;;
 

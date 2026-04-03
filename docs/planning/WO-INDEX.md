@@ -179,3 +179,18 @@
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
 | WO-055 | Architectural Pivot — Plugin to Project-Level Bootstrap | Complete | WO-054 |
+
+### Phase 11: Advanced Governance (v2.1) — Joan Extraction
+
+| WO | Title | Status | Dependencies |
+|---|---|---|---|
+| WO-056 | Session State & Gate Manifest Infrastructure | Complete | Phase 10 |
+| WO-057 | Same-Tree Audit Agents | Complete | WO-056 |
+| WO-058 | Audit Visibility & Registration System | Complete | WO-056 |
+| WO-059 | Scope Discipline & File Budget Guards | Complete | WO-056 |
+| WO-060 | Proof Protection & Governance Guard Hooks | Complete | WO-056 |
+| WO-061 | Enhanced Parallel Worktree Isolation | Complete | WO-056 |
+| WO-062 | Codex Audit Integration | Complete | WO-058 |
+| WO-063 | Enhanced Investigator & CLI-vs-MCP Reference | Complete | WO-056 |
+| WO-064 | Build/Audit Skill Enhancements | Complete | WO-057, WO-058, WO-062 |
+| WO-065 | v2.1 Release Packaging | Complete | WO-056-064 |

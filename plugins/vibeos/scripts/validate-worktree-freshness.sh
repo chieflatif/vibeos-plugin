@@ -12,7 +12,7 @@
 #   2 = Not in a git repository or target branch not found
 
 set -euo pipefail
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 GATE_NAME="validate-worktree-freshness"
 
 TARGET_BRANCH="main"

@@ -1,8 +1,12 @@
 # VibeOS — Autonomous Development Engine
 
+> **v2.1.0 — Advanced Governance Upgrade (2026-04-03)**
+>
+> This update makes VibeOS smarter about how it reviews its own work. It can now check code quality *while it's still building* (instead of waiting until everything is saved), ask a second AI (Codex) to independently verify what it built, and automatically prevent work orders from growing too large or messy. It also blocks attempts to skip safety checks and protects test files from being weakened during implementation. If you're running multiple builds in parallel, VibeOS now enforces clear boundaries so they don't step on each other. Say *"Upgrade VibeOS"* inside any active session to get these improvements.
+
 > **v2.0.0 — Verification Integrity Upgrade (2026-03-16)**
 >
-> VibeOS 1.0 ran an 8-hour fully autonomous build session — 156 work orders, 6,175 passing tests, zero human intervention. That kind of sustained autonomous development is exactly what the system was designed for, and running at that scale revealed the next layer of structural improvements: worktree freshness across long sessions, cross-boundary contract validation, finding memory between sessions, and baseline entries that expire instead of suppressing forever. Version 2.0 adds **4 verification integrity gates**, **2 new audit agents** (red-team + contract validator), **5 convergence scripts** with finding lifecycle management, **ground truth checkpoints**, and **module-targeted audit dispatch**. Gate count: 24 → 42. Agent count: 13 → 15. The framework now verifies its own verification. See the [upgrade instructions](#upgrade) or say *"Upgrade VibeOS"* inside any active session.
+> This update came after VibeOS ran a fully autonomous 8-hour build session — 156 work orders, 6,175 passing tests, zero human intervention. Running at that scale revealed places where the system needed to be more careful about verifying its own work: catching stale code reviews, validating that the front-end and back-end agree with each other, remembering issues between sessions, and making sure old problems don't get quietly ignored forever. The system now verifies its own verification.
 
 VibeOS turns Claude Code, Cursor, and Codex into a hands-on development partner. You do not need to learn a complicated workflow to get started. Open your project in the runtime you prefer, describe what you want in plain English, and VibeOS figures out whether to discover, plan, audit, explain, or keep building.
 
@@ -196,6 +200,7 @@ Slash commands still work if you prefer them, but they are optional:
 | `/autonomous` | Full autonomous session override |
 | `/audit` | Run full audit cycle |
 | `/session-audit` | Audit the current or last build session |
+| `/codex-audit` | Request a Codex-powered complementary audit (experimental) |
 | `/gate` | Run quality gates |
 | `/wo` | Work order management |
 | `/status` | Tactical session status |
@@ -217,14 +222,14 @@ your-project/
 ├── .claude/               ← Claude/Cursor surface (full enforcement)
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
-│   ├── skills/            ← 13 skills (discover, plan, build, upgrade, status, project-status, etc.)
-│   ├── agents/            ← 15 specialized subagents
-│   └── hooks/             ← 6 hook scripts (intent routing, security, etc.)
+│   ├── skills/            ← 14 skills (discover, plan, build, upgrade, codex-audit, status, project-status, etc.)
+│   ├── agents/            ← 23 specialized subagents (15 base + 8 same-tree variants)
+│   └── hooks/             ← 11 hook scripts (intent routing, governance, proof, budget, scope)
 ├── .vibeos/               ← Shared runtime used by both surfaces
-│   ├── scripts/           ← 41 quality gate scripts
+│   ├── scripts/           ← 56 quality gate and utility scripts
 │   ├── decision-engine/   ← 10 decision trees
-│   ├── reference/         ← 45+ annotated reference files plus prompt-engineering guidance
-│   └── convergence/       ← Loop control scripts
+│   ├── reference/         ← 85 annotated reference files plus prompt-engineering guidance
+│   └── convergence/       ← 5 scripts that prevent infinite build loops
 └── docs/
     ├── planning/          ← Generated development plan and work orders
     ├── product/           ← PRD, architecture, and product anchor

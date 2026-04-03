@@ -134,7 +134,12 @@ If `$ARGUMENTS` contains a WO number, use that. Otherwise:
 
 1. Read `docs/planning/DEVELOPMENT-PLAN.md`
 2. Read `docs/planning/WO-INDEX.md`
-3. **Phase 0 enforcement (midstream projects):** If Phase 0 exists (remediation phase) and has incomplete fix-now WOs, those must be built first. Do not proceed to Phase 1 until all Phase 0 fix-now WOs are complete. Tell the user:
+3. After the WO file path is known, initialize session state for this WO:
+   ```bash
+   bash scripts/activate-session.sh "<WO-file-path>"
+   ```
+   This records the active WO in `.vibeos/session-state.json` and prepares audit tracking state for the build cycle.
+4. **Phase 0 enforcement (midstream projects):** If Phase 0 exists (remediation phase) and has incomplete fix-now WOs, those must be built first. Do not proceed to Phase 1 until all Phase 0 fix-now WOs are complete. Tell the user:
    > "Phase 0 (remediation) has [N] incomplete fix-now items. These critical issues must be resolved before starting feature work. Building WO-NNN ([title]) next.
    >
    > Your options:
@@ -150,8 +155,8 @@ If `$ARGUMENTS` contains a WO number, use that. Otherwise:
    > I recommend option 1 because [specific reasoning based on finding severity — e.g., 'the security findings could expose user data if exploited']."
 
    If user chooses to skip: log risk acceptance in `.vibeos/build-log.md` with timestamp and justification. Append to `docs/planning/ACCEPTED-RISKS.md` if it exists.
-4. Find the current phase (first phase with incomplete WOs)
-5. Within that phase, find the first WO whose:
+5. Find the current phase (first phase with incomplete WOs)
+6. Within that phase, find the first WO whose:
    - Dependencies are all Complete
    - Status is one of:
      - `Draft`
@@ -437,19 +442,35 @@ After gates pass, run the full audit cycle for deeper quality enforcement.
 
 **Stale finding discard:** When consuming audit agent results, verify the commit SHA in the findings matches the current HEAD of the working branch. If the SHA is stale (differs from HEAD), discard the findings and log: "Discarded stale audit findings from commit {SHA} (HEAD is {HEAD_SHA})" in the build log. Do not act on stale findings.
 
+**Audit visibility selection (mandatory, autonomous-safe):**
+Before dispatching auditors for a WO, choose visibility automatically:
+
+```bash
+bash scripts/select-audit-visibility-mode.sh "${WO_FILE:-${WO_NUMBER:-}}"
+```
+
+Read `.vibeos/session-state.json` after that command and use:
+- `audit_visibility_mode`
+- `audit_dispatch_profile`
+- `audit_snapshot_ref`
+
+Rules:
+- If `audit_dispatch_profile` is `same-tree`, dispatch the `*-same-tree.md` auditor variants.
+- If `audit_dispatch_profile` is `worktree`, dispatch the standard isolated-worktree auditors.
+- Do not pause autonomy to ask which audit mode to use.
+- If a saved audit report is produced, it must include `audit_visibility_mode` and `audit_snapshot_ref` in its header.
+
 Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — instead, dispatch the audit agents directly following the same pattern as `skills/audit/SKILL.md`):
 
-1. Dispatch all 7 audit agents in parallel where possible:
-   - `agents/security-auditor.md`
-   - `agents/architecture-auditor.md`
-   - `agents/correctness-auditor.md`
-   - `agents/test-auditor.md`
-   - `agents/evidence-auditor.md`
-   - `agents/product-drift-auditor.md`
-   - `agents/red-team-auditor.md` (adversarial verification — reports corruption score)
-
-   For cross-boundary WOs (frontend + backend), also dispatch:
-   - `agents/contract-validator.md` (validates frontend-backend contracts)
+1. Dispatch all 8 audit agents in parallel where possible, selecting the correct variant (`*-same-tree.md` or standard) based on `audit_dispatch_profile`:
+   - `agents/security-auditor.md` or `agents/security-auditor-same-tree.md`
+   - `agents/architecture-auditor.md` or `agents/architecture-auditor-same-tree.md`
+   - `agents/correctness-auditor.md` or `agents/correctness-auditor-same-tree.md`
+   - `agents/test-auditor.md` or `agents/test-auditor-same-tree.md`
+   - `agents/evidence-auditor.md` or `agents/evidence-auditor-same-tree.md`
+   - `agents/product-drift-auditor.md` or `agents/product-drift-auditor-same-tree.md`
+   - `agents/red-team-auditor.md` or `agents/red-team-auditor-same-tree.md` (adversarial verification — reports corruption score)
+   - `agents/contract-validator.md` or `agents/contract-validator-same-tree.md` (validates frontend-backend contracts; skip only when scope is a pure documentation WO with no code changes)
 
 2. Collect findings and apply consensus logic (see `skills/audit/SKILL.md` Step 4)
 
@@ -520,6 +541,19 @@ Log each audit run:
 ```
 
 Save the audit report to `.vibeos/audit-reports/WO-NNN-[timestamp].md`.
+
+The report header must include:
+- `audit_visibility_mode`: value from session-state.json
+- `audit_snapshot_ref`: value from session-state.json (or `none`)
+
+After saving the report, register it and validate independent audit coverage before proceeding:
+
+```bash
+bash scripts/register-audit-report.sh ".vibeos/audit-reports/WO-NNN-[timestamp].md"
+bash scripts/validate-independent-audit.sh "${WO_FILE:-${WO_NUMBER:-}}" ".vibeos/audit-reports/WO-NNN-[timestamp].md"
+```
+
+If `validate-independent-audit.sh` returns non-zero, treat the WO as `Awaiting Evidence` until the validation passes.
 
 ### Step 9: Dispatch Doc Writer Agent
 

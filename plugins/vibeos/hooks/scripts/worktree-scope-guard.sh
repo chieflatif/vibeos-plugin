@@ -7,9 +7,9 @@
 #
 # Hook type: PreToolUse (matcher: Edit|Write)
 # Response format: JSON with hookSpecificOutput.permissionDecision = allow|deny
-# Framework version: 2.0.0
+# Framework version: 2.1.0
 # Note: No set -euo pipefail — hook reads stdin and uses || fallbacks intentionally.
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 
 INPUT=$(cat)
 FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null || echo "")
@@ -52,7 +52,7 @@ if [ -z "$FILE_PATH" ]; then
   allow
 fi
 
-# No scope manifest — no restrictions defined
+# No scope manifest — no restrictions defined (fail open)
 if [ ! -f "$SCOPES_FILE" ]; then
   allow
 fi
@@ -66,16 +66,21 @@ while IFS= read -r shared_path; do
 done < <(jq -r '.shared_paths[]' "$SCOPES_FILE" 2>/dev/null || true)
 
 # Check if the file belongs to another branch's exclusive territory
+# Include WO ownership info in the deny message so the agent knows where to go
 while IFS= read -r other_branch; do
   [ -z "$other_branch" ] && continue
   # Skip our own branch
   if [[ "$other_branch" == "$BRANCH" ]]; then
     continue
   fi
+
+  # Get the WOs owned by this branch for a more actionable error message
+  other_wos=$(jq -r ".branches[\"$other_branch\"].wo_ids[]" "$SCOPES_FILE" 2>/dev/null | tr '\n' ',' | sed 's/,$//' || echo "unknown")
+
   while IFS= read -r exclusive_path; do
     [ -z "$exclusive_path" ] && continue
     if [[ "$FILE_PATH" == *"$exclusive_path"* ]]; then
-      deny "File '$FILE_PATH' is exclusive territory of branch '$other_branch'. Edit files within your own scope or add this path to shared_paths if it is truly shared."
+      deny "File '$FILE_PATH' is exclusive territory of branch '$other_branch' ($other_wos). You are on '$BRANCH'. Edit this file in the correct worktree, or add it to shared_paths[] in .vibeos/worktree-scopes.json if multiple branches legitimately need it."
     fi
   done < <(jq -r ".branches[\"$other_branch\"].exclusive_paths[]" "$SCOPES_FILE" 2>/dev/null || true)
 done < <(jq -r '.branches | keys[]' "$SCOPES_FILE" 2>/dev/null || true)

@@ -42,9 +42,28 @@ Read `project-definition.json` for:
 - Stack/framework info
 - Compliance targets
 
-### Step 2: Dispatch Audit Agents
+### Step 2: Select Audit Visibility Mode
 
-Dispatch the selected audit agents. Each runs in an isolated worktree and cannot modify files.
+Before dispatching any auditor, choose visibility automatically:
+
+```bash
+bash scripts/select-audit-visibility-mode.sh "${ARGUMENTS:-}"
+```
+
+Read `.vibeos/session-state.json` after that command and use:
+- `audit_visibility_mode`
+- `audit_dispatch_profile`
+- `audit_snapshot_ref`
+
+Rules:
+- If `audit_dispatch_profile` is `same-tree`, dispatch the `*-same-tree.md` auditor variants.
+- If `audit_dispatch_profile` is `worktree`, dispatch the standard isolated-worktree auditors.
+- If no WO or active session is in scope, default to the standard isolated-worktree auditors.
+- Never stop to ask the user which mode to use during autonomous execution. The selector is the authority.
+
+### Step 3: Dispatch Audit Agents
+
+Dispatch the selected audit agents using the chosen visibility mode. Auditors remain read-only in both modes.
 
 **Agent dispatch list:**
 
@@ -56,8 +75,11 @@ Dispatch the selected audit agents. Each runs in an isolated worktree and cannot
 | Test Quality | `agents/test-auditor.md` | sonnet | Spec-first, assertion quality, mock density |
 | Evidence | `agents/evidence-auditor.md` | sonnet | Documentation completeness, tracking accuracy |
 | Product Drift | `agents/product-drift-auditor.md` | sonnet | Product promise drift, experience drift, stale decisions |
+| Plan | `agents/plan-auditor.md` | opus | WO planning correctness, sequencing, canon alignment |
 | Red Team | `agents/red-team-auditor.md` | opus | Adversarial corruption hunting, cheating detection |
 | Contract | `agents/contract-validator.md` | sonnet | Frontend-backend contract verification (cross-boundary only) |
+
+When `audit_dispatch_profile` is `same-tree`, replace each `agents/<name>.md` with `agents/<name>-same-tree.md`.
 
 ### Audit Dispatch Strategy
 
@@ -72,12 +94,12 @@ For codebases over 15K lines: use module-targeted dispatch:
 
 For per-WO audits during build: only audit the files changed by this WO (incremental audit), plus their immediate dependencies. Do not audit the full codebase.
 
-Dispatch agents that can run independently in parallel where possible. Pass each agent:
+Dispatch agents that can run independently in parallel where possible using the visibility mode selected in Step 2. Pass each agent:
 - The `project-definition.json` path
 - Source directory paths
 - The current WO file path (if running within a build cycle)
 
-### Step 3: Collect Findings
+### Step 4: Collect Findings
 
 As each agent completes, extract its structured findings. Normalize each finding to this format:
 
@@ -100,7 +122,7 @@ If an agent fails to complete or returns unparseable output:
 2. Continue with remaining agents
 3. Note the missing auditor in the report
 
-### Step 4: Apply Consensus Logic
+### Step 5: Apply Consensus Logic
 
 Group findings by location (file + line range overlap) and category similarity:
 
@@ -118,7 +140,7 @@ Group findings by location (file + line range overlap) and category similarity:
 - Not reported individually
 - Contributes to the overall confidence score
 
-### Step 5: Generate Composite Report
+### Step 6: Generate Composite Report
 
 Write the report to stdout (displayed to user). Format:
 
@@ -127,7 +149,9 @@ Write the report to stdout (displayed to user). Format:
 
 **Date:** [today]
 **Scope:** [directories audited]
-**Auditors dispatched:** [list of 6 or subset]
+**audit_visibility_mode:** [same-tree|snapshot|committed-tree|not-applicable]
+**audit_snapshot_ref:** [ref|none]
+**Auditors dispatched:** [list of 8 or subset]
 **Auditors completed:** [count]/[dispatched]
 
 ### Executive Summary
@@ -161,6 +185,9 @@ Write the report to stdout (displayed to user). Format:
 | Test Quality | [complete/failed] | [count] | [top finding or "clean"] |
 | Evidence | [complete/failed] | [count] | [top finding or "clean"] |
 | Product Drift | [complete/failed] | [count] | [top finding or "clean"] |
+| Plan | [complete/failed] | [count] | [top finding or "clean"] |
+| Red Team | [complete/failed] | [count] | [top finding or "clean"] |
+| Contract | [complete/failed/skipped] | [count] | [top finding or "clean"] |
 
 ### Overall Assessment
 
@@ -172,13 +199,19 @@ Write the report to stdout (displayed to user). Format:
 - fail: Critical findings that must be fixed before proceeding
 ```
 
-### Step 6: Save Report (if in build cycle)
+### Step 7: Save Report (if in build cycle)
 
 If this audit was triggered from `/vibeos:build`, save the report to `.vibeos/audit-reports/[WO-NNN]-[timestamp].md` for the build log to reference.
 
 Create the directory if it doesn't exist:
 ```bash
 mkdir -p .vibeos/audit-reports
+```
+
+After saving the report, register it so session-end closure gates validate the correct report:
+
+```bash
+bash scripts/register-audit-report.sh ".vibeos/audit-reports/[WO-NNN]-[timestamp].md"
 ```
 
 ## Single-Auditor Mode

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 
 # ─── VibeOS Bootstrap ────────────────────────────────────────────────────────
 # Installs VibeOS governance framework into a target project's .claude/ and
@@ -152,6 +152,7 @@ uninstall() {
     rm -rf "$TARGET_DIR/.claude/skills/autonomous"
     rm -rf "$TARGET_DIR/.claude/skills/project-status"
     rm -rf "$TARGET_DIR/.claude/skills/session-audit"
+    rm -rf "$TARGET_DIR/.claude/skills/codex-audit"
 
     rm -f "$TARGET_DIR/.claude/agents/plan-auditor.md"
     rm -f "$TARGET_DIR/.claude/agents/investigator.md"
@@ -168,6 +169,14 @@ uninstall() {
     rm -f "$TARGET_DIR/.claude/agents/contract-validator.md"
     rm -f "$TARGET_DIR/.claude/agents/red-team-auditor.md"
     rm -f "$TARGET_DIR/.claude/agents/prompt-engineer.md"
+    rm -f "$TARGET_DIR/.claude/agents/security-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/architecture-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/correctness-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/test-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/evidence-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/product-drift-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/contract-validator-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/red-team-auditor-same-tree.md"
 
     rm -f "$TARGET_DIR/.claude/hooks/intent-router.sh"
     rm -f "$TARGET_DIR/.claude/hooks/secrets-scan.sh"
@@ -175,6 +184,11 @@ uninstall() {
     rm -f "$TARGET_DIR/.claude/hooks/test-file-protection.sh"
     rm -f "$TARGET_DIR/.claude/hooks/test-diff-audit.sh"
     rm -f "$TARGET_DIR/.claude/hooks/prereq-check.sh"
+    rm -f "$TARGET_DIR/.claude/hooks/governance-guard.sh"
+    rm -f "$TARGET_DIR/.claude/hooks/proof-protection.sh"
+    rm -f "$TARGET_DIR/.claude/hooks/file-budget.sh"
+    rm -f "$TARGET_DIR/.claude/hooks/worktree-scope-guard.sh"
+    rm -f "$TARGET_DIR/.claude/hooks/worktree-bash-guard.sh"
 
     # Clean up empty directories
     rmdir "$TARGET_DIR/.claude/skills" 2>/dev/null || true
@@ -233,7 +247,7 @@ copy_skills() {
     echo "[vibeos-init] Installing skills..."
     mkdir -p "$TARGET_DIR/.claude/skills"
 
-    local skills=("discover" "plan" "build" "audit" "gate" "status" "checkpoint" "wo" "help" "upgrade" "autonomous" "project-status" "session-audit")
+    local skills=("discover" "plan" "build" "audit" "gate" "status" "checkpoint" "wo" "help" "upgrade" "autonomous" "project-status" "session-audit" "codex-audit")
     for skill in "${skills[@]}"; do
         mkdir -p "$TARGET_DIR/.claude/skills/$skill"
         cp "$SOURCE_DIR/skills/$skill/SKILL.md" "$TARGET_DIR/.claude/skills/$skill/SKILL.md"
@@ -263,7 +277,7 @@ copy_hooks() {
     echo "[vibeos-init] Installing hook scripts..."
     mkdir -p "$TARGET_DIR/.claude/hooks"
 
-    local hooks=("intent-router.sh" "secrets-scan.sh" "frozen-files.sh" "test-file-protection.sh" "test-diff-audit.sh" "prereq-check.sh")
+    local hooks=("intent-router.sh" "secrets-scan.sh" "frozen-files.sh" "test-file-protection.sh" "test-diff-audit.sh" "prereq-check.sh" "governance-guard.sh" "proof-protection.sh" "file-budget.sh" "worktree-scope-guard.sh" "worktree-bash-guard.sh")
     for hook in "${hooks[@]}"; do
         cp "$SOURCE_DIR/hooks/scripts/$hook" "$TARGET_DIR/.claude/hooks/$hook"
         chmod +x "$TARGET_DIR/.claude/hooks/$hook"
@@ -422,10 +436,10 @@ An autonomous, self-governing development engine. You guide users through produc
 ## Architecture
 
 ```
-.claude/skills/          ← 13 user-invocable skills (/discover, /plan, /build, /upgrade, etc.)
-.claude/agents/          ← 15 specialized subagents (auditors, tester, implementation, red-team, etc.)
-.claude/hooks/           ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
-.vibeos/scripts/         ← 41 deterministic gate scripts + gate-runner.sh
+.claude/skills/          ← 14 user-invocable skills (/discover, /plan, /build, /codex-audit, etc.)
+.claude/agents/          ← 23 specialized subagents (15 base + 8 same-tree variants)
+.claude/hooks/           ← Event-driven enforcement (11 hooks: intent routing, governance, proof, budget, scope)
+.vibeos/scripts/         ← 53 deterministic gate scripts + gate-runner.sh
 .vibeos/decision-engine/ ← 10 decision tree files
 .vibeos/reference/       ← 45+ annotated reference files
 .vibeos/convergence/     ← Loop control scripts (state hashing, convergence checks)
@@ -436,9 +450,12 @@ docs/planning/           ← Development plan, WO index, individual WO files
 
 1. **Subagents cannot spawn subagents** — only the main thread dispatches agents
 2. **Audit agents are read-only** — `disallowedTools: Write, Edit, Agent` + `isolation: worktree`
-3. **Tests are written from spec, not code** — tester agent never sees implementation
-4. **Implementation agents cannot modify test files** — enforced by PreToolUse hook
-5. **All scripts are bash 3.2+ compatible** — macOS default, no external dependencies
+3. **Same-tree audit agents** — run in current worktree for session-scoped review (no isolation)
+4. **Tests are written from spec, not code** — tester agent never sees implementation
+5. **Implementation agents cannot modify test files** — enforced by PreToolUse hook
+6. **All scripts are bash 3.2+ compatible** — macOS default, no external dependencies
+7. **Audit visibility modes** — inline (same-tree), isolated (fresh worktree), or codex (external CLI)
+8. **Parallel worktree scope** — worktree-scope-guard.sh blocks writes outside assigned scope
 
 ## Voice-Led Intent Routing
 
@@ -476,11 +493,26 @@ Slash commands (`/discover`, `/build`, etc.) still work and always take preceden
 - Every WO has a file in `docs/planning/` with status, scope, acceptance criteria
 - WO-INDEX.md tracks all WOs and their status
 
+## Technology
+
+| Tool | Purpose |
+|---|---|
+| Bash 3.2+ | Gate scripts, hooks, convergence scripts |
+| Python 3.7+ | Stub detection script |
+| jq | JSON parsing in gate scripts |
+| git | Version control, worktree isolation |
+| Codex CLI | Optional: external complementary audit (codex-audit skill) |
+
 ## Conventions
 
-- Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail`
+- Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
+- Version: `FRAMEWORK_VERSION="2.1.0"` in every script
+- Skills: SKILL.md with YAML frontmatter in skill directories
+- Agents: .md files with YAML frontmatter in agents/
+- State files: `.vibeos/session-state.json` (active session), `.vibeos/quality-gate-manifest.json` (gate registry)
+- Hook manifests: `.vibeos/hook-manifest.json` documents all registered hooks and their event bindings
 - No stubs, no placeholders, no TODOs in any file
 CLAUDEMD_EOF
 
@@ -524,7 +556,7 @@ init_project_config() {
     mkdir -p "$TARGET_DIR/.vibeos"
     cat > "$config_file" << 'CONFIG_EOF'
 {
-  "framework_version": "2.0.0",
+  "framework_version": "2.1.0",
   "autonomy_level": "wo",
   "project_mode": "pending",
   "lifecycle_state": "virgin"

@@ -17,6 +17,14 @@
         "hooks": [
           {
             "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/governance-guard.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/intent-router.sh"
           }
         ]
@@ -56,6 +64,15 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/worktree-scope-guard.sh",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/proof-protection.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/file-budget.sh",
+            "timeout": 5
           }
         ]
       }
@@ -66,6 +83,14 @@
           {
             "type": "prompt",
             "prompt": "Review the response you just gave. Check for any of the following quality issues:\n1. Stubs: raise NotImplementedError, def func(): pass, def func(): ...\n2. Placeholders: TODO, FIXME, HACK, XXX comments\n3. Incomplete code: 'implement later', 'add here', 'placeholder'\n4. Swallowed errors: bare except: pass\n\nIf you find ANY of these issues, immediately flag them to the user and offer to fix them. Do not let incomplete code pass without acknowledgment."
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check if your response just completed one of these three critical events:\n1. You approved, finalized, or handed off a development plan or work order tranche for execution\n2. You declared a work order complete, closed, or marked it done\n3. You completed a session summary, session audit, or session closeout\n\nIf NONE of these apply, do nothing — skip this check entirely.\n\nIf one DOES apply:\n- Run `bash plugins/vibeos/scripts/detect-significance.sh` in a Bash tool call.\n- If the output contains `\"significant\":true`:\n  - If you are in autonomous build mode (running /vibeos:build or /vibeos:autonomous): invoke the codex-audit skill immediately — do not ask, just run it. Map event type: plan handoff → 'plan', WO close → 'complete', session close → 'session'.\n  - If you are NOT in autonomous mode: surface one sentence to the user: \"Codex complementary audit recommended — say 'audit this with Codex' to run it.\"\n- Never repeat this message within the same session if you already ran or offered the audit."
           }
         ]
       }

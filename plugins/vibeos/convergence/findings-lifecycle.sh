@@ -14,7 +14,7 @@
 #   2 = Configuration error
 
 set -euo pipefail
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 
 COMMAND="${1:-}"
 shift || true

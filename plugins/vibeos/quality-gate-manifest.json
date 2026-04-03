@@ -1,0 +1,77 @@
+{
+  "version": "2.1.0",
+  "description": "Declarative gate manifest — catalogs every script with tier, blocking, phase, and env configuration. The gate-runner reads this to determine which gates to execute per phase.",
+  "gates": [
+    {"script": "scripts/validate-no-secrets.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"SCAN_PATTERNS": "azure_connection_strings,sas_tokens,aws_keys,api_tokens,jwts,private_keys"}},
+    {"script": "scripts/validate-security-patterns.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"STRICT_MODE": "true"}},
+    {"script": "scripts/detect-stubs-placeholders.py", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LANGUAGE": "python"}},
+    {"script": "scripts/validate-code-quality.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LINTER": "ruff check"}},
+    {"script": "scripts/validate-tests-required.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
+    {"script": "scripts/validate-tests-pass.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
+    {"script": "scripts/validate-code-complexity.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"ONLY_CHANGED_FILES": "true", "MAX_FUNCTION_LINES": "55", "WARN_FUNCTION_LINES": "40", "MAX_PARAMS": "6", "MAX_NESTING_DEPTH": "4"}},
+    {"script": "scripts/validate-dependency-versions.sh", "tier": 2, "blocking": true, "phase": "pre_commit", "env": {"ONLY_WHEN_DEP_FILES_CHANGE": "true"}},
+    {"script": "scripts/validate-dependencies.sh", "tier": 2, "blocking": false, "phase": "pre_commit", "env": {"ONLY_WHEN_DEP_FILES_CHANGE": "true"}},
+
+    {"script": "scripts/validate-work-order.sh", "tier": 1, "blocking": true, "phase": "wo_entry", "env": {}},
+    {"script": "scripts/validate-infrastructure-manifest.sh", "tier": 2, "blocking": false, "phase": "wo_entry", "env": {}},
+
+    {"script": "scripts/enforce-architecture.sh", "tier": 1, "blocking": true, "phase": "wo_exit", "env": {}},
+    {"script": "scripts/validate-development-plan-alignment.sh", "tier": 1, "blocking": true, "phase": "wo_exit", "env": {}},
+    {"script": "scripts/validate-scope-discipline.sh", "tier": 1, "blocking": true, "phase": "wo_exit", "env": {"MAX_PRODUCTION_FILES": "10", "MAX_NEW_PRODUCTION_FILES": "4", "MAX_AREA_COUNT": "5", "REQUIRE_TEST_DELTA": "true"}},
+    {"script": "scripts/validate-model-versions.sh", "tier": 2, "blocking": false, "phase": "wo_exit", "env": {"SCAN_DIRS": "src:tests:config"}},
+    {"script": "scripts/validate-cross-boundary-contracts.sh", "tier": 1, "blocking": true, "phase": "wo_exit", "env": {}},
+    {"script": "scripts/validate-wo-status-integrity.sh", "tier": 1, "blocking": true, "phase": "wo_exit", "env": {}},
+    {"script": "scripts/validate-evidence-bundle.sh", "tier": 2, "blocking": false, "phase": "wo_exit", "env": {"EVIDENCE_DIR": "docs/evidence/"}},
+    {"script": "scripts/validate-audit-completeness.sh", "tier": 2, "blocking": false, "phase": "wo_exit", "env": {}},
+    {"script": "scripts/validate-test-integrity.sh", "tier": 2, "blocking": false, "phase": "wo_exit", "env": {}},
+    {"script": "scripts/validate-logging-patterns.sh", "tier": 3, "blocking": false, "phase": "wo_exit", "env": {}},
+    {"script": "scripts/validate-documentation-completeness.sh", "tier": 3, "blocking": false, "phase": "wo_exit", "env": {}},
+
+    {"script": "scripts/validate-worktree-freshness.sh", "tier": 0, "blocking": true, "phase": "full_audit", "env": {}},
+    {"script": "scripts/detect-testing-antipatterns.py", "tier": 1, "blocking": true, "phase": "full_audit", "env": {}},
+    {"script": "scripts/validate-ai-integration.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"AI_PROVIDER": "azure_openai", "AUTONOMOUS_AGENT": "true"}},
+    {"script": "scripts/validate-auth-boundaries.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"AUTH_PROVIDER": "entra_id"}},
+    {"script": "scripts/validate-observability.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"REQUIRE_HEALTH": "true", "REQUIRE_METRICS": "true"}},
+    {"script": "scripts/validate-resilience-patterns.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"DEPLOYMENT_CONTEXT": "production"}},
+    {"script": "scripts/validate-data-integrity.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"DATABASE": "postgresql", "REQUIRE_CONSTRAINTS": "true"}},
+    {"script": "scripts/validate-api-contracts.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"FRAMEWORK": "fastapi"}},
+    {"script": "scripts/validate-owasp-alignment.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {}},
+    {"script": "scripts/validate-pii-handling.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"STRICT_MODE": "true"}},
+    {"script": "scripts/validate-tenant-isolation.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"TENANT_FIELD": "tenant_id"}},
+    {"script": "scripts/validate-production-readiness.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {"PROJECT_DEFINITION": "project-definition.json"}},
+    {"script": "scripts/validate-env-completeness.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {}},
+    {"script": "scripts/validate-infrastructure-connectivity.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {}},
+    {"script": "scripts/validate-devmode-fallbacks.sh", "tier": 2, "blocking": false, "phase": "full_audit", "env": {}},
+    {"script": "scripts/validate-dev-environment.sh", "tier": 3, "blocking": false, "phase": "full_audit", "env": {}},
+    {"script": "scripts/validate-communication-contract.sh", "tier": 3, "blocking": false, "phase": "full_audit", "env": {"CONTRACT_FILE": "docs/USER-COMMUNICATION-CONTRACT.md"}},
+
+    {"script": "scripts/validate-session-start.sh", "tier": 0, "blocking": false, "phase": "session_start", "env": {}}
+  ],
+  "utility_scripts": [
+    {"script": "scripts/gate-runner.sh", "purpose": "Orchestrates gate execution by phase"},
+    {"script": "scripts/e2e-test-runner.sh", "purpose": "End-to-end integration test runner"},
+    {"script": "scripts/plugin-upgrade.sh", "purpose": "Framework version upgrade automation"},
+    {"script": "scripts/setup-git-hooks.sh", "purpose": "Git pre-commit hook installation"},
+    {"script": "scripts/test-quality-gate.sh", "purpose": "Individual gate testing utility"},
+    {"script": "scripts/activate-session.sh", "purpose": "Session state initialization"},
+    {"script": "scripts/health-check.sh", "purpose": "Production health probe (activate when URLs configured)"},
+    {"script": "scripts/smoke-test.sh", "purpose": "Production smoke test (activate when URLs configured)"}
+  ],
+  "reference_files": [
+    {"file": "scripts/architecture-rules.example.json", "purpose": "Example architecture enforcement rules"}
+  ],
+  "phases": {
+    "session_start": {"description": "Environment checks at session start", "enabled": true},
+    "wo_entry": {"description": "Prerequisites check before starting any WO", "enabled": true},
+    "pre_commit": {"description": "Fast blocking checks before every commit", "enabled": true},
+    "wo_exit": {"description": "Combined backend + governance check after WO completion", "enabled": true},
+    "full_audit": {"description": "Comprehensive audit — all gates including compliance", "enabled": true},
+    "session_end": {"description": "Closure checks for bounded autonomous sessions", "enabled": true}
+  },
+  "tiers": {
+    "0": "Always run — security and environment basics",
+    "1": "Blocking — code quality, architecture, scope discipline",
+    "2": "Important — compliance, dependencies, evidence (blocking configurable per project)",
+    "3": "Advisory — documentation, communication, dev environment"
+  }
+}

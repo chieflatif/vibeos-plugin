@@ -5,7 +5,7 @@ set -euo pipefail
 # Used by convergence controls to detect code changes between fix cycles.
 # Exit 0 with hash on stdout; exit 1 on error.
 
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 
 usage() {
   echo "Usage: $0 --project-dir <path> [--exclude <pattern>]..."

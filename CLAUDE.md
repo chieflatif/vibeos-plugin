@@ -10,12 +10,12 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 .claude-plugin/marketplace.json  ← Marketplace catalog (for plugin install)
 plugins/vibeos/                  ← Plugin root
   .claude-plugin/plugin.json     ← Plugin manifest
-  skills/                        ← 13 user-invocable skills (/vibeos:discover, :plan, :build, :upgrade, etc.)
-  agents/                        ← 15 specialized subagents (auditors, tester, implementation, red-team, contract-validator, etc.)
-  hooks/hooks.json               ← Event-driven enforcement (intent routing, secrets, stubs, frozen files)
-  scripts/                       ← 41 deterministic gate scripts + gate-runner.sh (bash)
+  skills/                        ← 14 user-invocable skills (/vibeos:discover, :plan, :build, :codex-audit, etc.)
+  agents/                        ← 23 specialized subagents (15 base + 8 same-tree variants)
+  hooks/hooks.json               ← Event-driven enforcement (11 hooks: governance, proof, budget, scope, routing)
+  scripts/                       ← 56 deterministic gate scripts + gate-runner.sh (bash)
   decision-engine/               ← 10 decision tree files (markdown)
-  reference/                     ← 40+ annotated reference files
+  reference/                     ← 85 annotated reference files
   convergence/                   ← Loop control scripts (state hashing, convergence checks)
   docs/                          ← User communication contract
 docs/planning/                   ← Development plan, WO index, individual WO files
@@ -26,10 +26,13 @@ vibeos-init.sh                   ← Bootstrap script (alternative install metho
 
 1. **Subagents cannot spawn subagents** — only the main thread dispatches agents
 2. **Audit agents are read-only** — `disallowedTools: Write, Edit, Agent` + `isolation: worktree`
-3. **Tests are written from spec, not code** — tester agent never sees implementation
-4. **Implementation agents cannot modify test files** — enforced by PreToolUse hook
-5. **No external frameworks** — pure Claude Code plugin system (skills + hooks + agents)
-6. **All scripts are bash 3.2+ compatible** — macOS default, no external dependencies
+3. **Same-tree audit agents** — 8 agent variants that run in the current worktree for session-scoped review without isolation overhead
+4. **Tests are written from spec, not code** — tester agent never sees implementation
+5. **Implementation agents cannot modify test files** — enforced by PreToolUse hook
+6. **No external frameworks** — pure Claude Code plugin system (skills + hooks + agents)
+7. **All scripts are bash 3.2+ compatible** — macOS default, no external dependencies
+8. **Audit visibility modes** — three modes: inline (same-tree agent), isolated (fresh worktree), codex (external Codex CLI)
+9. **Parallel worktree scope enforcement** — worktree-scope-guard.sh blocks writes outside the assigned WO scope when agents run in parallel worktrees
 
 ## Technology
 
@@ -39,15 +42,18 @@ vibeos-init.sh                   ← Bootstrap script (alternative install metho
 | Python 3.7+ | Stub detection script |
 | jq | JSON parsing in gate scripts |
 | git | Version control, worktree isolation |
+| Codex CLI | Optional: external complementary audit via /vibeos:codex-audit skill |
 
 ## Conventions
 
 - Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
-- Version: `FRAMEWORK_VERSION="2.0.0"` in every script
+- Version: `FRAMEWORK_VERSION="2.1.0"` in every script
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
+- State files: `.vibeos/session-state.json` tracks active session context; `.vibeos/quality-gate-manifest.json` is the authoritative gate registry
+- Hook manifests: `.vibeos/hook-manifest.json` documents all registered hooks and their event bindings
 - No stubs, no placeholders, no TODOs in any file
 
 ## Voice-Led Intent Routing
