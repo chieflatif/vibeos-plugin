@@ -184,6 +184,7 @@ uninstall() {
     rm -f "$TARGET_DIR/.claude/hooks/test-file-protection.sh"
     rm -f "$TARGET_DIR/.claude/hooks/test-diff-audit.sh"
     rm -f "$TARGET_DIR/.claude/hooks/prereq-check.sh"
+    rm -f "$TARGET_DIR/.claude/hooks/response-quality-stop.sh"
     rm -f "$TARGET_DIR/.claude/hooks/governance-guard.sh"
     rm -f "$TARGET_DIR/.claude/hooks/proof-protection.sh"
     rm -f "$TARGET_DIR/.claude/hooks/file-budget.sh"
@@ -399,8 +400,8 @@ generate_settings() {
       {
         "hooks": [
           {
-            "type": "prompt",
-            "prompt": "Review the response you just gave. Check for any of the following quality issues:\n1. Stubs: raise NotImplementedError, def func(): pass, def func(): ...\n2. Placeholders: TODO, FIXME, HACK, XXX comments\n3. Incomplete code: 'implement later', 'add here', 'placeholder'\n4. Swallowed errors: bare except: pass\n\nIf you find ANY of these issues, immediately flag them to the user and offer to fix them. Do not let incomplete code pass without acknowledgment."
+            "type": "command",
+            "command": "./.claude/hooks/response-quality-stop.sh"
           }
         ]
       }

@@ -194,3 +194,4 @@
 | WO-063 | Enhanced Investigator & CLI-vs-MCP Reference | Complete | WO-056 |
 | WO-064 | Build/Audit Skill Enhancements | Complete | WO-057, WO-058, WO-062 |
 | WO-065 | v2.1 Release Packaging | Complete | WO-056-064 |
+| WO-066 | Stop Hook False-Positive Loop Remediation | Complete | WO-060, WO-065 |

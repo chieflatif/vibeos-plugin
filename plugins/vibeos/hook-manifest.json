@@ -73,11 +73,11 @@
       "timeout": 5000
     },
     {
-      "name": "stub-detection",
+      "name": "response-quality-stop-review",
       "event_type": "Stop",
-      "type": "prompt",
-      "purpose": "Post-response check for stubs, placeholders, TODOs, incomplete code, and swallowed errors. Flags issues for immediate remediation",
-      "blocking": false
+      "script": "hooks/scripts/response-quality-stop.sh",
+      "purpose": "Deterministically inspects the most recent assistant response and blocks only on concrete stub, placeholder, incomplete-code, or swallowed-error markers. No-ops on non-code turns",
+      "blocking": true
     }
   ]
 }
