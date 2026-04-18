@@ -1,0 +1,53 @@
+# <!-- REQUIRED -->
+# Session-Scoped Git Discipline
+
+Commits happen at natural work boundaries and include only the current session's validated scope.
+
+## Natural Boundaries
+
+- work-order completion
+- gate completion
+- phase completion
+- significant harness changes
+- explicit user request
+
+Do not commit:
+- per file
+- per turn
+- in the middle of incomplete edits
+- while blocking gates are failing
+
+## Staging Rule
+
+Stage files explicitly by path.
+
+Never use:
+- `git add -A`
+- `git add .`
+- force-push
+- `--no-verify`
+
+## Dirty State
+
+At session start:
+- inspect `git status`
+- note pre-existing dirty state
+- leave unrelated dirty state uncommitted
+
+## Commit Message Rule
+
+Commits should have:
+- a real subject line
+- a useful body when the change is non-trivial
+- a `Co-Authored-By:` trailer naming the agent identity
+
+Mechanical helpers:
+
+```bash
+bash scripts/session-commit.sh ...
+bash scripts/validate-commit-msg.sh .git/COMMIT_EDITMSG
+```
+
+## Safety Rule
+
+No destructive git operations without explicit human approval.

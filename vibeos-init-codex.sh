@@ -173,6 +173,13 @@ copy_runtime() {
   cp -R "$SOURCE_DIR/convergence" "$TARGET_DIR/.vibeos/convergence"
 
   printf '%s\n' "$FRAMEWORK_VERSION" > "$TARGET_DIR/.vibeos/version.txt"
+  cat > "$TARGET_DIR/.vibeos/version.json" <<EOF
+{
+  "current": "$FRAMEWORK_VERSION",
+  "surface": "codex",
+  "installed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+EOF
   printf '%s\n' "codex" > "$TARGET_DIR/.vibeos/runtime.txt"
 
   echo "[vibeos-init-codex] PASS: Shared runtime installed"
@@ -246,6 +253,7 @@ uninstall() {
   rm -rf "$TARGET_DIR/.codex/agents"
   rm -f "$TARGET_DIR/.vibeos/runtime.txt"
   rm -f "$TARGET_DIR/.vibeos/version.txt"
+  rm -f "$TARGET_DIR/.vibeos/version.json"
 
   echo "[vibeos-init-codex] PASS: Codex skills and templates removed"
   echo "[vibeos-init-codex] NOTE: Shared .vibeos runtime, docs, and AGENTS.md were preserved."

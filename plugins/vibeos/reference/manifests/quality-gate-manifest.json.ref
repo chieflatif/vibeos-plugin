@@ -7,7 +7,7 @@
       "OPTIONAL": "Include only if condition is met",
       "EXAMPLE": "Concrete pattern the agent uses"
     },
-    "framework_version": "2.0.0"
+    "framework_version": "2.1.0"
   },
 
   "_instructions": [
@@ -22,7 +22,7 @@
     "The gate-runner.sh supports variable substitution: $WO_NUMBER, $EVIDENCE_DIR, $PROJECT_ROOT"
   ],
 
-  "version": "2.0.0",
+  "version": "2.1.0",
 
   "project": {
     "_comment_ADAPT": "Agent fills from PROJECT-INTAKE.md answers",
@@ -104,6 +104,12 @@
             "LANGUAGE": "",
             "SCAN_DIRS": ""
           }
+        },
+        {
+          "name": "file-size",
+          "script": "scripts/validate-file-size.sh",
+          "tier": 1,
+          "_comment": "REQUIRED v2.1: Enforces file-size budgets and exception markers."
         },
         {
           "name": "code-quality",
@@ -218,17 +224,6 @@
           "env": {
             "WO_DIR": "docs/planning",
             "DEPLOYMENT_CONTEXT": "",
-            "PROJECT_DEFINITION": "project-definition.json"
-          }
-        },
-        {
-          "name": "production-readiness",
-          "script": "scripts/validate-production-readiness.sh",
-          "tier": 1,
-          "_comment_OPTIONAL": "Include when deployment_context is production, customer-facing, or scale",
-          "env": {
-            "DEPLOYMENT_CONTEXT": "",
-            "WO_DIR": "docs/planning",
             "PROJECT_DEFINITION": "project-definition.json"
           }
         },

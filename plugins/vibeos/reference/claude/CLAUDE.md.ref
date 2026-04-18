@@ -70,7 +70,7 @@ src/
 
 ### Quality Gates
 
-<!-- ADAPT: Agent lists active phases from quality-gate-manifest.json -->
+<!-- ADAPT: Agent lists active phases from `.claude/quality-gate-manifest.json` -->
 
 ```bash
 # After plan acceptance, before implementation
@@ -104,6 +104,10 @@ Always record:
 - what dependencies or tests are missing
 - whether an additional user-requested audit is recommended
 
+Read and follow:
+- `docs/planning/AUDIT-PROTOCOL.md`
+- `docs/planning/AGENT-WORKFLOW.md`
+
 ### Required Response Pattern
 
 For setup milestones, WO planning, implementation updates, audits, and WO completion, respond in this order:
@@ -116,6 +120,17 @@ For setup milestones, WO planning, implementation updates, audits, and WO comple
 ### Quality Gates (source of truth: `.claude/quality-gate-manifest.json`)
 
 <!-- ADAPT: Agent lists gates per phase from manifest -->
+
+### Always-Rules
+
+When the project has `.claude/rules/always/`, treat those files as always-active constraints. At minimum, expect:
+- `no-stubs-placeholders.md`
+- `architecture-rules.md`
+- `evidence-first.md`
+- `file-size.md`
+- `git-hygiene.md`
+- `audit-discipline.md`
+- `agent-collaboration.md`
 
 ### Zero-Stub Policy
 <!-- REQUIRED -->

@@ -40,6 +40,7 @@ done
 
 VIBEOS_DIR="${PROJECT_DIR:-.}/.vibeos"
 VERSION_FILE="${VIBEOS_DIR}/version.json"
+LEGACY_VERSION_FILE="${VIBEOS_DIR}/version.txt"
 BACKUP_DIR="${VIBEOS_DIR}/upgrade-backup"
 
 # Preserved paths (never overwritten during upgrade)
@@ -50,20 +51,26 @@ PRESERVED_PATHS=(
   ".vibeos/build-log.md"
   ".vibeos/audit-reports"
   ".vibeos/session-state.json"
-  ".vibeos/quality-gate-manifest.json"
+  ".claude/quality-gate-manifest.json"
 )
 
 # New files added in 2.1.0 that must be copied on upgrade
 V21_NEW_GATE_SCRIPTS=(
   "activate-session.sh"
+  "audit-ratchet.sh"
+  "audit_aggregate.py"
   "codex-audit-adapter.sh"
   "codex-audit-broker.sh"
   "detect-significance.sh"
+  "dispatch-audit.sh"
   "register-audit-report.sh"
   "register-session-audit-report.sh"
   "select-audit-visibility-mode.sh"
+  "session-commit.sh"
   "validate-audit-visibility.sh"
+  "validate-commit-msg.sh"
   "validate-independent-audit.sh"
+  "validate-file-size.sh"
   "validate-model-versions.sh"
   "validate-scope-discipline.sh"
   "validate-session-start.sh"
@@ -105,6 +112,8 @@ get_plugin_version() {
 get_installed_version() {
   if [ -f "$VERSION_FILE" ] && command -v jq >/dev/null 2>&1; then
     jq -r '.current // "0.0.0"' "$VERSION_FILE" 2>/dev/null || echo "0.0.0"
+  elif [ -f "$LEGACY_VERSION_FILE" ]; then
+    cat "$LEGACY_VERSION_FILE" 2>/dev/null || echo "0.0.0"
   else
     echo "0.0.0"
   fi
@@ -154,6 +163,8 @@ case "$COMMAND" in
     fi
     if [ -f "$VERSION_FILE" ]; then
       cp "$VERSION_FILE" "$SNAPSHOT_DIR/version.json" 2>/dev/null || true
+    elif [ -f "$LEGACY_VERSION_FILE" ]; then
+      cp "$LEGACY_VERSION_FILE" "$SNAPSHOT_DIR/version.txt" 2>/dev/null || true
     fi
 
     echo "[plugin-upgrade] Backup created at $SNAPSHOT_DIR"
@@ -234,6 +245,7 @@ case "$COMMAND" in
     else
       echo "{\"current\": \"$AVAILABLE\", \"previous\": \"$INSTALLED\", \"upgraded_at\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\", \"backup_path\": \"$SNAPSHOT_DIR\"}" > "$VERSION_FILE"
     fi
+    printf '%s\n' "$AVAILABLE" > "$LEGACY_VERSION_FILE"
 
     echo "[plugin-upgrade] Upgrade complete: $INSTALLED → $AVAILABLE"
     echo "[plugin-upgrade] Preserved: ${#CUSTOM_GATES[@]} custom gates, all baselines and config"
@@ -275,6 +287,10 @@ case "$COMMAND" in
     # Restore version file
     if [ -f "$LATEST_BACKUP/version.json" ]; then
       cp "$LATEST_BACKUP/version.json" "$VERSION_FILE"
+      printf '%s\n' "$(jq -r '.current // "0.0.0"' "$LATEST_BACKUP/version.json" 2>/dev/null || echo "0.0.0")" > "$LEGACY_VERSION_FILE"
+      echo "[plugin-upgrade] Restored version tracking"
+    elif [ -f "$LATEST_BACKUP/version.txt" ]; then
+      cp "$LATEST_BACKUP/version.txt" "$LEGACY_VERSION_FILE"
       echo "[plugin-upgrade] Restored version tracking"
     fi
 

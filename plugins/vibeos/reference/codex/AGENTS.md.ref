@@ -35,7 +35,9 @@ Read these first when they exist:
 3. `docs/ENGINEERING-PRINCIPLES.md`
 4. `docs/planning/DEVELOPMENT-PLAN.md`
 5. `docs/planning/WO-INDEX.md`
-6. `docs/USER-COMMUNICATION-CONTRACT.md`
+6. `docs/planning/AUDIT-PROTOCOL.md`
+7. `docs/planning/AGENT-WORKFLOW.md`
+8. `docs/USER-COMMUNICATION-CONTRACT.md`
 
 ## Session Controls
 
@@ -126,6 +128,7 @@ This means Codex handles all phases sequentially in one context window. There is
 - If `.claude/` exists, preserve it. Do not modify Claude/Cursor assets.
 - If `CLAUDE.md` exists, preserve it.
 - Shared project state belongs in `.vibeos/` so Claude/Cursor and Codex see the same plan, checkpoints, logs, and evidence.
+- Keep surface-specific instruction files thin. The shared repo contract should remain canonical.
 - Runtime-specific instructions belong in the runtime-specific surface:
   - Codex: `AGENTS.md`, `.codex/skills/`, `.codex/agents/`
   - Claude/Cursor: `CLAUDE.md`, `.claude/`, `.cursorrules`

@@ -24,6 +24,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 9 | Conversational Experience | WO-054 | Voice-led intent routing, natural language interaction, slash command elimination |
 | 10 | Distribution & Runtime | WO-055+ | Pivot from broken plugin system to project-level bootstrap model |
 | 11 | Advanced Governance (v2.1) | WO-056 — WO-065 | Joan-extracted enhancements: same-tree auditing, Codex integration, scope guards, parallel worktree isolation |
+| 12 | Harness Convergence | WO-067 | Fold proven reusable harness improvements back into the framework |
 
 ## Mandatory Audits
 
@@ -260,6 +261,18 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | WO-063 | Enhanced Investigator & CLI-vs-MCP Reference | WO-056 | Draft |
 | WO-064 | Build/Audit Skill Enhancements | WO-057, WO-058, WO-062 | Draft |
 | WO-065 | v2.1 Release Packaging | WO-056-064 | Draft |
+
+---
+
+## Phase 12: Harness Convergence
+
+**Goal:** Port the reusable governance and harness improvements proven during real project setup back into the core framework without leaking project-specific doctrine.
+
+**Exit Criteria:** Canonical manifest and version paths are consistent, lightweight governance assets are bundled as references, and planning/bootstrap guidance points future installs at the upgraded harness spine.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-067 | Signal Claw Harness Convergence | WO-065 | Complete |
 
 ---
 

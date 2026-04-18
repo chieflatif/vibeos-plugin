@@ -137,6 +137,7 @@ uninstall() {
     rm -rf "$TARGET_DIR/.vibeos/reference"
     rm -rf "$TARGET_DIR/.vibeos/convergence"
     rm -f "$TARGET_DIR/.vibeos/version.txt"
+    rm -f "$TARGET_DIR/.vibeos/version.json"
 
     # Remove .claude components (skills, agents, hooks)
     rm -rf "$TARGET_DIR/.claude/skills/discover"
@@ -314,8 +315,15 @@ copy_framework_runtime() {
         chmod +x "$TARGET_DIR"/.vibeos/convergence/*.sh 2>/dev/null || true
     fi
 
-    # Version marker
+    # Version markers
     echo "$FRAMEWORK_VERSION" > "$TARGET_DIR/.vibeos/version.txt"
+    cat > "$TARGET_DIR/.vibeos/version.json" <<EOF
+{
+  "current": "$FRAMEWORK_VERSION",
+  "surface": "claude",
+  "installed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+}
+EOF
 
     echo "[vibeos-init] PASS: Framework runtime installed"
 }
@@ -512,7 +520,7 @@ Slash commands (`/discover`, `/build`, etc.) still work and always take preceden
 - Version: `FRAMEWORK_VERSION="2.1.0"` in every script
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
-- State files: `.vibeos/session-state.json` (active session), `.vibeos/quality-gate-manifest.json` (gate registry)
+- State files: `.vibeos/session-state.json` (active session), `.claude/quality-gate-manifest.json` (gate registry)
 - Hook manifests: `.vibeos/hook-manifest.json` documents all registered hooks and their event bindings
 - No stubs, no placeholders, no TODOs in any file
 CLAUDEMD_EOF

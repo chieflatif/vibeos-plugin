@@ -26,7 +26,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 
 Before starting, verify:
 - `.vibeos/` directory exists (project has VibeOS installed)
-- `.vibeos/version.txt` or `.vibeos/config.json` exists (version tracking)
+- `.vibeos/version.json`, `.vibeos/version.txt`, or `.vibeos/config.json` exists (version tracking)
 - `project-definition.json` exists (needed for decision engine re-evaluation)
 
 If `.vibeos/` doesn't exist, this is a fresh install — tell the user to use `vibeos-init.sh` instead.
@@ -37,7 +37,7 @@ If `.vibeos/` doesn't exist, this is a fresh install — tell the user to use `v
 
 Read the current framework state:
 
-1. Read `.vibeos/version.txt` for installed version
+1. Read `.vibeos/version.json` for installed version, falling back to `.vibeos/version.txt`
 2. Read `.vibeos/config.json` for project configuration
 3. Read `project-definition.json` for project context
 4. Inventory current framework files:
@@ -84,7 +84,7 @@ Before modifying anything, create a snapshot for rollback:
    mkdir -p "$SNAPSHOT_DIR"
 
    # Save current version info
-   cp .vibeos/version.txt "$SNAPSHOT_DIR/version.txt" 2>/dev/null || true
+   cp .vibeos/version.json "$SNAPSHOT_DIR/version.json" 2>/dev/null || cp .vibeos/version.txt "$SNAPSHOT_DIR/version.txt" 2>/dev/null || true
 
    # Save current CLAUDE.md and settings.json for diff
    cp .claude/CLAUDE.md "$SNAPSHOT_DIR/CLAUDE.md" 2>/dev/null || true
@@ -162,6 +162,7 @@ chmod +x .claude/hooks/*.sh 2>/dev/null || true
 
 Update version marker:
 ```bash
+printf '{"current":"%s","previous":"%s"}\n' "$NEW_VERSION" "$OLD_VERSION" > .vibeos/version.json
 echo "$NEW_VERSION" > .vibeos/version.txt
 ```
 
@@ -424,7 +425,7 @@ If the user says "roll back the upgrade" or "undo the upgrade":
 
 1. Find the most recent snapshot in `.vibeos/upgrade-snapshots/`
 2. Restore `.claude/CLAUDE.md` and `.claude/settings.json` from snapshot
-3. Restore `.vibeos/version.txt` from snapshot
+3. Restore `.vibeos/version.json` (or legacy `.vibeos/version.txt`) from snapshot
 4. Re-run `vibeos-init.sh --upgrade` with the previous source (if available)
 5. Report what was restored
 

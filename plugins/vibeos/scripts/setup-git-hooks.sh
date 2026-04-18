@@ -1,18 +1,10 @@
 #!/usr/bin/env bash
-# VibeOS — Git Pre-Commit Hook Installer
-# Installs a git pre-commit hook that runs VibeOS pre_commit quality gates
-# before each commit. This ensures local commits bypass no gates.
+# VibeOS git hook installer.
 #
-# Usage:
-#   bash scripts/setup-git-hooks.sh
-#   bash scripts/setup-git-hooks.sh --project-dir /path/to/project
-#   bash scripts/setup-git-hooks.sh --force   # Overwrite existing hook
-#   bash scripts/setup-git-hooks.sh --remove  # Remove the VibeOS hook
-#
-# Exit codes:
-#   0 = Hook installed/removed successfully
-#   1 = Error (not a git repo, hook exists without --force)
-#   2 = Configuration error
+# Installs:
+# - a pre-commit hook that runs the VibeOS pre_commit gate phase
+# - a commit-msg hook that validates commit message structure
+
 set -euo pipefail
 
 FRAMEWORK_VERSION="2.1.0"
@@ -36,57 +28,83 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-echo "[$SCRIPT_NAME] Git Pre-Commit Hook Setup"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "[$SCRIPT_NAME] Git Hook Setup"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-# Verify git repo
 if ! git -C "$PROJECT_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   echo "[$SCRIPT_NAME] FAIL: $PROJECT_ROOT is not a git repository"
   exit 1
 fi
 
-GIT_DIR=$(git -C "$PROJECT_ROOT" rev-parse --git-dir)
-HOOK_FILE="$GIT_DIR/hooks/pre-commit"
-VIBEOS_MARKER="# VibeOS pre-commit gate runner"
+GIT_DIR="$(git -C "$PROJECT_ROOT" rev-parse --git-dir)"
+PRE_COMMIT_HOOK="$GIT_DIR/hooks/pre-commit"
+COMMIT_MSG_HOOK="$GIT_DIR/hooks/commit-msg"
+PRE_COMMIT_MARKER="# VibeOS pre-commit gate runner"
+COMMIT_MSG_MARKER="# VibeOS commit-msg validator"
 
-# ─── Remove Mode ────────────────────────────────────────────────
+remove_hook_if_owned() {
+  local path="$1"
+  local marker="$2"
+  if [[ -f "$path" ]] && grep -q "$marker" "$path" 2>/dev/null; then
+    rm -f "$path"
+    return 0
+  fi
+  return 1
+}
+
+check_existing_hook() {
+  local path="$1"
+  local marker="$2"
+  local label="$3"
+
+  if [[ ! -f "$path" ]]; then
+    return 0
+  fi
+
+  if grep -q "$marker" "$path" 2>/dev/null; then
+    echo "[$SCRIPT_NAME] Updating existing VibeOS $label hook"
+    return 0
+  fi
+
+  if [[ "$FORCE" == "true" ]]; then
+    echo "[$SCRIPT_NAME] WARN: Overwriting existing $label hook (--force)"
+    cp "$path" "${path}.bak"
+    echo "[$SCRIPT_NAME] Backup saved to ${path}.bak"
+    return 0
+  fi
+
+  if grep -q "^# An example hook" "$path" 2>/dev/null || grep -q "sample" "$path" 2>/dev/null; then
+    echo "[$SCRIPT_NAME] Replacing default sample $label hook"
+    return 0
+  fi
+
+  echo "[$SCRIPT_NAME] FAIL: $label hook already exists"
+  echo "[$SCRIPT_NAME] Use --force to overwrite (existing hook will be backed up)"
+  exit 1
+}
+
 if [[ "$REMOVE" == "true" ]]; then
-  if [[ -f "$HOOK_FILE" ]] && grep -q "$VIBEOS_MARKER" "$HOOK_FILE" 2>/dev/null; then
-    rm -f "$HOOK_FILE"
+  removed_any=false
+  if remove_hook_if_owned "$PRE_COMMIT_HOOK" "$PRE_COMMIT_MARKER"; then
     echo "[$SCRIPT_NAME] Removed VibeOS pre-commit hook"
-    exit 0
-  else
-    echo "[$SCRIPT_NAME] No VibeOS pre-commit hook found"
+    removed_any=true
+  fi
+  if remove_hook_if_owned "$COMMIT_MSG_HOOK" "$COMMIT_MSG_MARKER"; then
+    echo "[$SCRIPT_NAME] Removed VibeOS commit-msg hook"
+    removed_any=true
+  fi
+  if [[ "$removed_any" == "true" ]]; then
     exit 0
   fi
+  echo "[$SCRIPT_NAME] No VibeOS git hooks found"
+  exit 0
 fi
 
-# ─── Check for Existing Hook ───────────────────────────────────
-if [[ -f "$HOOK_FILE" ]]; then
-  # Check if it's a VibeOS hook (safe to overwrite)
-  if grep -q "$VIBEOS_MARKER" "$HOOK_FILE" 2>/dev/null; then
-    echo "[$SCRIPT_NAME] Updating existing VibeOS pre-commit hook"
-  elif [[ "$FORCE" == "true" ]]; then
-    echo "[$SCRIPT_NAME] WARN: Overwriting existing pre-commit hook (--force)"
-    # Back up the existing hook
-    cp "$HOOK_FILE" "${HOOK_FILE}.bak"
-    echo "[$SCRIPT_NAME] Backup saved to ${HOOK_FILE}.bak"
-  else
-    # Check if it's just the sample template
-    if grep -q "^# An example hook" "$HOOK_FILE" 2>/dev/null || grep -q "sample" "$HOOK_FILE" 2>/dev/null; then
-      echo "[$SCRIPT_NAME] Replacing default sample hook"
-    else
-      echo "[$SCRIPT_NAME] FAIL: Pre-commit hook already exists"
-      echo "[$SCRIPT_NAME] Use --force to overwrite (existing hook will be backed up)"
-      exit 1
-    fi
-  fi
-fi
+check_existing_hook "$PRE_COMMIT_HOOK" "$PRE_COMMIT_MARKER" "pre-commit"
+check_existing_hook "$COMMIT_MSG_HOOK" "$COMMIT_MSG_MARKER" "commit-msg"
 
-# ─── Install Hook ──────────────────────────────────────────────
-mkdir -p "$(dirname "$HOOK_FILE")"
+mkdir -p "$(dirname "$PRE_COMMIT_HOOK")"
 
-# Detect gate runner location
 GATE_RUNNER=""
 if [[ -f "$PROJECT_ROOT/.vibeos/scripts/gate-runner.sh" ]]; then
   GATE_RUNNER=".vibeos/scripts/gate-runner.sh"
@@ -94,18 +112,15 @@ elif [[ -f "$PROJECT_ROOT/scripts/gate-runner.sh" ]]; then
   GATE_RUNNER="scripts/gate-runner.sh"
 fi
 
-cat > "$HOOK_FILE" << HOOKEOF
+cat > "$PRE_COMMIT_HOOK" <<HOOKEOF
 #!/usr/bin/env bash
-$VIBEOS_MARKER
+$PRE_COMMIT_MARKER
 # Installed by VibeOS setup-git-hooks.sh
-# Runs pre_commit quality gates before each commit
-# Remove with: bash scripts/setup-git-hooks.sh --remove
 
 set -euo pipefail
 
 PROJECT_DIR="\$(git rev-parse --show-toplevel)"
 
-# Locate gate runner
 GATE_RUNNER=""
 if [[ -f "\$PROJECT_DIR/.vibeos/scripts/gate-runner.sh" ]]; then
   GATE_RUNNER="\$PROJECT_DIR/.vibeos/scripts/gate-runner.sh"
@@ -122,21 +137,44 @@ echo "[pre-commit] Running VibeOS quality gates..."
 if bash "\$GATE_RUNNER" pre_commit --project-dir "\$PROJECT_DIR" --timeout 60; then
   echo "[pre-commit] Quality gates passed"
   exit 0
-else
-  echo ""
-  echo "[pre-commit] Quality gates FAILED — commit blocked"
-  echo "[pre-commit] Fix the issues above, then try committing again"
-  echo "[pre-commit] To bypass (not recommended): git commit --no-verify"
-  exit 1
 fi
+
+echo ""
+echo "[pre-commit] Quality gates FAILED — commit blocked"
+echo "[pre-commit] Fix the issues above, then try committing again"
+exit 1
 HOOKEOF
 
-chmod +x "$HOOK_FILE"
+cat > "$COMMIT_MSG_HOOK" <<'HOOKEOF'
+#!/usr/bin/env bash
+# VibeOS commit-msg validator
+# Installed by VibeOS setup-git-hooks.sh
 
-echo "[$SCRIPT_NAME] Pre-commit hook installed at $HOOK_FILE"
+set -euo pipefail
+
+PROJECT_DIR="$(git rev-parse --show-toplevel)"
+
+VALIDATOR=""
+if [[ -f "$PROJECT_DIR/scripts/validate-commit-msg.sh" ]]; then
+  VALIDATOR="$PROJECT_DIR/scripts/validate-commit-msg.sh"
+elif [[ -f "$PROJECT_DIR/.vibeos/scripts/validate-commit-msg.sh" ]]; then
+  VALIDATOR="$PROJECT_DIR/.vibeos/scripts/validate-commit-msg.sh"
+fi
+
+if [[ -z "$VALIDATOR" ]]; then
+  exit 0
+fi
+
+bash "$VALIDATOR" "$1"
+HOOKEOF
+
+chmod +x "$PRE_COMMIT_HOOK" "$COMMIT_MSG_HOOK"
+
+echo "[$SCRIPT_NAME] Pre-commit hook installed at $PRE_COMMIT_HOOK"
+echo "[$SCRIPT_NAME] Commit-msg hook installed at $COMMIT_MSG_HOOK"
 if [[ -n "$GATE_RUNNER" ]]; then
   echo "[$SCRIPT_NAME] Gate runner: $GATE_RUNNER"
 else
   echo "[$SCRIPT_NAME] NOTE: gate-runner.sh not yet present — hook will auto-detect on commit"
 fi
-echo "[$SCRIPT_NAME] PASS: Git pre-commit hook ready"
+echo "[$SCRIPT_NAME] PASS: Git hooks ready"

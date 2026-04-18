@@ -52,7 +52,7 @@ vibeos-init.sh                   ← Bootstrap script (alternative install metho
 - Version: `FRAMEWORK_VERSION="2.1.0"` in every script
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
-- State files: `.vibeos/session-state.json` tracks active session context; `.vibeos/quality-gate-manifest.json` is the authoritative gate registry
+- State files: `.vibeos/session-state.json` tracks active session context; `.claude/quality-gate-manifest.json` is the authoritative gate registry
 - Hook manifests: `.vibeos/hook-manifest.json` documents all registered hooks and their event bindings
 - No stubs, no placeholders, no TODOs in any file
 

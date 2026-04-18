@@ -5,6 +5,7 @@
     {"script": "scripts/validate-no-secrets.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"SCAN_PATTERNS": "azure_connection_strings,sas_tokens,aws_keys,api_tokens,jwts,private_keys"}},
     {"script": "scripts/validate-security-patterns.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"STRICT_MODE": "true"}},
     {"script": "scripts/detect-stubs-placeholders.py", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LANGUAGE": "python"}},
+    {"script": "scripts/validate-file-size.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
     {"script": "scripts/validate-code-quality.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LINTER": "ruff check"}},
     {"script": "scripts/validate-tests-required.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
     {"script": "scripts/validate-tests-pass.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
@@ -49,6 +50,9 @@
   ],
   "utility_scripts": [
     {"script": "scripts/gate-runner.sh", "purpose": "Orchestrates gate execution by phase"},
+    {"script": "scripts/session-commit.sh", "purpose": "Stages named files, validates, and commits with an agent trailer"},
+    {"script": "scripts/dispatch-audit.sh", "purpose": "Creates and aggregates audit dispatch packages"},
+    {"script": "scripts/audit-ratchet.sh", "purpose": "Prevents phase finding counts from growing silently"},
     {"script": "scripts/e2e-test-runner.sh", "purpose": "End-to-end integration test runner"},
     {"script": "scripts/plugin-upgrade.sh", "purpose": "Framework version upgrade automation"},
     {"script": "scripts/setup-git-hooks.sh", "purpose": "Git pre-commit hook installation"},

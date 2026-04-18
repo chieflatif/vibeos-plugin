@@ -1,0 +1,47 @@
+# <!-- REQUIRED -->
+# File Size Discipline
+
+No file exceeds its size budget without a named exception.
+
+## Thresholds
+
+| File type | Hard limit | Soft warning |
+|---|---|---|
+| Code | 300 lines | 250 |
+| Tests | 400 lines | 300 |
+| Docs | 500 lines | 300 |
+| Work orders | 600 lines | 450 |
+
+## Exemptions
+
+Always exempt:
+- lockfiles
+- fixtures and seed data
+- migrations
+- vendored code
+- generated files marked `GENERATED` or `DO NOT EDIT`
+- audit artifacts under `docs/audits/`
+
+## Exception Marker
+
+When a file truly cannot be split:
+
+```text
+FILE-SIZE-EXCEPTION: ADR-XXXX or WO-XXXX — one-line reason
+```
+
+Put the marker in the first 10 lines of the file and reference a real ADR or WO.
+
+## Enforcement
+
+Mechanical gate:
+
+```bash
+bash scripts/validate-file-size.sh
+```
+
+## Rule
+
+- Split files before they become hard breaches
+- Prefer decomposition over exception markers
+- Never use the marker as a shortcut for unfinished refactoring

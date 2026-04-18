@@ -39,5 +39,5 @@ Always use the gate runner:
 bash scripts/gate-runner.sh <phase> --continue-on-failure
 ```
 
-<!-- ADAPT: List active phases from quality-gate-manifest.json -->
+<!-- ADAPT: List active phases from `.claude/quality-gate-manifest.json` -->
 Phases: `pre_commit`, `wo_exit`, `full_audit`

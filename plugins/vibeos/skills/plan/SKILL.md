@@ -96,7 +96,7 @@ If this is a midstream project (existing code with architecture documents from S
 
 #### 1c-1. Run Comprehensive Audit
 
-1. **Run quality gates:** Execute `bash ".vibeos/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"`. If `scripts/quality-gate-manifest.json` does not exist yet (midstream projects that have never used VibeOS), generate a temporary gate manifest from `project-definition.json` stack info. If that's not possible, run only universal gates (secrets scan, placeholder check, stub detection) and note framework-specific gates as "skipped — manifest not yet generated."
+1. **Run quality gates:** Execute `bash ".vibeos/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"`. If `.claude/quality-gate-manifest.json` does not exist yet (midstream projects that have never used VibeOS), generate a temporary gate manifest from `project-definition.json` stack info. If that's not possible, run only universal gates (secrets scan, placeholder check, stub detection) and note framework-specific gates as "skipped — manifest not yet generated."
 2. **Dispatch all 8 audit agents** (security, architecture, correctness, test, evidence, product-drift, red-team, contract-validator) following `skills/audit/SKILL.md` protocol. Use `isolation: worktree` for each agent.
 3. **Run language-specific dependency audit** with graceful degradation — if the tool is not installed, skip and note it as "CVE audit skipped: [tool] not found":
    - Node.js: `npm audit --json`
@@ -518,6 +518,20 @@ Each WO in the plan must have:
 
 Order WOs so dependencies complete before dependents. Typical WO size: one feature area or one integration.
 
+### Step 5b: Generate Audit Governance Docs
+
+Read:
+- `.vibeos/reference/governance/AGENTS.md.ref`
+- `.vibeos/reference/governance/AUDIT-PROTOCOL.md.ref`
+- `.vibeos/reference/governance/AGENT-WORKFLOW.md.ref`
+
+Generate:
+- `AGENTS.md`
+- `docs/planning/AUDIT-PROTOCOL.md`
+- `docs/planning/AGENT-WORKFLOW.md`
+
+These documents must align with the generated work-order flow, gate phases, and any companion-agent surfaces installed in the repo.
+
 ### Step 6: Generate WO Index
 
 Read `.vibeos/reference/governance/WO-INDEX.md.ref` for the template.
@@ -542,7 +556,7 @@ Create the standard directories based on stack:
 
 #### 7b. Generate Gate Manifest
 
-Create `scripts/quality-gate-manifest.json` in the target project with the gate selection results:
+Create `.claude/quality-gate-manifest.json` in the target project with the gate selection results:
 
 ```json
 {
@@ -585,13 +599,16 @@ This ensures local commits cannot bypass quality gates. The hook auto-detects th
 
 #### 7g. Generate CLAUDE.md
 
-Generate the target project's `CLAUDE.md` with:
-- Project name and description
-- Architecture reference
-- Technology stack
-- Governance rules (frozen files, compliance)
-- Quality gate commands
-- Agent constraints
+Generate the target project's instruction surfaces:
+- `AGENTS.md` as the shared repo contract
+- `CLAUDE.md` as a thin entry loader
+- `.claude/CLAUDE.md` as the Claude-specific runtime layer
+- `.claude/rules/always/*.md` from the reference rules that apply to this project
+
+The generated surfaces must point to:
+- `docs/planning/AUDIT-PROTOCOL.md`
+- `docs/planning/AGENT-WORKFLOW.md`
+- `.claude/quality-gate-manifest.json`
 
 ### Step 8: Autonomy Negotiation
 
@@ -644,12 +661,14 @@ Before completing, verify all outputs exist:
 - [ ] `project-definition.json` updated with full intake answers
 - [ ] `docs/planning/DEVELOPMENT-PLAN.md` generated with phases and WOs
 - [ ] `docs/planning/WO-INDEX.md` generated with all WOs
-- [ ] `scripts/quality-gate-manifest.json` generated
+- [ ] `docs/planning/AUDIT-PROTOCOL.md` generated
+- [ ] `docs/planning/AGENT-WORKFLOW.md` generated
+- [ ] `.claude/quality-gate-manifest.json` generated
 - [ ] `.claude/hook-manifest.json` generated
 - [ ] `scripts/architecture-rules.json` generated
 - [ ] Gate scripts copied
 - [ ] Project directories created
-- [ ] `CLAUDE.md` generated for target project
+- [ ] `AGENTS.md`, `CLAUDE.md`, and `.claude/CLAUDE.md` generated for target project
 - [ ] `.vibeos/config.json` created with autonomy selection
 
 Report the result:
@@ -674,9 +693,13 @@ If any gate fails, explain what's missing and offer to fix it.
 | project-definition.json | project root | Updated with full intake answers |
 | DEVELOPMENT-PLAN.md | docs/planning/ | Phased work orders |
 | WO-INDEX.md | docs/planning/ | Work order tracking |
-| quality-gate-manifest.json | scripts/ | Gate configuration |
+| AUDIT-PROTOCOL.md | docs/planning/ | Audit layers and trigger rules |
+| AGENT-WORKFLOW.md | docs/planning/ | Role separation and handoff rules |
+| quality-gate-manifest.json | .claude/ | Gate configuration |
 | hook-manifest.json | .claude/ | Hook configuration |
 | architecture-rules.json | scripts/ | Architecture enforcement rules |
 | Gate scripts | scripts/ | Quality gate scripts |
-| CLAUDE.md | project root | Agent instructions |
+| AGENTS.md | project root | Shared repo contract |
+| CLAUDE.md | project root | Thin Claude entry loader |
+| .claude/CLAUDE.md | .claude/ | Claude-specific runtime instructions |
 | config.json | .vibeos/ | Autonomy configuration |

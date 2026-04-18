@@ -1,0 +1,20 @@
+# <!-- REQUIRED -->
+# Audit Discipline
+
+No work order or phase closes without the audits required by `docs/planning/AUDIT-PROTOCOL.md`.
+
+## Required Flow
+
+1. Run Layer 1 gates with `bash scripts/gate-runner.sh`
+2. Dispatch reasoning audits with `bash scripts/dispatch-audit.sh`
+3. Aggregate findings
+4. Resolve blocking findings or record signed waivers
+5. At phase exit, ratchet against the prior baseline
+
+## Rule
+
+- Mechanical gates are not enough on their own
+- Reasoning audits are required at the documented trigger points
+- Cross-identity review is required where the protocol says it is required
+- Findings cannot be self-waived
+- Phase findings cannot grow silently

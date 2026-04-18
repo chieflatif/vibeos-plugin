@@ -38,7 +38,7 @@ If `$ARGUMENTS` is a phase name (`pre_commit`, `wo_exit`, `full_audit`, `post_de
 
 If `$ARGUMENTS` is `list`:
 
-1. Read `scripts/quality-gate-manifest.json` from the project root
+1. Read `.claude/quality-gate-manifest.json` from the project root
 2. Present a formatted table of all gates:
 
 > **Quality Gates**
@@ -56,7 +56,7 @@ If `$ARGUMENTS` is `list`:
 
 If `$ARGUMENTS` starts with `enable`:
 
-1. Read `scripts/quality-gate-manifest.json`
+1. Read `.claude/quality-gate-manifest.json`
 2. Find the gate by name (match against `script` field, strip `.sh` extension for matching)
 3. If not found: list available gates and suggest closest match
 4. If already enabled: inform user, no action needed
@@ -69,7 +69,7 @@ If `$ARGUMENTS` starts with `enable`:
 
 If `$ARGUMENTS` starts with `disable`:
 
-1. Read `scripts/quality-gate-manifest.json`
+1. Read `.claude/quality-gate-manifest.json`
 2. Find the gate by name
 3. **Check compliance lock:** If the gate has a `compliance_locked` field set to `true`, or if the gate's tier is 0:
    > "Cannot disable **[gate-name]** — [reason]. [If compliance]: This gate is required by your [compliance target]. [If tier 0]: This is a core safety gate that catches [critical issue type]."

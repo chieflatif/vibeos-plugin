@@ -195,3 +195,9 @@
 | WO-064 | Build/Audit Skill Enhancements | Complete | WO-057, WO-058, WO-062 |
 | WO-065 | v2.1 Release Packaging | Complete | WO-056-064 |
 | WO-066 | Stop Hook False-Positive Loop Remediation | Complete | WO-060, WO-065 |
+
+### Phase 12: Harness Convergence
+
+| WO | Title | Status | Dependencies |
+|---|---|---|---|
+| WO-067 | Signal Claw Harness Convergence | Complete | WO-065 |

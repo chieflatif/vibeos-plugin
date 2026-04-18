@@ -32,4 +32,4 @@ bash ".vibeos/scripts/gate-runner.sh" <phase> --continue-on-failure
 ## Rules
 
 - Lead with the bottom line, not raw terminal output.
-- If the user wants gate inventory, read `scripts/quality-gate-manifest.json` and summarize it.
+- If the user wants gate inventory, read `.claude/quality-gate-manifest.json` and summarize it.

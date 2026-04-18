@@ -20,8 +20,10 @@ Use this skill when discovery is done and the project needs a real development p
 2. Generate or refresh:
    - `docs/planning/DEVELOPMENT-PLAN.md`
    - `docs/planning/WO-INDEX.md`
+   - `docs/planning/AUDIT-PROTOCOL.md`
+   - `docs/planning/AGENT-WORKFLOW.md`
    - `docs/planning/WO-*.md`
-   - `scripts/quality-gate-manifest.json`
+   - `.claude/quality-gate-manifest.json`
    - `scripts/architecture-rules.json` when architecture enforcement is needed
 3. For midstream projects, create or refresh:
    - `.vibeos/findings-registry.json`

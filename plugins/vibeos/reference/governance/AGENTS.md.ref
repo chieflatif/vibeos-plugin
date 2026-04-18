@@ -1,0 +1,66 @@
+# <!-- REQUIRED -->
+# <!-- ADAPT: Project identity, architecture, non-negotiable rules, read order -->
+# {{PROJECT_NAME}} — Shared Repository Contract
+
+This file is the canonical operating contract for all coding agents working in this repository.
+
+Surface-specific files such as `CLAUDE.md`, `.claude/CLAUDE.md`, `AGENTS.md` for Codex, or editor-local rules should be thin loaders or runtime overlays that defer to this document.
+
+## Project Identity
+
+<!-- ADAPT: Describe what the project is, what it is not, who it serves, and the architectural shape -->
+
+## Non-Negotiable Rules
+
+1. Documentation before code.
+2. No remediation without a work order.
+3. No work order without an evidence-backed finding.
+4. Architecture constrains everything.
+5. No secrets in code, prompts, docs, or committed config.
+6. No stubs, placeholders, fake success paths, or decorative docs.
+7. File-size discipline applies unless a named exception exists.
+8. Session-scoped git discipline applies. No bulk staging, no silent dirty-state commits.
+9. Audit discipline applies. Mechanical gates alone are not sufficient.
+10. Author/auditor role separation applies for high-risk work.
+
+## Canonical Read Order
+
+1. `AGENTS.md`
+2. `README.md`
+3. `docs/product/PRODUCT-ANCHOR.md`
+4. `docs/ENGINEERING-PRINCIPLES.md`
+5. `docs/planning/DEVELOPMENT-PLAN.md`
+6. `docs/planning/WO-INDEX.md`
+7. `docs/planning/WO-TEMPLATE.md`
+8. `docs/planning/AUDIT-PROTOCOL.md`
+9. `docs/planning/AGENT-WORKFLOW.md`
+
+## Governance Spine
+
+At minimum, keep these aligned:
+- `docs/planning/DEVELOPMENT-PLAN.md`
+- `docs/planning/WO-INDEX.md`
+- `docs/planning/WO-TEMPLATE.md`
+- `docs/planning/AUDIT-PROTOCOL.md`
+- `docs/planning/AGENT-WORKFLOW.md`
+- `.claude/quality-gate-manifest.json`
+- `.claude/rules/always/`
+
+## Git And Audit Rules
+
+- Commit at natural work boundaries.
+- Stage files explicitly.
+- Run the relevant gate phase before commit.
+- Dispatch the required reasoning audits before closing work.
+- Do not self-waive findings.
+
+## Runtime Layering
+
+- `AGENTS.md` is canonical
+- `CLAUDE.md` is a thin entry loader
+- `.claude/CLAUDE.md` is the Claude-specific runtime layer
+- `.codex/skills/` and `.codex/agents/` are Codex-specific aids, not the shared contract
+
+## Adaptation Notes
+
+<!-- ADAPT: Project-specific architecture boundaries, compliance posture, and any category tripwires -->

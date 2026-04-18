@@ -1,0 +1,23 @@
+# <!-- REQUIRED -->
+# Agent Collaboration And Role Separation
+
+The agent identity that authored a unit of work does not act as the primary auditor for that same unit.
+
+## Source Of Truth
+
+- `docs/planning/AGENT-WORKFLOW.md`
+- `docs/planning/AUDIT-PROTOCOL.md`
+
+## What To Record
+
+- author identity
+- intended auditor identity
+- tier
+- degraded-mode status
+
+## What To Avoid
+
+- treating same-identity subagents as cross-identity review
+- silently flipping roles
+- silently editing a handoff output instead of opening a new audit round
+- claiming closure while companion review is still missing on high-risk work

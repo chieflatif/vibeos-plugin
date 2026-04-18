@@ -1,0 +1,139 @@
+# <!-- REQUIRED -->
+# <!-- ADAPT: Project name, trigger points, auditor identities, blocking policy -->
+# {{PROJECT_NAME}} — Audit Protocol
+
+This document defines the audit regime for the project. It exists because mechanical checks catch only mechanical failures. Architecture drift, invented completion, weak tests, and product drift require reasoning-based review.
+
+## Audit Layers
+
+### Layer 1 — Mechanical Gates
+
+Run on every commit through `scripts/gate-runner.sh`.
+
+Recommended minimum set:
+- `scripts/validate-no-secrets.sh`
+- `scripts/validate-security-patterns.sh`
+- `scripts/detect-stubs-placeholders.py`
+- `scripts/validate-file-size.sh`
+- `scripts/validate-code-quality.sh`
+
+### Layer 2 — Reasoning Audits
+
+Run at named lifecycle transitions. Each auditor has one lens and writes structured findings.
+
+| Auditor | Lens |
+|---|---|
+| Security | auth, secrets, injection, PII, exposure paths |
+| Architecture | layer boundaries, dependency direction, contract drift |
+| Correctness | logic errors, missing edge cases, false success paths |
+| Test quality | vacuous assertions, mock-only coverage, fallback masking |
+| Evidence | docs, WO evidence, tracking accuracy, stated vs actual status |
+| Product drift | drift from product promise, architecture, or engineering principles |
+
+### Layer 3 — Cross-Identity Audit
+
+When the project uses more than one agent identity, the identity that authored the unit does not serve as the primary auditor for that same unit.
+
+- Claude-authored Tier 3/4 work: Codex is the primary companion auditor when available.
+- Codex-authored Tier 3/4 work: Claude audit agents are the primary companion auditors.
+- If only one identity is available, declare degraded mode explicitly and do not claim closure on high-risk work until the companion audit happens.
+
+## Trigger Matrix
+
+| Event | Layer 1 | Layer 2 | Layer 3 |
+|---|---|---|---|
+| Commit | all blocking gates | — | — |
+| WO draft ready for approval | — | plan audit | companion audit for Tier 3+ plans |
+| Tier 1 WO exit | pre_commit + wo_exit | evidence | — |
+| Tier 2 WO exit | pre_commit + wo_exit | evidence + correctness + test | — |
+| Tier 3 WO exit | pre_commit + wo_exit | evidence + correctness + test + security + architecture | companion audit required |
+| Tier 4 WO exit | pre_commit + wo_exit | all six auditors | companion audit required |
+| Phase exit | full_audit | all six auditors | companion audit required |
+| Canon revision | — | evidence + product drift | companion audit recommended for major canon |
+| Security-sensitive change | pre_commit + wo_exit | security + architecture + test | companion audit required |
+
+## Severity And Blocking
+
+| Severity | Meaning | Default action |
+|---|---|---|
+| Critical | security, data integrity, compliance, or production hazard | blocks |
+| Major | architecture, correctness, or test failure with user-visible risk | blocks at Tier 3+ and phase exit |
+| Minor | real issue with bounded impact | advisory, but counted |
+| Informational | observation or future improvement | never blocks |
+
+Confidence should be recorded on every finding:
+- High: direct file/line/behavior evidence
+- Medium: strong indirect evidence
+- Low: plausible but needs confirmation
+
+Blocking rule:
+- Critical + high/medium: block
+- Major + high: block
+- Major + medium: block at Tier 3+ and phase exit
+- Minor: advisory, counted for ratcheting
+
+## Ratcheting
+
+Finding counts must not grow between phase baselines.
+
+Workflow:
+1. Save the final clean phase audit summary to `docs/audits/baselines/<phase-id>/summary.json`.
+2. At the next phase exit, compare the new summary to the prior baseline.
+3. If critical, major, or minor counts grew, the phase cannot close until the delta is fixed or waived.
+
+Waivers:
+- Must reference a specific finding
+- Must explain why the finding is being waived
+- Require explicit human sign-off
+- Expire and must be revisited
+
+## Dispatch Workflow
+
+1. Run `bash scripts/dispatch-audit.sh <trigger> [--tier N] [--wo WO-ID] [--phase PHASE-ID]`
+2. The dispatcher creates `docs/audits/<dispatch-id>/dispatch-manifest.json`
+3. Invoke the required auditors
+4. Each auditor writes `<auditor>-findings.md` into that directory
+5. Aggregate with `bash scripts/dispatch-audit.sh --aggregate <dispatch-id>`
+6. Review `summary.json` and `findings.md`
+7. Resolve blocking findings or record signed waivers
+8. At phase exit, run `bash scripts/audit-ratchet.sh <phase-id> --save-baseline`
+
+## Findings Format
+
+Each findings file should follow this shape:
+
+```markdown
+# <Auditor> Findings — <Trigger>
+
+**Scope:** <what was reviewed>
+**Total findings:** <N>
+
+## Critical
+### F-001 | high-confidence
+**Path:** <file:line>
+**Issue:** <short description>
+**Evidence:** <what the auditor saw>
+**Impact:** <what breaks or who notices>
+**Suggested remediation:** <what to change>
+
+## Major
+## Minor
+## Informational
+```
+
+## Required Project Files
+
+At minimum, keep these in sync:
+- `docs/planning/WO-TEMPLATE.md`
+- `docs/planning/DEVELOPMENT-PLAN.md`
+- `docs/planning/WO-INDEX.md`
+- `docs/planning/AGENT-WORKFLOW.md`
+- `.claude/quality-gate-manifest.json`
+
+## Non-Negotiables
+
+- No WO closes without the required audits for its tier.
+- No phase closes without ratcheting.
+- No self-waiver.
+- No claiming "complete" when the audit trail is missing.
+- No reducing audit scope because the work feels small once implementation is already done.

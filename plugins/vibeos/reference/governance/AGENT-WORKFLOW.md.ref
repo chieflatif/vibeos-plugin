@@ -1,0 +1,87 @@
+# <!-- REQUIRED -->
+# <!-- ADAPT: Project-specific author/auditor defaults and any surface constraints -->
+# {{PROJECT_NAME}} — Agent Workflow
+
+This document governs which agent identity authors, implements, and audits work in this repository.
+
+## Principle
+
+Role is not identity.
+
+- Author, implementer, and auditor are roles.
+- Claude, Codex, Gemini, or any other runtime are identities.
+- The identity that authored a unit of work does not act as the primary auditor for that same unit.
+
+A unit of work can be:
+- a work-order plan
+- an implementation
+- a canon revision
+- a phase-close package
+
+## Default Assignment Matrix
+
+Adapt this matrix to the project, but keep the role-separation rule intact.
+
+| Work shape | Default author / implementer | Default primary auditor |
+|---|---|---|
+| governance docs, harness wiring, UX copy, broad greenfield scaffolding | Claude | Codex |
+| dense single-file refactors, algorithmic logic, measurement-heavy migrations | Codex | Claude audit agents |
+| security-sensitive or compliance-heavy work | whichever identity is authoring | companion identity required |
+| prompt or agent-instruction changes | authoring identity | companion identity plus product-drift review |
+
+## Flip Triggers
+
+Explicitly consider flipping the default assignment when any of these apply:
+
+1. Three failed audit rounds on the same unit
+2. Author-fatigue signals: stale counts, naming drift, repeated misses
+3. Substrate-fit mismatch: another identity clearly fits the work better
+
+Flips should be explicit. Do not silently change author/auditor roles midstream.
+
+## Handoff Protocol
+
+When work changes hands, the sending agent must provide:
+
+1. Prior audit history
+2. Concrete anchor artifacts
+3. Exact scope and non-goals
+4. Deliverable shape
+
+Anchor artifacts include the things the receiver should trust:
+- baseline files
+- counts
+- commit hashes
+- failing test output
+- file lists
+
+The receiving agent's output is reviewed through a fresh audit round, not silently edited into a different result.
+
+## Degraded Mode
+
+If the companion identity is unavailable:
+
+1. State that review is running in degraded mode
+2. Use the available internal auditors as supplemental review
+3. Do not claim full closure on high-risk work until cross-identity audit happens
+
+## Required Metadata
+
+Every WO should record:
+- author identity
+- intended auditor identity
+- work tier
+- whether degraded mode was used
+
+## Anti-Patterns
+
+- The same identity authors and audits the same unit
+- A subagent from the same identity is treated as cross-identity review
+- A handoff result is silently edited instead of re-audited
+- The team keeps retrying the same failing author/auditor pairing without flipping roles
+- Degraded mode is used but not disclosed
+
+## Relationship To Audit Protocol
+
+`docs/planning/AUDIT-PROTOCOL.md` defines when audits run.
+This document defines who should perform them.

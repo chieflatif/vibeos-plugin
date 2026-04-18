@@ -13,7 +13,7 @@
 ### Work Order Protocol
 - **docs/planning/DEVELOPMENT-PLAN.md** — Phased roadmap. Determines what to build next. Never ask "what do you want to build?" — use the plan.
 - All work tracked in `docs/planning/WO-INDEX.md`
-- Quality gate manifest stored at `quality-gate-manifest.json`
+- Quality gate manifest stored at `.claude/quality-gate-manifest.json`
 - Use `docs/planning/WO-AUDIT-FRAMEWORK.md` for every WO audit checkpoint
 - Run planning self-audit before approving a WO
 - Run pre-implementation deep audit before coding starts

@@ -26,11 +26,16 @@ All files the plugin creates in your project, organized by when they appear.
 | `docs/planning/DEVELOPMENT-PLAN.md` | Phased work orders with dependencies |
 | `docs/planning/WO-INDEX.md` | Work order tracking index |
 | `docs/planning/WO-NNN-*.md` | Individual work order specifications |
-| `scripts/quality-gate-manifest.json` | Gate configuration (which checks run, blocking vs advisory) |
+| `docs/planning/AUDIT-PROTOCOL.md` | Audit layers, trigger points, and blocking rules |
+| `docs/planning/AGENT-WORKFLOW.md` | Author/auditor role separation and handoff rules |
+| `.claude/quality-gate-manifest.json` | Gate configuration (which checks run, blocking vs advisory) |
 | `.claude/hook-manifest.json` | Hook configuration for real-time enforcement |
+| `.claude/rules/always/*.md` | Always-active governance rules |
 | `scripts/architecture-rules.json` | Architecture enforcement rules |
 | `scripts/*.sh` | Quality gate scripts (copied from plugin) |
-| `CLAUDE.md` | Agent instructions for your project |
+| `AGENTS.md` | Shared repo contract |
+| `CLAUDE.md` | Thin Claude entry loader |
+| `.claude/CLAUDE.md` | Claude-specific runtime instructions |
 | `.vibeos/config.json` | Updated with autonomy preference and any temporary autonomous-session override |
 
 ### Midstream-Specific (existing codebases)
