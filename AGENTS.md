@@ -5,15 +5,16 @@ This file provides Codex with structured instructions for working in this reposi
 ## What Codex Gets
 
 - Structured build instructions via `.codex/skills/` and `.codex/agents/`
-- Quality gate scripts in `.vibeos/scripts/` (run manually)
+- Shared quality gate scripts in `.vibeos/scripts/`
 - Decision engine and reference materials in `.vibeos/`
 - Shared project state: plans, checkpoints, baselines, and logs in `.vibeos/`
+- Commit-boundary Git hooks via `.vibeos/scripts/setup-git-hooks.sh` when the repo can install them
 
 ## What Codex Does Not Get
 
-- **No hooks.** No intent routing, secrets scanning, test file protection, or stub detection on stop. These require Claude Code's hook system.
+- **No runtime hooks.** No prompt/edit/stop event enforcement such as intent routing, secrets scanning, test file protection, or stub detection on stop. These require Claude Code's hook system.
 - **No subagent spawning.** Agent files in `.codex/agents/` are role contracts — Codex reads them and performs the phase itself, in a single context. There is no isolation or parallel execution.
-- **No automatic enforcement.** Quality gates and architecture rules are available as scripts but must be run manually. Nothing blocks a bad write automatically.
+- **No automatic write-time enforcement.** Quality gates and architecture rules still run manually; Git hooks only block at commit time after they are installed.
 
 ## Core Rules
 
@@ -39,3 +40,5 @@ This file provides Codex with structured instructions for working in this reposi
 ## Working Rule
 
 When editing Codex support, prefer additive changes. Do not break the Claude/Cursor surface. Do not pretend Codex has capabilities it does not have.
+
+Codex's truthful enforcement stack is: `AGENTS.md` + skills for behavior, `.vibeos/scripts/gate-runner.sh` for explicit checks, and Git `pre-commit` / `commit-msg` hooks for commit-boundary blocking.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.0.0"
+FRAMEWORK_VERSION="2.1.0"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$SCRIPT_DIR/plugins/vibeos/skills" ]; then
@@ -13,6 +13,7 @@ TARGET_DIR="$(pwd)"
 UPGRADE_MODE=false
 UNINSTALL_MODE=false
 FORCE=false
+GIT_HOOK_STATUS="not-attempted"
 
 usage() {
   sed -n '1,28p' "$0"
@@ -171,6 +172,8 @@ copy_runtime() {
   cp -R "$SOURCE_DIR/decision-engine" "$TARGET_DIR/.vibeos/decision-engine"
   cp -R "$SOURCE_DIR/reference" "$TARGET_DIR/.vibeos/reference"
   cp -R "$SOURCE_DIR/convergence" "$TARGET_DIR/.vibeos/convergence"
+  find "$TARGET_DIR/.vibeos/scripts" -type f -name "*.sh" -exec chmod +x {} + 2>/dev/null || true
+  find "$TARGET_DIR/.vibeos/convergence" -type f -name "*.sh" -exec chmod +x {} + 2>/dev/null || true
 
   printf '%s\n' "$FRAMEWORK_VERSION" > "$TARGET_DIR/.vibeos/version.txt"
   cat > "$TARGET_DIR/.vibeos/version.json" <<EOF
@@ -234,6 +237,36 @@ EOF
   echo "[vibeos-init-codex] PASS: .gitignore updated"
 }
 
+install_git_hooks() {
+  if ! command -v git >/dev/null 2>&1; then
+    GIT_HOOK_STATUS="git-unavailable"
+    echo "[vibeos-init-codex] NOTE: git not found; skipped VibeOS git hook installation"
+    return 0
+  fi
+
+  if ! git -C "$TARGET_DIR" rev-parse --git-dir >/dev/null 2>&1; then
+    GIT_HOOK_STATUS="not-a-git-repo"
+    echo "[vibeos-init-codex] NOTE: Target is not a git repository; skipped VibeOS git hook installation"
+    return 0
+  fi
+
+  local -a hook_args
+  hook_args=(--project-dir "$TARGET_DIR")
+  if [ "$FORCE" = true ]; then
+    hook_args+=(--force)
+  fi
+
+  if bash "$TARGET_DIR/.vibeos/scripts/setup-git-hooks.sh" "${hook_args[@]}"; then
+    GIT_HOOK_STATUS="installed"
+    return 0
+  fi
+
+  GIT_HOOK_STATUS="manual-follow-up"
+  echo "[vibeos-init-codex] WARN: VibeOS git hooks were not installed automatically"
+  echo "[vibeos-init-codex] WARN: Resolve existing hook ownership, then run:"
+  echo "[vibeos-init-codex] WARN:   bash \"$TARGET_DIR/.vibeos/scripts/setup-git-hooks.sh\" --project-dir \"$TARGET_DIR\""
+}
+
 uninstall() {
   echo "[vibeos-init-codex] Removing Codex VibeOS from $TARGET_DIR..."
 
@@ -262,6 +295,15 @@ uninstall() {
 }
 
 print_welcome() {
+  local hook_summary
+  case "$GIT_HOOK_STATUS" in
+    installed) hook_summary="- Installed: VibeOS pre-commit and commit-msg hooks are active" ;;
+    not-a-git-repo) hook_summary="- Skipped: target is not a git repository yet" ;;
+    git-unavailable) hook_summary="- Skipped: git was not available during installation" ;;
+    manual-follow-up) hook_summary="- Manual follow-up required: an existing non-VibeOS hook layout was preserved" ;;
+    *) hook_summary="- Not attempted" ;;
+  esac
+
   cat <<EOF
 
 [vibeos-init-codex] PASS: Codex VibeOS installed into $TARGET_DIR (experimental)
@@ -274,14 +316,18 @@ What was installed:
 - docs/USER-COMMUNICATION-CONTRACT.md
 
 What Codex gets:
-- Structured build instructions and quality gate scripts (run manually)
+- Structured build instructions and shared quality gate scripts
 - Decision engine, reference materials, and convergence logic
 - Shared project state (plans, checkpoints, baselines, logs)
+- Commit-boundary Git hooks when the target repo can install them
 
 What Codex does NOT get:
-- No hooks (no intent routing, secrets scanning, or test file protection)
+- No runtime hooks (no prompt/edit/stop event enforcement such as intent routing or test-file protection)
 - No subagent spawning (role contracts are read, not executed as isolated agents)
-- No automatic enforcement (gates must be run manually)
+- No automatic write-time enforcement (shared gates run manually; Git hooks only enforce at commit time)
+
+Git hook status:
+$hook_summary
 
 For full enforcement, use Claude Code or Cursor:
   bash /path/to/vibeos-plugin/vibeos-init.sh
@@ -290,7 +336,8 @@ Existing .claude/, CLAUDE.md, and Cursor rules were preserved.
 
 Next steps:
 1. Open the project in Codex
-2. Start naturally: "help me understand this codebase", "make a plan", or "continue building"
+2. Run planning so the project generates .claude/quality-gate-manifest.json
+3. Start naturally: "help me understand this codebase", "make a plan", or "continue building"
 EOF
 }
 
@@ -311,6 +358,7 @@ main() {
   copy_docs
   generate_agents_md
   update_gitignore
+  install_git_hooks
   print_welcome
 }
 

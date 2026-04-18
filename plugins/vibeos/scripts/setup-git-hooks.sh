@@ -31,14 +31,37 @@ done
 echo "[$SCRIPT_NAME] Git Hook Setup"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
+PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"
+
 if ! git -C "$PROJECT_ROOT" rev-parse --git-dir >/dev/null 2>&1; then
   echo "[$SCRIPT_NAME] FAIL: $PROJECT_ROOT is not a git repository"
   exit 1
 fi
 
-GIT_DIR="$(git -C "$PROJECT_ROOT" rev-parse --git-dir)"
-PRE_COMMIT_HOOK="$GIT_DIR/hooks/pre-commit"
-COMMIT_MSG_HOOK="$GIT_DIR/hooks/commit-msg"
+RAW_GIT_DIR="$(git -C "$PROJECT_ROOT" rev-parse --git-dir)"
+case "$RAW_GIT_DIR" in
+  /*) GIT_DIR="$RAW_GIT_DIR" ;;
+  *) GIT_DIR="$PROJECT_ROOT/$RAW_GIT_DIR" ;;
+esac
+
+resolve_hooks_dir() {
+  local configured_path
+  configured_path="$(git -C "$PROJECT_ROOT" config --path core.hooksPath 2>/dev/null || true)"
+
+  if [[ -z "$configured_path" ]]; then
+    printf '%s\n' "$GIT_DIR/hooks"
+    return 0
+  fi
+
+  case "$configured_path" in
+    /*) printf '%s\n' "$configured_path" ;;
+    *) printf '%s\n' "$PROJECT_ROOT/$configured_path" ;;
+  esac
+}
+
+HOOKS_DIR="$(resolve_hooks_dir)"
+PRE_COMMIT_HOOK="$HOOKS_DIR/pre-commit"
+COMMIT_MSG_HOOK="$HOOKS_DIR/commit-msg"
 PRE_COMMIT_MARKER="# VibeOS pre-commit gate runner"
 COMMIT_MSG_MARKER="# VibeOS commit-msg validator"
 
@@ -103,7 +126,7 @@ fi
 check_existing_hook "$PRE_COMMIT_HOOK" "$PRE_COMMIT_MARKER" "pre-commit"
 check_existing_hook "$COMMIT_MSG_HOOK" "$COMMIT_MSG_MARKER" "commit-msg"
 
-mkdir -p "$(dirname "$PRE_COMMIT_HOOK")"
+mkdir -p "$HOOKS_DIR"
 
 GATE_RUNNER=""
 if [[ -f "$PROJECT_ROOT/.vibeos/scripts/gate-runner.sh" ]]; then
@@ -133,8 +156,21 @@ if [[ -z "\$GATE_RUNNER" ]]; then
   exit 0
 fi
 
+MANIFEST_PATH=""
+if [[ -f "\$PROJECT_DIR/.claude/quality-gate-manifest.json" ]]; then
+  MANIFEST_PATH="\$PROJECT_DIR/.claude/quality-gate-manifest.json"
+elif [[ -f "\$PROJECT_DIR/quality-gate-manifest.json" ]]; then
+  MANIFEST_PATH="\$PROJECT_DIR/quality-gate-manifest.json"
+fi
+
+if [[ -z "\$MANIFEST_PATH" ]]; then
+  echo "[pre-commit] WARN: quality-gate-manifest.json not found — skipping VibeOS gates"
+  echo "[pre-commit] NOTE: Generate the manifest during planning; commit-time gate enforcement starts after that"
+  exit 0
+fi
+
 echo "[pre-commit] Running VibeOS quality gates..."
-if bash "\$GATE_RUNNER" pre_commit --project-dir "\$PROJECT_DIR" --timeout 60; then
+if bash "\$GATE_RUNNER" pre_commit --project-dir "\$PROJECT_DIR" --manifest "\$MANIFEST_PATH" --timeout 60; then
   echo "[pre-commit] Quality gates passed"
   exit 0
 fi
@@ -170,6 +206,7 @@ HOOKEOF
 
 chmod +x "$PRE_COMMIT_HOOK" "$COMMIT_MSG_HOOK"
 
+echo "[$SCRIPT_NAME] Hooks directory: $HOOKS_DIR"
 echo "[$SCRIPT_NAME] Pre-commit hook installed at $PRE_COMMIT_HOOK"
 echo "[$SCRIPT_NAME] Commit-msg hook installed at $COMMIT_MSG_HOOK"
 if [[ -n "$GATE_RUNNER" ]]; then

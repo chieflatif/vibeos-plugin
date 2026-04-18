@@ -266,13 +266,14 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 ## Phase 12: Harness Convergence
 
-**Goal:** Port the reusable governance and harness improvements proven during real project setup back into the core framework without leaking project-specific doctrine.
+**Goal:** Port the reusable governance and harness improvements proven during real project setup back into the core framework, then harden the Codex surface so cross-runtime installs share truthful enforcement boundaries without leaking project-specific doctrine.
 
-**Exit Criteria:** Canonical manifest and version paths are consistent, lightweight governance assets are bundled as references, and planning/bootstrap guidance points future installs at the upgraded harness spine.
+**Exit Criteria:** Canonical manifest and version paths are consistent, lightweight governance assets are bundled as references, planning/bootstrap guidance points future installs at the upgraded harness spine, and the Codex surface uses the shared runtime plus commit-boundary Git hooks as its truthful enforcement substitute.
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
 | WO-067 | Signal Claw Harness Convergence | WO-065 | Complete |
+| WO-068 | Codex Cross-Surface Hardening | WO-067 | Complete |
 
 ---
 

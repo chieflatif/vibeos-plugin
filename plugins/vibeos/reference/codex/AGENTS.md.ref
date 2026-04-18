@@ -8,15 +8,16 @@ It coexists with `CLAUDE.md` and `.claude/` when those are also installed.
 ## What This Surface Provides
 
 - Structured build instructions and role contracts for each development phase
-- Quality gate scripts in `.vibeos/scripts/` (run manually via bash)
+- Shared quality gate scripts in `.vibeos/scripts/`
 - Decision engine and reference materials in `.vibeos/`
 - Shared project state: plans, checkpoints, baselines, and logs
+- Commit-boundary Git hooks via `.vibeos/scripts/setup-git-hooks.sh` when the repo can install them
 
 ## What This Surface Does Not Provide
 
-- **No hooks.** There is no intent routing, secrets scanning, test file protection, or automatic stub detection. These require Claude Code's hook system.
+- **No runtime hooks.** There is no prompt/edit/stop event enforcement such as intent routing, secrets scanning, test file protection, or automatic stub detection. These require Claude Code's hook system.
 - **No subagent spawning.** Files in `.codex/agents/` are role contracts. Read them and perform each phase yourself — there is no isolation or parallel execution.
-- **No automatic enforcement.** Gates must be run manually. Nothing blocks a bad write automatically.
+- **No automatic write-time enforcement.** Gates still run manually, and Git hooks only block at commit time after they are installed.
 
 If you also have the Claude/Cursor surface installed (`.claude/`), that surface has full enforcement. Shared state in `.vibeos/` is visible to both runtimes.
 
@@ -40,6 +41,12 @@ Read these first when they exist:
 8. `docs/USER-COMMUNICATION-CONTRACT.md`
 
 ## Session Controls
+
+Install or refresh commit-boundary Git hooks when the project is a git repo:
+
+```bash
+bash ".vibeos/scripts/setup-git-hooks.sh" --project-dir "."
+```
 
 Run shared VibeOS gates directly from `.vibeos/`:
 
@@ -122,6 +129,8 @@ Files in `.codex/agents/*.md` are role contracts, not executable subagents. Code
 4. Report the result honestly with evidence
 
 This means Codex handles all phases sequentially in one context window. There is no isolation between audit and implementation, no parallel execution, and no enforcement boundary between test-writing and implementation. Be disciplined about following the role contract even though nothing enforces it.
+
+The practical enforcement stack in Codex is: repo contract (`AGENTS.md`), explicit gate runs (`.vibeos/scripts/gate-runner.sh`), and Git `pre-commit` / `commit-msg` hooks for commit-boundary blocking.
 
 ## Side-By-Side Compatibility
 

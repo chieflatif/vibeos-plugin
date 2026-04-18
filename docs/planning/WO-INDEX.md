@@ -201,3 +201,4 @@
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
 | WO-067 | Signal Claw Harness Convergence | Complete | WO-065 |
+| WO-068 | Codex Cross-Surface Hardening | Complete | WO-067 |

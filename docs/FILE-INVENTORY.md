@@ -28,8 +28,9 @@ All files the plugin creates in your project, organized by when they appear.
 | `docs/planning/WO-NNN-*.md` | Individual work order specifications |
 | `docs/planning/AUDIT-PROTOCOL.md` | Audit layers, trigger points, and blocking rules |
 | `docs/planning/AGENT-WORKFLOW.md` | Author/auditor role separation and handoff rules |
-| `.claude/quality-gate-manifest.json` | Gate configuration (which checks run, blocking vs advisory) |
+| `.claude/quality-gate-manifest.json` | Shared gate configuration used by Claude/Cursor hooks, Codex gate runs, and VibeOS git hooks |
 | `.claude/hook-manifest.json` | Hook configuration for real-time enforcement |
+| Git hooks: `pre-commit`, `commit-msg` | Commit-boundary enforcement installed by VibeOS when the project is a git repo |
 | `.claude/rules/always/*.md` | Always-active governance rules |
 | `scripts/architecture-rules.json` | Architecture enforcement rules |
 | `scripts/*.sh` | Quality gate scripts (copied from plugin) |
