@@ -20,12 +20,12 @@
 #   0 — completed (check JSON "significant" field for verdict)
 #   1 — error running git commands (treated as significant to be safe)
 #
-# Framework: VibeOS 2.1.0 | Codex Complementary Audit Protocol
+# Framework: VibeOS 2.2.0 | Codex Complementary Audit Protocol
 # Bash 3.2+ compatible — no associative arrays
 
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

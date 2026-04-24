@@ -22,11 +22,11 @@
 #   1 — invocation error (Codex plugin not found or adapter failure)
 #   2 — significance check failed (not a significant enough event)
 #
-# Framework: VibeOS 2.1.0 | Codex Complementary Audit Protocol
+# Framework: VibeOS 2.2.0 | Codex Complementary Audit Protocol
 
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"

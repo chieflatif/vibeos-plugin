@@ -3,8 +3,8 @@
 # Warns if required tools (bash, python3, jq, git) are not available.
 #
 # Hook type: SessionStart
-# Framework version: 2.1.0
-FRAMEWORK_VERSION="2.1.0"
+# Framework version: 2.2.0
+FRAMEWORK_VERSION="2.2.0"
 set -euo pipefail
 
 sanitize_json_text() {

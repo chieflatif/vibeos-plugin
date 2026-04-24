@@ -13,6 +13,7 @@ import re
 import sys
 from pathlib import Path
 
+FRAMEWORK_VERSION = "2.2.0"
 SECTION_RE = re.compile(r"^##\s+(Critical|Major|Minor|Informational)\b", re.IGNORECASE)
 FINDING_RE = re.compile(r"^###\s+F-\d+")
 PHASE_LEVEL_TRIGGERS = ("phase-exit", "live-fire", "security-change", "canon-revision")

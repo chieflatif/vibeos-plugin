@@ -1,5 +1,5 @@
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Declarative hook documentation — catalogs all hooks with event type, purpose, and configuration. The authoritative hook registration remains in hooks.json or settings.json; this file documents and describes the hooks.",
   "hooks": [
     {

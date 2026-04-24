@@ -5,7 +5,7 @@ set -euo pipefail
 # Checks: fallback masking, mock density, test-to-spec mapping, git history analysis
 # Exit 0 = pass, 1 = fail
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 PROJECT_DIR="${1:-.}"
 CONFIG_FILE="${PROJECT_DIR}/.vibeos/config.json"

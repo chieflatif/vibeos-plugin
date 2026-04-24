@@ -20,7 +20,7 @@
 #
 # Note: No set -euo pipefail — hook reads stdin via cat and uses || fallbacks
 # intentionally. This is per hook convention for all VibeOS hooks.
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 FILE_BUDGET_WARN="${FILE_BUDGET_WARN:-250}"
 FILE_BUDGET_MAX="${FILE_BUDGET_MAX:-300}"

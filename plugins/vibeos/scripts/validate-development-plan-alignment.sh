@@ -11,7 +11,7 @@
 # Exit codes: 0 = aligned, 1 = drift detected, 2 = missing files / skip
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 GATE_NAME="validate-development-plan-alignment"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

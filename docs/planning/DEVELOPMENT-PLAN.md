@@ -24,7 +24,8 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 9 | Conversational Experience | WO-054 | Voice-led intent routing, natural language interaction, slash command elimination |
 | 10 | Distribution & Runtime | WO-055+ | Pivot from broken plugin system to project-level bootstrap model |
 | 11 | Advanced Governance (v2.1) | WO-056 — WO-065 | Joan-extracted enhancements: same-tree auditing, Codex integration, scope guards, parallel worktree isolation |
-| 12 | Harness Convergence | WO-067 | Fold proven reusable harness improvements back into the framework |
+| 12 | Harness Convergence | WO-067 — WO-068 | Fold proven reusable harness improvements back into the framework |
+| 13 | Evidence Memory Research | WO-069 — WO-071 | Test and implement structured evidence recall when it materially reduces context/token usage |
 
 ## Mandatory Audits
 
@@ -274,6 +275,22 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 |---|---|---|---|
 | WO-067 | Signal Claw Harness Convergence | WO-065 | Complete |
 | WO-068 | Codex Cross-Surface Hardening | WO-067 | Complete |
+
+---
+
+## Phase 13: Evidence Memory Research
+
+**Goal:** Determine whether VibeOS should add a narrow, structured evidence-memory index that recalls existing Work Orders, findings, audits, gates, checkpoints, and decision artifacts with citations and measurable token/context savings, then implement the smallest proven local utility if the spike clears the threshold.
+
+**Context:** Reviews of Lucas's memory setup and Ruflo suggest that broad chat memory, Obsidian import, swarms, daemons, and external orchestration are not appropriate for VibeOS core. The plausible opportunity is smaller: rank existing evidence artifacts so workflows read less repeated context while preserving the "finding -> Work Order -> evidence" discipline.
+
+**Exit Criteria:** The spike produces an adopt, defer, or abandon recommendation backed by benchmark data. Proceeding requires at least 2x reduction in relevant context/read tokens or at least 40% workflow token reduction with zero missed critical evidence in the benchmark set.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-069 | Structured Evidence Memory Spike | WO-031, WO-049, WO-056, WO-068 | Complete |
+| WO-070 | Evidence Recall Indexer and Query Command | WO-069 | Complete |
+| WO-071 | v2.2 Release Hygiene | WO-070 | Complete |
 
 ---
 

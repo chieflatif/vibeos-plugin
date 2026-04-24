@@ -5,10 +5,10 @@
 #
 # Hook type: UserPromptSubmit
 # Response format: JSON with hookSpecificOutput.permissionDecision = allow|block
-# Framework version: 2.1.0
+# Framework version: 2.2.0
 # Note: No set -euo pipefail — hook reads stdin via cat and uses || fallbacks
 # that would trigger errexit. This is intentional per hook convention.
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 INPUT=$(cat)
 PROMPT=$(echo "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || echo "")

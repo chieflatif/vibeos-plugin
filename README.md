@@ -1,5 +1,9 @@
 # VibeOS — Autonomous Development Engine
 
+> **v2.2.0 — Evidence Recall Upgrade (2026-04-24)**
+>
+> This update adds a local, source-cited evidence recall utility. VibeOS can now build a compact index of work orders, audits, gate manifests, skills, session state, baselines, and checkpoints, then return bounded excerpts with citations instead of rereading large context bundles. It uses a generated `.vibeos/cache/` file, has no network dependency, and does not add any external memory service.
+
 > **v2.1.0 — Advanced Governance Upgrade (2026-04-03)**
 >
 > This update makes VibeOS smarter about how it reviews its own work. It can now check code quality *while it's still building* (instead of waiting until everything is saved), ask a second AI (Codex) to independently verify what it built, and automatically prevent work orders from growing too large or messy. It also blocks attempts to skip safety checks and protects test files from being weakened during implementation. If you're running multiple builds in parallel, VibeOS now enforces clear boundaries so they don't step on each other. Say *"Upgrade VibeOS"* inside any active session to get these improvements.
@@ -65,6 +69,7 @@ Examples:
 - **Building** — Writes tests first, then implements the feature
 - **Quality Checks** — Runs automated checks and audits so problems get caught early
 - **Session Audits** — Reviews the current or most recent build session end-to-end so you can close out autonomous work with confidence
+- **Evidence Recall** — Builds a local source-cited index so status, build, audit, and planning work can find the right prior evidence with less context
 - **Anti-Drift Anchors** — Keeps the build tied to the product promise, engineering standards, and current evidence instead of slowly drifting off course
 - **Prompt Engineering Standards** — Routes prompt and agent-instruction changes through a dedicated prompt-engineering path using the embedded Prompt Engineering Bible
 - **Progress Guidance** — Tells you what is happening, what is done, and what should happen next
@@ -226,7 +231,8 @@ your-project/
 │   ├── agents/            ← 23 specialized subagents (15 base + 8 same-tree variants)
 │   └── hooks/             ← 11 hook scripts (intent routing, governance, proof, budget, scope)
 ├── .vibeos/               ← Shared runtime used by both surfaces
-│   ├── scripts/           ← 56 quality gate and utility scripts
+│   ├── scripts/           ← 64 quality gate and utility scripts
+│   ├── cache/             ← Generated local evidence recall index
 │   ├── decision-engine/   ← 10 decision trees
 │   ├── reference/         ← 85 annotated reference files plus prompt-engineering guidance
 │   └── convergence/       ← 5 scripts that prevent infinite build loops

@@ -27,11 +27,11 @@
 #   1 — invocation error (adapter failure, empty output)
 #   2 — Codex plugin not found
 #
-# Framework: VibeOS 2.1.0 | Codex Complementary Audit Protocol
+# Framework: VibeOS 2.2.0 | Codex Complementary Audit Protocol
 
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 # ---- Defaults ----
 AUDIT_TYPE="manual_audit"

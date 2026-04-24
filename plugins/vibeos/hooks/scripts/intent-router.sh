@@ -4,8 +4,8 @@
 # Fires on every user message. Reads project lifecycle state and classifies
 # the user's intent to inject routing context for the model.
 #
-# Framework version: 2.1.0
-FRAMEWORK_VERSION="2.1.0"
+# Framework version: 2.2.0
+FRAMEWORK_VERSION="2.2.0"
 
 # Note: no pipefail — stdin/jq patterns need lenient error handling (documented exception)
 set -eu

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$SCRIPT_DIR/plugins/vibeos/skills" ]; then
@@ -232,6 +232,7 @@ update_gitignore() {
 .vibeos/session-state.json
 .vibeos/session-audits/
 .vibeos/audit-reports/
+.vibeos/cache/
 EOF
 
   echo "[vibeos-init-codex] PASS: .gitignore updated"

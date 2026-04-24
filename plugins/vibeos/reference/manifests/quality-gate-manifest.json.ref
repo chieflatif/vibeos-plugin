@@ -7,7 +7,7 @@
       "OPTIONAL": "Include only if condition is met",
       "EXAMPLE": "Concrete pattern the agent uses"
     },
-    "framework_version": "2.1.0"
+    "framework_version": "2.2.0"
   },
 
   "_instructions": [
@@ -22,7 +22,7 @@
     "The gate-runner.sh supports variable substitution: $WO_NUMBER, $EVIDENCE_DIR, $PROJECT_ROOT"
   ],
 
-  "version": "2.1.0",
+  "version": "2.2.0",
 
   "project": {
     "_comment_ADAPT": "Agent fills from PROJECT-INTAKE.md answers",

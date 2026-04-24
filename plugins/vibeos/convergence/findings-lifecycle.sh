@@ -14,7 +14,7 @@
 #   2 = Configuration error
 
 set -euo pipefail
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 COMMAND="${1:-}"
 shift || true
@@ -53,7 +53,7 @@ init_registry() {
   if [ ! -f "$REGISTRY" ]; then
     mkdir -p "$(dirname "$REGISTRY")"
     NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    echo "{\"version\": \"2.0.0\", \"created\": \"$NOW\", \"entries\": [], \"pattern_stats\": {}}" > "$REGISTRY"
+    echo "{\"version\": \"2.2.0\", \"created\": \"$NOW\", \"entries\": [], \"pattern_stats\": {}}" > "$REGISTRY"
   fi
 }
 

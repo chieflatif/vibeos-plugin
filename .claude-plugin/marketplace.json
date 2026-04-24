@@ -1,15 +1,15 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "vibeos",
-  "description": "VibeOS — Autonomous development engine with layered quality governance",
+  "description": "VibeOS — Autonomous development engine with layered quality governance and source-cited evidence recall",
   "owner": {
     "name": "Latif Horst"
   },
   "plugins": [
     {
       "name": "vibeos",
-      "description": "Autonomous development engine — product discovery, planning, TDD build loop, and 7-layer quality audits",
-      "version": "2.0.0",
+      "description": "Autonomous development engine — product discovery, planning, TDD build loop, evidence recall, and 7-layer quality audits",
+      "version": "2.2.0",
       "author": {
         "name": "Latif Horst"
       },

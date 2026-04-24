@@ -33,7 +33,7 @@ All files the plugin creates in your project, organized by when they appear.
 | Git hooks: `pre-commit`, `commit-msg` | Commit-boundary enforcement installed by VibeOS when the project is a git repo |
 | `.claude/rules/always/*.md` | Always-active governance rules |
 | `scripts/architecture-rules.json` | Architecture enforcement rules |
-| `scripts/*.sh` | Quality gate scripts (copied from plugin) |
+| `scripts/*` | Quality gate and utility scripts (copied from plugin) |
 | `AGENTS.md` | Shared repo contract |
 | `CLAUDE.md` | Thin Claude entry loader |
 | `.claude/CLAUDE.md` | Claude-specific runtime instructions |
@@ -59,6 +59,7 @@ All files the plugin creates in your project, organized by when they appear.
 | `.vibeos/build-log.md` | Build history with decisions and outcomes |
 | `.vibeos/session-state.json` | Tracks the active or most recent autonomous build session |
 | `.vibeos/checkpoints/WO-NNN.json` | Build progress checkpoint (enables mid-WO resume) |
+| `.vibeos/cache/evidence-recall-index.json` | Generated local index for source-cited evidence recall |
 | `.vibeos/baselines/midstream-baseline.json` | Updated after convergence cycles |
 | `docs/planning/WO-NNN-*.md` | Updated with completion evidence |
 
@@ -72,4 +73,4 @@ All files the plugin creates in your project, organized by when they appear.
 
 ## Plugin State (`.vibeos/` directory)
 
-The `.vibeos/` directory holds all plugin state. It is safe to add to `.gitignore` if you don't want to track plugin state in version control, though keeping `baselines/` and `findings-registry.json` in git is recommended for team visibility.
+The `.vibeos/` directory holds all plugin state. It is safe to add generated runtime state such as `.vibeos/cache/` to `.gitignore`. Keeping `baselines/` and `findings-registry.json` in git is recommended for team visibility.

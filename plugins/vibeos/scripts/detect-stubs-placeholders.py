@@ -35,7 +35,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
-FRAMEWORK_VERSION = "2.0.0"
+FRAMEWORK_VERSION = "2.2.0"
 
 # ============================================================================
 # CONFIGURATION

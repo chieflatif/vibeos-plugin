@@ -5,7 +5,7 @@ set -euo pipefail
 # Validates the entire plugin system with greenfield and midstream scenarios.
 # Exit 0 = all tests pass, 1 = failures found
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 PLUGIN_DIR="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 RESULTS_DIR="${PLUGIN_DIR}/.vibeos/e2e-results"

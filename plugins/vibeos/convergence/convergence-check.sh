@@ -5,7 +5,7 @@ set -euo pipefail
 # Returns a convergence decision: CONVERGED, CONTINUE, or STUCK.
 # Exit 0 with JSON result on stdout; exit 1 on error.
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 usage() {
   echo "Usage: $0 --current-hash <hash> --previous-hash <hash> --iteration <N> --max-iterations <N>"

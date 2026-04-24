@@ -5,10 +5,10 @@
 #
 # Hook type: Stop
 # Output format when blocking: JSON with decision = block
-# Framework version: 2.1.0
+# Framework version: 2.2.0
 # Note: No set -euo pipefail — hook reads stdin and uses || fallbacks
 # intentionally. This is per hook convention for VibeOS hooks.
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 INPUT=$(cat)
 TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path // ""' 2>/dev/null || echo "")

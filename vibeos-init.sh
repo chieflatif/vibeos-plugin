@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 # ─── VibeOS Bootstrap ────────────────────────────────────────────────────────
 # Installs VibeOS governance framework into a target project's .claude/ and
@@ -448,7 +448,8 @@ An autonomous, self-governing development engine. You guide users through produc
 .claude/skills/          ← 14 user-invocable skills (/discover, /plan, /build, /codex-audit, etc.)
 .claude/agents/          ← 23 specialized subagents (15 base + 8 same-tree variants)
 .claude/hooks/           ← Event-driven enforcement (11 hooks: intent routing, governance, proof, budget, scope)
-.vibeos/scripts/         ← 53 deterministic gate scripts + gate-runner.sh
+.vibeos/scripts/         ← 64 quality gate and utility scripts
+.vibeos/cache/           ← Generated local evidence recall cache
 .vibeos/decision-engine/ ← 10 decision tree files
 .vibeos/reference/       ← 45+ annotated reference files
 .vibeos/convergence/     ← Loop control scripts (state hashing, convergence checks)
@@ -517,7 +518,7 @@ Slash commands (`/discover`, `/build`, etc.) still work and always take preceden
 - Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
-- Version: `FRAMEWORK_VERSION="2.1.0"` in every script
+- Version: `FRAMEWORK_VERSION="2.2.0"` or equivalent constant in every script
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
 - State files: `.vibeos/session-state.json` (active session), `.claude/quality-gate-manifest.json` (gate registry)
@@ -535,19 +536,17 @@ setup_gitignore() {
         ""
         "# VibeOS runtime state (not checked in)"
         ".vibeos/baselines/"
+        ".vibeos/cache/"
         ".vibeos/current-agent.txt"
         ".claude/settings.local.json"
     )
 
-    if [ -f "$gitignore" ]; then
-        # Check if already has vibeos entries
-        if grep -q "vibeos/baselines" "$gitignore" 2>/dev/null; then
-            return
-        fi
-    fi
-
     for entry in "${vibeos_entries[@]}"; do
-        echo "$entry" >> "$gitignore"
+        if [ -z "$entry" ]; then
+            echo "" >> "$gitignore"
+        elif ! grep -Fqx "$entry" "$gitignore" 2>/dev/null; then
+            echo "$entry" >> "$gitignore"
+        fi
     done
 
     echo "[vibeos-init] PASS: .gitignore updated"
@@ -565,7 +564,7 @@ init_project_config() {
     mkdir -p "$TARGET_DIR/.vibeos"
     cat > "$config_file" << 'CONFIG_EOF'
 {
-  "framework_version": "2.1.0",
+  "framework_version": "2.2.0",
   "autonomy_level": "wo",
   "project_mode": "pending",
   "lifecycle_state": "virgin"

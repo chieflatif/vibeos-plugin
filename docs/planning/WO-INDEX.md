@@ -202,3 +202,11 @@
 |---|---|---|---|
 | WO-067 | Signal Claw Harness Convergence | Complete | WO-065 |
 | WO-068 | Codex Cross-Surface Hardening | Complete | WO-067 |
+
+### Phase 13: Evidence Memory Research
+
+| WO | Title | Status | Dependencies |
+|---|---|---|---|
+| WO-069 | Structured Evidence Memory Spike | Complete | WO-031, WO-049, WO-056, WO-068 |
+| WO-070 | Evidence Recall Indexer and Query Command | Complete | WO-069 |
+| WO-071 | v2.2 Release Hygiene | Complete | WO-070 |

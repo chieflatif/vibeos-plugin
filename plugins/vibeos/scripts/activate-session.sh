@@ -10,7 +10,7 @@
 #   bash .vibeos/scripts/activate-session.sh WO-056
 #   bash .vibeos/scripts/activate-session.sh docs/planning/WO-056-session-state.md investigator
 set -euo pipefail
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 usage() {
   cat <<'EOF'

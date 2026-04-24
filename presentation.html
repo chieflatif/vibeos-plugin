@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VibeOS — Autonomous Development Engine</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --accent: #6366f1;
+    --accent-glow: rgba(99,102,241,.15);
+    --text: #e2e2ef;
+    --muted: #8888a4;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --red: #f87171;
+    --cyan: #22d3ee;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top:0; left:0; right:0; z-index:100;
+    background: rgba(10,10,15,.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+  nav .inner {
+    max-width: 1100px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    height: 56px;
+  }
+  nav .logo { font-weight:700; font-size:1.1rem; letter-spacing:-.02em; }
+  nav .logo span { color:var(--accent); }
+  nav .links { display:flex; gap:1.5rem; }
+  nav .links a {
+    color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:500;
+    transition: color .2s;
+  }
+  nav .links a:hover { color:var(--text); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding: 6rem 2rem 4rem;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, var(--accent-glow) 0%, transparent 70%);
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight:800; letter-spacing:-.04em;
+    line-height:1.1; margin-bottom:1.25rem;
+  }
+  .hero h1 span { color:var(--accent); }
+  .hero .subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.35rem); color:var(--muted); max-width:680px; margin:0 auto 2.5rem;
+    line-height:1.5;
+  }
+  .hero .stats {
+    display:flex; gap:2rem; justify-content:center; flex-wrap:wrap;
+  }
+  .stat {
+    text-align:center;
+  }
+  .stat .num {
+    font-size:2rem; font-weight:800; color:var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .label { font-size:.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }
+
+  /* SECTIONS */
+  section { padding: 5rem 2rem; }
+  .container { max-width:1100px; margin:0 auto; }
+  .section-label {
+    font-size:.7rem; text-transform:uppercase; letter-spacing:.12em;
+    color:var(--accent); font-weight:600; margin-bottom:.5rem;
+  }
+  .section-title {
+    font-size: clamp(1.5rem, 3.5vw, 2.2rem); font-weight:700; letter-spacing:-.03em;
+    margin-bottom:.75rem;
+  }
+  .section-desc {
+    color:var(--muted); max-width:600px; margin-bottom:2.5rem; font-size:.95rem;
+  }
+
+  /* PROBLEM / SOLUTION */
+  .two-col {
+    display:grid; grid-template-columns:1fr 1fr; gap:2rem;
+  }
+  @media(max-width:700px) { .two-col { grid-template-columns:1fr; } }
+  .card {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:2rem;
+  }
+  .card h3 { font-size:1.1rem; margin-bottom:.75rem; font-weight:600; }
+  .card ul { list-style:none; }
+  .card ul li {
+    padding:.4rem 0; padding-left:1.4rem; position:relative; color:var(--muted); font-size:.9rem;
+  }
+  .card ul li::before {
+    content:''; position:absolute; left:0; top:.7rem;
+    width:6px; height:6px; border-radius:50%;
+  }
+  .card.problem ul li::before { background:var(--red); }
+  .card.solution ul li::before { background:var(--green); }
+
+  /* ARCHITECTURE */
+  .arch-grid {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:1.25rem;
+  }
+  .arch-card {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:1.5rem; transition: border-color .2s, transform .2s;
+  }
+  .arch-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+  .arch-card .icon { font-size:1.5rem; margin-bottom:.75rem; }
+  .arch-card h4 { font-size:.95rem; font-weight:600; margin-bottom:.35rem; }
+  .arch-card p { font-size:.82rem; color:var(--muted); line-height:1.5; }
+  .arch-card .count {
+    display:inline-block; margin-top:.6rem; font-size:.7rem; font-weight:600;
+    color:var(--accent); background:var(--accent-glow); padding:.2rem .6rem; border-radius:20px;
+  }
+
+  /* FLOW */
+  .flow {
+    display:flex; align-items:stretch; gap:0; flex-wrap:wrap; justify-content:center;
+    margin-top:1rem;
+  }
+  .flow-step {
+    flex:1; min-width:140px; max-width:200px; text-align:center; padding:1.5rem 1rem;
+    position:relative;
+  }
+  .flow-step::after {
+    content:'→'; position:absolute; right:-10px; top:50%; transform:translateY(-50%);
+    color:var(--muted); font-size:1.2rem; font-weight:300;
+  }
+  .flow-step:last-child::after { display:none; }
+  .flow-num {
+    width:32px; height:32px; border-radius:50%; background:var(--accent);
+    color:#fff; font-size:.8rem; font-weight:700; display:inline-flex;
+    align-items:center; justify-content:center; margin-bottom:.6rem;
+  }
+  .flow-step h5 { font-size:.85rem; font-weight:600; margin-bottom:.25rem; }
+  .flow-step p { font-size:.75rem; color:var(--muted); }
+
+  /* LAYERS */
+  .layers {
+    display:flex; flex-direction:column; gap:0; margin-top:1rem;
+  }
+  .layer {
+    border:1px solid var(--border); padding:1.25rem 1.5rem;
+    display:flex; align-items:center; gap:1.25rem;
+  }
+  .layer:first-child { border-radius:12px 12px 0 0; }
+  .layer:last-child { border-radius:0 0 12px 12px; }
+  .layer:not(:last-child) { border-bottom:none; }
+  .layer .badge {
+    font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em;
+    padding:.25rem .6rem; border-radius:6px; white-space:nowrap;
+  }
+  .layer.l1 { background:rgba(99,102,241,.06); }
+  .layer.l1 .badge { background:var(--accent); color:#fff; }
+  .layer.l2 { background:rgba(34,211,238,.04); }
+  .layer.l2 .badge { background:var(--cyan); color:#000; }
+  .layer.l3 { background:rgba(251,191,36,.04); }
+  .layer.l3 .badge { background:var(--amber); color:#000; }
+  .layer .info h5 { font-size:.9rem; font-weight:600; }
+  .layer .info p { font-size:.8rem; color:var(--muted); }
+
+  /* AGENTS TABLE */
+  .agent-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:.75rem;
+  }
+  .agent-chip {
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    padding:.75rem 1rem; font-size:.82rem;
+  }
+  .agent-chip .role { font-weight:600; display:block; margin-bottom:.15rem; }
+  .agent-chip .desc { color:var(--muted); font-size:.75rem; }
+
+  /* SKILLS */
+  .skill-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:.75rem;
+  }
+  .skill-chip {
+    background:var(--surface); border:1px solid var(--border); border-radius:8px;
+    padding:.75rem 1rem; font-size:.85rem; font-weight:500;
+    transition: border-color .2s;
+  }
+  .skill-chip:hover { border-color:var(--accent); }
+  .skill-chip code { color:var(--accent); font-size:.8rem; }
+  .skill-chip .sdesc { display:block; font-size:.72rem; color:var(--muted); margin-top:.2rem; font-weight:400; }
+
+  /* PRINCIPLES */
+  .principles {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem;
+  }
+  .principle {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:1.5rem;
+  }
+  .principle .num-badge {
+    font-size:.7rem; font-weight:700; color:var(--accent); margin-bottom:.5rem;
+    display:block;
+  }
+  .principle h4 { font-size:.95rem; font-weight:600; margin-bottom:.35rem; }
+  .principle p { font-size:.82rem; color:var(--muted); }
+
+  /* FILE TREE */
+  .tree {
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:1.5rem 2rem; font-family:'JetBrains Mono','Fira Code',monospace;
+    font-size:.78rem; line-height:1.8; color:var(--muted); overflow-x:auto;
+  }
+  .tree .dir { color:var(--accent); font-weight:600; }
+  .tree .comment { color:#555; }
+
+  /* FOOTER */
+  footer {
+    border-top:1px solid var(--border); padding:3rem 2rem; text-align:center;
+  }
+  footer p { color:var(--muted); font-size:.82rem; }
+  footer a { color:var(--accent); text-decoration:none; }
+
+  /* alt bg */
+  .alt-bg { background:var(--surface); }
+
+  @media(max-width:600px) {
+    .hero .stats { gap:1rem; }
+    .flow-step::after { display:none; }
+    .flow { gap:.5rem; }
+    .layer { flex-direction:column; align-items:flex-start; gap:.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <div class="logo">Vibe<span>OS</span></div>
+    <div class="links">
+      <a href="#problem">Problem</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#flow">Workflow</a>
+      <a href="#quality">Quality</a>
+      <a href="#agents">Agents</a>
+      <a href="#skills">Skills</a>
+      <a href="#principles">Principles</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="top">
+  <div>
+    <h1>Autonomous Development.<br><span>Zero Technical Debt.</span></h1>
+    <p class="subtitle">
+      A Claude Code plugin that turns AI into a self-governing development engine &mdash;
+      with layered quality audits, deterministic gates, and enforcement hooks that make
+      cutting corners structurally impossible.
+    </p>
+    <div class="stats">
+      <div class="stat"><div class="num">15</div><div class="label">Specialized Agents</div></div>
+      <div class="stat"><div class="num">13</div><div class="label">User Skills</div></div>
+      <div class="stat"><div class="num">41</div><div class="label">Quality Gate Scripts</div></div>
+      <div class="stat"><div class="num">6</div><div class="label">Enforcement Hooks</div></div>
+      <div class="stat"><div class="num">10</div><div class="label">Decision Trees</div></div>
+      <div class="stat"><div class="num">83</div><div class="label">Reference Docs</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM / SOLUTION -->
+<section id="problem">
+  <div class="container">
+    <div class="section-label">The Problem</div>
+    <div class="section-title">AI Can Write Code. But Should You Trust It?</div>
+    <div class="section-desc">
+      Vibe coding is fast &mdash; until it isn't. AI agents cut corners, skip tests, introduce security holes,
+      and accumulate debt that compounds silently. VibeOS fixes this at the structural level.
+    </div>
+    <div class="two-col">
+      <div class="card problem">
+        <h3>Without Governance</h3>
+        <ul>
+          <li>Stubs and TODOs slip into production</li>
+          <li>Tests written after code (or not at all)</li>
+          <li>Security patterns applied inconsistently</li>
+          <li>Architecture erodes with every feature</li>
+          <li>No audit trail for compliance</li>
+          <li>Agent goes off-script with no guardrails</li>
+        </ul>
+      </div>
+      <div class="card solution">
+        <h3>With VibeOS</h3>
+        <ul>
+          <li>Stub detection blocks every commit</li>
+          <li>Tests written from spec before code exists</li>
+          <li>OWASP, PII, secrets scanned automatically</li>
+          <li>Architecture enforced by deterministic scripts</li>
+          <li>Evidence bundles generated per work order</li>
+          <li>Hooks, gates, and audits constrain every action</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section id="architecture" class="alt-bg">
+  <div class="container">
+    <div class="section-label">System Architecture</div>
+    <div class="section-title">Six Interlocking Subsystems</div>
+    <div class="section-desc">
+      Every component reinforces the others. Hooks prevent violations in real-time, gates validate before promotion,
+      agents audit from isolated worktrees, and decision trees adapt governance to each project.
+    </div>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="icon">&#9889;</div>
+        <h4>Skills</h4>
+        <p>User-facing commands for discovery, planning, building, auditing, and status. Voice-led routing means users never type slash commands.</p>
+        <span class="count">14 skills</span>
+      </div>
+      <div class="arch-card">
+        <div class="icon">&#129302;</div>
+        <h4>Agents</h4>
+        <p>Specialized subagents for implementation, testing, auditing (security, architecture, correctness, evidence, drift, test quality), and documentation.</p>
+        <span class="count">23 agents</span>
+      </div>
+      <div class="arch-card">
+        <div class="icon">&#128737;</div>
+        <h4>Gate &amp; Utility Scripts</h4>
+        <p>Deterministic bash/python validators and utilities covering security, architecture, code quality, testing, compliance, infrastructure, and evidence recall. Run by gate-runner.sh or explicit utility commands.</p>
+        <span class="count">64 scripts</span>
+      </div>
+      <div class="arch-card">
+        <div class="icon">&#128268;</div>
+        <h4>Hooks</h4>
+        <p>Event-driven enforcement: intent routing, secrets scanning, frozen file protection, stub detection, test file isolation, and worktree scope guards.</p>
+        <span class="count">11 hooks</span>
+      </div>
+      <div class="arch-card">
+        <div class="icon">&#129693;</div>
+        <h4>Decision Engine</h4>
+        <p>Markdown decision trees that adapt the framework to each project: which gates to run, which hooks to enable, which architecture patterns to enforce.</p>
+        <span class="count">10 trees</span>
+      </div>
+      <div class="arch-card">
+        <div class="icon">&#128203;</div>
+        <h4>Reference Library</h4>
+        <p>Annotated reference docs across 9 categories: governance, hooks, skills, prompt engineering, product shaping, parallel execution, and platform configs.</p>
+        <span class="count">85 files</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section id="flow">
+  <div class="container">
+    <div class="section-label">Development Lifecycle</div>
+    <div class="section-title">From Idea to Production in Five Phases</div>
+    <div class="section-desc">
+      VibeOS manages the entire lifecycle. You describe what you want to build &mdash; the system handles everything else.
+    </div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <h5>Discover</h5>
+        <p>Product shaping, anchor document, architecture decisions</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <h5>Plan</h5>
+        <p>Decision engine generates phased work orders with dependencies</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <h5>Build</h5>
+        <p>Autonomous execution: investigate &rarr; test &rarr; implement &rarr; document</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <h5>Gate</h5>
+        <p>Two-layer quality enforcement before any WO completes</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <h5>Audit</h5>
+        <p>Six independent audit agents validate from isolated worktrees</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUALITY LAYERS -->
+<section id="quality" class="alt-bg">
+  <div class="container">
+    <div class="section-label">Quality Enforcement</div>
+    <div class="section-title">Three Layers. No Escape Hatches.</div>
+    <div class="section-desc">
+      Quality isn't a step &mdash; it's structural. Each layer catches what the others miss,
+      and the ratchet ensures finding counts never increase between phases.
+    </div>
+    <div class="layers">
+      <div class="layer l1">
+        <div>
+          <span class="badge">Layer 1</span>
+        </div>
+        <div class="info">
+          <h5>Deterministic Gate Scripts</h5>
+          <p>64 bash/python scripts validate security patterns, architecture rules, test coverage, stub detection, OWASP alignment, PII handling, tenant isolation, evidence recall, and more. Binary pass/fail. No AI judgment involved.</p>
+        </div>
+      </div>
+      <div class="layer l2">
+        <div>
+          <span class="badge">Layer 2</span>
+        </div>
+        <div class="info">
+          <h5>AI Audit Agents (Read-Only, Isolated)</h5>
+          <p>Eight specialized auditors can review security, architecture, correctness, test quality, evidence, product drift, red-team risks, and contract alignment. Consensus logic aggregates findings.</p>
+        </div>
+      </div>
+      <div class="layer l3">
+        <div>
+          <span class="badge">Layer 3</span>
+        </div>
+        <div class="info">
+          <h5>Convergence &amp; Ratcheting</h5>
+          <p>State hashing detects infinite loops. Baseline checks enforce that finding counts never increase. Findings lifecycle tracking ensures every issue is resolved, not just acknowledged.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AGENTS -->
+<section id="agents">
+  <div class="container">
+    <div class="section-label">Specialized Agents</div>
+    <div class="section-title">15 Agents. Each With a Single Responsibility.</div>
+    <div class="section-desc">
+      Agents cannot spawn other agents &mdash; only the orchestrator dispatches them.
+      Audit agents are read-only and run in isolated worktrees. Implementation agents cannot touch test files.
+    </div>
+    <div class="agent-grid">
+      <div class="agent-chip"><span class="role">Security Auditor</span><span class="desc">OWASP Top 10, secrets, injection, PII</span></div>
+      <div class="agent-chip"><span class="role">Architecture Auditor</span><span class="desc">Layer violations, circular deps, contracts</span></div>
+      <div class="agent-chip"><span class="role">Correctness Auditor</span><span class="desc">Logic errors, missing error paths, hardcoded values</span></div>
+      <div class="agent-chip"><span class="role">Test Quality Auditor</span><span class="desc">TDD compliance, mock density, edge coverage</span></div>
+      <div class="agent-chip"><span class="role">Evidence Auditor</span><span class="desc">Doc completeness, evidence bundles, tracking</span></div>
+      <div class="agent-chip"><span class="role">Product Drift Auditor</span><span class="desc">Alignment with product anchor &amp; principles</span></div>
+      <div class="agent-chip"><span class="role">Red Team Auditor</span><span class="desc">Adversarial testing &amp; attack surface analysis</span></div>
+      <div class="agent-chip"><span class="role">Contract Validator</span><span class="desc">Cross-boundary API contract enforcement</span></div>
+      <div class="agent-chip"><span class="role">Investigator</span><span class="desc">Pre-flight WO analysis &amp; risk flagging</span></div>
+      <div class="agent-chip"><span class="role">Tester</span><span class="desc">TDD: writes tests from spec, never sees code</span></div>
+      <div class="agent-chip"><span class="role">Backend</span><span class="desc">Implements code to make pre-written tests pass</span></div>
+      <div class="agent-chip"><span class="role">Frontend</span><span class="desc">UI implementation following TDD pattern</span></div>
+      <div class="agent-chip"><span class="role">Prompt Engineer</span><span class="desc">Creates &amp; refines prompt artifacts</span></div>
+      <div class="agent-chip"><span class="role">Plan Auditor</span><span class="desc">Evaluates WOs against audit framework</span></div>
+      <div class="agent-chip"><span class="role">Doc Writer</span><span class="desc">Updates docs &amp; records evidence post-implementation</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="alt-bg">
+  <div class="container">
+    <div class="section-label">User Interface</div>
+    <div class="section-title">Conversational. No Commands Required.</div>
+    <div class="section-desc">
+      Voice-led intent routing means users speak naturally. The hook analyzes each message and
+      routes to the right skill automatically. Slash commands exist as power-user shortcuts.
+    </div>
+    <div class="skill-grid">
+      <div class="skill-chip"><code>/discover</code><span class="sdesc">Product discovery &amp; shaping</span></div>
+      <div class="skill-chip"><code>/plan</code><span class="sdesc">Generate phased work orders</span></div>
+      <div class="skill-chip"><code>/build</code><span class="sdesc">Autonomous build orchestration</span></div>
+      <div class="skill-chip"><code>/gate</code><span class="sdesc">Run quality gates</span></div>
+      <div class="skill-chip"><code>/audit</code><span class="sdesc">Full 6-agent audit cycle</span></div>
+      <div class="skill-chip"><code>/checkpoint</code><span class="sdesc">Phase boundary audit</span></div>
+      <div class="skill-chip"><code>/status</code><span class="sdesc">Session status</span></div>
+      <div class="skill-chip"><code>/project-status</code><span class="sdesc">Executive briefing</span></div>
+      <div class="skill-chip"><code>/wo</code><span class="sdesc">Work order management</span></div>
+      <div class="skill-chip"><code>/autonomous</code><span class="sdesc">Full autonomous mode</span></div>
+      <div class="skill-chip"><code>/upgrade</code><span class="sdesc">Framework upgrade</span></div>
+      <div class="skill-chip"><code>/session-audit</code><span class="sdesc">Session closeout review</span></div>
+      <div class="skill-chip"><code>/help</code><span class="sdesc">Concepts &amp; glossary</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ENFORCEMENT -->
+<section id="principles">
+  <div class="container">
+    <div class="section-label">Enforcement Hooks</div>
+    <div class="section-title">Real-Time Guardrails</div>
+    <div class="section-desc">
+      Hooks fire on every tool call and every user message. They don't advise &mdash; they block.
+    </div>
+    <div class="principles">
+      <div class="principle">
+        <span class="num-badge">HOOK 01</span>
+        <h4>Intent Router</h4>
+        <p>Analyzes every user message and routes to the correct skill without the user typing commands.</p>
+      </div>
+      <div class="principle">
+        <span class="num-badge">HOOK 02</span>
+        <h4>Secrets Scanner</h4>
+        <p>Blocks any file write containing API keys, tokens, passwords, or connection strings.</p>
+      </div>
+      <div class="principle">
+        <span class="num-badge">HOOK 03</span>
+        <h4>Frozen Files</h4>
+        <p>Prevents modification of governance documents, architecture files, and other protected artifacts.</p>
+      </div>
+      <div class="principle">
+        <span class="num-badge">HOOK 04</span>
+        <h4>Test File Protection</h4>
+        <p>Implementation agents cannot modify test files. Testers cannot see implementation. Enforced structurally.</p>
+      </div>
+      <div class="principle">
+        <span class="num-badge">HOOK 05</span>
+        <h4>Worktree Scope Guard</h4>
+        <p>Audit agents in worktrees cannot write, edit, or spawn sub-agents. Read-only isolation enforced.</p>
+      </div>
+      <div class="principle">
+        <span class="num-badge">HOOK 06</span>
+        <h4>Test Diff Audit</h4>
+        <p>Detects test modifications that weaken assertions or remove edge cases to make code pass.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DECISION ENGINE -->
+<section class="alt-bg">
+  <div class="container">
+    <div class="section-label">Adaptive Governance</div>
+    <div class="section-title">10 Decision Trees. Tailored to Every Project.</div>
+    <div class="section-desc">
+      The decision engine evaluates each project's characteristics and configures governance accordingly.
+      A solo CLI tool gets different gates than a multi-tenant SaaS platform.
+    </div>
+    <div class="arch-grid">
+      <div class="arch-card">
+        <h4>Gate Selection</h4>
+        <p>Which of the 41 gate scripts apply to this project type</p>
+      </div>
+      <div class="arch-card">
+        <h4>Hook Selection</h4>
+        <p>Which enforcement hooks to enable based on team size and risk</p>
+      </div>
+      <div class="arch-card">
+        <h4>Phase Selection</h4>
+        <p>How to sequence development phases for the project</p>
+      </div>
+      <div class="arch-card">
+        <h4>Architecture Rules</h4>
+        <p>Layer boundaries, module structure, dependency direction</p>
+      </div>
+      <div class="arch-card">
+        <h4>Compliance Mapping</h4>
+        <p>SOC 2, OWASP, GDPR requirements mapped to gates</p>
+      </div>
+      <div class="arch-card">
+        <h4>AI Integration</h4>
+        <p>Patterns for AI/LLM usage, prompt injection defense</p>
+      </div>
+      <div class="arch-card">
+        <h4>Technical Recommendations</h4>
+        <p>Stack, infrastructure, and tooling suggestions</p>
+      </div>
+      <div class="arch-card">
+        <h4>Product Shaping</h4>
+        <p>Discovery questionnaire and anchor doc generation</p>
+      </div>
+      <div class="arch-card">
+        <h4>Observability</h4>
+        <p>Logging, metrics, and monitoring patterns</p>
+      </div>
+      <div class="arch-card">
+        <h4>Plan Generation</h4>
+        <p>Work order sequencing, dependency mapping, phase planning</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FILE STRUCTURE -->
+<section>
+  <div class="container">
+    <div class="section-label">Project Structure</div>
+    <div class="section-title">Everything Lives in the Plugin</div>
+    <div class="tree">
+<span class="dir">plugins/vibeos/</span>
+├── <span class="dir">.claude-plugin/</span>plugin.json          <span class="comment"># Plugin manifest</span>
+├── <span class="dir">skills/</span>                              <span class="comment"># 13 user-invocable skills</span>
+│   ├── discover/ plan/ build/ gate/
+│   ├── audit/ checkpoint/ wo/ status/
+│   ├── project-status/ autonomous/
+│   ├── upgrade/ session-audit/ help/
+├── <span class="dir">agents/</span>                              <span class="comment"># 23 specialized subagents</span>
+│   ├── security-auditor.md
+│   ├── architecture-auditor.md
+│   ├── correctness-auditor.md
+│   ├── test-auditor.md  evidence-auditor.md
+│   ├── product-drift-auditor.md
+│   ├── red-team-auditor.md
+│   ├── contract-validator.md
+│   ├── investigator.md  tester.md
+│   ├── backend.md  frontend.md
+│   ├── prompt-engineer.md  plan-auditor.md
+│   └── doc-writer.md
+├── <span class="dir">hooks/</span>                               <span class="comment"># Event-driven enforcement</span>
+│   ├── hooks.json
+│   └── <span class="dir">scripts/</span>                         <span class="comment"># 11 hook scripts</span>
+├── <span class="dir">scripts/</span>                             <span class="comment"># 64 gate and utility scripts</span>
+│   ├── gate-runner.sh                   <span class="comment"># Orchestrator</span>
+│   ├── validate-*.sh                    <span class="comment"># 30+ validators</span>
+│   ├── evidence-recall.py               <span class="comment"># Source-cited recall</span>
+│   ├── detect-stubs-placeholders.py     <span class="comment"># Stub detection</span>
+│   └── detect-testing-antipatterns.py   <span class="comment"># Test quality</span>
+├── <span class="dir">decision-engine/</span>                     <span class="comment"># 10 decision trees</span>
+├── <span class="dir">reference/</span>                           <span class="comment"># 85 annotated reference docs</span>
+├── <span class="dir">convergence/</span>                         <span class="comment"># Loop control &amp; ratcheting</span>
+└── <span class="dir">docs/</span>                                <span class="comment"># Communication contract</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p style="font-size:1.1rem; color:var(--text); font-weight:600; margin-bottom:.5rem;">
+      Built by Latif Horst
+    </p>
+    <p>
+      Local governance framework &mdash; no external orchestration frameworks or memory services.<br>
+      Bash 3.2+ compatible. Works on any macOS or Linux machine with Claude Code installed.
+    </p>
+    <p style="margin-top:1rem; font-size:.75rem;">
+      VibeOS v2.2.0 &middot; 73 work orders completed &middot; 14 development phases &middot; Zero technical debt
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

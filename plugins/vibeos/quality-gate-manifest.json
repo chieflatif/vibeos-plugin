@@ -1,5 +1,5 @@
 {
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Declarative gate manifest — catalogs every script with tier, blocking, phase, and env configuration. The gate-runner reads this to determine which gates to execute per phase.",
   "gates": [
     {"script": "scripts/validate-no-secrets.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"SCAN_PATTERNS": "azure_connection_strings,sas_tokens,aws_keys,api_tokens,jwts,private_keys"}},
@@ -58,6 +58,7 @@
     {"script": "scripts/setup-git-hooks.sh", "purpose": "Git pre-commit hook installation"},
     {"script": "scripts/test-quality-gate.sh", "purpose": "Individual gate testing utility"},
     {"script": "scripts/activate-session.sh", "purpose": "Session state initialization"},
+    {"script": "scripts/evidence-recall.py", "purpose": "Source-cited local evidence recall index and query utility"},
     {"script": "scripts/health-check.sh", "purpose": "Production health probe (activate when URLs configured)"},
     {"script": "scripts/smoke-test.sh", "purpose": "Production smoke test (activate when URLs configured)"}
   ],

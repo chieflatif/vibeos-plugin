@@ -6,7 +6,7 @@ set -euo pipefail
 # and custom gates. Supports rollback via pre-upgrade snapshot.
 # Exit 0 = success, 1 = error
 
-FRAMEWORK_VERSION="2.1.0"
+FRAMEWORK_VERSION="2.2.0"
 
 usage() {
   echo "Usage:"
@@ -51,6 +51,7 @@ PRESERVED_PATHS=(
   ".vibeos/build-log.md"
   ".vibeos/audit-reports"
   ".vibeos/session-state.json"
+  ".vibeos/cache"
   ".claude/quality-gate-manifest.json"
 )
 
@@ -98,6 +99,10 @@ V21_NEW_AGENT_FILES=(
 
 V21_NEW_SKILLS=(
   "codex-audit"
+)
+
+V22_NEW_GATE_SCRIPTS=(
+  "evidence-recall.py"
 )
 
 get_plugin_version() {
@@ -183,7 +188,7 @@ case "$COMMAND" in
     fi
 
     # Step 2b: Run version-specific migration tasks
-    if [ "$INSTALLED" = "2.0.0" ] && [ "$AVAILABLE" = "2.1.0" ]; then
+    if [ "$INSTALLED" = "2.0.0" ] && { [ "$AVAILABLE" = "2.1.0" ] || [ "$AVAILABLE" = "2.2.0" ]; }; then
       echo "[plugin-upgrade] Running 2.0.0 → 2.1.0 migration..."
 
       # Install new gate scripts
@@ -236,6 +241,33 @@ case "$COMMAND" in
       echo "[plugin-upgrade] PASS: 2.0.0 → 2.1.0 migration complete"
       echo "[plugin-upgrade] NOTE: Review .claude/settings.json to add new hooks if needed"
       echo "[plugin-upgrade] NOTE: New hooks: governance-guard.sh, proof-protection.sh, file-budget.sh, worktree-scope-guard.sh, worktree-bash-guard.sh"
+    fi
+
+    if { [ "$INSTALLED" = "2.0.0" ] || [ "$INSTALLED" = "2.1.0" ]; } && [ "$AVAILABLE" = "2.2.0" ]; then
+      echo "[plugin-upgrade] Running 2.1.x → 2.2.0 migration..."
+
+      VIBEOS_SCRIPTS_DIR="${PROJECT_DIR:-.}/.vibeos/scripts"
+      if [ -d "$PLUGIN_DIR/scripts" ] && [ -d "$VIBEOS_SCRIPTS_DIR" ]; then
+        for script in "${V22_NEW_GATE_SCRIPTS[@]}"; do
+          if [ -f "$PLUGIN_DIR/scripts/$script" ]; then
+            cp "$PLUGIN_DIR/scripts/$script" "$VIBEOS_SCRIPTS_DIR/$script"
+            chmod +x "$VIBEOS_SCRIPTS_DIR/$script"
+            echo "[plugin-upgrade] Installed evidence recall utility: $script"
+          fi
+        done
+      fi
+
+      GITIGNORE="${PROJECT_DIR:-.}/.gitignore"
+      if [ -f "$GITIGNORE" ] && ! grep -q '^.vibeos/cache/$' "$GITIGNORE" 2>/dev/null; then
+        {
+          echo ""
+          echo "# VibeOS generated recall cache"
+          echo ".vibeos/cache/"
+        } >> "$GITIGNORE"
+        echo "[plugin-upgrade] Added .vibeos/cache/ to .gitignore"
+      fi
+
+      echo "[plugin-upgrade] PASS: 2.1.x → 2.2.0 migration complete"
     fi
 
     # Step 3: Update version tracking
@@ -315,8 +347,8 @@ case "$COMMAND" in
 
     # Compare script counts
     if [ -d "$PLUGIN_DIR/scripts" ]; then
-      NEW_SCRIPTS=$(ls -1 "$PLUGIN_DIR/scripts/"*.sh 2>/dev/null | wc -l | tr -d ' ')
-      echo "**Gate scripts:** $NEW_SCRIPTS"
+      NEW_SCRIPTS=$(find "$PLUGIN_DIR/scripts" -maxdepth 1 -type f \( -name "*.sh" -o -name "*.py" -o -name "*.json" \) 2>/dev/null | wc -l | tr -d ' ')
+      echo "**Runtime scripts:** $NEW_SCRIPTS"
     fi
 
     # List agents
@@ -338,29 +370,21 @@ case "$COMMAND" in
     fi
 
     # Version-specific changelog
-    if [ "$AVAILABLE" = "2.1.0" ]; then
+    if [ "$AVAILABLE" = "2.2.0" ]; then
       echo ""
-      echo "## v2.1.0 — Advanced Governance (Phase 11)"
+      echo "## v2.2.0 — Evidence Recall"
       echo ""
       echo "**New capabilities:**"
-      echo "  - Same-tree audit agents (8 variants): run in current context without worktree isolation"
-      echo "  - Audit visibility modes: inline, isolated (worktree), or codex (external CLI)"
-      echo "  - Codex audit integration: /codex-audit skill + broker/adapter scripts"
-      echo "  - Session state infrastructure: session-state.json + quality-gate-manifest.json"
-      echo "  - Scope discipline gate: validate-scope-discipline.sh blocks WO scope creep"
-      echo "  - Proof protection hook: blocks writes to audit evidence artifacts"
-      echo "  - Governance guard hook: enforces WO-driven session discipline at prompt time"
-      echo "  - File budget hook: blocks sessions exceeding file-change budget"
-      echo "  - Parallel worktree scope guard: blocks cross-scope writes in parallel agents"
-      echo "  - Worktree bash guard: enforces bash command boundaries in worktree context"
-      echo "  - Enhanced investigator agent: CLI-vs-MCP reference awareness"
-      echo "  - Build and audit skill enhancements: significance detection, audit report registration"
+      echo "  - Local evidence recall utility: evidence-recall.py"
+      echo "  - Source-cited recall over WOs, audits, manifests, skills, and runtime state"
+      echo "  - Generated cache path: .vibeos/cache/evidence-recall-index.json"
+      echo "  - No external memory service, daemon, vector database, or network dependency"
       echo ""
-      echo "**File counts (2.1.0):**"
-      echo "  - Gate scripts: 53 (up from 41)"
+      echo "**File counts (2.2.0):**"
+      echo "  - Runtime scripts: 64"
       echo "  - Agents: 23 (15 base + 8 same-tree)"
-      echo "  - Skills: 14 (added codex-audit)"
-      echo "  - Hook scripts: 11 (added governance-guard, proof-protection, file-budget, worktree-scope-guard, worktree-bash-guard)"
+      echo "  - Skills: 14"
+      echo "  - Hook scripts: 11"
     fi
     ;;
 
