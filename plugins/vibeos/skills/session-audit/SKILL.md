@@ -44,6 +44,8 @@ If the build log is missing, report that no VibeOS session history is available 
 Read:
 - `.vibeos/build-log.md`
 - `.vibeos/session-state.json` if present
+- `.vibeos/autonomy/heartbeats/*.json` if present
+- `.vibeos/autonomy/run-lease.json`, `.vibeos/autonomy/last-lease.json`, `.vibeos/autonomy/lease-conflict.json`, `.vibeos/autonomy/loop-state.json`, `.vibeos/autonomy/loop-history.jsonl`, `.vibeos/autonomy/resume-plan.json`, `.vibeos/autonomy/runner-report.json`, `.vibeos/autonomy/runtime-adapter-plan.json`, `.vibeos/autonomy/runtime-adapter-history.jsonl`, `.vibeos/autonomy/failure-report.json`, `.vibeos/autonomy/recovery-plan.json`, `.vibeos/autonomy/recovery-resolution.json`, `.vibeos/autonomy/recovery-resolution-history.jsonl`, `.vibeos/autonomy/scheduler-guard-report.json`, `.vibeos/autonomy/scheduler-profile.json`, and `.vibeos/autonomy/smoke-report.json` if present
 - `docs/planning/WO-INDEX.md`
 - each WO file listed in the session's `completed_wos`, or the inferred WOs from the build log
 - `.vibeos/audit-reports/` entries that match the session WOs, if present
@@ -56,6 +58,16 @@ Read:
 Capture:
 - session start and end times
 - autonomy mode
+- long-run autonomy run id, heartbeat freshness, checkpoint cadence, audit cadence, terminal state, and stop reason when present
+- active lease owner, last lease release, and lease conflict evidence when present
+- latest loop tick status when present
+- latest resume-plan decision, runner status, blocked commands, executed commands, and handoff-required items when present
+- latest runtime adapter provider, planned command, and execution status when present
+- latest failure detector status and any repeated handoff, blocked runner, runtime, lease, or provider/session findings when present
+- latest recovery planner status and any scheduler-pause actions when present
+- latest recovery resolution status and evidence for resolved actions when present
+- latest scheduler guard status and whether another tick was blocked when present
+- latest scheduler profile and smoke-test status when present
 - WOs completed during the session
 - active or unresolved blockers
 - touched files or affected areas, when available
@@ -70,12 +82,33 @@ Capture:
    ```bash
    bash ".vibeos/scripts/gate-runner.sh" session_end --continue-on-failure --project-dir "${CLAUDE_PROJECT_DIR:-.}"
    ```
-3. Dispatch the 8 audit agents (security, architecture, correctness, test, evidence, product-drift, red-team, contract-validator).
+3. If long-run autonomy was active, run direct closeout validation:
+   ```bash
+   python3 ".vibeos/scripts/validate-long-run-autonomy.py" --project-dir "${CLAUDE_PROJECT_DIR:-.}" --require-closed
+   ```
+4. If long-run autonomy artifacts exist, run the failure detector:
+   ```bash
+   python3 ".vibeos/scripts/autonomy-failure-detector.py" --project-dir "${CLAUDE_PROJECT_DIR:-.}" --json
+   ```
+5. If the failure detector reports findings, run the recovery planner:
+   ```bash
+   python3 ".vibeos/scripts/autonomy-recovery-planner.py" --project-dir "${CLAUDE_PROJECT_DIR:-.}" --json
+   ```
+6. If recovery-plan actions were resolved, confirm they have resolution evidence:
+   ```bash
+   python3 ".vibeos/scripts/autonomy-recovery-resolution.py" --project-dir "${CLAUDE_PROJECT_DIR:-.}" --json
+   ```
+7. Run the scheduler guard:
+   ```bash
+   python3 ".vibeos/scripts/autonomy-scheduler-guard.py" --project-dir "${CLAUDE_PROJECT_DIR:-.}" --json
+   ```
+8. Dispatch the audit agents (security, architecture, correctness, test, evidence, product-drift, flow, system-invariant, dependency-intelligence, delivery-infrastructure, red-team, contract-validator).
 
 Pass each auditor:
 - the project-definition path
 - the session WO list
 - the session-state path if present
+- the long-run heartbeat directory if present
 - the build-log path
 
 Ask auditors to focus on session-created regressions, missed evidence, drift, and unresolved risk that came out of the session.
@@ -102,6 +135,7 @@ Format the output like this:
 
 - **Pre-commit gates:** [pass/fail summary]
 - **Session-end gates:** [pass/fail/skipped summary]
+- **Long-run autonomy:** [not used / active / complete / paused / blocked; latest heartbeat and closeout validation]
 - **Audit result:** [pass/conditional pass/fail]
 
 ### Findings

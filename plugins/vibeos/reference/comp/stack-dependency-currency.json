@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Stack-specific dependency currency packs for VibOS Comp. These packs avoid hardcoded latest versions and instead define the evidence needed to prove dependency choices against current sources.",
+  "packs": [
+    {
+      "id": "typescript_node",
+      "label": "TypeScript/Node Runtime",
+      "applies_when": {
+        "files": ["package.json"],
+        "dependency_names": ["typescript", "tsx", "ts-node", "express", "fastify", "nestjs", "@nestjs/core", "hono", "zod"]
+      },
+      "required_evidence_terms": ["node", "package manager", "lockfile", "compatibility", "audit"],
+      "current_source_targets": ["Node.js release status", "package registry", "framework docs", "TypeScript release notes"],
+      "evidence_commands": ["node --version", "npm --version or equivalent package manager version", "npm audit --audit-level=high or equivalent", "npm run build"],
+      "blocking_context": "Required when a Node, TypeScript, API, worker, or full-stack package manifest exists."
+    },
+    {
+      "id": "frontend_app",
+      "label": "Frontend App Framework",
+      "applies_when": {
+        "files": ["package.json"],
+        "dependency_names": ["react", "next", "vue", "svelte", "@angular/core", "vite", "@vitejs/plugin-react", "react-router", "@tanstack/react-router"]
+      },
+      "required_evidence_terms": ["framework", "router", "browser", "build", "compatibility"],
+      "current_source_targets": ["framework docs", "router docs", "browser support notes", "UI library release notes"],
+      "evidence_commands": ["npm run build", "npm test", "npx playwright test or documented visual check"],
+      "blocking_context": "Required when frontend framework, router, or UI dependencies shape the primary user flow."
+    },
+    {
+      "id": "python_fastapi",
+      "label": "Python/FastAPI Runtime",
+      "applies_when": {
+        "files": ["pyproject.toml", "requirements.txt"],
+        "dependency_names": ["fastapi", "pydantic", "uvicorn", "starlette", "sqlmodel"]
+      },
+      "required_evidence_terms": ["python", "fastapi", "pydantic", "compatibility", "audit"],
+      "current_source_targets": ["Python support status", "FastAPI docs", "Pydantic docs", "package index"],
+      "evidence_commands": ["python --version", "pip-audit or documented equivalent", "pytest", "ruff check ."],
+      "blocking_context": "Required when FastAPI, Pydantic, or Python API dependencies define request validation or service behavior."
+    },
+    {
+      "id": "ai_sdk",
+      "label": "AI SDK And Model API",
+      "applies_when": {
+        "files": ["package.json", "pyproject.toml", "requirements.txt"],
+        "dependency_names": ["openai", "anthropic", "@ai-sdk/openai", "@ai-sdk/anthropic", "ai", "langchain", "@langchain/core", "llamaindex"]
+      },
+      "required_evidence_terms": ["sdk", "model", "api", "rate", "compatibility"],
+      "current_source_targets": ["provider API docs", "SDK release notes", "model availability docs", "rate limit docs"],
+      "evidence_commands": ["SDK smoke test or mocked contract test", "environment variable inventory", "error and retry behavior evidence"],
+      "blocking_context": "Required when model APIs, SDKs, tool calling, embeddings, or agent integrations affect product behavior."
+    },
+    {
+      "id": "auth_security",
+      "label": "Auth And Security Dependencies",
+      "applies_when": {
+        "files": ["package.json", "pyproject.toml", "requirements.txt"],
+        "dependency_names": ["next-auth", "@auth/core", "@clerk/nextjs", "auth0", "passport", "jose", "jsonwebtoken", "bcrypt", "argon2", "fastapi-users", "pyjwt", "python-jose", "passlib"]
+      },
+      "required_evidence_terms": ["auth", "session", "token", "security", "compatibility"],
+      "current_source_targets": ["auth provider docs", "security advisory feed", "JWT/session library docs", "OWASP guidance"],
+      "evidence_commands": ["auth boundary tests", "dependency audit", "secret scan", "session expiry or token validation proof"],
+      "blocking_context": "Required when authentication, sessions, tokens, password hashing, or authorization helper packages are present."
+    },
+    {
+      "id": "database_orm",
+      "label": "Database Driver Or ORM",
+      "applies_when": {
+        "files": ["package.json", "pyproject.toml", "requirements.txt"],
+        "dependency_names": ["prisma", "@prisma/client", "drizzle-orm", "typeorm", "sequelize", "knex", "pg", "mysql2", "sqlite3", "sqlalchemy", "alembic", "psycopg", "asyncpg"]
+      },
+      "required_evidence_terms": ["database", "migration", "driver", "transaction", "compatibility"],
+      "current_source_targets": ["database driver docs", "ORM migration docs", "database version support", "transaction behavior docs"],
+      "evidence_commands": ["migration command", "integration test against database", "data integrity test", "rollback or recovery note"],
+      "blocking_context": "Required when persistence, migrations, ownership checks, or transaction behavior depends on packages."
+    },
+    {
+      "id": "deployment_runtime",
+      "label": "Deployment Runtime",
+      "applies_when": {
+        "files": ["Dockerfile", "docker-compose.yml", "vercel.json", "netlify.toml", "wrangler.toml", "fly.toml", "railway.json", "render.yaml", "terraform"],
+        "dependency_names": []
+      },
+      "required_evidence_terms": ["runtime", "deployment", "environment", "rollback", "compatibility"],
+      "current_source_targets": ["hosting platform docs", "runtime image docs", "deployment CLI docs", "rollback docs"],
+      "evidence_commands": ["build image or platform build", "smoke test", "environment variable check", "rollback/runbook note"],
+      "blocking_context": "Required when deployment config, containers, hosting runtimes, or infrastructure packages are part of the MVP."
+    }
+  ]
+}

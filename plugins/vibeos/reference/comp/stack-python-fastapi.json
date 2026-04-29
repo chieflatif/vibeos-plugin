@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "stack": "python-fastapi",
+  "currency_pack": "python_fastapi",
+  "applies_to": ["api", "backend", "ai-service"],
+  "baseline": {
+    "runtime": "Supported Python version with pinned dependencies and type hints on public interfaces.",
+    "api_contract": "FastAPI schema generated from Pydantic models with explicit validation and error responses.",
+    "data": "Migration-backed persistence with constraints, ownership checks, and transaction boundaries.",
+    "testing": ["unit", "integration", "contract", "smoke"],
+    "observability": ["structured logger", "request id", "health endpoint", "metrics or trace hook"],
+    "security": ["secret-free settings", "CORS allowlist", "auth dependency on protected routes", "dependency audit"]
+  },
+  "evidence_commands": [
+    "pytest",
+    "ruff check .",
+    "mypy .",
+    "pip-audit"
+  ],
+  "freshness_policy": "Verify current Python support status, FastAPI docs, Pydantic docs, package index metadata, lockfile or pinning behavior, and security dependency docs before implementation."
+}

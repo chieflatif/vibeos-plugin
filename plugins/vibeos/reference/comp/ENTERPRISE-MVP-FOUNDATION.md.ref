@@ -1,0 +1,53 @@
+# Enterprise MVP Foundation Blueprint
+
+## Purpose
+
+This blueprint defines the default foundation for VibOS Comp missions. The product scope may be small, but the engineering foundation must be strong enough for a senior engineer, security reviewer, enterprise design partner, or competition judge to inspect without finding obvious omissions.
+
+## Readiness Thresholds
+
+| Threshold | Use Case | Standard |
+|---|---|---|
+| Local proof | Private demo, no real users, no real sensitive data | Must be runnable, testable, and honest about missing production controls |
+| Design-partner MVP | External design partner, pilot, judge review, or investor technical diligence | Must include the full foundation baseline unless explicitly and safely scoped out |
+| Production-ready | Real customers, real revenue, regulated data, or operational dependency | Must pass full gates, harden operations, and document incident/rollback paths |
+
+## Non-Negotiable Rule
+
+Cut features first. Do not cut security, observability, test evidence, dependency intelligence, dependency freshness, deployment hygiene, or clear ownership boundaries to make the MVP look larger.
+
+## Foundation Domains
+
+Use `.vibeos/reference/comp/enterprise-mvp-foundation.json` as the machine-readable source of truth. Every requirement maps to:
+
+- a verification evidence type
+- one or more gates or audits where available
+- a scorecard field for later judging
+- a deferral rule that states when it may be skipped
+
+## Required Domains
+
+- Identity and access
+- Data integrity
+- Flow integrity and objective fidelity
+- System invariants and state safety
+- Security and abuse resistance
+- Configuration and secrets
+- Testing and verification
+- Observability and operations
+- Delivery infrastructure, CI/CD, deployment, and release hygiene
+- Frontend experience quality
+- Performance and scalability
+- Dependencies, supply chain, and current-source dependency intelligence
+- Documentation and evidence
+
+## Stack Variants
+
+Use stack variants as implementation guidance, not mandatory framework choices:
+
+- `.vibeos/reference/comp/stack-typescript-node.json`
+- `.vibeos/reference/comp/stack-python-fastapi.json`
+- `.vibeos/reference/comp/stack-frontend-app.json`
+- `.vibeos/reference/comp/stack-dependency-currency.json`
+
+When stack choices are made, verify current framework/library docs before creating WOs or installing dependencies, then capture runtime compatibility, lockfile, security audit, and upgrade-path evidence.

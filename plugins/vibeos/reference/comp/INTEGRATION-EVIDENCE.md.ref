@@ -1,0 +1,45 @@
+# Comp Integration Evidence
+
+## Status
+
+`{{STATUS}}`
+
+## Inputs
+
+- `MISSION.md`
+- `COMP-PLAN.md`
+- `.vibeos/worktree-scopes.json`
+- Work package evidence under `docs/evidence/`
+
+## Work Package Evidence
+
+| WO | Branch | Evidence Status | Notes |
+|---|---|---|---|
+| {{WO_ID}} | {{BRANCH}} | {{EVIDENCE_STATUS}} | {{NOTES}} |
+
+## Integration Checks
+
+| Check | Command Or Evidence | Result |
+|---|---|---|
+| Cross-boundary contracts | {{CONTRACT_COMMAND}} | {{CONTRACT_RESULT}} |
+| Flow integrity | {{FLOW_INTEGRITY_COMMAND_OR_EVIDENCE}} | {{FLOW_INTEGRITY_RESULT}} |
+| Objective fidelity | {{OBJECTIVE_FIDELITY_EVIDENCE}} | {{OBJECTIVE_FIDELITY_RESULT}} |
+| System invariants | {{SYSTEM_INVARIANTS_COMMAND_OR_EVIDENCE}} | {{SYSTEM_INVARIANTS_RESULT}} |
+| Dependency intelligence | {{DEPENDENCY_INTELLIGENCE_COMMAND_OR_EVIDENCE}} | {{DEPENDENCY_INTELLIGENCE_RESULT}} |
+| Delivery infrastructure | {{DELIVERY_INFRASTRUCTURE_COMMAND_OR_EVIDENCE}} | {{DELIVERY_INFRASTRUCTURE_RESULT}} |
+| Tests | {{TEST_COMMAND}} | {{TEST_RESULT}} |
+| Comp gauntlet | {{COMP_GAUNTLET_COMMAND}} | {{COMP_GAUNTLET_RESULT}} |
+| Security | {{SECURITY_COMMAND}} | {{SECURITY_RESULT}} |
+| Observability | {{OBSERVABILITY_COMMAND}} | {{OBSERVABILITY_RESULT}} |
+
+## Shared Path Risks
+
+{{SHARED_PATH_RISKS}}
+
+## Unresolved Risks
+
+{{UNRESOLVED_RISKS}}
+
+## Completion Claim
+
+{{COMPLETION_CLAIM}}

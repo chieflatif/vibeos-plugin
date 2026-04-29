@@ -26,6 +26,25 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 11 | Advanced Governance (v2.1) | WO-056 — WO-065 | Joan-extracted enhancements: same-tree auditing, Codex integration, scope guards, parallel worktree isolation |
 | 12 | Harness Convergence | WO-067 — WO-068 | Fold proven reusable harness improvements back into the framework |
 | 13 | Evidence Memory Research | WO-069 — WO-071 | Test and implement structured evidence recall when it materially reduces context/token usage |
+| 14 | VibOS Comp — Enterprise MVP Battle Harness | WO-072 — WO-081 | Build a competition-grade enterprise MVP harness with modern Codex/Claude swarms, foundation blueprints, quality gauntlets, red-team review, and scorecard evidence |
+| 15 | Flow Integrity & Objective Fidelity | WO-082 — WO-083 | Make the primary user journey and original objective first-class across mission, planning, implementation, testing, auditing, and scorecards |
+| 16 | System Invariants & State Safety | WO-084 — WO-085 | Make state, ownership, idempotency, recovery, and auditability rules first-class across mission, planning, testing, auditing, and scorecards |
+| 17 | Dependency Intelligence & Current Evidence | WO-086 — WO-087 | Make dependency decisions current, compatible, lockfile-backed, audited, and upgradeable instead of driven by stale model memory |
+| 18 | Stack Dependency Currency Packs | WO-088 — WO-089 | Add stack-specific currency packs so runtime, framework, SDK, auth, database, AI, and deployment dependency evidence is concrete |
+| 19 | Delivery Infrastructure & Operational Spine | WO-090 — WO-091 | Make CI/CD, deployment, observability, environment/secrets, smoke checks, rollback, and runbooks first-class Comp foundations |
+| 20 | Comp Validation Hardening | WO-092 | Prevent generated governance artifacts from creating false-positive Comp validation failures |
+| 21 | Long-Run Autonomy | WO-093 — WO-094 | Make 24-48 hour autonomous runs resumable, auditable, heartbeat-driven, and safely stoppable |
+| 22 | Long-Run Supervisor | WO-095 | Add deterministic resume-plan decisions above the heartbeat/checkpoint/audit loop |
+| 23 | Long-Run Runner Adapter | WO-096 | Safely classify and execute allowlisted resume-plan commands while preserving Codex/Claude handoff work |
+| 24 | Long-Run Loop Entrypoint | WO-097 | Add a scheduler-safe supervisor-plus-runner tick entrypoint for durable 24-48 hour operation |
+| 25 | Runtime Handoff Adapter | WO-098 | Turn long-run handoff state into dry-run-first Codex/Claude runtime launch plans |
+| 26 | Autonomy Scheduler Profiles | WO-099 | Generate reviewed shell, cron, launchd, and GitHub Actions profiles for long-run autonomy ticks |
+| 27 | Disposable Autonomy Smoke | WO-100 | Prove the autonomy chain in a disposable target before trusting scheduler profiles |
+| 28 | Autonomy Run Lease Guard | WO-101 | Prevent concurrent schedulers or runtime adapters from driving the same long-run autonomy session |
+| 29 | Autonomy Failure Loop Detector | WO-102 | Detect repeated handoff, runner, runtime, lease, and provider/session failures before the scheduler loops |
+| 30 | Autonomy Recovery Planner | WO-103 | Convert autonomy failures into plan-only recovery actions before another scheduler tick |
+| 31 | Autonomy Scheduler Guard | WO-104 | Refuse scheduler ticks while recovery-plan actions lack matching resolution evidence |
+| 32 | Autonomy Recovery Resolution Protocol | WO-105 | Record evidence-backed recovery action resolution before scheduler ticks resume |
 
 ## Mandatory Audits
 
@@ -294,6 +313,298 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 ---
 
+## Phase 14: VibOS Comp — Enterprise MVP Battle Harness
+
+**Goal:** Add a high-performance enterprise MVP delivery mode that uses current Codex and Claude capabilities to move fast without producing fragile prototypes. VibOS Comp should generate small-scope but foundation-complete MVPs: secure, observable, testable, deployable, scalable, and backed by inspectable evidence.
+
+**Commercial Thesis:** MVPs should be small in product scope, not small in engineering standards. VibOS Comp is designed to help users rapidly build software that can withstand review by enterprise design partners, senior engineers, security reviewers, and competition judges.
+
+**Context:** Current VibeOS already has layered governance, worktree isolation, audit agents, Codex complementary audit, and evidence recall. The gap is a competition control plane: runtime-aware agent capability selection, modern Codex-native surface, compact mission intake, enterprise foundation blueprint, swarm planning, integration ownership, quality gauntlet, red-team arena, and scorecard evidence.
+
+**Exit Criteria:** A user can give VibOS Comp an MVP or competition prompt and receive a compact mission brief, parallel execution plan, enterprise foundation checklist, scoped worktree swarm setup, final integrated quality gauntlet, adversarial red-team review, and scorecard/evidence dossier. Completion claims must distinguish proven, partial, deferred, and overridden evidence.
+
+**Implementation Order:**
+1. WO-072 (runtime truth foundation)
+2. WO-073 (modern Codex surface)
+3. WO-074 and WO-075 (mission and enterprise MVP foundation)
+4. WO-076 and WO-077 (AI failure gates and swarm planning)
+5. WO-078 (integration captain)
+6. WO-079 and WO-080 (quality gauntlet and red-team arena)
+7. WO-081 (scorecard/evidence dossier)
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-072 | Runtime Capability Matrix | WO-068, WO-071 | Complete |
+| WO-073 | Modern Codex Surface | WO-072 | Complete |
+| WO-074 | VibOS Comp Mission Skill | WO-072, WO-073 | Complete |
+| WO-075 | Enterprise MVP Foundation Blueprint | WO-074 | Complete |
+| WO-076 | AI Failure Mode Gate Pack | WO-075 | Complete |
+| WO-077 | Swarm Worktree Planner | WO-074, WO-075 | Complete |
+| WO-078 | Integration Captain | WO-076, WO-077 | Complete |
+| WO-079 | Quality Gauntlet | WO-076, WO-078 | Complete |
+| WO-080 | Red Team Arena | WO-074, WO-079 | Complete |
+| WO-081 | Scorecard and Evidence Dossier | WO-079, WO-080 | Complete |
+
+---
+
+## Phase 15: Flow Integrity & Objective Fidelity
+
+**Goal:** Make the human user journey a first-class harness dimension from mission intake through Work Order planning, implementation evidence, integrated testing, audit dispatch, and scorecard closeout. VibeOS Comp must not let isolated code, UI, API, database, or security checks pass while the actual user flow is broken or drifting from the original objective.
+
+**Context:** The existing Comp harness covered enterprise foundations, AI failure modes, parallel worktree planning, integration ownership, red-team review, and evidence dossiers. The gap was a dedicated perspective for how humans experience the system: whether a user can move through UI, auth/session, backend/API, data or side effects, feedback states, and evidence to achieve the mission promise.
+
+**Exit Criteria:** `MISSION.md` and `COMP-PLAN.md` include primary flow and objective fidelity context; a Flow Auditor role exists for isolated and same-tree review; `comp_gauntlet` includes deterministic flow integrity validation; scorecards track Flow Integrity and Objective Fidelity; audit dispatch includes flow review for high-tier WO exits, phase exits, and live-fire audits.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-082 | Flow Auditor and Flow Integrity Gate | WO-074, WO-077, WO-079 | Complete |
+| WO-083 | Objective Fidelity Scorecard Integration | WO-081, WO-082 | Complete |
+
+---
+
+## Phase 16: System Invariants & State Safety
+
+**Goal:** Make system invariants a first-class harness dimension from mission intake through Work Order planning, implementation evidence, testing, audit dispatch, and scorecard closeout. VibeOS Comp must not let happy-path functionality pass while the product can enter invalid states, break ownership rules, duplicate side effects, lose recovery paths, or hide sensitive transitions.
+
+**Context:** Flow integrity proves that the user can complete the journey. System invariants prove that the system remains correct before, during, and after that journey, including bad inputs, retries, concurrency, partial failure, future changes, and recovery.
+
+**Exit Criteria:** `MISSION.md` and `COMP-PLAN.md` include system invariant context; a System Invariant Auditor role exists for isolated and same-tree review; `comp_gauntlet` includes deterministic invariant validation; scorecards track System Invariants; audit dispatch includes invariant review for high-tier WO exits, phase exits, live-fire audits, and security changes.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-084 | System Invariant Auditor and Gate | WO-082, WO-083 | Complete |
+| WO-085 | Invariant Scorecard and Evidence Integration | WO-084 | Complete |
+
+---
+
+## Phase 17: Dependency Intelligence & Current Evidence
+
+**Goal:** Make dependency intelligence a first-class harness dimension from mission intake through Work Order planning, implementation evidence, testing, audit dispatch, and scorecard closeout. VibeOS Comp must not let stale model memory pick outdated packages, incompatible SDKs, broken peer dependency sets, missing lockfiles, unaudited transitive risk, or upgrade dead ends.
+
+**Context:** Dependency versioning is a fast failure point for AI-generated software because model training dates lag current framework, SDK, and package ecosystems. Existing dependency freshness and vulnerability gates are useful, but they need upstream governance: current-source evidence, compatibility reasoning, lockfile discipline, security audit output, and upgrade path before the build claims enterprise readiness.
+
+**Exit Criteria:** `MISSION.md` and `COMP-PLAN.md` include dependency intelligence context; a Dependency Intelligence Auditor role exists for isolated and same-tree review; `comp_gauntlet` includes deterministic dependency intelligence validation; scorecards track Dependency Intelligence; audit dispatch includes dependency review for high-tier WO exits, phase exits, live-fire audits, security changes, and dependency/runtime/package changes.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-086 | Dependency Intelligence Auditor and Gate | WO-084, WO-085 | Complete |
+| WO-087 | Dependency Scorecard and Evidence Integration | WO-086 | Complete |
+
+---
+
+## Phase 18: Stack Dependency Currency Packs
+
+**Goal:** Make dependency intelligence stack-aware without hardcoding stale "latest" versions. VibeOS Comp should detect common runtime and dependency surfaces, then require concrete evidence for the specific stack: Node/TypeScript, frontend frameworks, Python/FastAPI, AI SDKs, auth/security packages, database/ORM packages, and deployment runtimes.
+
+**Context:** A generic dependency evidence rule catches missing lockfiles and audit output, but real failures often come from stack-specific compatibility: React/router/build-tool mismatches, FastAPI/Pydantic changes, AI SDK/model API drift, auth/session library behavior, database driver/ORM migration changes, and hosting runtime constraints.
+
+**Exit Criteria:** Stack currency packs are machine-readable, referenced by stack variants and dependency evidence templates, consumed by `validate-dependency-intelligence.py`, and tested for detection and enforcement without embedding version numbers that will go stale.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-088 | Stack Dependency Currency Pack Reference | WO-086, WO-087 | Complete |
+| WO-089 | Stack Currency Validator Integration | WO-088 | Complete |
+
+---
+
+## Phase 19: Delivery Infrastructure & Operational Spine
+
+**Goal:** Make delivery infrastructure a first-class harness dimension from mission intake through Work Order planning, implementation evidence, testing, audit dispatch, and scorecard closeout. VibeOS Comp must not let local app behavior pass while CI/CD, deployment, observability, environment/secrets, smoke checks, rollback, or runbooks are missing.
+
+**Context:** The user wants autonomous enterprise MVPs that include the silent foundations world-class teams often leave implicit. Existing observability and production-readiness gates are useful, but the harness needs an explicit operational spine: pipeline-as-code or local-proof substitute, deployability, observable runtime behavior, manageable environments, secret hygiene, smoke/health checks, rollback, and runbook evidence.
+
+**Exit Criteria:** `MISSION.md` and `COMP-PLAN.md` include delivery infrastructure context; a Delivery Infrastructure Auditor role exists for isolated and same-tree review; `comp_gauntlet` includes deterministic delivery infrastructure validation; scorecards track Delivery Infrastructure; audit dispatch includes delivery review for high-tier WO exits, phase exits, live-fire audits, security changes, and delivery/runtime changes.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-090 | Delivery Infrastructure Auditor and Gate | WO-088, WO-089 | Complete |
+| WO-091 | Delivery Scorecard and Evidence Integration | WO-090 | Complete |
+
+---
+
+## Phase 20: Comp Validation Hardening
+
+**Goal:** Keep the Comp validation pipeline strict without letting generated governance artifacts create self-inflicted false positives.
+
+**Context:** The comp pipeline smoke proved that `validate-comp-ai-failure-modes.py` could scan `docs/evidence/RED-TEAM-REPORT.md`, see the generated review category `fake completion or demo-only evidence`, and fail the project even when the category label was not a project-authored failure marker.
+
+**Exit Criteria:** Generated red-team and dossier artifacts are excluded from AI failure-marker scanning; non-generated mission, source, and evidence files remain scanned; regression tests prove both behaviors.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-092 | Comp Validation Generated Artifact Hardening | WO-076, WO-080, WO-091 | Complete |
+
+---
+
+## Phase 21: Long-Run Autonomy
+
+**Goal:** Make 24-48 hour autonomy an intentional, resumable operating mode with heartbeat evidence, checkpoint cadence, audit cadence, stale-run detection, and explicit terminal states.
+
+**Context:** Existing autonomous mode can keep building without routine check-ins, but a credible battle harness needs more than persistence. A long-running run must survive context resets, runtime interruptions, tool failures, and handoff between Codex and Claude/Cursor. That requires durable state: what is active, what changed, what was checked, what failed, what stops the run, and how another session resumes.
+
+**Exit Criteria:** Long-run autonomy policy is machine-readable; heartbeat and validator scripts exist; session-state schema documents long-run fields; build/autonomous/status/checkpoint/session-audit skills use heartbeat and cadence controls; `session_start` and `session_end` can validate long-run state.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-093 | Long-Run Autonomy Control Plane | WO-056, WO-077, WO-091 | Complete |
+| WO-094 | Long-Run Heartbeat Validator | WO-093 | Complete |
+
+---
+
+## Phase 22: Long-Run Supervisor
+
+**Goal:** Add a deterministic supervisor layer that decides the next long-run autonomy action from durable state instead of leaving control-flow in model memory.
+
+**Context:** Heartbeats and validators prove that a long-running session has state and policy, but the harness still needs a resumable decision artifact between loops. The supervisor reads config, session state, heartbeat age, checkpoint cadence, audit cadence, runtime limits, and loop iteration ceiling, then writes `.vibeos/autonomy/resume-plan.json` for the next Codex/Claude/human action.
+
+**Exit Criteria:** `autonomy-supervisor.py` exists, writes `resume-plan.json` and `supervisor-state.json`, emits continue/checkpoint/audit/heartbeat/stop decisions, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-095 | Long-Run Supervisor Resume Plan | WO-093, WO-094 | Complete |
+
+---
+
+## Phase 23: Long-Run Runner Adapter
+
+**Goal:** Add a safe runner adapter that turns supervisor resume plans into classified, auditable actions without opening an arbitrary shell execution surface.
+
+**Context:** The supervisor can now write `.vibeos/autonomy/resume-plan.json`, but a long-run harness still needs a deterministic adapter between that artifact and the active runtime. The runner must execute only allowlisted local VibeOS scripts, block unsafe shell commands, and truthfully report Codex/Claude continuation text as handoff-required work.
+
+**Exit Criteria:** `autonomy-runner.py` exists, writes `runner-report.json`, dry-run classifies resume plans, executes allowlisted local VibeOS scripts with `--execute`, blocks untrusted commands, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-096 | Long-Run Runner Adapter | WO-093, WO-094, WO-095 | Complete |
+
+---
+
+## Phase 24: Long-Run Loop Entrypoint
+
+**Goal:** Add a scheduler-safe loop entrypoint that runs supervisor plus runner ticks and writes durable loop state.
+
+**Context:** The supervisor decides what should happen next and the runner safely classifies or executes allowlisted local commands. A 24-48 hour harness still needs a stable entrypoint that a terminal, cron, launchd, CI job, or future runtime adapter can invoke repeatedly. The loop must default to one tick, write `.vibeos/autonomy/loop-state.json`, and stop truthfully at handoff, blocked, failed, scheduled, or terminal states.
+
+**Exit Criteria:** `autonomy-loop.py` exists, writes `loop-state.json`, invokes supervisor and runner, supports dry-run and `--execute`, stops at model-handoff boundaries, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-097 | Long-Run Loop Entrypoint | WO-093, WO-095, WO-096 | Complete |
+
+---
+
+## Phase 25: Runtime Handoff Adapter
+
+**Goal:** Add a dry-run-first adapter that turns autonomy handoff state into explicit local Codex or Claude runtime commands.
+
+**Context:** The loop can stop at `handoff_required`, but that still leaves an external scheduler or human to translate the handoff into the right runtime invocation. Local detection confirms Codex supports `codex exec` and Claude supports non-interactive `--print`, but these launches can use provider/session capacity and edit files, so the adapter must write a plan by default and execute only when explicitly requested.
+
+**Exit Criteria:** `autonomy-runtime-adapter.py` exists, writes `runtime-adapter-plan.json`, selects Codex or Claude from capability evidence, builds build/audit handoff prompts, reports `no_handoff` when appropriate, and keeps launching behind `--execute`.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-098 | Runtime Handoff Adapter | WO-072, WO-096, WO-097 | Complete |
+
+---
+
+## Phase 26: Autonomy Scheduler Profiles
+
+**Goal:** Generate reviewed scheduler profile files for long-run autonomy without installing system or CI scheduler jobs automatically.
+
+**Context:** The loop and runtime adapter provide the commands needed for a 24-48 hour run, but users still need safe profiles for terminal, cron, launchd, or GitHub Actions scheduling. Profile generation must be explicit, reviewable, and dry-run-first for model runtime launch.
+
+**Exit Criteria:** `autonomy-scheduler-profile.py` exists, writes `scheduler-profile.json`, generates shell/cron/launchd/GitHub Actions profiles, keeps runtime launch disabled unless `--launch-runtime` is requested, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-099 | Autonomy Scheduler Profiles | WO-097, WO-098 | Complete |
+
+---
+
+## Phase 27: Disposable Autonomy Smoke
+
+**Goal:** Add a disposable smoke path that proves the heartbeat, loop, runtime-adapter planning, validator, failure-detector, recovery-planner, recovery-resolution, and scheduler-guard chain works before a scheduler profile is trusted.
+
+**Context:** Scheduler profiles can run for hours, so the harness needs a cheap preflight that exercises the autonomy chain in a fresh target. The smoke path must avoid launching model runtimes by default and write a durable report for audit.
+
+**Exit Criteria:** `autonomy-smoke.py` exists, copies required autonomy scripts into a disposable or specified target, runs heartbeat, loop, runtime-adapter planning, validation, failure detection, recovery planning, recovery resolution, and scheduler guarding, writes `smoke-report.json`, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-100 | Disposable Autonomy Smoke | WO-094, WO-097, WO-098, WO-099 | Complete |
+
+---
+
+## Phase 28: Autonomy Run Lease Guard
+
+**Goal:** Prevent multiple scheduler or runtime processes from mutating the same long-run autonomy state at the same time.
+
+**Context:** Scheduler profiles and runtime handoff adapters make 24-48 hour autonomy operational, but they also create a concurrency risk: two processes can read the same state, choose the same next action, and write conflicting artifacts. The lease guard gives loop and runtime-adapter drivers a shared `.vibeos/autonomy/run-lease.json`, blocks live conflicts, and recovers expired leases.
+
+**Exit Criteria:** `autonomy_lease.py` exists, `autonomy-loop.py` and `autonomy-runtime-adapter.py` acquire leases before mutation, live conflicts write `lease-conflict.json`, released leases write `last-lease.json`, expired leases recover, and deterministic tests cover conflict and stale recovery.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-101 | Autonomy Run Lease Guard | WO-097, WO-098, WO-100 | Complete |
+
+---
+
+## Phase 29: Autonomy Failure Loop Detector
+
+**Goal:** Detect repeated no-progress autonomy loops and operational failures before an external scheduler keeps running the same broken path.
+
+**Context:** Long-run autonomy should run for 24-48 hours only while it is making real progress. The core risk is not abstract token, cost, or elapsed-time accounting; it is repeated handoff with no runtime pickup, blocked runner commands, failed runtime launches, active lease conflicts, and provider/session limit failures. The detector turns loop and runtime histories into a blocking report when those issues repeat.
+
+**Exit Criteria:** `autonomy-failure-detector.py` exists, writes `failure-report.json`, reads loop/runtime histories and latest control-plane reports, flags repeated handoff/no-progress/failure/provider-limit patterns, is included in smoke/bootstrap/upgrade paths, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-102 | Autonomy Failure Loop Detector | WO-097, WO-098, WO-100, WO-101 | Complete |
+
+---
+
+## Phase 30: Autonomy Recovery Planner
+
+**Goal:** Convert autonomy failure findings into safe plan-only recovery actions before another scheduler tick repeats the same broken path.
+
+**Context:** The failure detector can now identify repeated handoffs, blocked runners, failed runtime launches, lease conflicts, no-progress decisions, and provider/session limits. The harness still needs an explicit management layer that says what to do next without taking unsafe action automatically. Recovery planning must preserve autonomy, but it must not clear leases, install schedulers, or launch providers without reviewed intent.
+
+**Exit Criteria:** `autonomy-recovery-planner.py` exists, writes `recovery-plan.json`, maps each detector finding class to a safe response, pauses scheduling when blocking recovery actions exist, is included in smoke/bootstrap/upgrade paths, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-103 | Autonomy Recovery Planner | WO-098, WO-100, WO-101, WO-102 | Complete |
+
+---
+
+## Phase 31: Autonomy Scheduler Guard
+
+**Goal:** Refuse another scheduler-driven loop tick while unresolved recovery actions remain.
+
+**Context:** Recovery planning tells the harness what must happen next, but a cron, launchd, shell, or CI scheduler can still keep invoking loop ticks if the guard is not enforced at the scheduler boundary. The guard must be the first generated scheduler command and `autonomy-loop.py` must also honor unresolved recovery state directly, so hand-written scheduler invocations do not bypass the stop signal by accident.
+
+**Exit Criteria:** `autonomy-scheduler-guard.py` exists, writes `scheduler-guard-report.json`, blocks unresolved `recovery-plan.json` actions unless matching `recovery-resolution.json` evidence exists, blocks blocking failure reports that have no recovery plan, is included in generated scheduler profiles and smoke/bootstrap/upgrade paths, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-104 | Autonomy Scheduler Guard | WO-099, WO-100, WO-102, WO-103 | Complete |
+
+---
+
+## Phase 32: Autonomy Recovery Resolution Protocol
+
+**Goal:** Record evidence-backed resolution for recovery-plan actions without mutating the recovery plan itself.
+
+**Context:** The scheduler guard can pause long-run autonomy, but a serious 24-48 hour harness also needs a deterministic way to prove the pause condition has been resolved. Resolutions must be bound to the current recovery-plan generation so stale evidence cannot unblock a fresh failure, and the guard must rely on that evidence instead of implicit human judgment.
+
+**Exit Criteria:** `autonomy-recovery-resolution.py` exists, writes `recovery-resolution.json`, appends `recovery-resolution-history.jsonl`, requires action id, summary, and evidence for recorded resolutions, makes scheduler guard and loop ticks pass only when current blocking actions have matching resolution evidence, is included in smoke/bootstrap/upgrade paths, and is covered by deterministic tests.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-105 | Autonomy Recovery Resolution Protocol | WO-100, WO-103, WO-104 | Complete |
+
+---
+
 ## Contingency Plans
 
 If Phase 0 spike or Phase 1 post-audit reveals failed assumptions:
@@ -319,6 +630,27 @@ If Phase 0 spike or Phase 1 post-audit reveals failed assumptions:
 | Audit loops don't converge | High | State hashing + max iteration limits + semantic completion | 5 |
 | Large codebase exceeds agent context window | Medium | Chunking strategy, defer to Phase 6 | 6 |
 | Sonnet for 4/5 audit agents, Opus for correctness | Medium | Monitor quality; upgrade model if audit miss rate too high | 4 |
+| Codex or Claude runtime capabilities drift after docs change | High | WO-072 runtime capability matrix gates orchestration choices before Comp mode runs | 14 |
+| Parallel agents produce isolated success but integrated failure | High | WO-077 scope planning plus WO-078 integration captain owns merge order and cross-boundary verification | 14 |
+| AI agents choose stale or incompatible dependencies from model memory | High | WO-086/087 dependency intelligence gate, auditor, scorecard, evidence template, and Comp gauntlet enforce current-source and compatibility proof | 17 |
+| Stack-specific dependency compatibility breaks despite generic evidence | High | WO-088/089 stack currency packs require concrete evidence for runtime, framework, SDK, auth, database, AI, and deployment surfaces | 18 |
+| MVP works locally but has no repeatable delivery path | High | WO-090/091 delivery infrastructure gate, auditor, scorecard, evidence template, and Comp gauntlet enforce CI/CD, deployability, observability, smoke, rollback, and runbook proof | 19 |
+| Long autonomous runs lose state after context reset or runtime interruption | High | WO-093/094 long-run autonomy control plane records heartbeats, checkpoints, audit cadence, stale-run validation, and terminal closeout state | 21 |
+| Long autonomous runs continue without a deterministic next-action decision | High | WO-095 supervisor writes resume plans from durable state and stops on cadence and loop/runtime limits | 22 |
+| Resume plans become unsafe shell execution surfaces or require manual interpretation | High | WO-096 runner adapter dry-runs by default, executes only allowlisted local VibeOS scripts, blocks unsafe commands, and reports Codex/Claude handoff items | 23 |
+| External schedulers cannot resume the autonomy loop consistently | High | WO-097 loop entrypoint runs one supervisor-plus-runner tick, writes durable loop state, and exits at clear scheduler/model handoff boundaries | 24 |
+| Model handoff state cannot be launched consistently across Codex and Claude | High | WO-098 runtime adapter writes dry-run-first Codex/Claude handoff command plans from capability evidence and launches only with explicit `--execute` | 25 |
+| Scheduler profiles are installed without review or with unsafe runtime launch settings | High | WO-099 profile generator writes reviewed artifacts only and leaves runtime launch disabled unless explicitly requested | 26 |
+| Scheduler automation fails after installation because the autonomy chain was not preflighted | High | WO-100 disposable smoke command runs heartbeat, loop, runtime-adapter planning, validation, failure detection, recovery planning, recovery resolution, and scheduler guarding before profile trust | 27 |
+| Long-run scheduler repeats handoff, blocked runner, runtime failure, lease conflict, or provider/session limit without progress | High | WO-102 failure detector writes blocking findings from loop/runtime history and latest control-plane reports | 29 |
+| Autonomy detects failures but has no deterministic next response | High | WO-103 recovery planner maps findings to plan-only scheduler pause, runtime handoff, lease review, runner repair, capability refresh, or provider/session recovery actions | 30 |
+| Scheduler continues ticking after recovery plan says to pause | High | WO-104 scheduler guard blocks generated profiles and loop ticks while recovery actions lack matching resolution evidence | 31 |
+| Stale or informal recovery evidence unblocks a new failure | High | WO-105 recovery resolution protocol binds action evidence to the current recovery-plan generation and keeps an append-only resolution history | 32 |
+| Multiple schedulers or runtimes drive the same long-run state concurrently | High | WO-101 run lease guard blocks live concurrent drivers, records conflicts, and recovers expired leases | 28 |
+| VibOS Comp optimizes for speed at the expense of enterprise foundations | High | WO-075 foundation blueprint and WO-079 quality gauntlet make foundation requirements explicit acceptance criteria | 14 |
+| Scorecard becomes marketing instead of proof | High | WO-081 requires evidence links and separates proven, partial, deferred, and overridden claims | 14 |
+| Individual components pass while the human flow fails | High | WO-082 Flow Auditor and flow-integrity gate trace mission objective through UI, auth/session, backend/API, data, feedback, and evidence | 15 |
+| Happy path passes while system invariants fail | High | WO-084 System Invariant Auditor and invariant gate trace state, ownership, idempotency, recovery, and auditability rules through implementation and tests | 16 |
 
 ## Source Material
 

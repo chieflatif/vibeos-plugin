@@ -1,0 +1,31 @@
+# VibOS Comp Flow Integrity
+
+## Purpose
+
+Flow integrity verifies that the user can actually move through the product and achieve the promised outcome. It is different from code quality, security, UI polish, database correctness, and contract validation. It connects all of those concerns through the user's real path.
+
+## Core Question
+
+Can the primary user complete the mission-critical flow end to end, with auth/session/data/security context preserved across every handoff?
+
+## Required Flow Map
+
+| Step | User Action | UI Surface | Backend/API | Auth/Session | Data/Side Effect | Feedback | Evidence |
+|---|---|---|---|---|---|---|---|
+| 1 | {{USER_ACTION}} | {{UI_SURFACE}} | {{BACKEND_API}} | {{AUTH_CONTEXT}} | {{DATA_EFFECT}} | {{USER_FEEDBACK}} | {{EVIDENCE}} |
+
+## Audit Perspectives
+
+- user intent continuity
+- frontend route and action wiring
+- backend endpoint existence
+- request/response contract match
+- authentication, authorization, and session continuity
+- data persistence or side effect correctness
+- loading, empty, validation, success, and error states
+- observability for the flow
+- objective fidelity against `MISSION.md` or product anchor
+
+## Blocking Rule
+
+For VibOS Comp, the core user flow blocks completion if it is unproven, mock-only, broken across frontend/backend, missing auth continuity, or materially drifted from the original mission.

@@ -42,6 +42,12 @@ If `$ARGUMENTS` specifies a phase number, use that. Otherwise:
 
 ### Step 2: Run All Quality Gates
 
+If long-run autonomy is active, record a checkpoint heartbeat before running the gate suite:
+
+```bash
+python3 ".vibeos/scripts/autonomy-heartbeat.py" --status checkpoint --summary "phase checkpoint started" --next-action "run full checkpoint gates and audits"
+```
+
 Run the full gate suite on the entire codebase:
 ```bash
 bash ".vibeos/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"
@@ -51,9 +57,9 @@ Collect results: pass/fail per gate, total pass count.
 
 ### Step 3: Run Full Audit Cycle
 
-Dispatch all 8 audit agents following the same protocol as `skills/audit/SKILL.md`:
+Dispatch audit agents following the same protocol as `skills/audit/SKILL.md`:
 
-1. Dispatch all 8 agents (security, architecture, correctness, test, evidence, product-drift, red-team, contract-validator)
+1. Dispatch agents (security, architecture, correctness, test, evidence, product-drift, flow, system-invariant, dependency-intelligence, delivery-infrastructure, red-team, contract-validator)
 2. Collect structured findings from each
 3. Apply consensus logic (2+ agents = true positive, 1 = warning)
 4. Generate composite findings list

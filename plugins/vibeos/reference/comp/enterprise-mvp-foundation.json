@@ -1,0 +1,207 @@
+{
+  "schema_version": "1.0",
+  "name": "Enterprise MVP Foundation Blueprint",
+  "thresholds": {
+    "local_proof": {
+      "description": "Private demo with no real users and no real sensitive data.",
+      "minimum": "Runnable, testable, honest about missing production controls, and free of secrets or stubs."
+    },
+    "design_partner_mvp": {
+      "description": "External review, pilot, competition, or enterprise design-partner engagement.",
+      "minimum": "Full baseline required unless a deferral is explicit, low risk, and user-approved."
+    },
+    "production_ready": {
+      "description": "Real customers, revenue, regulated data, or operational dependency.",
+      "minimum": "Full baseline plus hardened operations, rollback, incident response, and compliance evidence."
+    }
+  },
+  "requirements": [
+    {
+      "id": "IAM-001",
+      "domain": "identity_access",
+      "title": "Authentication and session boundary",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Define how users authenticate, how sessions or tokens expire, and which endpoints or screens are public.",
+      "evidence": ["auth design note", "route inventory", "integration or smoke test"],
+      "gates": ["validate-auth-boundaries.sh", "validate-security-patterns.sh"],
+      "scorecard_field": "security.auth_boundary",
+      "deferral_rule": "May be deferred only for local proof with no accounts, no sensitive data, and no external network exposure."
+    },
+    {
+      "id": "IAM-002",
+      "domain": "identity_access",
+      "title": "Authorization and ownership checks",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Every user-owned resource must enforce ownership, role, or tenant checks before read or write access.",
+      "evidence": ["authorization tests", "route or policy map", "security audit notes"],
+      "gates": ["validate-auth-boundaries.sh", "validate-tenant-isolation.sh"],
+      "scorecard_field": "security.authorization",
+      "deferral_rule": "Cannot be deferred when user data, tenant data, or admin actions exist."
+    },
+    {
+      "id": "DAT-001",
+      "domain": "data_integrity",
+      "title": "Schema, migrations, and constraints",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Persistent data must have explicit schema, migration path, required constraints, and seed or fixture strategy.",
+      "evidence": ["migration files", "schema review", "data integrity tests"],
+      "gates": ["validate-data-integrity.sh", "validate-production-readiness.sh"],
+      "scorecard_field": "quality.data_integrity",
+      "deferral_rule": "May be simplified for local proof only when using ephemeral storage with no user promise of persistence."
+    },
+    {
+      "id": "DAT-002",
+      "domain": "data_integrity",
+      "title": "Input validation and predictable errors",
+      "minimum_threshold": "local_proof",
+      "requirement": "All public inputs must be validated and invalid states must return predictable, non-leaky errors.",
+      "evidence": ["validation tests", "API contract", "error-state screenshots or logs"],
+      "gates": ["validate-api-contracts.sh", "validate-security-patterns.sh"],
+      "scorecard_field": "quality.input_validation",
+      "deferral_rule": "Cannot be deferred for public interfaces."
+    },
+    {
+      "id": "FLW-001",
+      "domain": "flow_integrity",
+      "title": "Primary user-flow proof",
+      "minimum_threshold": "local_proof",
+      "requirement": "The mission-critical user flow must be traceable from objective to UI or entry point, backend/API, auth/session context, data or side effect, feedback state, and evidence.",
+      "evidence": ["flow map", "critical-path end-to-end test", "flow audit report", "screenshots or logs"],
+      "gates": ["validate-flow-integrity.py", "validate-api-contracts.sh", "validate-tests-pass.sh"],
+      "scorecard_field": "functionality.user_flow_integrity",
+      "deferral_rule": "Cannot be deferred for the core workflow; narrow scope instead."
+    },
+    {
+      "id": "INV-001",
+      "domain": "system_invariants",
+      "title": "System invariants and state safety",
+      "minimum_threshold": "local_proof",
+      "requirement": "Define and enforce the state, ownership, data integrity, idempotency, side-effect, recovery, and auditability rules that must never be violated by the core workflow.",
+      "evidence": ["invariant map", "negative tests", "retry or idempotency tests", "system invariant audit report"],
+      "gates": ["validate-system-invariants.py", "validate-data-integrity.sh", "validate-auth-boundaries.sh"],
+      "scorecard_field": "quality.system_invariants",
+      "deferral_rule": "Cannot be deferred for invariants that protect user data, durable state, external side effects, or recovery."
+    },
+    {
+      "id": "SEC-001",
+      "domain": "security",
+      "title": "Secrets and configuration hygiene",
+      "minimum_threshold": "local_proof",
+      "requirement": "No hardcoded secrets; configuration must come from environment, managed config, or documented local examples.",
+      "evidence": ["secret scan output", "env example", "configuration docs"],
+      "gates": ["validate-no-secrets.sh", "validate-env-completeness.sh"],
+      "scorecard_field": "security.secret_hygiene",
+      "deferral_rule": "Cannot be deferred."
+    },
+    {
+      "id": "SEC-002",
+      "domain": "security",
+      "title": "Abuse and injection resistance",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Identify likely abuse paths and guard against injection, path traversal, unsafe redirects, unsafe deserialization, and broad CORS defaults.",
+      "evidence": ["threat model", "security audit", "negative tests"],
+      "gates": ["validate-security-patterns.sh", "validate-owasp-alignment.sh"],
+      "scorecard_field": "security.abuse_resistance",
+      "deferral_rule": "Cannot be deferred for externally reachable systems."
+    },
+    {
+      "id": "TST-001",
+      "domain": "testing",
+      "title": "Critical-path test pyramid",
+      "minimum_threshold": "local_proof",
+      "requirement": "Cover core behavior with unit tests, integration or contract tests, and at least one smoke or end-to-end path where applicable.",
+      "evidence": ["test command output", "coverage summary", "smoke or e2e output"],
+      "gates": ["validate-tests-required.sh", "validate-tests-pass.sh", "detect-testing-antipatterns.py"],
+      "scorecard_field": "quality.test_coverage",
+      "deferral_rule": "Cannot be deferred for core workflow behavior."
+    },
+    {
+      "id": "OBS-001",
+      "domain": "observability_operations",
+      "title": "Logs, metrics, health, and traceability",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Expose health status, structured logs, meaningful errors, and metrics or request IDs sufficient to debug the core workflow.",
+      "evidence": ["health endpoint output", "sample logs", "metrics or trace sample"],
+      "gates": ["validate-observability.sh", "validate-logging-patterns.sh"],
+      "scorecard_field": "operations.observability",
+      "deferral_rule": "May be reduced for local proof, but errors and logs must still be useful."
+    },
+    {
+      "id": "OPS-001",
+      "domain": "deployment_release",
+      "title": "Deploy, rollback, and runbook path",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Document how to run, deploy, smoke test, roll back, and diagnose the system.",
+      "evidence": ["README or runbook", "smoke-test output", "deployment manifest"],
+      "gates": ["validate-production-readiness.sh", "validate-infrastructure-manifest.sh", "smoke-test.sh"],
+      "scorecard_field": "operations.release_hygiene",
+      "deferral_rule": "Local proof may document local run commands only; external demos need smoke and rollback notes."
+    },
+    {
+      "id": "OPS-002",
+      "domain": "deployment_release",
+      "title": "CI/CD and observable delivery infrastructure",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Define CI/CD or a local-proof substitute that runs tests, gates, dependency/security checks, build, deployment or deployability proof, environment/secrets checks, health/smoke checks, observability evidence, and rollback/runbook notes.",
+      "evidence": ["delivery infrastructure evidence", "pipeline config", "deployment config", "smoke/health output", "rollback/runbook notes"],
+      "gates": ["validate-delivery-infrastructure.py", "validate-observability.sh", "validate-production-readiness.sh"],
+      "scorecard_field": "operations.delivery_infrastructure",
+      "deferral_rule": "Cannot be deferred for design-partner MVP, judged demos, external pilots, or any system with external network exposure."
+    },
+    {
+      "id": "UX-001",
+      "domain": "frontend_experience",
+      "title": "Usable UI states",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Frontend workflows must include loading, empty, success, validation, and error states without layout breaks.",
+      "evidence": ["screenshots", "frontend tests", "manual QA notes"],
+      "gates": ["validate-production-readiness.sh", "validate-documentation-completeness.sh"],
+      "scorecard_field": "experience.ui_completeness",
+      "deferral_rule": "Not applicable to headless APIs; otherwise do not defer for judged demos."
+    },
+    {
+      "id": "PERF-001",
+      "domain": "performance_scalability",
+      "title": "Explicit performance budget",
+      "minimum_threshold": "design_partner_mvp",
+      "requirement": "Define latency, page weight, data volume, and concurrency assumptions for the core workflow.",
+      "evidence": ["performance budget", "load or timing output", "bundle analysis where applicable"],
+      "gates": ["validate-production-readiness.sh", "validate-resilience-patterns.sh"],
+      "scorecard_field": "performance.budget",
+      "deferral_rule": "May use estimates for local proof; design-partner MVP needs measured core-path evidence."
+    },
+    {
+      "id": "DEP-001",
+      "domain": "dependencies_supply_chain",
+      "title": "Dependency freshness and vulnerability posture",
+      "minimum_threshold": "local_proof",
+      "requirement": "Dependencies must be real, current, pinned or lockfile-backed, and scanned for known vulnerabilities where tooling exists.",
+      "evidence": ["lockfile", "dependency audit output", "freshness notes with verification date"],
+      "gates": ["validate-dependency-versions.sh", "validate-dependencies.sh"],
+      "scorecard_field": "security.supply_chain",
+      "deferral_rule": "Cannot be deferred when external packages are added."
+    },
+    {
+      "id": "DEP-002",
+      "domain": "dependencies_supply_chain",
+      "title": "Current dependency evidence and compatibility",
+      "minimum_threshold": "local_proof",
+      "requirement": "High-impact dependencies must have current docs, registry, release-note, or changelog evidence; runtime and package-manager compatibility; lockfile-backed install proof; audit output; and an upgrade path.",
+      "evidence": ["dependency intelligence evidence", "research registry", "install/build/audit output", "lockfile"],
+      "gates": ["validate-dependency-intelligence.py", "validate-dependency-versions.sh", "validate-dependencies.sh"],
+      "scorecard_field": "security.dependency_intelligence",
+      "deferral_rule": "Cannot be deferred when auth, security, payments, database, AI SDK, deployment, or public-interface packages are added or upgraded."
+    },
+    {
+      "id": "EVD-001",
+      "domain": "documentation_evidence",
+      "title": "Evidence-backed completion claims",
+      "minimum_threshold": "local_proof",
+      "requirement": "Every complete claim must map to a command, artifact, screenshot, log, source, or explicit accepted deferral.",
+      "evidence": ["scorecard evidence", "test output", "audit report", "deviation log"],
+      "gates": ["validate-evidence-bundle.sh", "validate-wo-status-integrity.sh", "validate-audit-completeness.sh"],
+      "scorecard_field": "evidence.claim_integrity",
+      "deferral_rule": "Cannot be deferred."
+    }
+  ]
+}

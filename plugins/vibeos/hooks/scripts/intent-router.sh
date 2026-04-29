@@ -195,6 +195,12 @@ classify_intent() {
     return
   fi
 
+  # VibOS Comp / enterprise MVP mission intake
+  if printf '%s' "$lower" | grep -qE '\b(vibos comp|vibeos comp|battle harness|competition[- ]grade|enterprise mvp|enterprise-grade mvp|production-grade mvp|design[- ]partner (mvp|prototype)|rapid production-quality prototype|serious mvp)\b'; then
+    echo "comp|comp|high"
+    return
+  fi
+
   # Continue / Resume — highest priority when building
   if printf '%s' "$lower" | grep -qE '\b(continue|keep going|resume|carry on|pick up where|next one|go ahead)\b'; then
     echo "continue|build|high"

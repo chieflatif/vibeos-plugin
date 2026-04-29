@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "stack": "typescript-node",
+  "currency_pack": "typescript_node",
+  "applies_to": ["api", "fullstack", "worker"],
+  "baseline": {
+    "runtime": "Current LTS Node.js with TypeScript strict mode where practical.",
+    "api_contract": "OpenAPI, typed route schemas, or equivalent request/response contracts.",
+    "data": "Migration-backed database access with constraints and ownership checks.",
+    "testing": ["unit", "integration", "contract", "smoke"],
+    "observability": ["structured logger", "request id", "health endpoint", "metrics endpoint or hosted equivalent"],
+    "security": ["helmet or equivalent headers", "CORS allowlist", "rate limiting when public", "dependency audit"]
+  },
+  "evidence_commands": [
+    "npm test",
+    "npm run lint",
+    "npm audit --audit-level=high",
+    "npm run build"
+  ],
+  "freshness_policy": "Verify current package docs, Node.js support status, package manager behavior, lockfile compatibility, and TypeScript release notes before adding dependencies."
+}

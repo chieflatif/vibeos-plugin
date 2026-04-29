@@ -1,0 +1,37 @@
+# VibOS Comp Delivery Infrastructure
+
+## Purpose
+
+Delivery infrastructure makes the MVP buildable, deployable, observable, manageable, secure, and reversible. It prevents a working local app from being mistaken for a serious enterprise MVP.
+
+## Core Question
+
+Can the system be built, checked, deployed, observed, diagnosed, and rolled back through repeatable code or documented commands?
+
+## Delivery Map
+
+| Area | Decision | Evidence | Status |
+|---|---|---|---|
+| CI/CD platform | {{CI_CD_PLATFORM}} | {{CI_CD_EVIDENCE}} | {{CI_CD_STATUS}} |
+| Build artifact | {{BUILD_ARTIFACT}} | {{BUILD_EVIDENCE}} | {{BUILD_STATUS}} |
+| Deployment target | {{DEPLOYMENT_TARGET}} | {{DEPLOYMENT_EVIDENCE}} | {{DEPLOYMENT_STATUS}} |
+| Environment config | {{ENVIRONMENT_CONFIG}} | {{ENVIRONMENT_EVIDENCE}} | {{ENVIRONMENT_STATUS}} |
+| Secrets handling | {{SECRETS_HANDLING}} | {{SECRETS_EVIDENCE}} | {{SECRETS_STATUS}} |
+| Observability | {{OBSERVABILITY_MODEL}} | {{OBSERVABILITY_EVIDENCE}} | {{OBSERVABILITY_STATUS}} |
+| Smoke and health checks | {{SMOKE_HEALTH_CHECKS}} | {{SMOKE_HEALTH_EVIDENCE}} | {{SMOKE_HEALTH_STATUS}} |
+| Rollback and runbook | {{ROLLBACK_RUNBOOK}} | {{ROLLBACK_EVIDENCE}} | {{ROLLBACK_STATUS}} |
+
+## Required Pipeline Controls
+
+- tests, lint, type checks, or equivalent quality checks
+- dependency and security checks
+- build or artifact generation
+- environment and secrets inventory
+- deploy command or deployment-as-code
+- health and smoke check after deployment or local proof substitute
+- logs, request IDs, metrics/traces, or error reporting sufficient to diagnose the core workflow
+- rollback, redeploy, or recovery note
+
+## Blocking Rule
+
+For VibOS Comp, delivery infrastructure blocks completion if CI/CD, deployment, environment/secrets, observability, smoke/health, rollback, or runbook evidence is missing or purely aspirational.

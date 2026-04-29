@@ -52,6 +52,7 @@ Examples:
 | You say | VibeOS does |
 |---|---|
 | "I want to build a booking app for dog groomers" | Starts discovery and helps shape the product |
+| "Build this as a competition-grade enterprise MVP" | Creates a compact VibOS Comp mission brief |
 | "Make a plan for this" | Creates a phased development plan |
 | "Keep going" | Continues the build loop |
 | "What's the status?" | Gives a tactical update on the current or most recent session |
@@ -65,8 +66,10 @@ Examples:
 ## What It Does
 
 - **Discovery** — Helps turn a rough idea into something clear and buildable
+- **VibOS Comp** — Creates compact enterprise MVP mission briefs and applies a foundation blueprint so scope can shrink without cutting security, observability, tests, delivery infrastructure, dependency intelligence, flow integrity, objective fidelity, or system invariants
 - **Planning** — Breaks the work into phases and work orders so progress stays organized
 - **Building** — Writes tests first, then implements the feature
+- **Long-Run Autonomy** — Supports deliberate 24-48 hour autonomous runs with durable heartbeats, checkpoints, audit cadence, run leases, safe resume-plan execution, generated scheduler profiles, scheduler guards, disposable smoke tests, Codex/Claude runtime handoff plans, stale-run detection, failure-loop detection, recovery planning, evidence-backed recovery resolution, and resumable handoff state
 - **Quality Checks** — Runs automated checks and audits so problems get caught early
 - **Session Audits** — Reviews the current or most recent build session end-to-end so you can close out autonomous work with confidence
 - **Evidence Recall** — Builds a local source-cited index so status, build, audit, and planning work can find the right prior evidence with less context
@@ -108,17 +111,17 @@ We maintain a [custom marketplace catalog](https://github.com/chieflatif/vibeos-
 
 ### Codex (Experimental)
 
-Codex support is available but limited. Codex does not support hooks, subagent spawning, or runtime enforcement — it gets structured instructions and shared gate scripts but not the full enforcement layer that Claude Code gets. Think of it as "guided mode" vs. the full "enforced mode."
+Codex support is available but capability-dependent. Current Codex versions can support subagents, hooks, skills, worktrees, plugins, and app workflows, but VibeOS must detect what is actually available in the local runtime before choosing an orchestration strategy. Codex still does not get Claude Code hook parity, so VibeOS keeps explicit gates and Git commit-boundary hooks as the cross-runtime enforcement baseline.
 
 ```bash
 bash /path/to/vibeos-plugin/vibeos-init-codex.sh
 ```
 
-This installs `AGENTS.md`, `.codex/skills/`, `.codex/agents/` (as role contracts), and the shared `.vibeos/` runtime alongside any existing `.claude/` setup.
+This installs `AGENTS.md`, repo-scoped `.agents/skills/`, Codex-native `.codex/agents/*.toml`, compatible `.codex/hooks.json`, legacy role contracts, and the shared `.vibeos/` runtime alongside any existing `.claude/` setup.
 
-**What Codex gets:** Structured build instructions, quality gate scripts (run manually), decision engine, reference materials, and role contracts for each build phase.
+**What Codex gets:** Structured build instructions, quality gate scripts, runtime capability detection, decision engine, reference materials, Codex-native agent definitions, hooks where supported, and legacy role contracts for fallback.
 
-**What Codex does not get:** Intent routing hooks, secrets scanning, test file protection, parallel audit agents, or automatic enforcement boundaries. These require Claude Code's hook and subagent system.
+**What Codex does not get by default:** Claude-equivalent hook parity, full intent routing, test file protection, or complete automatic write-time enforcement. The Codex install includes lightweight governance, secret-scan, and worktree hooks where the local runtime supports them. Run `.vibeos/scripts/detect-runtime-capabilities.sh` in installed projects before claiming Codex subagent, hook, worktree, or automation support.
 
 ### Upgrade
 
@@ -200,6 +203,7 @@ Slash commands still work if you prefer them, but they are optional:
 | Command | Description |
 |---|---|
 | `/discover` | Product discovery — idea to product artifacts |
+| `/comp` | Compact enterprise MVP mission brief |
 | `/plan` | Generate development plan with governance |
 | `/build` | Autonomous build loop |
 | `/autonomous` | Full autonomous session override |
@@ -221,20 +225,28 @@ Most people do not need to think about this section day to day, but this is what
 ```
 your-project/
 ├── AGENTS.md              ← Codex instructions (if Codex bootstrap used, experimental)
-├── .codex/                ← Codex-local skills and role contracts (no runtime enforcement)
-│   ├── skills/            ← 12 VibeOS Codex skills (instruction-based, not hook-enforced)
-│   └── agents/            ← Role contracts (read by agent, not spawned as subagents)
+├── .agents/               ← Repo-scoped Codex skills
+│   └── skills/            ← 13 VibeOS Codex skills
+├── .codex/                ← Codex-native project config, agents, hooks, and legacy fallback contracts
+│   ├── config.toml        ← Codex hook feature flag and agent concurrency settings
+│   ├── hooks.json         ← Codex-compatible guardrail hooks
+│   ├── hooks/             ← Hook scripts for governance, secrets, and worktree safety
+│   ├── agents/            ← Codex-native TOML subagents
+│   ├── agent-contracts/   ← Legacy Markdown role contracts
+│   └── skills/            ← Legacy skill mirror for older Codex surfaces
 ├── .claude/               ← Claude/Cursor surface (full enforcement)
 │   ├── CLAUDE.md          ← Agent instructions and routing rules
 │   ├── settings.json      ← Hooks configuration
-│   ├── skills/            ← 14 skills (discover, plan, build, upgrade, codex-audit, status, project-status, etc.)
-│   ├── agents/            ← 23 specialized subagents (15 base + 8 same-tree variants)
+│   ├── skills/            ← 15 skills (discover, comp, plan, build, upgrade, codex-audit, status, project-status, etc.)
+│   ├── agents/            ← 32 specialized subagents (20 base + 12 same-tree variants)
 │   └── hooks/             ← 11 hook scripts (intent routing, governance, proof, budget, scope)
 ├── .vibeos/               ← Shared runtime used by both surfaces
-│   ├── scripts/           ← 64 quality gate and utility scripts
+│   ├── scripts/           ← 89 quality gate and utility scripts
 │   ├── cache/             ← Generated local evidence recall index
+│   ├── autonomy/          ← Generated long-run heartbeat and resume evidence
+│   ├── runtime-capabilities.json ← Generated local Codex/Claude capability matrix
 │   ├── decision-engine/   ← 10 decision trees
-│   ├── reference/         ← 85 annotated reference files plus prompt-engineering guidance
+│   ├── reference/         ← 122 annotated reference files plus prompt-engineering guidance
 │   └── convergence/       ← 5 scripts that prevent infinite build loops
 └── docs/
     ├── planning/          ← Generated development plan and work orders
@@ -246,7 +258,7 @@ your-project/
 ## Requirements
 
 - Claude Code (CLI or Cursor IDE) — full enforcement
-- OpenAI Codex — experimental, instruction-only (no hooks or subagents)
+- OpenAI Codex — experimental, capability-detected support
 - bash 3.2+
 - python3 3.7+
 - jq
@@ -295,7 +307,7 @@ Say:
 
 > "Go autonomous"
 
-That tells VibeOS to stop routine check-ins for the current session and keep building until it hits a real blocker, needs a decision, or finishes the available work.
+That tells VibeOS to stop routine check-ins for the current session and keep building until it hits a real blocker, needs a decision, or finishes the available work. For deliberate 24-48 hour runs, VibeOS records heartbeat, checkpoint, and audit evidence so another session can resume from durable state instead of relying on memory.
 
 ### How do I audit everything it did in a session?
 

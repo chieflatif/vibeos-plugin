@@ -1,0 +1,164 @@
+# Long-Run Autonomy Control Plane
+
+Use this reference when a VibeOS project is expected to run autonomously for 24-48 hours.
+
+## Core Principle
+
+Long-run autonomy is not a promise that one model context will stay alive forever. It is a resumable operating protocol: every loop records state, evidence, next action, and stop conditions so Claude, Codex, or a later session can continue without losing the thread.
+
+## Required Runtime State
+
+| Artifact | Purpose |
+|---|---|
+| `.vibeos/config.json` | Stores long-run policy, cadence, and stop conditions |
+| `.vibeos/session-state.json` | Stores active run id, current WO, iteration, heartbeat, checkpoint, and audit timestamps |
+| `.vibeos/autonomy/heartbeats/*.json` | Durable heartbeat evidence for each loop |
+| `.vibeos/autonomy/run-lease.json` | Active lease for the current autonomy driver |
+| `.vibeos/autonomy/last-lease.json` | Last acquired and released lease evidence |
+| `.vibeos/autonomy/lease-conflict.json` | Latest blocked concurrent driver attempt |
+| `.vibeos/autonomy/loop-state.json` | Latest scheduler-safe loop tick state |
+| `.vibeos/autonomy/loop-history.jsonl` | Append-only loop tick history for stuck-loop detection |
+| `.vibeos/autonomy/resume-plan.json` | Supervisor decision and next command plan |
+| `.vibeos/autonomy/runner-report.json` | Runner classification, execution, blocked-command, and handoff report |
+| `.vibeos/autonomy/runtime-adapter-plan.json` | Planned or executed Codex/Claude runtime handoff command |
+| `.vibeos/autonomy/runtime-adapter-history.jsonl` | Append-only runtime handoff history for repeated failure detection |
+| `.vibeos/autonomy/failure-report.json` | Failure detector report for loops, blocked runners, lease conflicts, and provider/session limits |
+| `.vibeos/autonomy/recovery-plan.json` | Plan-only recovery actions for detected autonomy failures |
+| `.vibeos/autonomy/recovery-resolution.json` | Evidence-backed resolution state for recovery-plan actions |
+| `.vibeos/autonomy/recovery-resolution-history.jsonl` | Append-only history of recorded recovery resolutions |
+| `.vibeos/autonomy/scheduler-guard-report.json` | Pre-tick guard report that blocks unresolved recovery loops |
+| `.vibeos/autonomy/scheduler-profile.json` | Generated scheduler profile manifest |
+| `.vibeos/autonomy/smoke-report.json` | Disposable autonomy smoke-test report |
+| `.vibeos/autonomy/supervisor-state.json` | Latest supervisor decision summary |
+| `.vibeos/checkpoints/WO-*.json` | Mid-WO resume state |
+| `.vibeos/build-log.md` | Plain chronological event log |
+| `.vibeos/session-audits/` | Long-run closeout and periodic audit reports |
+
+## Default Policy
+
+| Control | Default |
+|---|---|
+| Target duration | 24 hours |
+| Hard maximum | 48 hours |
+| Heartbeat cadence | Every 30 minutes or after every material loop step |
+| Checkpoint cadence | Every 60 minutes or after each agent/work package boundary |
+| Audit cadence | Every 180 minutes or at each phase boundary |
+| Supervisor poll cadence | Every 15 minutes or after every material tool/runtime boundary |
+| Loop iteration ceiling | 512 loop decisions before forced review |
+| Failure detector repeat threshold | 3 repeated no-progress loop outcomes |
+| Failure detector consecutive failure threshold | 2 consecutive blocked or failed control-plane attempts |
+| Recovery planner default | Plan-only actions; no automatic provider launch or lease cleanup |
+| Recovery resolution default | Evidence-backed action resolution bound to the current recovery plan generation |
+| Scheduler guard default | Block loop ticks while recovery-plan actions lack matching resolution evidence |
+| Loop entrypoint default | One scheduler-safe tick; no sleeping unless explicitly requested |
+| Loop lease TTL | 30 minutes by default |
+| Runtime adapter lease TTL | 6 hours by default |
+| Runner default | Dry-run classification; execute only with `--execute` |
+| Runtime adapter default | Dry-run handoff plan; launch only with `--execute` |
+| Scheduler profile default | Generate reviewed profile files only; do not install system jobs |
+| Smoke test default | Disposable target; no model runtime launch |
+| Human update cadence | Only at real blockers, explicit risk decisions, phase closeout, or user-requested status |
+
+## Mandatory Stop Conditions
+
+Autonomous mode must pause or stop when any of these happen:
+
+- Security, secret, privacy, or credential risk appears
+- Destructive or irreversible action would be required
+- Product objective or user-flow intent is unclear
+- Gates or audits fail repeatedly after the configured retry ceiling
+- Provider/session limit, context exhaustion, tool failure, or runtime launch failure appears
+- Repeated handoff, repeated lease conflict, or repeated no-progress loop appears
+- The plan is complete or no eligible Work Order remains
+
+## Long-Run Loop
+
+1. Refresh runtime capabilities.
+2. Select the next eligible Work Order.
+3. Record or refresh `.vibeos/session-state.json`.
+4. For scheduler-driven operation, run `.vibeos/scripts/autonomy-scheduler-guard.py` before another tick.
+5. Run one `.vibeos/scripts/autonomy-loop.py` tick only when the scheduler guard passes.
+6. Otherwise, ask `.vibeos/scripts/autonomy-supervisor.py` for the next action.
+7. Classify the supervisor plan with `.vibeos/scripts/autonomy-runner.py`.
+8. Execute only allowlisted local VibeOS script commands with `--execute`; treat Codex/Claude continuation text as handoff-required model work.
+9. Record a heartbeat with `.vibeos/scripts/autonomy-heartbeat.py` when the supervisor asks for it.
+10. Run `.vibeos/scripts/autonomy-failure-detector.py` when a scheduler, adapter, runner, or handoff path repeats.
+11. If failures are detected, run `.vibeos/scripts/autonomy-recovery-planner.py`.
+12. Record evidence-backed action resolution with `.vibeos/scripts/autonomy-recovery-resolution.py` before scheduling another tick.
+13. Execute the next build/audit step.
+14. Save a checkpoint after every agent, work package, or material state change.
+15. Run gates at WO and phase boundaries.
+16. Run session or checkpoint audits on cadence.
+17. Record the next heartbeat with the next action.
+18. Continue until a mandatory stop condition or plan completion.
+
+## Loop Entrypoint
+
+`autonomy-loop.py` is the scheduler-friendly wrapper around the supervisor and runner. By default it runs one tick, writes `.vibeos/autonomy/loop-state.json`, and exits. With `--execute`, it lets the runner execute only allowlisted local VibeOS scripts. When model continuation is required, it reports `handoff_required` instead of pretending a shell script can perform Codex or Claude reasoning.
+
+## Run Leases
+
+`autonomy-loop.py` and `autonomy-runtime-adapter.py` both acquire `.vibeos/autonomy/run-lease.json` before mutating long-run control state. If another driver owns a live lease, the new driver exits with `lease_conflict` and writes `.vibeos/autonomy/lease-conflict.json`. Expired leases are recovered automatically and recorded in `.vibeos/autonomy/last-lease.json`.
+
+## Runtime Adapter
+
+`autonomy-runtime-adapter.py` reads `.vibeos/runtime-capabilities.json`, `.vibeos/autonomy/loop-state.json`, and `.vibeos/autonomy/runner-report.json`, then writes a Codex or Claude handoff plan to `.vibeos/autonomy/runtime-adapter-plan.json`. It is dry-run by default. With `--execute`, it launches the selected local runtime using stdin prompt handoff and captures the result in the adapter plan.
+
+## Failure Detector
+
+`autonomy-failure-detector.py` reads loop history, runtime-adapter history, runner reports, runtime adapter reports, and lease conflicts, then writes `.vibeos/autonomy/failure-report.json`. It fails only on operational issues: repeated handoff loops, repeated no-progress decisions, consecutive blocked/failed control-plane attempts, active lease conflicts, blocked runners, failed runtime launches, and provider/session limit signals. It is not a token, cost, or elapsed-time budget gate.
+
+## Recovery Planner
+
+`autonomy-recovery-planner.py` reads `.vibeos/autonomy/failure-report.json` and writes `.vibeos/autonomy/recovery-plan.json`. It maps each blocking issue class to a plan-only response: runtime handoff, no-progress inspection, scheduler pause, lease conflict resolution, resume-plan repair, runtime capability refresh, or fresh provider/session resume. It does not clear leases, install schedulers, or launch providers automatically.
+
+## Recovery Resolution
+
+`autonomy-recovery-resolution.py` records evidence that a specific recovery-plan action has been resolved. Resolutions are bound to the current `recovery-plan.json` generation, require a non-empty summary and evidence, write `.vibeos/autonomy/recovery-resolution.json`, and append `.vibeos/autonomy/recovery-resolution-history.jsonl`. It does not edit or clear the recovery plan; it supplies the evidence the scheduler guard needs to unblock the next tick.
+
+## Scheduler Guard
+
+`autonomy-scheduler-guard.py` reads `.vibeos/autonomy/recovery-plan.json` and `.vibeos/autonomy/recovery-resolution.json`, then writes `.vibeos/autonomy/scheduler-guard-report.json`. It exits blocked when recovery actions lack matching resolution evidence for the current recovery plan generation, or when a blocking failure report exists without a recovery plan. Generated scheduler profiles call it before the loop tick, and `autonomy-loop.py` also blocks directly unless invoked with `--ignore-scheduler-guard` for reviewed recovery work.
+
+## Scheduler Profiles And Smoke
+
+`autonomy-scheduler-profile.py` generates shell, cron, launchd, and GitHub Actions profile files under `.vibeos/autonomy/scheduler/`. It does not install them into the operating system or CI provider. `autonomy-smoke.py` creates or uses a disposable target and runs the heartbeat, loop, runtime-adapter planning, validation, failure-detector, recovery-planner, recovery-resolution, and scheduler-guard path before a scheduler profile is installed.
+
+## Runner Safety
+
+`autonomy-runner.py` is intentionally not a general shell runner. It only executes allowlisted VibeOS scripts directly under `.vibeos/scripts` and reports all model-continuation instructions as handoff-required work. It writes `.vibeos/autonomy/runner-report.json` so a reviewer can see what was executed, skipped, blocked, or handed back to the active runtime.
+
+## Reviewer Standard
+
+A 24-48 hour autonomous run is not credible unless a reviewer can answer:
+
+- What was the system trying to accomplish?
+- What was active at each heartbeat?
+- What did it complete?
+- What did it defer?
+- Which gates and audits ran?
+- What failed, what was retried, and what stopped the run?
+- Can another runtime resume from the last heartbeat and checkpoint?
+
+## Commands
+
+```bash
+python3 ".vibeos/scripts/autonomy-heartbeat.py" --status running --summary "starting loop" --next-action "select next WO"
+python3 ".vibeos/scripts/autonomy-heartbeat.py" --status checkpoint --summary "WO checkpoint saved"
+python3 ".vibeos/scripts/autonomy-loop.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-loop.py" --project-dir "." --execute --json
+python3 ".vibeos/scripts/autonomy-loop.py" --project-dir "." --lease-owner "scheduler-1" --json
+python3 ".vibeos/scripts/autonomy-runtime-adapter.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-runtime-adapter.py" --project-dir "." --provider codex --execute --json
+python3 ".vibeos/scripts/autonomy-failure-detector.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-recovery-planner.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-recovery-resolution.py" --project-dir "." --action-id "RECOVERY-RUNTIME-HANDOFF" --summary "runtime handoff completed" --evidence ".vibeos/autonomy/runtime-adapter-plan.json" --json
+python3 ".vibeos/scripts/autonomy-scheduler-guard.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-scheduler-profile.py" --project-dir "." --profile all --json
+python3 ".vibeos/scripts/autonomy-smoke.py" --runtime-provider codex --json
+python3 ".vibeos/scripts/autonomy-supervisor.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-runner.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-runner.py" --project-dir "." --execute --json
+python3 ".vibeos/scripts/validate-long-run-autonomy.py" --project-dir "."
+python3 ".vibeos/scripts/validate-long-run-autonomy.py" --project-dir "." --require-closed
+```

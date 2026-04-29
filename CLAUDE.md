@@ -10,12 +10,12 @@ A Claude Code plugin that turns Claude into an autonomous, self-governing develo
 .claude-plugin/marketplace.json  ← Marketplace catalog (for plugin install)
 plugins/vibeos/                  ← Plugin root
   .claude-plugin/plugin.json     ← Plugin manifest
-  skills/                        ← 14 user-invocable skills (/vibeos:discover, :plan, :build, :codex-audit, etc.)
-  agents/                        ← 23 specialized subagents (15 base + 8 same-tree variants)
+  skills/                        ← 15 user-invocable skills (/vibeos:discover, :plan, :build, :comp, :codex-audit, etc.)
+  agents/                        ← 32 specialized subagents (20 base + 12 same-tree variants)
   hooks/hooks.json               ← Event-driven enforcement (11 hooks: governance, proof, budget, scope, routing)
-  scripts/                       ← 56 deterministic gate scripts + gate-runner.sh (bash)
+  scripts/                       ← 89 deterministic gate and utility scripts + gate-runner.sh (bash)
   decision-engine/               ← 10 decision tree files (markdown)
-  reference/                     ← 85 annotated reference files
+  reference/                     ← 122 annotated reference files
   convergence/                   ← Loop control scripts (state hashing, convergence checks)
   docs/                          ← User communication contract
 docs/planning/                   ← Development plan, WO index, individual WO files
@@ -26,13 +26,18 @@ vibeos-init.sh                   ← Bootstrap script (alternative install metho
 
 1. **Subagents cannot spawn subagents** — only the main thread dispatches agents
 2. **Audit agents are read-only** — `disallowedTools: Write, Edit, Agent` + `isolation: worktree`
-3. **Same-tree audit agents** — 8 agent variants that run in the current worktree for session-scoped review without isolation overhead
+3. **Same-tree audit agents** — 12 agent variants that run in the current worktree for session-scoped review without isolation overhead
 4. **Tests are written from spec, not code** — tester agent never sees implementation
 5. **Implementation agents cannot modify test files** — enforced by PreToolUse hook
 6. **No external frameworks** — pure Claude Code plugin system (skills + hooks + agents)
 7. **All scripts are bash 3.2+ compatible** — macOS default, no external dependencies
 8. **Audit visibility modes** — three modes: inline (same-tree agent), isolated (fresh worktree), codex (external Codex CLI)
 9. **Parallel worktree scope enforcement** — worktree-scope-guard.sh blocks writes outside the assigned WO scope when agents run in parallel worktrees
+10. **Flow integrity is first-class** — Comp missions, WOs, tests, audits, and scorecards must preserve the primary user journey and original objective
+11. **System invariants are first-class** — state, ownership, side-effect, retry, recovery, and auditability rules must be explicit and evidenced
+12. **Dependency intelligence is first-class** — dependency choices must have current-source evidence, compatibility proof, lockfile discipline, security audit output, and an upgrade path
+13. **Delivery infrastructure is first-class** — CI/CD, deployment, observability, environment/secrets, smoke checks, rollback, and runbooks must be explicit and evidenced
+14. **Long-run autonomy is resumable** — 24-48 hour runs require heartbeat evidence, checkpoints, audit cadence, stale-run detection, evidence-backed recovery resolution, and explicit terminal state
 
 ## Technology
 
@@ -49,7 +54,7 @@ vibeos-init.sh                   ← Bootstrap script (alternative install metho
 - Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
-- Version: `FRAMEWORK_VERSION="2.1.0"` in every script
+- Version: `FRAMEWORK_VERSION="2.2.0"` in current scripts
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
 - State files: `.vibeos/session-state.json` tracks active session context; `.claude/quality-gate-manifest.json` is the authoritative gate registry
@@ -76,6 +81,7 @@ Not every message should trigger a skill. Use these rules:
 
 - **File paths, line numbers, error messages, code snippets** → Help directly. Do not invoke a skill.
 - **Conceptual questions** ("what is ratcheting?", "how do phases work?") → Invoke `/vibeos:help`.
+- **Competition-grade enterprise MVPs, design-partner prototypes, or VibOS Comp requests** → Invoke `/vibeos:comp`.
 - **Product ideas or feature requests** → Invoke `/vibeos:discover` (new project) or `/vibeos:wo` (existing project with plan).
 - **"Continue", "next", "keep going"** → Invoke `/vibeos:build`.
 - **"Upgrade", "update the framework", "pulled the latest"** → Invoke `/vibeos:upgrade`.

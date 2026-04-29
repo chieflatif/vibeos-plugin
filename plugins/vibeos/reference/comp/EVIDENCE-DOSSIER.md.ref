@@ -1,0 +1,37 @@
+# VibOS Comp Evidence Dossier
+
+## Executive Summary
+
+{{EXECUTIVE_SUMMARY}}
+
+## Claim States
+
+| Claim | State | Evidence |
+|---|---|---|
+| {{CLAIM}} | proven / partial / deferred / overridden | {{EVIDENCE_LINK}} |
+
+## Artifact Index
+
+| Artifact | Purpose | Status |
+|---|---|---|
+| `MISSION.md` | Mission and foundation baseline | {{MISSION_STATUS}} |
+| `COMP-PLAN.md` | Work package and worktree plan | {{COMP_PLAN_STATUS}} |
+| `SCORECARD.md` | Dimension scorecard | {{SCORECARD_STATUS}} |
+| `docs/evidence/FLOW-INTEGRITY.md` | Primary user-flow and objective fidelity evidence | {{FLOW_INTEGRITY_STATUS}} |
+| `docs/evidence/SYSTEM-INVARIANTS.md` | System invariant and state safety evidence | {{SYSTEM_INVARIANTS_STATUS}} |
+| `docs/evidence/DEPENDENCY-INTELLIGENCE.md` | Dependency current-source, compatibility, lockfile, audit, and upgrade evidence | {{DEPENDENCY_INTELLIGENCE_STATUS}} |
+| `docs/evidence/DELIVERY-INFRASTRUCTURE.md` | CI/CD, deployment, observability, smoke, rollback, and runbook evidence | {{DELIVERY_INFRASTRUCTURE_STATUS}} |
+| `docs/evidence/COMP-INTEGRATION-EVIDENCE.md` | Integration evidence | {{INTEGRATION_STATUS}} |
+| `docs/evidence/RED-TEAM-REPORT.md` | Adversarial review | {{RED_TEAM_STATUS}} |
+
+## Speed And Rework Metrics
+
+{{SPEED_AND_REWORK_METRICS}}
+
+## Residual Risks
+
+{{RESIDUAL_RISKS}}
+
+## Completion Boundary
+
+{{COMPLETION_BOUNDARY}}

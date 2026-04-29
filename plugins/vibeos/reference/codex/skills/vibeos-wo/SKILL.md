@@ -29,5 +29,9 @@ bash ".vibeos/scripts/gate-runner.sh" wo_exit --continue-on-failure
 ## Rules
 
 - No WO without a concrete objective and acceptance criteria.
+- For user-facing or Comp work, the WO must identify the primary user-flow step and objective fidelity risk it affects.
+- For durable state, auth, data, jobs, webhooks, retries, or external side effects, the WO must identify the system invariants it affects.
+- For dependency, runtime, package-manager, SDK, framework, lockfile, or high-impact package changes, the WO must identify current-source evidence, compatibility constraints, audit command, and upgrade-path expectations.
+- For CI/CD, deployment, environment/secrets, observability, health/smoke, rollback, runbook, or operational script changes, the WO must identify delivery infrastructure evidence requirements.
 - No WO closeout without evidence.
 - Explain WO status in plain English first, then include identifiers.

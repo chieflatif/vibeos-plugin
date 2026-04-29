@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "name": "VibOS Comp System Invariant Checklist",
+  "lifecycle_integration": {
+    "mission": "MISSION.md names the state, ownership, side-effect, and recovery rules that must always remain true.",
+    "planning": "COMP-PLAN.md maps work packages to invariant ownership and evidence expectations.",
+    "implementation": "Work Orders enforce invariants at durable boundaries, not only in UI or comments.",
+    "testing": "Tests include negative, retry, duplicate-submit, and invalid-transition coverage where relevant.",
+    "auditing": "System Invariant Auditor reviews integrated behavior before completion.",
+    "scorecard": "SCORECARD.md records System Invariants results with evidence links."
+  },
+  "dimensions": [
+    {
+      "id": "invariants.identity_ownership",
+      "question": "Can protected data or actions ever cross identity, role, ownership, or tenant boundaries?",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"],
+      "evidence": ["auth tests", "ownership checks", "route policy map", "negative tests"]
+    },
+    {
+      "id": "invariants.state_transitions",
+      "question": "Are invalid states and skipped transitions impossible or rejected at the durable boundary?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["schema constraints", "domain model tests", "service validation tests"]
+    },
+    {
+      "id": "invariants.data_integrity",
+      "question": "Do schema, constraints, migrations, and service logic preserve required data assumptions?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["migrations", "constraint tests", "data integrity tests"]
+    },
+    {
+      "id": "invariants.idempotency_retry",
+      "question": "Can retries, duplicate submits, jobs, webhooks, or refreshes create duplicate irreversible side effects?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["idempotency tests", "retry tests", "external side-effect logs"]
+    },
+    {
+      "id": "invariants.failure_recovery",
+      "question": "Are partial failures recoverable, compensated, or honestly surfaced without corrupting state?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["failure tests", "rollback notes", "runbook", "error logs"]
+    },
+    {
+      "id": "invariants.auditability",
+      "question": "Can sensitive state changes be explained after the fact?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["audit logs", "event logs", "request IDs", "evidence dossier"]
+    }
+  ]
+}

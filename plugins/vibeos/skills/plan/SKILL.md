@@ -97,7 +97,7 @@ If this is a midstream project (existing code with architecture documents from S
 #### 1c-1. Run Comprehensive Audit
 
 1. **Run quality gates:** Execute `bash ".vibeos/scripts/gate-runner.sh" pre_commit --project-dir "${CLAUDE_PROJECT_DIR:-.}"`. If `.claude/quality-gate-manifest.json` does not exist yet (midstream projects that have never used VibeOS), generate a temporary gate manifest from `project-definition.json` stack info. If that's not possible, run only universal gates (secrets scan, placeholder check, stub detection) and note framework-specific gates as "skipped — manifest not yet generated."
-2. **Dispatch all 8 audit agents** (security, architecture, correctness, test, evidence, product-drift, red-team, contract-validator) following `skills/audit/SKILL.md` protocol. Use `isolation: worktree` for each agent.
+2. **Dispatch the audit agents** (security, architecture, correctness, test, evidence, product-drift, flow, system-invariant, dependency-intelligence, delivery-infrastructure, red-team, contract-validator) following `skills/audit/SKILL.md` protocol. Use `isolation: worktree` for each agent.
 3. **Run language-specific dependency audit** with graceful degradation — if the tool is not installed, skip and note it as "CVE audit skipped: [tool] not found":
    - Node.js: `npm audit --json`
    - Python: `pip-audit --format json` or `safety check`
@@ -640,7 +640,7 @@ Make a recommendation:
 > "I recommend **Option B** (stop after every phase) for this project because [reason based on project complexity, team size, and risk level]. You can change this anytime by saying 'change autonomy level' during a check-in."
 
 Also explain:
-> "If you later want me to stop routine check-ins and just keep building until I hit a real blocker, you can use `/vibeos:autonomous` as a temporary full-autonomous session override."
+> "If you later want me to stop routine check-ins and just keep building until I hit a real blocker, you can use `/vibeos:autonomous` as a temporary full-autonomous session override. For deliberate 24-48 hour runs, VibeOS uses long-run autonomy: heartbeat files, checkpoints, audit cadence, stale-run detection, and closeout validation so the run can resume safely if the runtime is interrupted."
 
 Store the selection in `.vibeos/config.json`:
 
@@ -680,7 +680,7 @@ Report the result:
 >
 > Your first work order is **WO-[NNN]: [title]** — [1-sentence description of what it builds].
 >
-> Run `/vibeos:build` to start. I'll write tests first, then implement the code, run [K] quality checks, and have 8 independent auditors review the result, including red-team adversarial checks and a product-drift check. I'll check in after each [work order/phase] based on your autonomy preference ([level]).
+> Run `/vibeos:build` to start. I'll write tests first, then implement the code, run [K] quality checks, and have independent auditors review the result, including red-team, product-drift, flow-integrity, system-invariant, dependency-intelligence, and delivery-infrastructure checks. I'll check in after each [work order/phase] based on your autonomy preference ([level]).
 >
 > Use `/vibeos:status` anytime for the tactical session view, `/vibeos:project-status` for the overall project briefing, or `/vibeos:gate list` to review your quality gates."
 

@@ -13,7 +13,7 @@
   "_instructions": [
     "REQUIRED: The generated manifest MUST include 'version', 'project', 'tiers', and at least one phase.",
     "ADAPT: Phase selection depends on team_size (solo=5, small=7, enterprise=10 phases).",
-    "ADAPT: Gate selection depends on language, framework, compliance targets.",
+    "ADAPT: Gate selection depends on language, framework, compliance targets, and VibOS Comp readiness threshold.",
     "ADAPT: Environment variables in gate configs must match the project's directory structure.",
     "REQUIRED: Every gate MUST have 'name', 'script', and 'tier' fields.",
     "OPTIONAL: 'env' block on gates passes environment variables to the script.",
@@ -72,6 +72,13 @@
             "REQUIRED_DOCS": "CLAUDE.md docs/planning/DEVELOPMENT-PLAN.md docs/planning/WO-INDEX.md",
             "HEALTH_URL": ""
           }
+        },
+        {
+          "name": "long-run-autonomy-cadence",
+          "script": "scripts/validate-long-run-autonomy.py",
+          "tier": 2,
+          "_comment_OPTIONAL": "Include for projects that use 24-48 hour autonomous runs. Non-blocking at session start; blocking at session end.",
+          "env": {}
         }
       ]
     },
@@ -319,6 +326,80 @@
       ]
     },
 
+    "comp_gauntlet": {
+      "_comment_OPTIONAL_for": "VibOS Comp missions",
+      "description": "Run after Comp implementation or before demo handoff — AI failure modes + enterprise MVP foundation checks",
+      "includes": ["wo_exit"],
+      "gates": [
+        {
+          "name": "comp-ai-failure-modes",
+          "script": "scripts/validate-comp-ai-failure-modes.py",
+          "tier": 1,
+          "_comment": "REQUIRED for VibOS Comp: catches missing mission sections, placeholder mission fields, demo-only claims, and foundation omissions.",
+          "env": {
+            "THRESHOLD": "design_partner_mvp"
+          }
+        },
+        {
+          "name": "flow-integrity",
+          "script": "scripts/validate-flow-integrity.py",
+          "tier": 1,
+          "_comment": "REQUIRED for VibOS Comp: mission and scorecard must keep the primary user flow, layer handoffs, and objective fidelity explicit."
+        },
+        {
+          "name": "system-invariants",
+          "script": "scripts/validate-system-invariants.py",
+          "tier": 1,
+          "_comment": "REQUIRED for VibOS Comp: mission and scorecard must name the state, ownership, side-effect, and recovery rules that must never break."
+        },
+        {
+          "name": "dependency-intelligence",
+          "script": "scripts/validate-dependency-intelligence.py",
+          "tier": 1,
+          "_comment": "REQUIRED for VibOS Comp: dependency choices must include current-source evidence, compatibility, lockfile, audit, and upgrade-path proof before stale model memory can ship."
+        },
+        {
+          "name": "delivery-infrastructure",
+          "script": "scripts/validate-delivery-infrastructure.py",
+          "tier": 1,
+          "_comment": "REQUIRED for VibOS Comp: CI/CD, deployment, observability, environment/secrets, smoke/health, rollback, and runbook evidence must be explicit."
+        },
+        {
+          "name": "dependency-versions",
+          "script": "scripts/validate-dependency-versions.sh",
+          "tier": 1,
+          "_comment": "REQUIRED for VibOS Comp: stale model knowledge must not silently pick outdated packages."
+        },
+        {
+          "name": "devmode-fallbacks",
+          "script": "scripts/validate-devmode-fallbacks.sh",
+          "tier": 1,
+          "_comment": "REQUIRED for VibOS Comp: fallback-only or demo-only flows cannot score as complete."
+        },
+        {
+          "name": "observability",
+          "script": "scripts/validate-observability.sh",
+          "tier": 1,
+          "env": {
+            "REQUIRE_HEALTH": "true",
+            "REQUIRE_METRICS": "true"
+          }
+        },
+        {
+          "name": "auth-boundaries",
+          "script": "scripts/validate-auth-boundaries.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include when the mission has users, protected data, tenant data, or admin actions."
+        },
+        {
+          "name": "api-contracts",
+          "script": "scripts/validate-api-contracts.sh",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include when the mission has an API or frontend/backend boundary."
+        }
+      ]
+    },
+
     "post_deploy": {
       "_comment_OPTIONAL_for": "teams with deployment URLs configured",
       "description": "Run after deployment — endpoint availability + health checks",
@@ -433,7 +514,17 @@
     "session_end": {
       "_comment_OPTIONAL_for": "small and enterprise team sizes",
       "description": "Run at end of development session — summary and cleanup",
-      "gates": []
+      "gates": [
+        {
+          "name": "long-run-autonomy-closeout",
+          "script": "scripts/validate-long-run-autonomy.py",
+          "tier": 1,
+          "_comment_OPTIONAL": "Include when autonomous long-run mode is enabled.",
+          "env": {
+            "LONG_RUN_REQUIRE_CLOSED": "true"
+          }
+        }
+      ]
     }
   },
 

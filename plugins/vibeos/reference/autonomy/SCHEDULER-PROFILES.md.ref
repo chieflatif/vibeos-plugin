@@ -1,0 +1,50 @@
+# Long-Run Autonomy Scheduler Profiles
+
+Use this reference when a VibeOS project needs a repeatable 24-48 hour autonomy tick from a terminal, cron, launchd, GitHub Actions, or another scheduler.
+
+## Safety Principle
+
+Scheduler profiles are generated artifacts, not automatic installations. Review them before installing. By default, generated profiles run local VibeOS loop commands and write handoff plans, but they do not launch Codex or Claude unless generated with `--launch-runtime`.
+
+## Generated Artifacts
+
+| Artifact | Purpose |
+|---|---|
+| `.vibeos/autonomy/scheduler-profile.json` | Manifest of generated scheduler profiles |
+| `.vibeos/autonomy/scheduler/vibeos-autonomy-tick.sh` | Shell tick script |
+| `.vibeos/autonomy/scheduler/vibeos-autonomy.cron` | Cron line for manual installation |
+| `.vibeos/autonomy/scheduler/com.vibeos.autonomy.plist` | launchd plist for manual installation |
+| `.vibeos/autonomy/scheduler/vibeos-autonomy.github-actions.yml` | GitHub Actions workflow template |
+| `.vibeos/autonomy/smoke-report.json` | Disposable autonomy smoke-test report |
+| `.vibeos/autonomy/failure-report.json` | Failure detector report for repeated loop, runner, runtime, and provider/session issues |
+| `.vibeos/autonomy/recovery-plan.json` | Plan-only response for detected autonomy failure classes |
+| `.vibeos/autonomy/recovery-resolution.json` | Evidence-backed resolution state for recovery-plan actions |
+| `.vibeos/autonomy/recovery-resolution-history.jsonl` | Append-only history of recorded recovery resolutions |
+| `.vibeos/autonomy/scheduler-guard-report.json` | Pre-tick guard report for unresolved recovery actions |
+
+## Commands
+
+```bash
+python3 ".vibeos/scripts/autonomy-scheduler-profile.py" --project-dir "." --profile all --json
+python3 ".vibeos/scripts/autonomy-scheduler-profile.py" --project-dir "." --profile shell,cron --interval-minutes 15 --json
+python3 ".vibeos/scripts/autonomy-scheduler-profile.py" --project-dir "." --profile launchd --provider codex --launch-runtime --json
+python3 ".vibeos/scripts/autonomy-smoke.py" --project-dir ".vibeos/tmp/autonomy-smoke" --runtime-provider codex --json
+python3 ".vibeos/scripts/autonomy-failure-detector.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-recovery-planner.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-recovery-resolution.py" --project-dir "." --action-id "RECOVERY-RUNTIME-HANDOFF" --summary "runtime handoff completed" --evidence ".vibeos/autonomy/runtime-adapter-plan.json" --json
+python3 ".vibeos/scripts/autonomy-scheduler-guard.py" --project-dir "." --json
+```
+
+## Review Checklist
+
+- The profile points at the intended project root.
+- The cadence matches provider/session limits and review needs.
+- `autonomy-loop.py` uses `--execute` only for allowlisted local VibeOS scripts.
+- `autonomy-loop.py` and `autonomy-runtime-adapter.py` can acquire `.vibeos/autonomy/run-lease.json`; a live lease means another driver is active.
+- `autonomy-runtime-adapter.py` uses `--execute` only when provider/session usage, file edits, and model runtime launch are intentionally allowed.
+- `autonomy-failure-detector.py` passes or any findings have been reviewed before another scheduler tick is installed.
+- `autonomy-recovery-planner.py` has no blocking actions, or each blocking action has matching recovery resolution evidence, before another scheduler tick is installed.
+- `autonomy-recovery-resolution.py` records summary and evidence for each resolved blocking recovery action before another scheduler tick is installed.
+- `autonomy-scheduler-guard.py` is the first command in generated scheduler tick profiles.
+- Logs and `.vibeos/autonomy/*` evidence are preserved for session audit.
+- A disposable smoke run passes before installing a scheduler profile outside the repo.

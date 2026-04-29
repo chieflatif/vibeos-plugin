@@ -14,6 +14,8 @@ Show a tactical status briefing for the current or most recent VibeOS work sessi
    - `.vibeos/session-state.json` — active or most recent session record
    - `.vibeos/build-log.md` — recent execution history
    - `.vibeos/checkpoints/*.json` — in-progress resume state
+   - `.vibeos/autonomy/heartbeats/*.json` — long-run autonomy heartbeat and resume evidence
+   - `.vibeos/autonomy/run-lease.json`, `.vibeos/autonomy/last-lease.json`, `.vibeos/autonomy/lease-conflict.json`, `.vibeos/autonomy/loop-state.json`, `.vibeos/autonomy/loop-history.jsonl`, `.vibeos/autonomy/resume-plan.json`, `.vibeos/autonomy/runner-report.json`, `.vibeos/autonomy/runtime-adapter-plan.json`, `.vibeos/autonomy/runtime-adapter-history.jsonl`, `.vibeos/autonomy/failure-report.json`, `.vibeos/autonomy/recovery-plan.json`, `.vibeos/autonomy/recovery-resolution.json`, `.vibeos/autonomy/recovery-resolution-history.jsonl`, `.vibeos/autonomy/scheduler-guard-report.json`, `.vibeos/autonomy/scheduler-profile.json`, and `.vibeos/autonomy/smoke-report.json` — latest long-run lease, loop, next action, safety classification, handoff plan, failure detection, recovery plan, recovery resolution, scheduler guard, scheduler profile, and smoke evidence
    - `.vibeos/config.json` — autonomy preference and session override
    - `docs/planning/WO-INDEX.md` — active and recently completed work orders
    - active WO files (status `In Progress`, `Active`, `Implemented Locally`, `Awaiting Gate Cleanup`, `Awaiting Real-Path Verification`, `Dev-Mode Complete`, `Awaiting Checkpoint`, `Awaiting Evidence`, or `Pre-Commit Audit`)
@@ -29,6 +31,17 @@ Show a tactical status briefing for the current or most recent VibeOS work sessi
 
 3. **Check tactical governance and quality signals**:
    - whether the autonomous session override is active
+   - whether long-run autonomy is active, fresh, stale, paused, blocked, or complete
+   - latest heartbeat time, current run id, loop iteration, and next action when available
+   - whether an active run lease or recent lease conflict exists
+   - latest loop tick status when available
+   - latest resume-plan action and whether the runner blocked, executed, or handed off commands
+   - latest runtime adapter provider and whether it planned or launched a handoff
+   - latest failure detector status and any repeated handoff, runner, runtime, lease, or provider/session findings
+   - latest recovery planner status and whether scheduling must pause before another tick
+   - latest recovery resolution status and unresolved action count when present
+   - latest scheduler guard status and whether it blocks another tick
+   - latest scheduler profile and smoke-test status when present
    - whether a checkpoint exists
    - whether the latest session audit found unresolved issues
    - whether the current or recent WOs show blocked status or unresolved acceptance criteria

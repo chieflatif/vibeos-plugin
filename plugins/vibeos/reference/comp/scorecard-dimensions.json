@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "thresholds": ["local_proof", "design_partner_mvp", "production_ready"],
+  "dimensions": [
+    {
+      "id": "functionality",
+      "label": "Functionality",
+      "required_evidence": ["MISSION.md", "COMP-PLAN.md"],
+      "scorecard_field": "functionality.core_workflow",
+      "blocking_at": ["design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "flow_integrity",
+      "label": "Flow Integrity",
+      "required_evidence": ["MISSION.md", "docs/evidence/FLOW-INTEGRITY.md"],
+      "required_terms": ["workflow", "auth", "backend", "error"],
+      "scorecard_field": "functionality.user_flow_integrity",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "objective_fidelity",
+      "label": "Objective Fidelity",
+      "required_evidence": ["MISSION.md"],
+      "required_terms": ["mission", "promise", "objective"],
+      "scorecard_field": "functionality.objective_fidelity",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "system_invariants",
+      "label": "System Invariants",
+      "required_evidence": ["MISSION.md", "docs/evidence/SYSTEM-INVARIANTS.md"],
+      "required_terms": ["invariant", "state"],
+      "scorecard_field": "quality.system_invariants",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "security",
+      "label": "Security",
+      "required_terms": ["security", "identity", "access"],
+      "scorecard_field": "security.auth_boundary",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "observability",
+      "label": "Observability",
+      "required_terms": ["observability", "health", "logs"],
+      "scorecard_field": "operations.observability",
+      "blocking_at": ["design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "performance",
+      "label": "Performance",
+      "required_terms": ["performance", "latency"],
+      "scorecard_field": "performance.budget",
+      "blocking_at": ["design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "architecture",
+      "label": "Architecture",
+      "required_evidence": [".vibeos/worktree-scopes.json"],
+      "scorecard_field": "architecture.coherence",
+      "blocking_at": ["design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "dependencies",
+      "label": "Dependencies",
+      "required_terms": ["dependency", "freshness"],
+      "scorecard_field": "security.supply_chain",
+      "blocking_at": ["design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "dependency_intelligence",
+      "label": "Dependency Intelligence",
+      "required_evidence": ["MISSION.md", "docs/evidence/DEPENDENCY-INTELLIGENCE.md"],
+      "required_terms": ["dependency", "version", "compatibility", "security"],
+      "scorecard_field": "security.dependency_intelligence",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "delivery_infrastructure",
+      "label": "Delivery Infrastructure",
+      "required_evidence": ["MISSION.md", "docs/evidence/DELIVERY-INFRASTRUCTURE.md"],
+      "required_terms": ["ci", "deploy", "observability", "rollback"],
+      "scorecard_field": "operations.delivery_infrastructure",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "operability",
+      "label": "Operability",
+      "required_terms": ["deployment", "runbook"],
+      "scorecard_field": "operations.release_hygiene",
+      "blocking_at": ["design_partner_mvp", "production_ready"]
+    },
+    {
+      "id": "evidence",
+      "label": "Evidence",
+      "required_evidence": ["docs/evidence/COMP-INTEGRATION-EVIDENCE.md"],
+      "required_terms": ["evidence"],
+      "scorecard_field": "evidence.claim_integrity",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"]
+    }
+  ]
+}

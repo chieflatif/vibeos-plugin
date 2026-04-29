@@ -1,0 +1,30 @@
+# VibOS Comp System Invariants
+
+## Purpose
+
+System invariants define what must always remain true while the product runs, changes state, handles bad inputs, retries work, recovers from failures, and evolves over time.
+
+They are different from user flow. Flow asks whether the user can complete the journey. Invariants ask what must never break during or after that journey.
+
+## Core Question
+
+What states, ownership rules, transitions, side effects, and recovery guarantees must never be violated?
+
+## Required Invariant Map
+
+| Invariant | Source | Enforcement Boundary | Negative/Retry Test | Evidence | Owner |
+|---|---|---|---|---|---|
+| {{INVARIANT}} | {{SOURCE}} | {{ENFORCEMENT_BOUNDARY}} | {{TEST_OR_CHECK}} | {{EVIDENCE}} | {{OWNER}} |
+
+## Required Categories
+
+- identity, authorization, role, ownership, or tenant boundaries
+- valid state transitions and impossible states
+- data integrity, constraints, uniqueness, and deletion/archive rules
+- idempotency for retries, duplicate submits, jobs, webhooks, and external side effects
+- partial failure, rollback, compensation, and recovery behavior
+- audit logs or evidence for sensitive actions
+
+## Blocking Rule
+
+For VibOS Comp, a core workflow blocks completion if a critical invariant is undocumented, unenforced at the durable boundary, violated by retry/concurrency, or unproven by negative or real-path evidence.

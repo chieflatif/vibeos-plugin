@@ -60,6 +60,10 @@ Use process only where it materially protects software quality, truthful status,
 **A WO is only `Complete` when all of these are true:**
 - the intended behavior is implemented
 - the real execution path is verified
+- any primary user-flow impact is traced through UI/entrypoint, auth/session, backend/API, data or side effects, and feedback
+- any affected system invariants are identified, enforced at durable boundaries, and evidenced
+- any dependency, runtime, package-manager, SDK, framework, or lockfile change has current-source evidence, compatibility proof, security audit output, and upgrade-path notes where relevant
+- any CI/CD, deployment, environment/secrets, observability, smoke/health, rollback, or runbook impact is explicit and evidenced
 - relevant tests pass
 - relevant quality checks pass
 - the status artifacts are truthful
@@ -71,6 +75,10 @@ Use process only where it materially protects software quality, truthful status,
 - meaningful architecture violations
 - security or compliance regressions
 - fallback behavior hiding a broken primary path
+- broken or unproven primary user flow for changed behavior
+- broken or unproven invariant for changed durable state, ownership, side effects, or recovery behavior
+- stale, incompatible, or unverified dependency choices for changed runtime/package/SDK/framework decisions
+- missing or aspirational delivery infrastructure for changed deployability, CI/CD, observability, secrets, smoke checks, rollback, or runbook behavior
 - ambiguous repo state or misleading status updates
 
 **Do not block on low-value bureaucracy:**
@@ -96,6 +104,8 @@ Never mark fallback-only, degraded-only, or skip-the-gates work as `Complete`.
 The build loop saves progress after each agent completes. If interrupted (context window reset, user pause, crash), the build resumes from where it left off.
 
 **Checkpoint file:** `.vibeos/checkpoints/WO-NNN.json`
+
+**Long-run heartbeat files:** `.vibeos/autonomy/heartbeats/*.json` when 24-48 hour autonomous mode is active.
 
 **Schema:**
 ```json
@@ -179,6 +189,7 @@ Read `.vibeos/config.json` if it exists:
 - `autonomy.level = "phase"` — continue until phase completes
 - `autonomy.level = "major"` — continue until a major decision is needed
 - `autonomy.session_override.mode = "autonomous"` with `active = true` — temporarily suppress routine check-ins and keep building until blocked, complete, or explicitly stopped
+- `autonomy.long_run.active = true` — run under long-run controls: heartbeat every 30 minutes, checkpoint every 60 minutes, audit/checkpoint review every 180 minutes, hard stop at 48 hours by default
 
 Default to "wo" if config doesn't exist.
 
@@ -199,6 +210,66 @@ If the autonomous session override is active:
    - `phase_checkpoints`
 3. If it already exists, preserve `completed_wos` and `phase_checkpoints`, update `last_updated`, and keep `active: true`
 4. If `.vibeos/build-log.md` does not exist, create it before logging any session events
+
+If `autonomy.long_run.active = true`, also ensure `.vibeos/session-state.json` contains:
+- `long_run.run_id`
+- `long_run.active`
+- `long_run.target_hours`
+- `long_run.max_hours`
+- `long_run.heartbeat_interval_minutes`
+- `long_run.checkpoint_interval_minutes`
+- `long_run.audit_interval_minutes`
+- `long_run.last_heartbeat_at`
+- `long_run.loop_iteration`
+
+### Step 2c: Refresh Runtime Capability Matrix
+
+Before choosing runtime-specific orchestration, refresh the local capability matrix when the detector exists:
+
+```bash
+if [ -f ".vibeos/scripts/detect-runtime-capabilities.sh" ]; then
+  bash ".vibeos/scripts/detect-runtime-capabilities.sh" --project-dir "."
+elif [ -f "scripts/detect-runtime-capabilities.sh" ]; then
+  bash "scripts/detect-runtime-capabilities.sh" --project-dir "."
+fi
+```
+
+Read `.vibeos/runtime-capabilities.json` after it is generated. Use it to decide whether the current session can use Codex multi-agent work, Claude subagents, worktree sessions, runtime hooks, or must fall back to sequential execution. Feature availability does not remove the requirement for VibeOS gates, Git hooks, real-path verification, or truthful partial states.
+
+### Step 2d: Long-Run Autonomy Heartbeat
+
+If `.vibeos/config.json` has `autonomy.long_run.active = true`, record a heartbeat before starting the next material loop step:
+
+```bash
+python3 ".vibeos/scripts/autonomy-supervisor.py" --project-dir "."
+python3 ".vibeos/scripts/autonomy-runner.py" --project-dir "." --json
+python3 ".vibeos/scripts/autonomy-heartbeat.py" \
+  --status running \
+  --wo "${WO_NUMBER:-unknown}" \
+  --summary "starting or resuming build loop" \
+  --next-action "continue current Work Order"
+```
+
+During 24-48 hour runs:
+- use `autonomy-loop.py` as the scheduler-safe one-tick entrypoint when an external terminal, cron, or runtime adapter is driving the loop
+- rely on `.vibeos/autonomy/run-lease.json` to prevent concurrent loop/runtime drivers from mutating the same long-run state
+- use `autonomy-runtime-adapter.py` to plan or explicitly launch a Codex/Claude handoff when the loop reports `handoff_required`
+- use `autonomy-failure-detector.py` when handoffs, runner blocks, lease conflicts, runtime failures, or provider/session limits repeat
+- use `autonomy-recovery-planner.py` after a blocking failure report to produce the next safe plan-only response
+- use `autonomy-recovery-resolution.py` to record evidence-backed resolution for recovery-plan actions
+- use `autonomy-scheduler-guard.py` before scheduler-driven loop ticks; unresolved recovery actions without matching resolution evidence must block another tick
+- generate scheduler profiles with `autonomy-scheduler-profile.py` and verify the chain with `autonomy-smoke.py` before installing any external scheduler
+- use `.vibeos/autonomy/resume-plan.json` as the next-loop command plan when it exists
+- use `.vibeos/autonomy/runner-report.json` to distinguish allowlisted local commands, blocked commands, and Codex/Claude handoff-required work
+- execute resume plans with `autonomy-runner.py --execute` only when the next command is an allowlisted local VibeOS script; never use it as a general shell runner
+- record another heartbeat after every agent dispatch, WO boundary, checkpoint boundary, audit boundary, or at least every 30 minutes
+- save `.vibeos/checkpoints/WO-*.json` at least every 60 minutes or after each agent/work-package boundary
+- run checkpoint or session-audit evidence at least every 180 minutes or phase boundary
+- if the runtime is interrupted, resume from the latest heartbeat plus checkpoint instead of restarting from memory
+- if `validate-long-run-autonomy.py` reports stale heartbeat, missing checkpoint, missing audit, max runtime, or stop-condition failure, pause and classify the session truthfully as blocked or paused
+- if `autonomy-failure-detector.py` reports repeated handoff, repeated no-progress decision, blocked runner, failed runtime launch, active lease conflict, or provider/session limit, pause autonomous scheduling and resolve the issue first
+- if `autonomy-recovery-planner.py` writes blocking actions, follow the plan and record `autonomy-recovery-resolution.py` evidence before another scheduler tick; do not auto-clear leases or launch providers unless explicitly reviewed
+- if `autonomy-scheduler-guard.py` blocks, do not run `autonomy-loop.py` again until the recovery plan has matching resolution evidence or is explicitly superseded
 
 ### Step 3: Set Agent Identity
 
@@ -225,6 +296,10 @@ Dispatch `agents/investigator.md` with:
 - If recommendation is PROCEED WITH CAUTION: log risks, continue
 - If recommendation is PROCEED: continue
 - If the investigation report cannot identify the real entrypoint for the changed behavior (route, handler, job, CLI, webhook, scheduler), treat that as a material readiness gap. Do not allow the WO to close as `Complete` until that path is mapped or explicitly accepted as a partial state.
+- If the WO touches user-facing behavior or a Comp mission, the investigation must identify the affected user-flow step and objective fidelity risk before implementation begins.
+- If the WO touches durable state, auth/ownership, external side effects, retries, jobs, webhooks, or recovery, the investigation must identify the affected invariants before implementation begins.
+- If the WO touches dependency manifests, lockfiles, package managers, runtimes, SDKs, frameworks, auth/security/database/payment/AI packages, or deployment libraries, the investigation must identify current-source evidence, compatibility constraints, audit command, and upgrade path before implementation begins.
+- If the WO touches CI/CD, deployment, infrastructure config, environment variables, secrets, observability, smoke checks, health checks, rollback, runbooks, or operational scripts, the investigation must identify delivery evidence requirements before implementation begins.
 
 **Cross-validate agent claims about code state (mandatory):**
 
@@ -257,6 +332,8 @@ Dispatch `agents/tester.md` with:
 - Verify tests fail (correct TDD behavior — no implementation yet)
 - If tests somehow pass: investigate (might indicate the feature already exists)
 - If the WO changes user-visible or system-visible behavior, require at least one integration or smoke-style test for the real path when the environment allows it. If the tester cannot exercise the real path yet, record the exact gap and carry the WO as a partial state instead of silently treating unit coverage as closure.
+- If the WO changes a primary user flow, require test intent that exercises the handoff across the relevant UI/entrypoint, backend/API, auth/session, data or side effect, and success/error feedback.
+- If the WO changes an invariant, require negative, retry, duplicate-submit, invalid-transition, or recovery test intent where relevant.
 
 Log: `[timestamp] tester WO-NNN write-tests [count] tests written, all failing`
 
@@ -433,7 +510,7 @@ Log each gate run: `[timestamp] gate-runner WO-NNN pre_commit [PASS|FAIL] [detai
 ### Step 8: Run Audit Cycle (Layer 2)
 
 **Progress banner:**
-> "[Step 5/8] Audit — Running 8 independent quality reviewers, including red-team adversarial checks and a product-drift check. This is the longest step and may take a minute..."
+> "[Step 5/8] Audit — Running independent quality reviewers, including red-team, product-drift, and flow-integrity checks. This is the longest step and may take a minute..."
 
 **On result:** "Audit complete: [confirmed] confirmed findings, [warnings] warnings. [critical summary if any]."
 **On convergence retry:** "Fix applied. Re-running auditors to verify (iteration [N] of 5)..."
@@ -462,13 +539,17 @@ Rules:
 
 Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — instead, dispatch the audit agents directly following the same pattern as `skills/audit/SKILL.md`):
 
-1. Dispatch all 8 audit agents in parallel where possible, selecting the correct variant (`*-same-tree.md` or standard) based on `audit_dispatch_profile`:
+1. Dispatch audit agents in parallel where possible, selecting the correct variant (`*-same-tree.md` or standard) based on `audit_dispatch_profile`:
    - `agents/security-auditor.md` or `agents/security-auditor-same-tree.md`
    - `agents/architecture-auditor.md` or `agents/architecture-auditor-same-tree.md`
    - `agents/correctness-auditor.md` or `agents/correctness-auditor-same-tree.md`
    - `agents/test-auditor.md` or `agents/test-auditor-same-tree.md`
    - `agents/evidence-auditor.md` or `agents/evidence-auditor-same-tree.md`
    - `agents/product-drift-auditor.md` or `agents/product-drift-auditor-same-tree.md`
+   - `agents/flow-auditor.md` or `agents/flow-auditor-same-tree.md` (validates user journey, layer handoffs, and objective fidelity; required when the WO touches user flow or Comp mission behavior)
+   - `agents/system-invariant-auditor.md` or `agents/system-invariant-auditor-same-tree.md` (validates state, ownership, idempotency, recovery, and change-safety invariants; required when the WO touches durable state or side effects)
+   - `agents/dependency-intelligence-auditor.md` or `agents/dependency-intelligence-auditor-same-tree.md` (validates current-source evidence, lockfiles, compatibility, transitive risk, security audit output, and upgrade path; required when the WO touches manifests, runtimes, SDKs, frameworks, or high-impact packages)
+   - `agents/delivery-infrastructure-auditor.md` or `agents/delivery-infrastructure-auditor-same-tree.md` (validates CI/CD, deployment, environment/secrets, observability, smoke/health checks, rollback, and runbook evidence; required when the WO touches delivery or operations)
    - `agents/red-team-auditor.md` or `agents/red-team-auditor-same-tree.md` (adversarial verification — reports corruption score)
    - `agents/contract-validator.md` or `agents/contract-validator-same-tree.md` (validates frontend-backend contracts; skip only when scope is a pure documentation WO with no code changes)
 
@@ -581,6 +662,10 @@ After all agents succeed:
 1. Check completion truthfulness before updating any status artifacts:
    - intended behavior implemented
    - real path verified
+   - primary user-flow impact and objective fidelity evidenced when relevant
+   - affected system invariants evidenced when relevant
+   - dependency intelligence evidenced when dependency/runtime/package choices changed
+   - delivery infrastructure evidenced when CI/CD, deployment, environment/secrets, observability, smoke/health, rollback, or runbooks changed
    - relevant tests passing
    - relevant blocking gates and audits resolved
    - repo left in a resumable, unambiguous state

@@ -143,6 +143,7 @@ uninstall() {
     rm -rf "$TARGET_DIR/.claude/skills/discover"
     rm -rf "$TARGET_DIR/.claude/skills/plan"
     rm -rf "$TARGET_DIR/.claude/skills/build"
+    rm -rf "$TARGET_DIR/.claude/skills/comp"
     rm -rf "$TARGET_DIR/.claude/skills/audit"
     rm -rf "$TARGET_DIR/.claude/skills/gate"
     rm -rf "$TARGET_DIR/.claude/skills/status"
@@ -169,7 +170,12 @@ uninstall() {
     rm -f "$TARGET_DIR/.claude/agents/product-drift-auditor.md"
     rm -f "$TARGET_DIR/.claude/agents/contract-validator.md"
     rm -f "$TARGET_DIR/.claude/agents/red-team-auditor.md"
+    rm -f "$TARGET_DIR/.claude/agents/flow-auditor.md"
+    rm -f "$TARGET_DIR/.claude/agents/system-invariant-auditor.md"
+    rm -f "$TARGET_DIR/.claude/agents/dependency-intelligence-auditor.md"
+    rm -f "$TARGET_DIR/.claude/agents/delivery-infrastructure-auditor.md"
     rm -f "$TARGET_DIR/.claude/agents/prompt-engineer.md"
+    rm -f "$TARGET_DIR/.claude/agents/integration-captain.md"
     rm -f "$TARGET_DIR/.claude/agents/security-auditor-same-tree.md"
     rm -f "$TARGET_DIR/.claude/agents/architecture-auditor-same-tree.md"
     rm -f "$TARGET_DIR/.claude/agents/correctness-auditor-same-tree.md"
@@ -178,6 +184,10 @@ uninstall() {
     rm -f "$TARGET_DIR/.claude/agents/product-drift-auditor-same-tree.md"
     rm -f "$TARGET_DIR/.claude/agents/contract-validator-same-tree.md"
     rm -f "$TARGET_DIR/.claude/agents/red-team-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/flow-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/system-invariant-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/dependency-intelligence-auditor-same-tree.md"
+    rm -f "$TARGET_DIR/.claude/agents/delivery-infrastructure-auditor-same-tree.md"
 
     rm -f "$TARGET_DIR/.claude/hooks/intent-router.sh"
     rm -f "$TARGET_DIR/.claude/hooks/secrets-scan.sh"
@@ -249,7 +259,7 @@ copy_skills() {
     echo "[vibeos-init] Installing skills..."
     mkdir -p "$TARGET_DIR/.claude/skills"
 
-    local skills=("discover" "plan" "build" "audit" "gate" "status" "checkpoint" "wo" "help" "upgrade" "autonomous" "project-status" "session-audit" "codex-audit")
+    local skills=("discover" "plan" "build" "comp" "audit" "gate" "status" "checkpoint" "wo" "help" "upgrade" "autonomous" "project-status" "session-audit" "codex-audit")
     for skill in "${skills[@]}"; do
         mkdir -p "$TARGET_DIR/.claude/skills/$skill"
         cp "$SOURCE_DIR/skills/$skill/SKILL.md" "$TARGET_DIR/.claude/skills/$skill/SKILL.md"
@@ -297,6 +307,7 @@ copy_framework_runtime() {
     cp "$SOURCE_DIR"/scripts/*.py "$TARGET_DIR/.vibeos/scripts/" 2>/dev/null || true
     cp "$SOURCE_DIR"/scripts/*.json "$TARGET_DIR/.vibeos/scripts/" 2>/dev/null || true
     chmod +x "$TARGET_DIR"/.vibeos/scripts/*.sh 2>/dev/null || true
+    chmod +x "$TARGET_DIR"/.vibeos/scripts/*.py 2>/dev/null || true
 
     # Decision engine
     mkdir -p "$TARGET_DIR/.vibeos/decision-engine"
@@ -445,13 +456,14 @@ An autonomous, self-governing development engine. You guide users through produc
 ## Architecture
 
 ```
-.claude/skills/          ← 14 user-invocable skills (/discover, /plan, /build, /codex-audit, etc.)
-.claude/agents/          ← 23 specialized subagents (15 base + 8 same-tree variants)
+.claude/skills/          ← 15 user-invocable skills (/discover, /plan, /build, /comp, /codex-audit, etc.)
+.claude/agents/          ← 32 specialized subagents (20 base + 12 same-tree variants)
 .claude/hooks/           ← Event-driven enforcement (11 hooks: intent routing, governance, proof, budget, scope)
-.vibeos/scripts/         ← 64 quality gate and utility scripts
+.vibeos/scripts/         ← 89 quality gate and utility scripts
 .vibeos/cache/           ← Generated local evidence recall cache
+.vibeos/autonomy/        ← Generated long-run heartbeat and resume evidence
 .vibeos/decision-engine/ ← 10 decision tree files
-.vibeos/reference/       ← 45+ annotated reference files
+.vibeos/reference/       ← 122 annotated reference files
 .vibeos/convergence/     ← Loop control scripts (state hashing, convergence checks)
 docs/planning/           ← Development plan, WO index, individual WO files
 ```
@@ -466,6 +478,10 @@ docs/planning/           ← Development plan, WO index, individual WO files
 6. **All scripts are bash 3.2+ compatible** — macOS default, no external dependencies
 7. **Audit visibility modes** — inline (same-tree), isolated (fresh worktree), or codex (external CLI)
 8. **Parallel worktree scope** — worktree-scope-guard.sh blocks writes outside assigned scope
+9. **Flow integrity is first-class** — Comp missions, WOs, tests, audits, and scorecards must preserve the primary user journey and original objective
+10. **System invariants are first-class** — state, ownership, side-effect, retry, recovery, and auditability rules must be explicit and evidenced
+11. **Dependency intelligence is first-class** — dependency choices must have current-source evidence, compatibility proof, lockfile discipline, security audit output, and an upgrade path
+12. **Delivery infrastructure is first-class** — CI/CD, deployment, observability, environment/secrets, smoke checks, rollback, and runbooks must be explicit and evidenced
 
 ## Voice-Led Intent Routing
 
@@ -487,6 +503,7 @@ Not every message should trigger a skill. Use these rules:
 
 - **File paths, line numbers, error messages, code snippets** → Help directly. Do not invoke a skill.
 - **Conceptual questions** ("what is ratcheting?", "how do phases work?") → Invoke `/help`.
+- **Competition-grade enterprise MVPs, design-partner prototypes, or VibOS Comp requests** → Invoke `/comp`.
 - **Product ideas or feature requests** → Invoke `/discover` (new project) or `/wo` (existing project with plan).
 - **"Continue", "next", "keep going"** → Invoke `/build`.
 - **"Upgrade", "update the framework", "pulled the latest"** → Invoke `/upgrade`.
@@ -537,7 +554,9 @@ setup_gitignore() {
         "# VibeOS runtime state (not checked in)"
         ".vibeos/baselines/"
         ".vibeos/cache/"
+        ".vibeos/autonomy/"
         ".vibeos/current-agent.txt"
+        ".vibeos/runtime-capabilities.json"
         ".claude/settings.local.json"
     )
 

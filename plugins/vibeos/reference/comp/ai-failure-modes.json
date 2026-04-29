@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0",
+  "name": "VibOS Comp AI Failure Mode Registry",
+  "failure_modes": [
+    {
+      "id": "AI-FM-001",
+      "name": "stale_dependency_or_api",
+      "severity": "high",
+      "description": "Agent recommends deprecated packages, outdated APIs, or versions from stale model memory.",
+      "detection": ["validate-dependency-versions.sh", "validate-model-versions.sh", "research registry freshness check"],
+      "scorecard_field": "freshness.current_dependencies",
+      "threshold_behavior": {"local_proof": "advisory", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-002",
+      "name": "fake_or_unverified_completion",
+      "severity": "critical",
+      "description": "Agent marks work complete without command output, artifact evidence, screenshot, log, source, or accepted deferral.",
+      "detection": ["validate-evidence-bundle.sh", "validate-wo-status-integrity.sh", "validate-comp-ai-failure-modes.py"],
+      "scorecard_field": "evidence.claim_integrity",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-003",
+      "name": "mock_only_or_demo_only_behavior",
+      "severity": "high",
+      "description": "Core workflow works only against mocks, fixtures, hardcoded demo data, or fallback paths while being presented as real.",
+      "detection": ["detect-testing-antipatterns.py", "validate-devmode-fallbacks.sh", "validate-comp-ai-failure-modes.py"],
+      "scorecard_field": "quality.real_path_behavior",
+      "threshold_behavior": {"local_proof": "advisory", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-004",
+      "name": "missing_observability",
+      "severity": "high",
+      "description": "Generated MVP has no health signal, useful logs, request IDs, metrics, or operational debugging path.",
+      "detection": ["validate-observability.sh", "validate-logging-patterns.sh", "validate-comp-ai-failure-modes.py"],
+      "scorecard_field": "operations.observability",
+      "threshold_behavior": {"local_proof": "advisory", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-005",
+      "name": "weak_auth_or_authorization_boundary",
+      "severity": "critical",
+      "description": "Protected data or actions can be accessed without authentication, ownership, role, or tenant checks.",
+      "detection": ["validate-auth-boundaries.sh", "validate-tenant-isolation.sh", "security auditor"],
+      "scorecard_field": "security.auth_boundary",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-006",
+      "name": "incoherent_architecture",
+      "severity": "medium",
+      "description": "Generated code violates intended module boundaries, duplicates responsibilities, or mixes frontend/backend/data concerns incoherently.",
+      "detection": ["enforce-architecture.sh", "validate-cross-boundary-contracts.sh", "architecture auditor"],
+      "scorecard_field": "architecture.coherence",
+      "threshold_behavior": {"local_proof": "advisory", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-007",
+      "name": "secret_or_sensitive_data_leak",
+      "severity": "critical",
+      "description": "Generated code, docs, prompts, logs, or config contain secrets, tokens, private keys, or sensitive sample data.",
+      "detection": ["validate-no-secrets.sh", "validate-pii-handling.sh", "secret-scan hooks"],
+      "scorecard_field": "security.secret_hygiene",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-008",
+      "name": "frontend_polish_gap",
+      "severity": "medium",
+      "description": "UI lacks required loading, empty, validation, success, and error states or fails responsive/accessibility expectations.",
+      "detection": ["validate-production-readiness.sh", "frontend QA screenshots", "accessibility checks"],
+      "scorecard_field": "experience.ui_completeness",
+      "threshold_behavior": {"local_proof": "advisory", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-009",
+      "name": "missing_performance_budget",
+      "severity": "medium",
+      "description": "MVP has no explicit latency, throughput, data volume, page weight, or concurrency assumptions.",
+      "detection": ["validate-production-readiness.sh", "performance evidence review", "validate-comp-ai-failure-modes.py"],
+      "scorecard_field": "performance.budget",
+      "threshold_behavior": {"local_proof": "advisory", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-010",
+      "name": "scope_foundation_confusion",
+      "severity": "high",
+      "description": "Agent cuts security, observability, tests, deployment hygiene, or evidence while claiming it only reduced product scope.",
+      "detection": ["enterprise foundation blueprint review", "validate-comp-ai-failure-modes.py", "scorecard review"],
+      "scorecard_field": "foundation.scope_integrity",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-011",
+      "name": "disconnected_user_flow",
+      "severity": "critical",
+      "description": "Individual components appear complete, but the primary user cannot complete the promised workflow through UI, auth/session, backend/API, data or side effects, and feedback.",
+      "detection": ["validate-flow-integrity.py", "flow auditor", "critical-path e2e evidence", "scorecard review"],
+      "scorecard_field": "functionality.user_flow_integrity",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-012",
+      "name": "system_invariant_violation",
+      "severity": "critical",
+      "description": "The generated system allows impossible state, ownership breaks, duplicate irreversible side effects, unrecoverable partial failure, or unlogged sensitive transitions despite the happy path passing.",
+      "detection": ["validate-system-invariants.py", "system invariant auditor", "negative tests", "retry/idempotency evidence", "scorecard review"],
+      "scorecard_field": "quality.system_invariants",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-013",
+      "name": "stale_or_incompatible_dependency_choice",
+      "severity": "high",
+      "description": "Agent chooses a package, version, framework API, SDK, or transitive dependency set from stale model memory without current-source evidence or compatibility proof.",
+      "detection": ["validate-dependency-intelligence.py", "validate-dependency-versions.sh", "dependency intelligence auditor", "scorecard review"],
+      "scorecard_field": "security.dependency_intelligence",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    },
+    {
+      "id": "AI-FM-014",
+      "name": "missing_delivery_spine",
+      "severity": "high",
+      "description": "Generated MVP works locally but lacks CI/CD, deployability, environment/secrets management, health/smoke checks, runtime observability, rollback, or runbook evidence.",
+      "detection": ["validate-delivery-infrastructure.py", "validate-observability.sh", "validate-production-readiness.sh", "delivery infrastructure auditor", "scorecard review"],
+      "scorecard_field": "operations.delivery_infrastructure",
+      "threshold_behavior": {"local_proof": "blocking", "design_partner_mvp": "blocking", "production_ready": "blocking"}
+    }
+  ]
+}

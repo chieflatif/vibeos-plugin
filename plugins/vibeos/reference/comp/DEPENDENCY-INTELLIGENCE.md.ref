@@ -1,0 +1,44 @@
+# VibOS Comp Dependency Intelligence
+
+## Purpose
+
+Dependency intelligence prevents stale model memory from choosing old, incompatible, vulnerable, abandoned, or hard-to-upgrade packages.
+
+## Core Question
+
+Are the runtime, package manager, frameworks, packages, versions, lockfiles, and transitive risks backed by current evidence and compatible with each other?
+
+## Required Dependency Map
+
+| Ecosystem | Runtime | Package Manager | Manifest | Lockfile | Audit Command | Status |
+|---|---|---|---|---|---|---|
+| {{ECOSYSTEM}} | {{RUNTIME}} | {{PACKAGE_MANAGER}} | {{MANIFEST}} | {{LOCKFILE}} | {{AUDIT_COMMAND}} | {{STATUS}} |
+
+## Current Evidence
+
+| Decision | Source Verified | Verified On | Version/Channel | Compatibility Note | Why This Choice |
+|---|---|---|---|---|---|
+| {{DEPENDENCY_DECISION}} | {{SOURCE}} | {{DATE}} | {{VERSION}} | {{COMPATIBILITY}} | {{RATIONALE}} |
+
+## Stack Currency Packs
+
+Use `.vibeos/reference/comp/stack-dependency-currency.json` when available. For every detected pack, capture the stack-specific proof it asks for.
+
+| Pack | Why It Applies | Required Source Targets | Evidence Commands | Result |
+|---|---|---|---|---|
+| {{CURRENCY_PACK}} | {{WHY_APPLIES}} | {{SOURCE_TARGETS}} | {{COMMANDS}} | {{RESULT}} |
+
+## Required Checks
+
+- runtime support window or LTS status
+- package manager and lockfile discipline
+- exact app dependency versions or lockfile-backed ranges
+- peer dependency and framework compatibility
+- vulnerability audit evidence
+- transitive risk for auth, security, payments, database, AI SDK, and deployment dependencies
+- stack currency evidence for Node/TypeScript, frontend framework, Python/FastAPI, AI SDK, auth/security, database/ORM, and deployment runtime packs where detected
+- upgrade or migration notes for high-impact packages
+
+## Blocking Rule
+
+For VibOS Comp, dependency decisions block completion if they rely on stale model memory, lack current source evidence for high-impact packages, use floating app versions without lockfile discipline, fail vulnerability audits, or have unresolved runtime/peer compatibility conflicts.

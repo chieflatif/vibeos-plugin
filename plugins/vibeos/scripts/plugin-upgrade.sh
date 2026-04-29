@@ -51,6 +51,7 @@ PRESERVED_PATHS=(
   ".vibeos/build-log.md"
   ".vibeos/audit-reports"
   ".vibeos/session-state.json"
+  ".vibeos/autonomy"
   ".vibeos/cache"
   ".claude/quality-gate-manifest.json"
 )
@@ -103,6 +104,43 @@ V21_NEW_SKILLS=(
 
 V22_NEW_GATE_SCRIPTS=(
   "evidence-recall.py"
+  "autonomy-heartbeat.py"
+  "autonomy-loop.py"
+  "autonomy-runner.py"
+  "autonomy-runtime-adapter.py"
+  "autonomy-failure-detector.py"
+  "autonomy-recovery-planner.py"
+  "autonomy-recovery-resolution.py"
+  "autonomy-scheduler-guard.py"
+  "autonomy-scheduler-profile.py"
+  "autonomy-smoke.py"
+  "autonomy-supervisor.py"
+  "autonomy_lease.py"
+  "validate-long-run-autonomy.py"
+  "detect-runtime-capabilities.sh"
+  "runtime-capabilities.py"
+  "comp-plan.py"
+  "comp-integration-check.py"
+  "comp-scorecard.py"
+  "comp-red-team.py"
+  "comp-dossier.py"
+  "validate-comp-ai-failure-modes.py"
+  "validate-flow-integrity.py"
+  "validate-system-invariants.py"
+  "validate-dependency-intelligence.py"
+  "validate-delivery-infrastructure.py"
+)
+
+V22_NEW_AGENT_FILES=(
+  "integration-captain.md"
+  "flow-auditor.md"
+  "flow-auditor-same-tree.md"
+  "system-invariant-auditor.md"
+  "system-invariant-auditor-same-tree.md"
+  "dependency-intelligence-auditor.md"
+  "dependency-intelligence-auditor-same-tree.md"
+  "delivery-infrastructure-auditor.md"
+  "delivery-infrastructure-auditor-same-tree.md"
 )
 
 get_plugin_version() {
@@ -252,9 +290,44 @@ case "$COMMAND" in
           if [ -f "$PLUGIN_DIR/scripts/$script" ]; then
             cp "$PLUGIN_DIR/scripts/$script" "$VIBEOS_SCRIPTS_DIR/$script"
             chmod +x "$VIBEOS_SCRIPTS_DIR/$script"
-            echo "[plugin-upgrade] Installed evidence recall utility: $script"
+            echo "[plugin-upgrade] Installed v2.2 script: $script"
           fi
         done
+      fi
+
+      CLAUDE_AGENTS_DIR="${PROJECT_DIR:-.}/.claude/agents"
+      if [ -d "$PLUGIN_DIR/agents" ] && [ -d "$CLAUDE_AGENTS_DIR" ]; then
+        for agent in "${V22_NEW_AGENT_FILES[@]}"; do
+          if [ -f "$PLUGIN_DIR/agents/$agent" ]; then
+            cp "$PLUGIN_DIR/agents/$agent" "$CLAUDE_AGENTS_DIR/$agent"
+            echo "[plugin-upgrade] Installed Comp agent: $agent"
+          fi
+        done
+      fi
+
+      CLAUDE_SKILLS_DIR="${PROJECT_DIR:-.}/.claude/skills"
+      if [ -f "$PLUGIN_DIR/skills/comp/SKILL.md" ] && [ -d "$CLAUDE_SKILLS_DIR" ]; then
+        mkdir -p "$CLAUDE_SKILLS_DIR/comp"
+        cp "$PLUGIN_DIR/skills/comp/SKILL.md" "$CLAUDE_SKILLS_DIR/comp/SKILL.md"
+        echo "[plugin-upgrade] Installed Comp skill: comp"
+      fi
+
+      if [ -d "$PLUGIN_DIR/reference/comp" ]; then
+        mkdir -p "${PROJECT_DIR:-.}/.vibeos/reference/comp"
+        cp -R "$PLUGIN_DIR/reference/comp/"* "${PROJECT_DIR:-.}/.vibeos/reference/comp/"
+        echo "[plugin-upgrade] Installed Comp reference pack"
+      fi
+
+      if [ -f "$PLUGIN_DIR/reference/product/MISSION.md.ref" ]; then
+        mkdir -p "${PROJECT_DIR:-.}/.vibeos/reference/product"
+        cp "$PLUGIN_DIR/reference/product/MISSION.md.ref" "${PROJECT_DIR:-.}/.vibeos/reference/product/MISSION.md.ref"
+        echo "[plugin-upgrade] Installed mission reference template"
+      fi
+
+      if [ -d "$PLUGIN_DIR/reference/autonomy" ]; then
+        mkdir -p "${PROJECT_DIR:-.}/.vibeos/reference/autonomy"
+        cp -R "$PLUGIN_DIR/reference/autonomy/"* "${PROJECT_DIR:-.}/.vibeos/reference/autonomy/"
+        echo "[plugin-upgrade] Installed long-run autonomy reference pack"
       fi
 
       GITIGNORE="${PROJECT_DIR:-.}/.gitignore"
@@ -265,6 +338,16 @@ case "$COMMAND" in
           echo ".vibeos/cache/"
         } >> "$GITIGNORE"
         echo "[plugin-upgrade] Added .vibeos/cache/ to .gitignore"
+      fi
+
+      if [ -f "$GITIGNORE" ] && ! grep -q '^.vibeos/runtime-capabilities.json$' "$GITIGNORE" 2>/dev/null; then
+        echo ".vibeos/runtime-capabilities.json" >> "$GITIGNORE"
+        echo "[plugin-upgrade] Added .vibeos/runtime-capabilities.json to .gitignore"
+      fi
+
+      if [ -f "$GITIGNORE" ] && ! grep -q '^.vibeos/autonomy/$' "$GITIGNORE" 2>/dev/null; then
+        echo ".vibeos/autonomy/" >> "$GITIGNORE"
+        echo "[plugin-upgrade] Added .vibeos/autonomy/ to .gitignore"
       fi
 
       echo "[plugin-upgrade] PASS: 2.1.x → 2.2.0 migration complete"
@@ -381,9 +464,9 @@ case "$COMMAND" in
       echo "  - No external memory service, daemon, vector database, or network dependency"
       echo ""
       echo "**File counts (2.2.0):**"
-      echo "  - Runtime scripts: 64"
-      echo "  - Agents: 23 (15 base + 8 same-tree)"
-      echo "  - Skills: 14"
+      echo "  - Runtime scripts: 89"
+      echo "  - Agents: 28 (18 base + 10 same-tree)"
+      echo "  - Skills: 15"
       echo "  - Hook scripts: 11"
     fi
     ;;

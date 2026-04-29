@@ -6,8 +6,9 @@
 #   bash scripts/gate-runner.sh <phase> [options]
 #
 # Phases:
-#   session_start, pre_commit, wo_exit, wo_exit_backend, wo_exit_frontend,
-#   wo_exit_crosscutting, wo_exit_governance, post_deploy, full_audit, session_end
+#   session_start, pre_commit, comp_gauntlet, wo_exit, wo_exit_backend,
+#   wo_exit_frontend, wo_exit_crosscutting, wo_exit_governance,
+#   post_deploy, full_audit, session_end
 #
 # Options:
 #   --continue-on-failure   Don't stop on first blocking gate failure
@@ -46,8 +47,9 @@ Usage:
 
 Phases:
   session_start    pre_commit       wo_exit
-  wo_exit_backend  wo_exit_frontend wo_exit_crosscutting
-  wo_exit_governance  post_deploy   full_audit   session_end
+  comp_gauntlet    wo_exit_backend  wo_exit_frontend
+  wo_exit_crosscutting  wo_exit_governance
+  post_deploy      full_audit       session_end
 
 Options:
   --continue-on-failure   Don't stop on first blocking gate failure
@@ -224,6 +226,10 @@ with open(manifest_path) as f:
     manifest = json.load(f)
 
 phases = manifest.get("phases", {})
+top_level_gates = [
+    gate for gate in manifest.get("gates", [])
+    if gate.get("phase") == target_phase
+]
 
 def resolve_phase(phase_name, visited=None):
     """Resolve a phase's gates, including inherited gates from 'includes'."""
@@ -249,6 +255,10 @@ def resolve_phase(phase_name, visited=None):
 
 if target_phase in phases:
     raw_gates = resolve_phase(target_phase)
+    if not raw_gates and top_level_gates:
+        raw_gates = top_level_gates
+elif top_level_gates:
+    raw_gates = top_level_gates
 elif target_phase == "wo_exit":
     fallback_phases = [
         name for name in (

@@ -270,7 +270,7 @@ Categorize results into three buckets:
 
 ### Step 9: Full Audit Cycle (Discovery Mode)
 
-Dispatch all 8 audit agents with their enhanced capabilities:
+Dispatch audit agents with their enhanced capabilities:
 
 1. Dispatch agents (in parallel where possible):
    - `agents/security-auditor.md` — now includes auth boundary coverage, supply chain analysis
@@ -279,6 +279,10 @@ Dispatch all 8 audit agents with their enhanced capabilities:
    - `agents/test-auditor.md` — standard checks
    - `agents/evidence-auditor.md` — standard checks
    - `agents/product-drift-auditor.md` — now includes feature completeness, IP originality
+   - `agents/flow-auditor.md` — user-flow integrity and objective fidelity
+   - `agents/system-invariant-auditor.md` — state safety, ownership, idempotency, and recovery invariants
+   - `agents/dependency-intelligence-auditor.md` — current-source dependency evidence, compatibility, lockfiles, audit output, and upgrade paths
+   - `agents/delivery-infrastructure-auditor.md` — CI/CD, deployment, environment/secrets, observability, smoke checks, rollback, and runbook evidence
 
 2. Apply consensus logic (2+ agents = true positive, 1 = warning)
 

@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "name": "VibOS Comp Dependency Intelligence Checklist",
+  "lifecycle_integration": {
+    "mission": "MISSION.md names dependency freshness, current evidence, compatibility, and security audit expectations.",
+    "planning": "COMP-PLAN.md identifies dependency ownership, package manager policy, and evidence requirements.",
+    "implementation": "Work Orders that add or change dependencies include source evidence and lockfile changes.",
+    "testing": "Dependency changes run install, build, tests, and vulnerability audit where tooling exists.",
+    "auditing": "Dependency Intelligence Auditor reviews high-impact dependencies and compatibility.",
+    "scorecard": "SCORECARD.md records Dependency Intelligence results with evidence links."
+  },
+  "dimensions": [
+    {
+      "id": "dependencies.current_evidence",
+      "question": "Are high-impact dependency decisions backed by current source evidence?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["DEPENDENCY-INTELLIGENCE.md", "research registry", "source verification date"]
+    },
+    {
+      "id": "dependencies.version_policy",
+      "question": "Are application dependencies pinned or lockfile-backed with a clear package manager policy?",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"],
+      "evidence": ["manifest", "lockfile", "validate-dependency-versions.sh"]
+    },
+    {
+      "id": "dependencies.compatibility",
+      "question": "Are runtime, framework, peer dependency, and package versions compatible?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["compatibility notes", "install output", "build output"]
+    },
+    {
+      "id": "dependencies.security_audit",
+      "question": "Has the ecosystem vulnerability audit run or been truthfully skipped with reason?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["npm audit", "pip-audit", "govulncheck", "cargo audit", "dependency-check"]
+    },
+    {
+      "id": "dependencies.transitive_risk",
+      "question": "Are auth, security, database, payment, AI SDK, deployment, and other high-impact transitive risks reviewed?",
+      "blocking_at": ["production_ready"],
+      "evidence": ["supply chain review", "SBOM", "audit notes"]
+    },
+    {
+      "id": "dependencies.upgrade_path",
+      "question": "Can future agents safely upgrade dependencies without guessing?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["upgrade command", "migration notes", "breaking-change notes"]
+    }
+  ]
+}

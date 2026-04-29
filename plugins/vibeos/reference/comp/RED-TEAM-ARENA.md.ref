@@ -1,0 +1,35 @@
+# VibOS Comp Red-Team Arena
+
+## Objective
+
+Attack the integrated MVP before completion is claimed. The goal is not to certify security; it is to expose the obvious ways a senior engineer, enterprise reviewer, judge, or malicious user would challenge the product.
+
+## Required Inputs
+
+- `MISSION.md`
+- `SCORECARD.md`
+- `COMP-PLAN.md`
+- `docs/evidence/COMP-INTEGRATION-EVIDENCE.md`
+- Threat model and sensitive data notes from the mission
+
+## Adversarial Categories
+
+- Input validation and malformed payloads
+- Authentication bypass and authorization boundary checks
+- Direct object reference and tenant isolation risks
+- Sensitive data exposure through logs, errors, exports, or UI
+- Dependency and stale API risks
+- Concurrency, retry, idempotency, and partial failure behavior
+- Observability gaps under failure
+- Fake-completion, mock-only, or demo-only evidence gaps
+- Frontend state and accessibility edge cases
+
+## Finding Format
+
+| Severity | Category | Scenario | Evidence | Required Disposition |
+|---|---|---|---|---|
+| critical/high/medium/low | category | adversarial scenario | command, file, screenshot, log, or review note | fix, accepted risk, or follow-up WO |
+
+## Blocking Rule
+
+Critical and high findings block VibOS Comp completion unless the user explicitly accepts the risk with justification. Medium and low findings must be fixed or linked to follow-up WOs.

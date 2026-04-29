@@ -1,13 +1,13 @@
 ---
 name: audit
-description: Full audit cycle that dispatches all 8 audit agents (security, architecture, correctness, test quality, evidence, product drift, red team, contract validator), applies consensus logic, and produces a composite report with actionable findings. Use when the user says "audit the code", "review everything", "check for security issues", "do a full review", or wants a comprehensive multi-perspective code review.
-argument-hint: "[optional: 'security', 'architecture', 'correctness', 'test', 'evidence', or 'product-drift' to run a single auditor]"
+description: Full audit cycle that dispatches audit agents (security, architecture, correctness, test quality, evidence, product drift, flow, system invariants, dependency intelligence, delivery infrastructure, red team, contract validator), applies consensus logic, and produces a composite report with actionable findings. Use when the user says "audit the code", "review everything", "check for security issues", "do a full review", or wants a comprehensive multi-perspective code review.
+argument-hint: "[optional: 'security', 'architecture', 'correctness', 'test', 'evidence', 'product-drift', 'flow', 'invariant', 'dependency', or 'delivery' to run a single auditor]"
 allowed-tools: Read, Write, Glob, Grep, Bash, Agent, AskUserQuestion
 ---
 
 # /vibeos:audit — Full Audit Cycle
 
-Dispatch all 8 audit agents, merge findings with consensus logic, and produce a composite report.
+Dispatch the audit agents, merge findings with consensus logic, and produce a composite report.
 
 ## Communication Contract
 
@@ -34,7 +34,7 @@ If no source code exists, report "No source code to audit" and stop.
 
 ### Step 1: Determine Scope
 
-If `$ARGUMENTS` specifies a single auditor name (`security`, `architecture`, `correctness`, `test`, `evidence`, `product-drift`, `red-team`, `contract`), run only that auditor. Otherwise, run all 8.
+If `$ARGUMENTS` specifies a single auditor name (`security`, `architecture`, `correctness`, `test`, `evidence`, `product-drift`, `flow`, `invariant`, `dependency`, `delivery`, `red-team`, `contract`), run only that auditor. Otherwise, run all auditors.
 
 Read `project-definition.json` for:
 - Source directories
@@ -42,7 +42,21 @@ Read `project-definition.json` for:
 - Stack/framework info
 - Compliance targets
 
-### Step 2: Select Audit Visibility Mode
+### Step 2: Refresh Runtime Capability Matrix
+
+Before selecting auditor dispatch mode, refresh local runtime capabilities when the detector exists:
+
+```bash
+if [ -f ".vibeos/scripts/detect-runtime-capabilities.sh" ]; then
+  bash ".vibeos/scripts/detect-runtime-capabilities.sh" --project-dir "."
+elif [ -f "scripts/detect-runtime-capabilities.sh" ]; then
+  bash "scripts/detect-runtime-capabilities.sh" --project-dir "."
+fi
+```
+
+Read `.vibeos/runtime-capabilities.json` if it exists. Use it as advisory input for runtime selection, but keep `select-audit-visibility-mode.sh` as the authority for same-tree versus worktree audit visibility inside VibeOS build sessions.
+
+### Step 3: Select Audit Visibility Mode
 
 Before dispatching any auditor, choose visibility automatically:
 
@@ -61,7 +75,7 @@ Rules:
 - If no WO or active session is in scope, default to the standard isolated-worktree auditors.
 - Never stop to ask the user which mode to use during autonomous execution. The selector is the authority.
 
-### Step 3: Dispatch Audit Agents
+### Step 4: Dispatch Audit Agents
 
 Dispatch the selected audit agents using the chosen visibility mode. Auditors remain read-only in both modes.
 
@@ -75,6 +89,10 @@ Dispatch the selected audit agents using the chosen visibility mode. Auditors re
 | Test Quality | `agents/test-auditor.md` | sonnet | Spec-first, assertion quality, mock density |
 | Evidence | `agents/evidence-auditor.md` | sonnet | Documentation completeness, tracking accuracy |
 | Product Drift | `agents/product-drift-auditor.md` | sonnet | Product promise drift, experience drift, stale decisions |
+| Flow | `agents/flow-auditor.md` | opus | End-to-end user journey, layer handoffs, objective fidelity |
+| System Invariants | `agents/system-invariant-auditor.md` | opus | State rules, ownership, idempotency, recovery, change safety |
+| Dependency Intelligence | `agents/dependency-intelligence-auditor.md` | opus | Current-source dependency evidence, compatibility, lockfiles, audit output, transitive risk |
+| Delivery Infrastructure | `agents/delivery-infrastructure-auditor.md` | opus | CI/CD, deployment, environment/secrets, observability, smoke checks, rollback, runbooks |
 | Plan | `agents/plan-auditor.md` | opus | WO planning correctness, sequencing, canon alignment |
 | Red Team | `agents/red-team-auditor.md` | opus | Adversarial corruption hunting, cheating detection |
 | Contract | `agents/contract-validator.md` | sonnet | Frontend-backend contract verification (cross-boundary only) |
@@ -99,7 +117,7 @@ Dispatch agents that can run independently in parallel where possible using the 
 - Source directory paths
 - The current WO file path (if running within a build cycle)
 
-### Step 4: Collect Findings
+### Step 5: Collect Findings
 
 As each agent completes, extract its structured findings. Normalize each finding to this format:
 
@@ -122,7 +140,7 @@ If an agent fails to complete or returns unparseable output:
 2. Continue with remaining agents
 3. Note the missing auditor in the report
 
-### Step 5: Apply Consensus Logic
+### Step 6: Apply Consensus Logic
 
 Group findings by location (file + line range overlap) and category similarity:
 
@@ -140,7 +158,7 @@ Group findings by location (file + line range overlap) and category similarity:
 - Not reported individually
 - Contributes to the overall confidence score
 
-### Step 6: Generate Composite Report
+### Step 7: Generate Composite Report
 
 Write the report to stdout (displayed to user). Format:
 
@@ -185,6 +203,8 @@ Write the report to stdout (displayed to user). Format:
 | Test Quality | [complete/failed] | [count] | [top finding or "clean"] |
 | Evidence | [complete/failed] | [count] | [top finding or "clean"] |
 | Product Drift | [complete/failed] | [count] | [top finding or "clean"] |
+| Flow | [complete/failed] | [count] | [top finding or "clean"] |
+| System Invariants | [complete/failed] | [count] | [top finding or "clean"] |
 | Plan | [complete/failed] | [count] | [top finding or "clean"] |
 | Red Team | [complete/failed] | [count] | [top finding or "clean"] |
 | Contract | [complete/failed/skipped] | [count] | [top finding or "clean"] |
@@ -199,7 +219,7 @@ Write the report to stdout (displayed to user). Format:
 - fail: Critical findings that must be fixed before proceeding
 ```
 
-### Step 7: Save Report (if in build cycle)
+### Step 8: Save Report (if in build cycle)
 
 If this audit was triggered from `/vibeos:build`, save the report to `.vibeos/audit-reports/[WO-NNN]-[timestamp].md` for the build log to reference.
 

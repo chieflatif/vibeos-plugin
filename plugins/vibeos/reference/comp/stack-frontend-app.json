@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "stack": "frontend-app",
+  "currency_pack": "frontend_app",
+  "applies_to": ["web", "dashboard", "internal-tool", "saas-ui"],
+  "baseline": {
+    "runtime": "Current supported frontend framework version with typed components where practical.",
+    "api_contract": "Typed client or generated contract for backend calls.",
+    "state_quality": "Loading, empty, validation, success, error, and offline or retry states where relevant.",
+    "testing": ["component", "accessibility", "critical-path e2e", "visual or screenshot check for key views"],
+    "observability": ["client error capture", "meaningful network errors", "performance budget"],
+    "security": ["no secret-bearing client config", "safe rendering", "dependency audit"]
+  },
+  "evidence_commands": [
+    "npm test",
+    "npm run lint",
+    "npm run build",
+    "npx playwright test"
+  ],
+  "freshness_policy": "Verify current framework, router, auth, UI library, browser support, build tool, and E2E tooling docs before implementation."
+}

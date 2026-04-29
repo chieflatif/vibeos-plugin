@@ -41,6 +41,7 @@ Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRAC
 > - `project-status` — Founder-style executive briefing on the overall program
 > - `session-status` — Tactical status of the current or most recent build session
 > - `session-audit` — How VibeOS reviews everything completed in the current or last build session
+> - `long-run-autonomy` — How 24-48 hour autonomous runs stay resumable through heartbeats, checkpoints, and audits
 > - `convergence` — How the build loop reaches completion
 > - `baselines` — Quality snapshots and tracking
 > - `ratcheting` — One-way quality improvement
@@ -98,11 +99,16 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 
 - **quality-gates**: "Quality gates are automated checks that run before code is committed. They catch issues like missing type annotations, placeholder code, security vulnerabilities, and style violations. Think of them as a safety inspection."
 
-- **audit-agents**: "Audit agents are specialized AI reviewers that examine your code for specific types of issues. There are 6: security, architecture, correctness, test coverage, evidence, and product drift. They run independently and their findings are cross-referenced for consensus."
+- **audit-agents**: "Audit agents are specialized AI reviewers that examine your code for specific types of issues: security, architecture, correctness, test coverage, evidence, product drift, flow integrity, system invariants, dependency intelligence, delivery infrastructure, red-team abuse, and contracts. They run independently and their findings are cross-referenced for consensus."
 
 - **anchors**: "Anchors are the documents that preserve what the project is really trying to be. The Product Anchor protects the promise and user experience. Engineering Principles protect the quality bar. The Research Registry tracks current evidence for important technical decisions. The Deviation Log records explicit compromises so they do not become invisible drift."
 
 - **product-drift**: "Product drift is when the code keeps moving, but it slowly stops serving the original promise, user workflow, or intended experience. VibeOS now checks for that explicitly so a local shortcut does not quietly reshape the whole product."
+
+- **system-invariants**: "System invariants are the rules that must always remain true: users cannot cross ownership boundaries, invalid states cannot persist, duplicate submits cannot duplicate side effects, and failures must be recoverable or visible. They protect the product from happy-path demos that break under real usage."
+- **dependency-intelligence**: "Dependency intelligence means package, framework, SDK, runtime, and transitive dependency decisions are based on current-source evidence, compatibility proof, lockfile discipline, security audit output, and an upgrade path instead of stale model memory."
+- **delivery-infrastructure**: "Delivery infrastructure means CI/CD, deployment, environment and secrets, observability, smoke checks, rollback, and runbooks are designed into the system instead of being left as invisible manual work."
+- **long-run-autonomy**: "Long-run autonomy means VibeOS can deliberately run for 24-48 hours as a resumable operating loop. It records heartbeat files, checkpoints, audit cadence, stale-run validation, failure-loop detection, recovery plans, evidence-backed recovery resolutions, scheduler guards, and terminal state so another session can continue safely if the runtime is interrupted."
 
 - **research-freshness**: "Research freshness means not trusting stale model memory for important external decisions. If work depends on APIs, framework versions, auth, billing, infrastructure, or security behavior, VibeOS should look for current evidence and record it in the Research Registry."
 
@@ -122,7 +128,7 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
 
 - **tdd**: "Test-Driven Development means tests are written before code. The tester agent writes tests from the work order spec (never seeing the implementation), then the implementation agent writes code to make those tests pass. This ensures tests reflect requirements, not implementation."
 
-- **autonomy-levels**: "Autonomy levels control how often the system checks in with you. Level 'wo' pauses after every work order. Level 'phase' pauses after each phase (recommended). Level 'major' only pauses for important decisions. If you want an even stronger push mode for the current session, `/vibeos:autonomous` temporarily turns on a full autonomous session override and keeps going until a real blocker appears."
+- **autonomy-levels**: "Autonomy levels control how often the system checks in with you. Level 'wo' pauses after every work order. Level 'phase' pauses after each phase (recommended). Level 'major' only pauses for important decisions. If you want an even stronger push mode for the current session, `/vibeos:autonomous` temporarily turns on a full autonomous session override and keeps going until a real blocker appears. For 24-48 hour runs, long-run autonomy adds heartbeat evidence, checkpoints, audit cadence, failure-loop detection, recovery planning, recovery resolution, scheduler guarding, and closeout validation."
 
 - **layers**: "The quality enforcement system has 7 layers: L0 (hooks — real-time), L1 (gate scripts — pre-commit), L2 (audit agents — post-implementation), L3 (convergence — loop control), L4 (consensus — cross-agent verification), L5 (phase boundary — milestone check), L6 (human check-in — your review)."
 
@@ -136,7 +142,7 @@ Read the glossary from `docs/USER-COMMUNICATION-CONTRACT.md` and provide the def
   - **Discovery:** `project-definition.json`, product docs in `docs/product/` (PRD, architecture, product anchor), plus `docs/ENGINEERING-PRINCIPLES.md`, `docs/research/RESEARCH-REGISTRY.md`, and `docs/decisions/DEVIATIONS.md`
   - **Planning:** `DEVELOPMENT-PLAN.md` and work orders in `docs/planning/`, gate scripts in `scripts/`, `CLAUDE.md`
   - **Midstream planning:** `.vibeos/findings-registry.json` (audit findings), `.vibeos/baselines/` (quality baseline), `ACCEPTED-RISKS.md`
-  - **Build:** Source code, test files, prompt or instruction files when behavior changes are in scope, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state), `.vibeos/session-state.json` (active or last autonomous session)
+  - **Build:** Source code, test files, prompt or instruction files when behavior changes are in scope, `.vibeos/build-log.md` (build history), `.vibeos/checkpoints/` (resume state), `.vibeos/session-state.json` (active or last autonomous session), `.vibeos/autonomy/heartbeats/` (long-run autonomy resume evidence)
   - "All plugin state lives in the `.vibeos/` directory. For the full list, see `docs/FILE-INVENTORY.md` or run `/vibeos:help files`."
 
 For any term not listed above, read the glossary in `docs/USER-COMMUNICATION-CONTRACT.md` and explain it with the same pattern: plain English definition, why it matters, example.

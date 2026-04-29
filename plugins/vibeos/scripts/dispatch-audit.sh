@@ -49,13 +49,13 @@ required_auditors() {
         1) echo "evidence" ;;
         2) echo "evidence correctness test" ;;
         3) echo "evidence correctness test security architecture" ;;
-        4) echo "evidence correctness test security architecture product_drift" ;;
+        4) echo "evidence correctness test security architecture product_drift flow invariant dependency_intelligence delivery_infrastructure" ;;
         *) echo "evidence correctness test" ;;
       esac
       ;;
-    phase-exit|live-fire) echo "evidence correctness test security architecture product_drift" ;;
+    phase-exit|live-fire) echo "evidence correctness test security architecture product_drift flow invariant dependency_intelligence delivery_infrastructure" ;;
     canon-revision) echo "evidence product_drift" ;;
-    security-change) echo "security architecture test" ;;
+    security-change) echo "security architecture test invariant dependency_intelligence delivery_infrastructure" ;;
     *) echo "" ;;
   esac
 }

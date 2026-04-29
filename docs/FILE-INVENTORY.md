@@ -18,6 +18,7 @@ All files the plugin creates in your project, organized by when they appear.
 | `docs/decisions/DEVIATIONS.md` | Explicit compromise log with review dates |
 | `docs/product/ARCHITECTURE-OUTLINE.md` | System components, data flow, module map |
 | `docs/product/ASSUMPTIONS-AND-RISKS.md` | Open questions and risks (greenfield only) |
+| `MISSION.md` | Compact VibOS Comp enterprise MVP mission brief when Comp mode is used |
 
 ## Planning Phase (`/vibeos:plan`)
 
@@ -31,6 +32,12 @@ All files the plugin creates in your project, organized by when they appear.
 | `.claude/quality-gate-manifest.json` | Shared gate configuration used by Claude/Cursor hooks, Codex gate runs, and VibeOS git hooks |
 | `.claude/hook-manifest.json` | Hook configuration for real-time enforcement |
 | Git hooks: `pre-commit`, `commit-msg` | Commit-boundary enforcement installed by VibeOS when the project is a git repo |
+| `.agents/skills/*` | Repo-scoped Codex skill instructions installed by the Codex bootstrap |
+| `.codex/skills/*` | Legacy Codex skill mirror for older Codex surfaces |
+| `.codex/agents/*.toml` | Codex-native VibeOS subagent definitions generated from canonical role contracts |
+| `.codex/agent-contracts/*.md` | Legacy Markdown VibeOS role contracts for reference and fallback |
+| `.codex/config.toml` | Codex project feature and agent concurrency settings |
+| `.codex/hooks.json` and `.codex/hooks/*` | Codex-compatible governance, secret-scan, and worktree guard hooks |
 | `.claude/rules/always/*.md` | Always-active governance rules |
 | `scripts/architecture-rules.json` | Architecture enforcement rules |
 | `scripts/*` | Quality gate and utility scripts (copied from plugin) |
@@ -59,7 +66,28 @@ All files the plugin creates in your project, organized by when they appear.
 | `.vibeos/build-log.md` | Build history with decisions and outcomes |
 | `.vibeos/session-state.json` | Tracks the active or most recent autonomous build session |
 | `.vibeos/checkpoints/WO-NNN.json` | Build progress checkpoint (enables mid-WO resume) |
+| `.vibeos/autonomy/heartbeats/*.json` | Long-run autonomy heartbeat evidence for 24-48 hour resumable runs |
+| `.vibeos/autonomy/run-lease.json` | Active long-run autonomy run lease preventing concurrent drivers |
+| `.vibeos/autonomy/last-lease.json` | Last acquired/released lease evidence |
+| `.vibeos/autonomy/lease-conflict.json` | Latest blocked concurrent autonomy driver attempt |
+| `.vibeos/autonomy/loop-state.json` | Latest scheduler-safe long-run loop tick state |
+| `.vibeos/autonomy/loop-history.jsonl` | Append-only scheduler-safe loop tick history for stuck-loop detection |
+| `.vibeos/autonomy/resume-plan.json` | Deterministic supervisor decision and command plan for the next long-run loop |
+| `.vibeos/autonomy/runner-report.json` | Classification and execution report for the latest long-run resume plan |
+| `.vibeos/autonomy/runtime-adapter-plan.json` | Planned or executed Codex/Claude runtime handoff command |
+| `.vibeos/autonomy/runtime-adapter-history.jsonl` | Append-only Codex/Claude runtime adapter history for repeated failure detection |
+| `.vibeos/autonomy/failure-report.json` | Long-run autonomy failure detector report for loops, runner blocks, lease conflicts, and provider/session limits |
+| `.vibeos/autonomy/recovery-plan.json` | Plan-only recovery actions for detected autonomy failure classes |
+| `.vibeos/autonomy/recovery-resolution.json` | Evidence-backed resolution state for recovery-plan actions |
+| `.vibeos/autonomy/recovery-resolution-history.jsonl` | Append-only history of recorded recovery resolutions |
+| `.vibeos/autonomy/scheduler-guard-report.json` | Pre-tick scheduler guard report for unresolved recovery actions |
+| `.vibeos/autonomy/scheduler-profile.json` | Generated scheduler profile manifest for shell, cron, launchd, or GitHub Actions |
+| `.vibeos/autonomy/scheduler/*` | Generated scheduler profile files for reviewed manual installation |
+| `.vibeos/autonomy/smoke-report.json` | Disposable autonomy smoke-test report |
+| `.vibeos/autonomy/supervisor-state.json` | Latest long-run supervisor decision summary |
+| `.vibeos/runtime-capabilities.json` | Generated local matrix of Codex, Claude, hook, agent, and orchestration capabilities |
 | `.vibeos/cache/evidence-recall-index.json` | Generated local index for source-cited evidence recall |
+| `.vibeos/reference/comp/*` | VibOS Comp mission, foundation, flow, invariant, dependency intelligence, delivery infrastructure, scorecard, and evidence references |
 | `.vibeos/baselines/midstream-baseline.json` | Updated after convergence cycles |
 | `docs/planning/WO-NNN-*.md` | Updated with completion evidence |
 
@@ -70,6 +98,7 @@ All files the plugin creates in your project, organized by when they appear.
 | `.vibeos/audit-reports/` | Individual audit agent reports |
 | `.vibeos/consensus/` | Cross-agent consensus results |
 | `.vibeos/session-audits/` | Session closeout audit reports |
+| `.vibeos/autonomy/` | Long-run autonomy heartbeat and closeout evidence |
 
 ## Plugin State (`.vibeos/` directory)
 

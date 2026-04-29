@@ -1,0 +1,136 @@
+# Mission: {{MISSION_NAME}}
+
+## Status
+
+`Draft`
+
+## Mission Promise
+
+{{MISSION_PROMISE}}
+
+## Users And Buyers
+
+- **Primary user:** {{PRIMARY_USER}}
+- **Enterprise buyer or sponsor:** {{BUYER}}
+- **Critical trust expectation:** {{TRUST_EXPECTATION}}
+
+## Core Workflow
+
+1. {{CORE_WORKFLOW_STEP_1}}
+2. {{CORE_WORKFLOW_STEP_2}}
+3. {{CORE_WORKFLOW_STEP_3}}
+
+## Flow Integrity
+
+The primary workflow must describe how a real user moves through the product and where each handoff occurs.
+
+| Step | User Action | UI Or Entry Point | Backend/API | Auth Or Session Context | Data Or Side Effect | User Feedback | Evidence |
+|---|---|---|---|---|---|---|---|
+| 1 | {{FLOW_USER_ACTION_1}} | {{FLOW_UI_1}} | {{FLOW_BACKEND_1}} | {{FLOW_AUTH_1}} | {{FLOW_DATA_1}} | {{FLOW_FEEDBACK_1}} | {{FLOW_EVIDENCE_1}} |
+
+## Objective Fidelity
+
+- **Original objective:** {{ORIGINAL_OBJECTIVE}}
+- **User outcome that proves success:** {{USER_OUTCOME_PROOF}}
+- **Drift boundaries:** {{DRIFT_BOUNDARIES}}
+
+## System Invariants
+
+These rules must always remain true across normal use, bad inputs, retries, concurrency, partial failure, recovery, and future changes.
+
+- **Identity and ownership invariant:** {{IDENTITY_OWNERSHIP_INVARIANT}}
+- **State transition invariant:** {{STATE_TRANSITION_INVARIANT}}
+- **Data integrity invariant:** {{DATA_INTEGRITY_INVARIANT}}
+- **Idempotency and side-effect invariant:** {{IDEMPOTENCY_INVARIANT}}
+- **Failure recovery invariant:** {{FAILURE_RECOVERY_INVARIANT}}
+- **Auditability invariant:** {{AUDITABILITY_INVARIANT}}
+
+## Dependency Intelligence
+
+High-impact dependency choices must be based on current evidence, not stale model memory.
+
+- **Runtime and package manager:** {{RUNTIME_AND_PACKAGE_MANAGER}}
+- **Current source evidence:** dependency versions and APIs must be verified against current docs, registries, changelogs, or release notes before adoption
+- **Version and lockfile policy:** {{VERSION_LOCKFILE_POLICY}}
+- **Compatibility rule:** {{DEPENDENCY_COMPATIBILITY_RULE}}
+- **Security audit requirement:** {{DEPENDENCY_SECURITY_AUDIT}}
+- **Upgrade path and owner:** {{DEPENDENCY_UPGRADE_PATH}}
+
+## Delivery Infrastructure
+
+The MVP must be buildable, deployable, observable, manageable, secure, and reversible through repeatable code or documented commands.
+
+- **CI/CD pipeline or local-proof substitute:** {{CI_CD_PIPELINE}}
+- **Deployment target and artifact:** {{DEPLOYMENT_TARGET_AND_ARTIFACT}}
+- **Environment and secrets model:** {{ENVIRONMENT_AND_SECRETS}}
+- **Health and smoke checks:** {{HEALTH_AND_SMOKE_CHECKS}}
+- **Observability signals:** {{DELIVERY_OBSERVABILITY}}
+- **Rollback and runbook:** {{ROLLBACK_AND_RUNBOOK}}
+
+## Product Scope
+
+### Must Ship
+- {{MUST_SHIP_1}}
+- {{MUST_SHIP_2}}
+- {{MUST_SHIP_3}}
+
+### Explicit Non-Goals
+- {{NON_GOAL_1}}
+- {{NON_GOAL_2}}
+
+## Enterprise Foundation Baseline
+
+The MVP may cut product breadth, but it must not cut the engineering foundation required for review, iteration, and safe operation.
+
+- **Readiness threshold:** {{READINESS_THRESHOLD}}
+- **Identity and access:** authentication, authorization, session handling, and role boundaries where relevant
+- **Data integrity:** schema, migrations, validation, ownership checks, and predictable error handling
+- **Security:** secret management, dependency intelligence, dependency freshness, secure defaults, input sanitization, and least-privilege configuration
+- **Testing:** unit, integration, contract, smoke, and critical-path end-to-end coverage where relevant
+- **Observability:** structured logs, metrics, traces or request IDs, health checks, and meaningful error reporting
+- **Operations:** CI/CD or local-proof automation, environment configuration, deployment shape, smoke checks, rollback notes, and a minimal runbook
+- **Frontend quality:** accessibility, responsive layout, loading/empty/error states, and inspectable UX polish where relevant
+- **Evidence:** every completion claim must map to a command, artifact, source, screenshot, log, or explicit user-approved deferral
+
+## Threat Model
+
+- **Sensitive data:** {{SENSITIVE_DATA}}
+- **Likely abuse paths:** {{ABUSE_PATHS}}
+- **Security controls required in v1:** {{SECURITY_CONTROLS}}
+- **Compliance or governance signals:** {{COMPLIANCE_SIGNALS}}
+
+## Observability And Operations
+
+- **Key events to log:** {{KEY_EVENTS}}
+- **Metrics or SLIs:** {{METRICS}}
+- **Alerts or failure signals:** {{ALERTS}}
+- **Runbook basics:** {{RUNBOOK}}
+
+## Performance Budgets
+
+- **User-facing latency target:** {{LATENCY_TARGET}}
+- **Throughput or scale assumption:** {{SCALE_ASSUMPTION}}
+- **Frontend budget:** {{FRONTEND_BUDGET}}
+
+## Acceptance Criteria
+
+- [ ] {{ACCEPTANCE_CRITERION_1}}
+- [ ] {{ACCEPTANCE_CRITERION_2}}
+- [ ] {{ACCEPTANCE_CRITERION_3}}
+- [ ] The primary user can complete the core workflow end to end through UI, auth/session, backend, data or side effects, and useful success/error feedback.
+- [ ] System invariants are enforced at durable boundaries and covered by negative, retry, or recovery evidence where relevant.
+- [ ] Dependency decisions include current-source evidence, verified dates, lockfile/install proof, compatibility checks, security audit output, and upgrade-path notes where relevant.
+- [ ] Delivery infrastructure evidence covers CI/CD or local proof, deployability, environment/secrets, observability, health/smoke checks, rollback, and runbook notes.
+- [ ] Security, observability, tests, deployment, and evidence baseline are complete or explicitly deferred with user approval.
+
+## Assumptions And Open Questions
+
+| Item | Assumption Or Question | Risk If Wrong | Resolution |
+|---|---|---|---|
+| 1 | {{ASSUMPTION_1}} | {{RISK_1}} | {{RESOLUTION_1}} |
+
+## Downstream Handoff
+
+- **Recommended next artifact:** `COMP-PLAN.md`
+- **Swarm planning input:** mission promise, must-ship scope, primary user flow, system invariants, dependency intelligence, delivery infrastructure, foundation baseline, threat model, observability targets, and acceptance criteria above
+- **Scope rule:** reduce features before reducing security, observability, tests, deployment hygiene, or evidence quality

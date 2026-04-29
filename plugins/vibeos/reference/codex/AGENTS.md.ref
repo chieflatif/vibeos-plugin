@@ -8,16 +8,19 @@ It coexists with `CLAUDE.md` and `.claude/` when those are also installed.
 ## What This Surface Provides
 
 - Structured build instructions and role contracts for each development phase
+- Repo-scoped Codex skills in `.agents/skills/`
+- Codex-native subagent definitions in `.codex/agents/*.toml` when installed
 - Shared quality gate scripts in `.vibeos/scripts/`
 - Decision engine and reference materials in `.vibeos/`
 - Shared project state: plans, checkpoints, baselines, and logs
+- Long-run autonomy state: heartbeat, checkpoint, audit cadence, and closeout validation artifacts in `.vibeos/`
 - Commit-boundary Git hooks via `.vibeos/scripts/setup-git-hooks.sh` when the repo can install them
 
 ## What This Surface Does Not Provide
 
-- **No runtime hooks.** There is no prompt/edit/stop event enforcement such as intent routing, secrets scanning, test file protection, or automatic stub detection. These require Claude Code's hook system.
-- **No subagent spawning.** Files in `.codex/agents/` are role contracts. Read them and perform each phase yourself — there is no isolation or parallel execution.
-- **No automatic write-time enforcement.** Gates still run manually, and Git hooks only block at commit time after they are installed.
+- **No Claude hook parity.** Codex hook support is runtime/version dependent and must be detected locally. Do not assume prompt/edit/stop enforcement behaves like Claude Code hooks.
+- **No automatic write-time enforcement guarantee.** Gates still run explicitly, and Git hooks only block at commit time after they are installed.
+- **No unconditional subagent claim.** Current Codex versions can support multi-agent execution, but this installed surface may still be legacy role-contract mode. Read `.vibeos/runtime-capabilities.json` before choosing parallel Codex orchestration.
 
 If you also have the Claude/Cursor surface installed (`.claude/`), that surface has full enforcement. Shared state in `.vibeos/` is visible to both runtimes.
 
@@ -51,11 +54,16 @@ bash ".vibeos/scripts/setup-git-hooks.sh" --project-dir "."
 Run shared VibeOS gates directly from `.vibeos/`:
 
 ```bash
+bash ".vibeos/scripts/detect-runtime-capabilities.sh" --project-dir "."
 bash ".vibeos/scripts/gate-runner.sh" session_start --continue-on-failure
 bash ".vibeos/scripts/gate-runner.sh" pre_commit --continue-on-failure
 bash ".vibeos/scripts/gate-runner.sh" wo_exit --continue-on-failure
 bash ".vibeos/scripts/gate-runner.sh" full_audit --continue-on-failure
 ```
+
+Read `.vibeos/runtime-capabilities.json` before claiming Codex, Claude, hook, subagent, worktree, or automation support. Treat it as local capability evidence, not as permission to skip VibeOS gates or Git commit-boundary enforcement.
+
+For deliberate 24-48 hour autonomous runs, treat autonomy as resumable execution. Record `.vibeos/autonomy/heartbeats/*.json`, keep checkpoints fresh, respect `.vibeos/autonomy/run-lease.json`, use `autonomy-loop.py` for scheduler-safe ticks, classify supervisor resume plans with `autonomy-runner.py`, plan Codex/Claude handoffs with `autonomy-runtime-adapter.py`, detect repeated loop/runtime/provider failures with `autonomy-failure-detector.py`, plan safe responses with `autonomy-recovery-planner.py`, record evidence-backed recovery resolution with `autonomy-recovery-resolution.py`, block recovery loops without matching resolution evidence with `autonomy-scheduler-guard.py`, generate reviewed scheduler profiles with `autonomy-scheduler-profile.py`, smoke-test the chain with `autonomy-smoke.py`, validate cadence with `validate-long-run-autonomy.py`, and never imply that a single Codex context can run forever without durable resume state.
 
 ## Communication Rules
 
@@ -69,7 +77,7 @@ bash ".vibeos/scripts/gate-runner.sh" full_audit --continue-on-failure
 
 - Never hardcode secrets in code, prompts, docs, or config.
 - Never target production unless the user explicitly approves it.
-- Never mark a WO `Complete` unless the real path, relevant tests, and blocking gates are evidenced.
+- Never mark a WO `Complete` unless the real path, primary user-flow impact, affected system invariants, dependency intelligence where relevant, delivery infrastructure where relevant, relevant tests, and blocking gates are evidenced.
 - If verification is partial, use a truthful partial state such as `Implemented Locally`, `Awaiting Gate Cleanup`, or `Awaiting Real-Path Verification`.
 
 ## Codex Skill Inventory
@@ -78,40 +86,43 @@ These skills are local to the repo and should be used when the match is clear:
 
 - `vibeos-discover`
   - Discovery, codebase understanding, and product anchor setup.
-  - File: `.codex/skills/vibeos-discover/SKILL.md`
+  - File: `.agents/skills/vibeos-discover/SKILL.md`
 - `vibeos-plan`
   - Planning, work-order generation, and governance setup.
-  - File: `.codex/skills/vibeos-plan/SKILL.md`
+  - File: `.agents/skills/vibeos-plan/SKILL.md`
 - `vibeos-build`
   - Autonomous work-order execution with truthful completion rules.
-  - File: `.codex/skills/vibeos-build/SKILL.md`
+  - File: `.agents/skills/vibeos-build/SKILL.md`
+- `vibeos-comp`
+  - Compact enterprise MVP mission intake for competition-grade or design-partner builds.
+  - File: `.agents/skills/vibeos-comp/SKILL.md`
 - `vibeos-audit`
   - Focused or full audit flows using VibeOS auditors and gates.
-  - File: `.codex/skills/vibeos-audit/SKILL.md`
+  - File: `.agents/skills/vibeos-audit/SKILL.md`
 - `vibeos-gate`
   - Run quality gates and explain the results in plain English.
-  - File: `.codex/skills/vibeos-gate/SKILL.md`
+  - File: `.agents/skills/vibeos-gate/SKILL.md`
 - `vibeos-status`
   - Tactical session-level update.
-  - File: `.codex/skills/vibeos-status/SKILL.md`
+  - File: `.agents/skills/vibeos-status/SKILL.md`
 - `vibeos-project-status`
   - Executive, founder-style project briefing.
-  - File: `.codex/skills/vibeos-project-status/SKILL.md`
+  - File: `.agents/skills/vibeos-project-status/SKILL.md`
 - `vibeos-session-audit`
   - Closeout review of the current or most recent build session.
-  - File: `.codex/skills/vibeos-session-audit/SKILL.md`
+  - File: `.agents/skills/vibeos-session-audit/SKILL.md`
 - `vibeos-checkpoint`
   - Phase boundary checkpoint and ratchet review.
-  - File: `.codex/skills/vibeos-checkpoint/SKILL.md`
+  - File: `.agents/skills/vibeos-checkpoint/SKILL.md`
 - `vibeos-wo`
   - Individual Work Order creation, status, completion, and audit.
-  - File: `.codex/skills/vibeos-wo/SKILL.md`
+  - File: `.agents/skills/vibeos-wo/SKILL.md`
 - `vibeos-help`
   - Explain VibeOS concepts and route the user to the right workflow.
-  - File: `.codex/skills/vibeos-help/SKILL.md`
+  - File: `.agents/skills/vibeos-help/SKILL.md`
 - `vibeos-autonomous`
   - Enable a full autonomous-session override and continue building.
-  - File: `.codex/skills/vibeos-autonomous/SKILL.md`
+  - File: `.agents/skills/vibeos-autonomous/SKILL.md`
 
 ## Routing Rules
 
@@ -119,11 +130,11 @@ These skills are local to the repo and should be used when the match is clear:
 - If the user references specific files, errors, logs, or line numbers, help directly instead of forcing a skill.
 - Prefer voice-led behavior. Do not require slash commands; users should be able to speak naturally.
 
-## Agent Templates (Role Contracts)
+## Agent Templates and Runtime Capability
 
-Files in `.codex/agents/*.md` are role contracts, not executable subagents. Codex cannot spawn isolated agents. When a workflow calls for investigator, tester, backend, frontend, prompt engineer, doc writer, or auditors:
+Files in `.codex/agent-contracts/*.md` are legacy role contracts. Files in `.codex/agents/*.toml` are Codex-native subagent definitions. When the runtime capability matrix says native Codex multi-agent support is unavailable, or when a workflow needs the legacy contract text, and a workflow calls for investigator, tester, backend, frontend, prompt engineer, doc writer, or auditors:
 
-1. Read the matching template in `.codex/agents/`
+1. Read the matching template in `.codex/agent-contracts/`
 2. Use it to structure the phase (scope, inputs, expected outputs, quality criteria)
 3. Perform the phase yourself in the current context
 4. Report the result honestly with evidence
@@ -132,6 +143,8 @@ This means Codex handles all phases sequentially in one context window. There is
 
 The practical enforcement stack in Codex is: repo contract (`AGENTS.md`), explicit gate runs (`.vibeos/scripts/gate-runner.sh`), and Git `pre-commit` / `commit-msg` hooks for commit-boundary blocking.
 
+When `.vibeos/runtime-capabilities.json` says Codex multi-agent support is available and the project has Codex-native agent definitions, use those capabilities according to their local contracts. If not, fall back to the role-contract workflow above.
+
 ## Side-By-Side Compatibility
 
 - If `.claude/` exists, preserve it. Do not modify Claude/Cursor assets.
@@ -139,5 +152,5 @@ The practical enforcement stack in Codex is: repo contract (`AGENTS.md`), explic
 - Shared project state belongs in `.vibeos/` so Claude/Cursor and Codex see the same plan, checkpoints, logs, and evidence.
 - Keep surface-specific instruction files thin. The shared repo contract should remain canonical.
 - Runtime-specific instructions belong in the runtime-specific surface:
-  - Codex: `AGENTS.md`, `.codex/skills/`, `.codex/agents/`
+  - Codex: `AGENTS.md`, `.agents/skills/`, `.codex/agents/`, `.codex/hooks.json`
   - Claude/Cursor: `CLAUDE.md`, `.claude/`, `.cursorrules`

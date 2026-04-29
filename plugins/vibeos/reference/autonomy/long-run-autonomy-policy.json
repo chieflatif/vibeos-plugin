@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "policy": {
+    "max_duration_hours": 48,
+    "min_heartbeat_interval_minutes": 5,
+    "max_heartbeat_interval_minutes": 60,
+    "max_checkpoint_interval_minutes": 120,
+    "max_audit_interval_minutes": 360,
+    "max_loop_iterations": 512,
+    "supervisor_poll_interval_minutes": 15,
+    "resume_backoff_minutes": 15,
+    "stale_heartbeat_multiplier": 3,
+    "checkpoint_grace_multiplier": 2,
+    "audit_grace_multiplier": 2,
+    "runner_default_execute": false,
+    "loop_default_max_iterations": 1,
+    "loop_default_sleep": false,
+    "runtime_adapter_default_execute": false,
+    "runtime_adapter_supported_providers": [
+      "codex",
+      "claude"
+    ],
+    "scheduler_profile_default_interval_minutes": 15,
+    "scheduler_profile_default_launch_runtime": false,
+    "smoke_test_default_runtime_provider": "codex",
+    "smoke_test_default_execute_runtime": false,
+    "lease_default_ttl_seconds": 1800,
+    "runtime_adapter_lease_ttl_seconds": 21600,
+    "stale_lease_recovery": true,
+    "failure_detector_repeat_threshold": 3,
+    "failure_detector_consecutive_failure_threshold": 2,
+    "recovery_planner_default_mode": "plan_only",
+    "recovery_actions_require_review": true,
+    "recovery_resolution_requires_evidence": true,
+    "scheduler_guard_blocks_unresolved_recovery": true,
+    "provider_limit_patterns": [
+      "rate limit",
+      "quota",
+      "context length",
+      "maximum context",
+      "context window",
+      "session limit",
+      "usage limit",
+      "too many requests",
+      "429",
+      "limit reached",
+      "token limit",
+      "timed out"
+    ],
+    "runner_allowed_scripts": [
+      "autonomy-heartbeat.py",
+      "autonomy-supervisor.py",
+      "detect-runtime-capabilities.sh",
+      "gate-runner.sh",
+      "validate-long-run-autonomy.py"
+    ],
+    "required_stop_conditions": [
+      "security_or_secret_risk",
+      "destructive_or_irreversible_action",
+      "unclear_product_decision",
+      "repeated_gate_failure",
+      "provider_or_session_limit",
+      "repeated_no_progress_loop",
+      "plan_complete"
+    ]
+  },
+  "default_profile": {
+    "target_hours": 24,
+    "max_hours": 48,
+    "heartbeat_interval_minutes": 30,
+    "checkpoint_interval_minutes": 60,
+    "audit_interval_minutes": 180,
+    "human_update_interval_minutes": 240
+  }
+}

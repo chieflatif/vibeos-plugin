@@ -23,6 +23,7 @@ Use this skill to explain concepts and help the user pick the right workflow.
    - `vibeos-checkpoint`
    - `vibeos-wo`
    - `vibeos-autonomous`
+   - long-run autonomy maps to `vibeos-autonomous`, `vibeos-status`, and `vibeos-session-audit`
 4. If the user is asking about a specific file, line, or error, help directly instead of forcing a workflow.
 
 ## Rules

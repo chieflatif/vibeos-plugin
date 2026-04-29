@@ -34,7 +34,23 @@
   "last_audited_at": "string | null — ISO-8601 timestamp of last audit",
   "audit_visibility_mode": "string | null — 'same-tree' | 'snapshot' | 'committed-tree'",
   "audit_snapshot_ref": "string | null — git ref for snapshot mode auditing",
-  "audit_dispatch_profile": "string | null — 'same-tree' | 'worktree'"
+  "audit_dispatch_profile": "string | null — 'same-tree' | 'worktree'",
+  "long_run": {
+    "run_id": "string — durable id for a 24-48 hour autonomy run",
+    "active": "boolean — true while the long-run control plane is active",
+    "target_hours": "number — intended run duration, usually 24",
+    "max_hours": "number — hard maximum, usually 48",
+    "heartbeat_interval_minutes": "number — heartbeat cadence",
+    "checkpoint_interval_minutes": "number — checkpoint cadence",
+    "audit_interval_minutes": "number — audit cadence",
+    "loop_iteration": "number — current long-run loop iteration",
+    "last_heartbeat_at": "string | null — latest heartbeat timestamp",
+    "last_heartbeat_file": "string | null — latest heartbeat artifact path",
+    "last_checkpoint_at": "string | null — latest checkpoint timestamp",
+    "last_audit_at": "string | null — latest audit timestamp",
+    "status": "string — running | checkpoint | audit | blocked | paused | complete",
+    "stop_reason": "string | null — terminal reason when blocked, paused, or complete"
+  }
 }
 ```
 
@@ -58,6 +74,20 @@
 | `audit_visibility_mode` | string/null | `select-audit-visibility-mode.sh` | Same-tree auditors, `validate-audit-visibility.sh` |
 | `audit_snapshot_ref` | string/null | `select-audit-visibility-mode.sh` | Snapshot-mode auditors |
 | `audit_dispatch_profile` | string/null | `select-audit-visibility-mode.sh` | Build/audit skills (agent dispatch) |
+
+### Long-Run Autonomy Fields
+
+These fields are present when the project is running a deliberate 24-48 hour autonomous session.
+
+| Field | Type | Set By | Read By |
+|---|---|---|---|
+| `long_run.run_id` | string | `autonomy-heartbeat.py`, `/vibeos:autonomous` | Status, session audit, validators |
+| `long_run.active` | boolean | `autonomy-heartbeat.py` | Build, status, validators |
+| `long_run.target_hours` | number | `autonomy-heartbeat.py`, `/vibeos:autonomous` | Validators |
+| `long_run.max_hours` | number | `autonomy-heartbeat.py`, `/vibeos:autonomous` | Validators |
+| `long_run.last_heartbeat_at` | string/null | `autonomy-heartbeat.py` | Status, stale-run detection |
+| `long_run.last_checkpoint_at` | string/null | `autonomy-heartbeat.py`, checkpoint flow | Validators |
+| `long_run.last_audit_at` | string/null | `autonomy-heartbeat.py`, session audit | Validators |
 
 ### Audit Visibility Modes
 

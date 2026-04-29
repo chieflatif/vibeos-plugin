@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0",
+  "name": "VibOS Comp Flow Integrity Checklist",
+  "lifecycle_integration": {
+    "mission": "MISSION.md names the primary user outcome, flow handoffs, and objective fidelity boundaries.",
+    "planning": "COMP-PLAN.md maps work packages to user-flow checkpoints and evidence expectations.",
+    "implementation": "Work Orders preserve the affected flow step and do not replace real handoffs with mocks or fallback-only paths.",
+    "testing": "Critical-path tests exercise the real flow across the relevant UI or entrypoint, backend/API, auth/session, data or side effect, and feedback.",
+    "auditing": "Flow Auditor reviews integrated behavior and objective fidelity before completion.",
+    "scorecard": "SCORECARD.md records Flow Integrity and Objective Fidelity results with evidence links."
+  },
+  "dimensions": [
+    {
+      "id": "flow.primary_user_outcome",
+      "question": "Can the primary user complete the mission-critical flow end to end?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["MISSION.md core workflow", "end-to-end test", "manual flow evidence", "screenshots or logs"]
+    },
+    {
+      "id": "flow.frontend_backend_handoff",
+      "question": "Does every user action in the core flow call a real backend endpoint with matching contract?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["API client", "backend route", "contract test"]
+    },
+    {
+      "id": "flow.auth_session_continuity",
+      "question": "Does auth, session, role, ownership, or tenant context survive each handoff?",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"],
+      "evidence": ["auth tests", "route guards", "ownership checks"]
+    },
+    {
+      "id": "flow.user_feedback_states",
+      "question": "Does the user see useful loading, empty, validation, success, and error states?",
+      "blocking_at": ["design_partner_mvp", "production_ready"],
+      "evidence": ["screenshots", "component tests", "manual QA notes"]
+    },
+    {
+      "id": "flow.objective_fidelity",
+      "question": "Does the integrated flow still satisfy the original objective without product drift?",
+      "blocking_at": ["local_proof", "design_partner_mvp", "production_ready"],
+      "evidence": ["mission promise", "scorecard", "flow audit report"]
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "lifecycle_integration": {
+    "mission": "MISSION.md names delivery infrastructure, CI/CD, deployment, observability, environment, secrets, smoke/health, rollback, and runbook expectations.",
+    "planning": "COMP-PLAN.md maps delivery checkpoints and evidence ownership.",
+    "implementation": "Work Orders that create runtime behavior include CI/CD, deployability, observability, and operational evidence where relevant.",
+    "testing": "Delivery evidence includes build, test, gate, smoke, health, and rollback or recovery commands where applicable.",
+    "auditing": "Delivery Infrastructure Auditor reviews pipeline-as-code, deployment, secrets, observability, smoke checks, and rollback.",
+    "scorecard": "SCORECARD.md records Delivery Infrastructure results with evidence links."
+  },
+  "dimensions": [
+    {
+      "id": "delivery.pipeline_as_code",
+      "question": "Is CI/CD or an explicit local-proof equivalent defined as code or documented commands?",
+      "blocking": true,
+      "evidence": ["workflow file", "pipeline config", "script", "local proof command"]
+    },
+    {
+      "id": "delivery.gates_in_pipeline",
+      "question": "Does the delivery path run tests, quality gates, dependency checks, and security checks?",
+      "blocking": true,
+      "evidence": ["pipeline steps", "command output", "gate-runner output"]
+    },
+    {
+      "id": "delivery.deployability",
+      "question": "Is the deployment target, artifact, environment, and command path explicit?",
+      "blocking": true,
+      "evidence": ["deployment config", "Dockerfile", "hosting config", "runbook"]
+    },
+    {
+      "id": "delivery.observability",
+      "question": "Can the runtime and delivery path be diagnosed through health checks, logs, metrics/traces, request IDs, or error reporting?",
+      "blocking": true,
+      "evidence": ["health output", "sample logs", "metrics/traces", "error report evidence"]
+    },
+    {
+      "id": "delivery.secrets_environment",
+      "question": "Are environment variables, secrets, and approval boundaries explicit and secret-free in code?",
+      "blocking": true,
+      "evidence": [".env.example", "secret scan", "CI secret references", "environment inventory"]
+    },
+    {
+      "id": "delivery.rollback_runbook",
+      "question": "Can future agents roll back, redeploy, or recover without guessing?",
+      "blocking": true,
+      "evidence": ["rollback command", "runbook", "recovery note", "incident notes"]
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+# COMP-PLAN: {{MISSION_NAME}}
+
+## Execution Mode
+
+`{{EXECUTION_MODE}}`
+
+## Parallelization Decision
+
+{{PARALLELIZATION_DECISION}}
+
+## Work Packages
+
+| WO | Role | Branch | Exclusive Paths | Verification |
+|---|---|---|---|---|
+| {{WO_ID}} | {{ROLE}} | {{BRANCH}} | {{EXCLUSIVE_PATHS}} | {{VERIFICATION}} |
+
+## Primary User Flow
+
+| Step | User Action | UI Route Or Surface | Backend/API | Auth/Session Context | Data/Side Effect | Evidence Required |
+|---|---|---|---|---|---|---|
+| {{FLOW_STEP}} | {{USER_ACTION}} | {{UI_SURFACE}} | {{BACKEND_API}} | {{AUTH_CONTEXT}} | {{DATA_EFFECT}} | {{FLOW_EVIDENCE}} |
+
+## System Invariant Checkpoints
+
+| Invariant Class | Planning Requirement | Evidence Expected |
+|---|---|---|
+| {{INVARIANT_CLASS}} | {{INVARIANT_REQUIREMENT}} | {{INVARIANT_EVIDENCE}} |
+
+## Dependency Intelligence Checkpoints
+
+| Dependency Control | Planning Requirement | Evidence Expected |
+|---|---|---|
+| Runtime and package manager | {{RUNTIME_PACKAGE_MANAGER_REQUIREMENT}} | {{RUNTIME_PACKAGE_MANAGER_EVIDENCE}} |
+| Current-source evidence | {{CURRENT_DEPENDENCY_EVIDENCE_REQUIREMENT}} | {{CURRENT_DEPENDENCY_EVIDENCE}} |
+| Stack currency packs | {{STACK_CURRENCY_PACK_REQUIREMENT}} | {{STACK_CURRENCY_PACK_EVIDENCE}} |
+| Version and lockfile policy | {{LOCKFILE_POLICY_REQUIREMENT}} | {{LOCKFILE_EVIDENCE}} |
+| Compatibility | {{COMPATIBILITY_REQUIREMENT}} | {{COMPATIBILITY_EVIDENCE}} |
+| Security audit | {{DEPENDENCY_AUDIT_REQUIREMENT}} | {{DEPENDENCY_AUDIT_EVIDENCE}} |
+| Upgrade path | {{UPGRADE_PATH_REQUIREMENT}} | {{UPGRADE_PATH_EVIDENCE}} |
+
+## Delivery Infrastructure Checkpoints
+
+| Delivery Control | Planning Requirement | Evidence Expected |
+|---|---|---|
+| CI/CD pipeline | {{CI_CD_PIPELINE_REQUIREMENT}} | {{CI_CD_PIPELINE_EVIDENCE}} |
+| Deployability | {{DEPLOYABILITY_REQUIREMENT}} | {{DEPLOYABILITY_EVIDENCE}} |
+| Environment and secrets | {{ENVIRONMENT_SECRETS_REQUIREMENT}} | {{ENVIRONMENT_SECRETS_EVIDENCE}} |
+| Observability | {{DELIVERY_OBSERVABILITY_REQUIREMENT}} | {{DELIVERY_OBSERVABILITY_EVIDENCE}} |
+| Smoke and health checks | {{SMOKE_HEALTH_REQUIREMENT}} | {{SMOKE_HEALTH_EVIDENCE}} |
+| Rollback and runbook | {{ROLLBACK_RUNBOOK_REQUIREMENT}} | {{ROLLBACK_RUNBOOK_EVIDENCE}} |
+
+## Shared Paths
+
+{{SHARED_PATHS}}
+
+## Main-Only Work
+
+{{MAIN_ONLY_WORK}}
+
+## Merge Order
+
+{{MERGE_ORDER}}
+
+## Unsafe Parallelization Notes
+
+{{UNSAFE_PARALLELIZATION_NOTES}}
+
+## Required Follow-Up
+
+- Create worktrees only after `.vibeos/worktree-scopes.json` is committed on the base branch.
+- Open one agent session per worktree.
+- Rebase remaining worktrees after every merge to main.
+- Keep `FLOW-INTEGRITY.md` or equivalent evidence current as implementation changes.
+- Keep `SYSTEM-INVARIANTS.md` or equivalent evidence current as implementation changes.
+- Keep `DEPENDENCY-INTELLIGENCE.md` or equivalent evidence current as dependency and runtime decisions change.
+- Keep `DELIVERY-INFRASTRUCTURE.md` or equivalent evidence current as CI/CD, deployment, observability, smoke checks, rollback, and runbooks change.
+- Run `comp_gauntlet` before final demo or handoff.

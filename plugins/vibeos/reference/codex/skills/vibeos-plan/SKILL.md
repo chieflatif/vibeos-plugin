@@ -34,6 +34,7 @@ Use this skill when discovery is done and the project needs a real development p
    - remediation work orders in Phase 0
 5. Use outcome language first, then technical detail.
 6. Make phase sequencing, dependencies, and acceptance criteria explicit enough for truthful build execution.
+7. When the project needs 24-48 hour autonomy, record that as long-run autonomy in `.vibeos/config.json` and expect heartbeat, checkpoint, audit cadence, failure-loop detection, recovery planning, evidence-backed recovery resolution, scheduler guarding, and closeout validation via `.vibeos/scripts/autonomy-heartbeat.py`, `.vibeos/scripts/autonomy-failure-detector.py`, `.vibeos/scripts/autonomy-recovery-planner.py`, `.vibeos/scripts/autonomy-recovery-resolution.py`, `.vibeos/scripts/autonomy-scheduler-guard.py`, and `.vibeos/scripts/validate-long-run-autonomy.py`.
 
 ## Rules
 
