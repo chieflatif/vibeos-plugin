@@ -99,6 +99,7 @@
     {"script": "scripts/validate-dependency-intelligence.py", "purpose": "Validates VibOS Comp dependency decisions for current evidence, compatibility, lockfiles, audits, and upgrade paths"},
     {"script": "scripts/validate-delivery-infrastructure.py", "purpose": "Validates VibOS Comp delivery infrastructure for CI/CD, deployment, observability, secrets, smoke checks, rollback, and runbook evidence"},
     {"script": "scripts/evidence-recall.py", "purpose": "Source-cited local evidence recall index and query utility"},
+    {"script": "scripts/generate-inventory.py", "purpose": "Generates source-derived VibeOS inventory and public claim ledger for vNext proof packages"},
     {"script": "scripts/health-check.sh", "purpose": "Production health probe (activate when URLs configured)"},
     {"script": "scripts/smoke-test.sh", "purpose": "Production smoke test (activate when URLs configured)"}
   ],

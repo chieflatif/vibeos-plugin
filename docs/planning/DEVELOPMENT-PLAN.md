@@ -45,6 +45,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | 30 | Autonomy Recovery Planner | WO-103 | Convert autonomy failures into plan-only recovery actions before another scheduler tick |
 | 31 | Autonomy Scheduler Guard | WO-104 | Refuse scheduler ticks while recovery-plan actions lack matching resolution evidence |
 | 32 | Autonomy Recovery Resolution Protocol | WO-105 | Record evidence-backed recovery action resolution before scheduler ticks resume |
+| 33 | VibeOS vNext Public Proof Foundation | WO-106 | Generate source-derived inventory and claim-ledger proof before public amplification |
 
 ## Mandatory Audits
 
@@ -602,6 +603,48 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
 | WO-105 | Autonomy Recovery Resolution Protocol | WO-100, WO-103, WO-104 | Complete |
+
+---
+
+## Phase 33: VibeOS vNext Public Proof Foundation
+
+**Goal:** Establish source-derived proof artifacts for VibeOS vNext before the repo is linked or amplified publicly.
+
+**Context:** Website WO-121 and WO-122 require a generated inventory, claim ledger, install proof, runtime capability proof, gate/hook/secret-scan proof, sample execution trace, limitation statement, and approved media before stronger public VibeOS claims. This phase starts with the deterministic inventory and claim-ledger mechanism because all public count claims should flow from source.
+
+**Exit Criteria:** `generate-inventory.py` produces `docs/evidence/vnext/generated-inventory.json`, the artifact contains inventory counts and public claim posture, focused tests pass, and downstream proof work has a concrete source artifact to consume.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-106 | vNext Generated Inventory and Claim Ledger | WO-072, WO-121/WO-122 read-only evidence | Implemented Locally |
+
+---
+
+## Phases 34–46: VibeOS vNext Upgrade (approved 2026-06-10)
+
+**Goal:** Upgrade VibeOS around current Claude Code capabilities (subagents, hooks lifecycle, dynamic workflows, agent teams, headless/loops) on a hardened deterministic floor, rebuild the upgrade path as a cognition-led selective migration, and produce the public proof package.
+
+**Governing document:** `docs/planning/VNEXT-UPGRADE-AUDIT-AND-MASTER-PLAN-2026-06-10.md` — Section 7 holds the authoritative per-WO scope, acceptance criteria, and proof commands; the tables below are the tracking summary. Core principles ratified 2026-06-10: Eloquence, Efficiency, Security, Fidelity, Provability (precedence Security > Fidelity > Provability > Eloquence > Efficiency; lean-governance doctrine applies).
+
+**Exit Criteria:** gate floor green end-to-end; WO frontmatter contracts live with generated index; lane-readiness, modernized hooks, model/cost policy, bounded loops with limit-aware scheduling, workflow + agent-team evidence verdicts, drift/hygiene gates, rebuilt upgrade path proven on fixture; independent audit passed; proof package complete.
+
+| Phase | Title | WOs | Depends on |
+|---|---|---|---|
+| 34 | Foundation Repair | WO-107, WO-108, WO-109, WO-110 | — |
+| 35 | Machine-Readable WO Contracts (U1) | WO-111, WO-112, WO-113 | 34 |
+| 36 | Lane-Readiness Automation (U2) | WO-114, WO-115 | 34, 35 |
+| 37 | Hook Lifecycle Modernization | WO-116, WO-117 | 34 |
+| 38 | Model/Effort/Cost Policy (U5) | WO-118, WO-119 | 34, 35 |
+| 39 | Loop & Headless Execution (U4) | WO-120, WO-121, WO-122, WO-139 | 34, 35, 37, 38 |
+| 40 | Dynamic Workflow Adoption | WO-123, WO-124 | 34 |
+| 41 | Agent-Team Pilot (U3, experimental) | WO-125, WO-126 | 36, 37 |
+| 42 | Drift & Hygiene Completion (U6/U7) | WO-127, WO-128 | 35 |
+| 43 | Upgrade Path vNext | WO-129, WO-130, WO-131, WO-132, WO-133 | 34–38, 42 |
+| 44 | Document Pyramid Migration | WO-134, WO-135 | 43 |
+| 45 | Independent vNext Audit & Public Proof | WO-136, WO-137, WO-138 | all prior |
+| 46 | Reuse & Secure Ingestion | WO-140, WO-141, WO-142, WO-143, WO-144 | 45 (re-prioritizable per D-9) |
+
+Note: WO-numbering is allocation order, not execution order (WO-139 executes in Phase 39). WO-INDEX.md becomes a generated view at WO-113; until then it is maintained by hand against the master plan.
 
 ---
 
