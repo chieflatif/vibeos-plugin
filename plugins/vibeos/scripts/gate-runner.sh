@@ -60,6 +60,7 @@ Options:
   --timeout SECONDS       Per-gate timeout (default: 120)
   --lock                  Acquire runner lock
   --dry-run               Show gates without executing
+  --print-tier N          Print resolved "blocking|label" for tier N and exit (diagnostic)
   --framework-dir PATH    Plugin/framework root (where scripts/ lives)
   --project-dir PATH      Target project root
   -h, --help              Show usage
@@ -103,6 +104,7 @@ CONTINUE_ON_FAILURE=false
 JSON_OUTPUT=false
 USE_LOCK=false
 DRY_RUN=false
+PRINT_TIER=""
 PHASE=""
 LOCK_FILE="$PROJECT_ROOT/.claude/.gate-runner.lock"
 STALE_LOCK_SECONDS=600
@@ -119,6 +121,7 @@ while [[ $# -gt 0 ]]; do
     --timeout) GATE_TIMEOUT="$2"; shift 2 ;;
     --lock) USE_LOCK=true; shift ;;
     --dry-run) DRY_RUN=true; shift ;;
+    --print-tier) PRINT_TIER="$2"; shift 2 ;;
     --framework-dir) FRAMEWORK_DIR="$2"; shift 2 ;;
     --project-dir) PROJECT_ROOT="$2"; shift 2 ;;
     -*) die "Unknown option: $1" ;;
@@ -132,7 +135,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ -z "$PHASE" ]]; then
+if [[ -z "$PHASE" && -z "$PRINT_TIER" ]]; then
   usage
   die "Phase argument required"
 fi
@@ -313,11 +316,30 @@ get_tier_info() {
 import json, sys
 with open(sys.argv[1]) as f:
     manifest = json.load(f)
-tier = int(sys.argv[2])
+try:
+    tier = int(sys.argv[2])
+except (ValueError, TypeError):
+    sys.stderr.write(f"get_tier_info: tier must be an integer, got {sys.argv[2]!r}\n")
+    sys.exit(2)
 tiers = manifest.get("tiers", {})
-tier_def = tiers.get(str(tier), {})
-blocking = tier_def.get("blocking", tier <= 1)
-label = tier_def.get("label", f"tier-{tier}")
+tier_def = tiers.get(str(tier))
+default_blocking = tier <= 1
+if isinstance(tier_def, dict):
+    # Current schema: tier definitions are objects {"label", "blocking", ...}.
+    blocking = tier_def.get("blocking")
+    if blocking is None:  # key absent or explicitly null → fall back to severity
+        blocking = default_blocking
+    label = tier_def.get("label") or f"tier-{tier}"
+elif isinstance(tier_def, str) and tier_def.strip():
+    # Legacy schema (back-compat for installed projects that have not migrated):
+    # tier definitions are description strings. Blocking is inferred from tier
+    # severity (tiers 0-1 block); the description doubles as the display label.
+    blocking = default_blocking
+    label = tier_def.strip()
+else:
+    # Missing, empty, or non-string/non-object tier definition: safe defaults.
+    blocking = default_blocking
+    label = f"tier-{tier}"
 print(f"{blocking}|{label}")
 PYEOF
 }
@@ -468,6 +490,12 @@ for k, v in env.items():
 }
 
 # ─── Main Execution ─────────────────────────────────────────────
+# Diagnostic hook: resolve a single tier and exit (used by tier-schema tests).
+if [[ -n "$PRINT_TIER" ]]; then
+  get_tier_info "$PRINT_TIER"
+  exit $?
+fi
+
 acquire_lock
 
 if [[ "$JSON_OUTPUT" != "true" ]]; then
@@ -651,7 +679,7 @@ while IFS= read -r gate_line; do
       fi
 
       # Stop on blocking failure unless --continue-on-failure
-      if [[ "$gate_result" == "fail" && "$tier_blocking" == "true" && "$CONTINUE_ON_FAILURE" != "true" ]]; then
+      if [[ "$gate_result" == "fail" && ( "$tier_blocking" == "true" || "$tier_blocking" == "True" ) && "$CONTINUE_ON_FAILURE" != "true" ]]; then
         if [[ "$JSON_OUTPUT" != "true" ]]; then
           echo ""
           log "ABORT: Blocking gate failed. Use --continue-on-failure to run remaining gates."

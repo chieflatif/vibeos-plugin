@@ -198,14 +198,14 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-045 | User Communication Contract | Phase 6 complete | Draft |
-| WO-041 | Architecture-First Midstream Discovery | Phase 6 complete | Draft |
-| WO-042 | Guided Codebase Audit with User Decisions | WO-041, WO-045 (soft) | Draft |
-| WO-046 | System Onboarding & Concept Introduction | WO-045, WO-041 (soft) | Draft |
-| WO-043 | Finding-Level Baseline Model | WO-042 | Draft |
-| WO-044 | Remediation Roadmap & Phase 0 Enforcement | WO-043 | Draft |
-| WO-047 | Build Loop Visibility & Progress Reporting | WO-045, WO-044 (soft) | Draft |
-| WO-048 | Consequence-Aware Decision Support | WO-045, WO-044 (soft) | Draft |
+| WO-045 | User Communication Contract | Phase 6 complete | Complete |
+| WO-041 | Architecture-First Midstream Discovery | Phase 6 complete | Complete |
+| WO-042 | Guided Codebase Audit with User Decisions | WO-041, WO-045 (soft) | Complete |
+| WO-046 | System Onboarding & Concept Introduction | WO-045, WO-041 (soft) | Complete |
+| WO-043 | Finding-Level Baseline Model | WO-042 | Complete |
+| WO-044 | Remediation Roadmap & Phase 0 Enforcement | WO-043 | Complete |
+| WO-047 | Build Loop Visibility & Progress Reporting | WO-045, WO-044 (soft) | Complete |
+| WO-048 | Consequence-Aware Decision Support | WO-045, WO-044 (soft) | Complete |
 
 ---
 
@@ -219,11 +219,11 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | WO | Title | Dependencies | Status |
 |---|---|---|---|
-| WO-049 | Mid-WO Resume & Error Recovery | Phase 7 complete | Draft |
-| WO-050 | Decision Engine Transparency & Gate Management | Phase 7 complete | Draft |
-| WO-051 | Midstream Baseline Bootstrap | Phase 7 complete | Draft |
-| WO-052 | First-Run Experience & Handoffs | Phase 7 complete | Draft |
-| WO-053 | Validation & Safety Hardening | Phase 7 complete | Draft |
+| WO-049 | Mid-WO Resume & Error Recovery | Phase 7 complete | Complete |
+| WO-050 | Decision Engine Transparency & Gate Management | Phase 7 complete | Complete |
+| WO-051 | Midstream Baseline Bootstrap | Phase 7 complete | Complete |
+| WO-052 | First-Run Experience & Handoffs | Phase 7 complete | Complete |
+| WO-053 | Validation & Safety Hardening | Phase 7 complete | Complete |
 
 ---
 

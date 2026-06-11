@@ -352,10 +352,10 @@ Authoritative scope: `docs/planning/VNEXT-UPGRADE-AUDIT-AND-MASTER-PLAN-2026-06-
 
 | WO | Title | Phase | Status | Dependencies |
 |---|---|---|---|---|
-| WO-107 | Gate-Runner Tier-Schema Fix | 34 | Planned | WO-106 commit |
-| WO-108 | Fixture Secret Quarantine + Pytest Scoping | 34 | Planned | — |
-| WO-109 | Runtime Capability Detection Repair + Extension | 34 | Planned | — |
-| WO-110 | Hook-Manifest Sync + WO Status Reconciliation | 34 | Planned | — |
+| WO-107 | Gate-Runner Tier-Schema Fix | 34 | Complete | WO-106 commit |
+| WO-108 | Fixture Secret Quarantine + Pytest Scoping | 34 | Complete | — |
+| WO-109 | Runtime Capability Detection Repair + Extension | 34 | Complete | — |
+| WO-110 | Hook-Manifest Sync + WO Status Reconciliation | 34 | Complete | — |
 | WO-111 | WO Frontmatter Schema + Template | 35 | Planned | Phase 34 |
 | WO-112 | Frontmatter Generators | 35 | Planned | WO-111 |
 | WO-113 | Migration + Drift Lint + Generated WO-INDEX | 35 | Planned | WO-112 |

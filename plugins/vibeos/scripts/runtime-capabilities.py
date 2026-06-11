@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -15,6 +16,45 @@ from typing import Any
 
 FRAMEWORK_VERSION = "2.2.0"
 TIMEOUT_SECONDS = 10
+
+# Claude Code capability version thresholds (dotted-int tuples).
+SUBAGENTS_MIN_VERSION = (2, 0, 0)
+AGENT_TEAMS_MIN_VERSION = (2, 1, 32)
+DYNAMIC_WORKFLOWS_MIN_VERSION = (2, 1, 154)
+# Operator opt-in / opt-out environment variables.
+AGENT_TEAMS_ENV = "CLAUDE_AGENT_TEAMS"
+DYNAMIC_WORKFLOWS_DISABLE_ENV = "CLAUDE_DISABLE_DYNAMIC_WORKFLOWS"
+
+
+def version_tuple(version: str | None) -> tuple[int, ...]:
+    if not version:
+        return ()
+    parts: list[int] = []
+    for chunk in version.split("."):
+        m = re.match(r"\d+", chunk)
+        if not m:
+            break
+        parts.append(int(m.group(0)))  # tolerate suffixes, e.g. "170-beta" -> 170
+    return tuple(parts)
+
+
+def version_ge(version: str | None, threshold: tuple[int, ...]) -> bool:
+    """True when a dotted-int version is >= threshold (numeric, not lexical)."""
+    vt = version_tuple(version)
+    if not vt:
+        return False
+    length = max(len(vt), len(threshold))
+    vt_p = vt + (0,) * (length - len(vt))
+    th_p = threshold + (0,) * (length - len(threshold))
+    return vt_p >= th_p
+
+
+def _env_truthy(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _fmt_version(t: tuple[int, ...]) -> str:
+    return ".".join(str(x) for x in t)
 
 
 def run_command(argv: list[str]) -> tuple[int, str, str]:
@@ -76,6 +116,89 @@ def parse_claude_agents(output: str) -> dict[str, Any]:
         "agents": agents,
         "vibeos_agents": [name for name in agents if name.startswith("vibeos:")],
     }
+
+
+def parse_claude_agents_json(output: str) -> dict[str, Any]:
+    """Tolerant parser for `claude agents --json` (non-TTY retry path)."""
+    try:
+        data = json.loads(output)
+    except (ValueError, TypeError):
+        return {"active_count": None, "agents": [], "vibeos_agents": []}
+    if isinstance(data, dict):
+        data = data.get("agents", data.get("active", []))
+    names: list[str] = []
+    if isinstance(data, list):
+        for item in data:
+            if isinstance(item, dict):
+                name = item.get("name") or item.get("agent") or ""
+            else:
+                name = str(item)
+            name = name.strip()
+            if name:
+                names.append(name)
+    return {
+        "active_count": len(names) if names else None,
+        "agents": names,
+        "vibeos_agents": [n for n in names if n.startswith("vibeos:")],
+    }
+
+
+def compute_claude_capabilities(
+    version: str | None,
+    help_output: str,
+    path: str | None,
+    agents_evidence: str,
+) -> tuple[dict[str, Any], dict[str, str]]:
+    """Derive Claude capabilities + evidence from version, help text, and binary presence.
+
+    Subagent availability is version-gated (authoritative) rather than dependent on
+    `claude agents` active-count, which is empty in non-TTY runs.
+    """
+    binary_present = bool(path)
+    subagents = binary_present and version_ge(version, SUBAGENTS_MIN_VERSION)
+
+    agent_teams_optin = _env_truthy(AGENT_TEAMS_ENV)
+    agent_teams_version_ok = version_ge(version, AGENT_TEAMS_MIN_VERSION)
+    agent_teams = (
+        "experimental_available"
+        if binary_present and agent_teams_optin and agent_teams_version_ok
+        else "unavailable"
+    )
+
+    dynamic_disabled = _env_truthy(DYNAMIC_WORKFLOWS_DISABLE_ENV)
+    dynamic_version_ok = version_ge(version, DYNAMIC_WORKFLOWS_MIN_VERSION)
+    dynamic_workflows = status(binary_present and dynamic_version_ok and not dynamic_disabled)
+
+    capabilities = {
+        "subagents": status(subagents),
+        "worktree_sessions": status("--worktree" in help_output),
+        "custom_agents_cli": status("--agents" in help_output),
+        "hooks": "available",
+        "agent_teams": agent_teams,
+        "dynamic_workflows": dynamic_workflows,
+        "headless": status(binary_present),
+    }
+    ver = version or "unknown"
+    evidence = {
+        "subagents": (
+            f"claude {ver} present at {path}; >= {_fmt_version(SUBAGENTS_MIN_VERSION)} "
+            f"({agents_evidence or 'version-gated'})"
+            if binary_present
+            else "claude binary not found"
+        ),
+        "agent_teams": (
+            f"env {AGENT_TEAMS_ENV}={'set' if agent_teams_optin else 'unset'}; "
+            f"version {'>=' if agent_teams_version_ok else '<'} {_fmt_version(AGENT_TEAMS_MIN_VERSION)}"
+        ),
+        "dynamic_workflows": (
+            f"version {'>=' if dynamic_version_ok else '<'} {_fmt_version(DYNAMIC_WORKFLOWS_MIN_VERSION)}"
+            + (f"; disabled via {DYNAMIC_WORKFLOWS_DISABLE_ENV}" if dynamic_disabled else "")
+        ),
+        "headless": (
+            f"claude binary present at {path}" if binary_present else "claude binary not found"
+        ),
+    }
+    return capabilities, evidence
 
 
 def bool_feature(features: dict[str, dict[str, Any]], name: str) -> bool:
@@ -150,12 +273,9 @@ def detect_claude() -> dict[str, Any]:
     }
     if not path:
         result["errors"].append("claude command not found")
-        result["capabilities"] = {
-            "subagents": "unavailable",
-            "worktree_sessions": "unavailable",
-            "hooks": "unknown",
-            "agent_teams": "unknown",
-        }
+        capabilities, evidence = compute_claude_capabilities(None, "", None, "")
+        result["capabilities"] = capabilities
+        result["capability_evidence"] = evidence
         return result
 
     code, stdout, stderr = run_command(["claude", "--version"])
@@ -164,27 +284,35 @@ def detect_claude() -> dict[str, Any]:
     else:
         result["errors"].append(f"claude --version failed: {stderr or code}")
 
+    # `claude agents` is TTY-oriented; on non-TTY failure, retry with --json.
+    agents_evidence = "claude agents"
     code, stdout, stderr = run_command(["claude", "agents"])
-    if code == 0:
+    if code == 0 and stdout:
         result["agents"] = parse_claude_agents(stdout)
     else:
-        result["errors"].append(f"claude agents failed: {stderr or code}")
+        code_j, stdout_j, stderr_j = run_command(["claude", "agents", "--json"])
+        if code_j == 0 and stdout_j:
+            result["agents"] = parse_claude_agents_json(stdout_j)
+            agents_evidence = "claude agents --json (non-TTY retry)"
+        else:
+            result["errors"].append(
+                f"claude agents failed: {stderr or code}; --json retry: {stderr_j or code_j}"
+            )
+            agents_evidence = "version-gated (claude agents unavailable in this context)"
 
     code, stdout, stderr = run_command(["claude", "--help"])
     help_output = stdout if code == 0 else ""
     if code != 0:
         result["errors"].append(f"claude --help failed: {stderr or code}")
 
-    result["capabilities"] = {
-        "subagents": status(bool(result["agents"]["active_count"])),
-        "worktree_sessions": status("--worktree" in help_output),
-        "custom_agents_cli": status("--agents" in help_output),
-        "hooks": "available",
-        "agent_teams": "unknown",
-    }
+    capabilities, evidence = compute_claude_capabilities(
+        result["version"], help_output, path, agents_evidence
+    )
+    result["capabilities"] = capabilities
+    result["capability_evidence"] = evidence
     result["limitations"] = [
         "Subagents cannot spawn subagents; orchestration must stay in the main thread.",
-        "Agent teams are treated as optional/experimental until explicitly detected for the local version.",
+        "Agent teams are experimental and gated behind an explicit opt-in env var and version.",
     ]
     return result
 
@@ -238,7 +366,7 @@ def build_matrix(project_dir: Path) -> dict[str, Any]:
             "local: codex --version",
             "local: codex features list",
             "local: claude --version",
-            "local: claude agents",
+            "local: claude agents (--json retry on non-TTY failure)",
             "local: claude --help",
         ],
     }

@@ -16,6 +16,9 @@ set -euo pipefail
 
 FRAMEWORK_VERSION="2.2.0"
 GATE_NAME="validate-no-secrets"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Allowlist of intentionally-exempt path+pattern+value entries (e.g. fixture fakes).
+export SECRETS_ALLOWLIST="${SECRETS_ALLOWLIST:-$SCRIPT_DIR/secrets-allowlist.json}"
 
 usage() {
   cat <<'EOF'
@@ -49,6 +52,7 @@ elif [[ -n "${SCAN_DIRS:-}" ]]; then
 fi
 
 python3 - ${SCAN_ARGS[@]+"${SCAN_ARGS[@]}"} <<'PY'
+import json
 import os
 import re
 import subprocess
@@ -56,6 +60,44 @@ import sys
 from pathlib import Path
 
 paths = [Path(p) for p in sys.argv[1:]]
+
+# Load the allowlist of intentionally-exempt secret hits (e.g. fixture fakes).
+# Each entry is pinned by path, pattern label, and a value substring so a real
+# secret added elsewhere — or a different fake at the same path — still fails.
+ALLOWLIST = []
+_allow_path = os.environ.get("SECRETS_ALLOWLIST", "")
+if _allow_path and Path(_allow_path).is_file():
+    try:
+        ALLOWLIST = json.loads(Path(_allow_path).read_text()).get("allowlist", [])
+    except Exception:
+        ALLOWLIST = []
+
+def _path_matches(path_str: str, entry_path: str) -> bool:
+    # Exact repo-relative match only. The scanner emits git-relative paths, so an
+    # exact compare is correct and avoids suffix collisions (a vendored/adversarial
+    # file ending in the fixture path must NOT inherit the exemption).
+    if not entry_path:
+        return False
+    norm = path_str.replace("\\", "/")
+    if norm.startswith("./"):
+        norm = norm[2:]
+    return norm == entry_path
+
+def is_allowlisted(path_str: str, label: str, token: str) -> bool:
+    # Exempt only the precise (path, pattern, value) tuple. `token` is the matched
+    # secret span — NOT the whole line — so a real secret sharing a line with the
+    # magic substring at the allowlisted path is still detected. An entry without
+    # a non-empty value_contains never exempts (no path+pattern-wide blind spots).
+    for entry in ALLOWLIST:
+        if entry.get("pattern") and entry["pattern"] != label:
+            continue
+        if not _path_matches(path_str, entry.get("path", "")):
+            continue
+        vc = entry.get("value_contains", "")
+        if not vc or vc not in token:
+            continue
+        return True
+    return False
 
 EXCLUDE_DIR_NAMES = {
     ".git",
@@ -197,7 +239,10 @@ for f in iter_files():
         if "XXXX" in line or "xxxxxxxx" in line:
             continue
         for rx, label in PATTERNS:
-            if rx.search(line):
+            m = rx.search(line)
+            if m:
+                if is_allowlisted(str(f), label, m.group(0)):
+                    break  # intentionally exempt (e.g. fixture fake) — not a finding
                 hits.append(f"{f}:{i}: {label}: {line.strip()[:240]}")
                 break
 

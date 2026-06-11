@@ -136,9 +136,9 @@
     "session_end": {"description": "Closure checks for bounded autonomous sessions", "enabled": true}
   },
   "tiers": {
-    "0": "Always run — security and environment basics",
-    "1": "Blocking — code quality, architecture, scope discipline",
-    "2": "Important — compliance, dependencies, evidence (blocking configurable per project)",
-    "3": "Advisory — documentation, communication, dev environment"
+    "0": {"label": "critical", "blocking": true, "description": "Always run — security and environment basics. Failures block all progress."},
+    "1": {"label": "important", "blocking": true, "description": "Blocking — code quality, architecture, scope discipline. Failures block commit/WO completion."},
+    "2": {"label": "advisory", "blocking": false, "description": "Important — compliance, dependencies, evidence (blocking configurable per project)."},
+    "3": {"label": "informational", "blocking": false, "description": "Advisory — documentation, communication, dev environment."}
   }
 }

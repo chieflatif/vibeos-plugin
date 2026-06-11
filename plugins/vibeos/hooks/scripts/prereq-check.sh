@@ -70,36 +70,57 @@ root = Path(".")
 plan_path = root / "docs/planning/DEVELOPMENT-PLAN.md"
 index_path = root / "docs/planning/WO-INDEX.md"
 
+def _status_col_index(cols, default):
+    # Locate the "Status" column from a markdown table header row so the parser
+    # works across both table formats (`| WO | Title | Status | … |` and the
+    # Phase-first `| WO | Title | Phase | Status | … |`).
+    for idx, name in enumerate(cols):
+        if name.strip().lower() == "status":
+            return idx
+    return default
+
 def parse_plan_statuses(path: Path):
     statuses = {}
     if not path.exists():
         return statuses
+    status_col = 3
     for line in path.read_text().splitlines():
-        if not line.startswith("| WO-"):
+        if not line.startswith("|"):
             continue
         cols = [c.strip() for c in line.strip().split("|")[1:-1]]
-        if len(cols) >= 4:
-            statuses[cols[0]] = cols[3]
+        if not cols:
+            continue
+        if cols[0] == "WO":  # header row — reset to the plan default if absent
+            status_col = _status_col_index(cols, 3)
+            continue
+        if cols[0].startswith("WO-") and len(cols) > status_col:
+            statuses[cols[0]] = cols[status_col]
     return statuses
 
 def parse_index(path: Path):
     statuses = {}
     next_wo = "none"
     section = ""
+    status_col = 2
     if not path.exists():
         return statuses, next_wo
     for line in path.read_text().splitlines():
         if line.startswith("## "):
             section = line[3:].strip()
             continue
-        if not line.startswith("| WO-"):
+        if not line.startswith("|"):
             continue
         cols = [c.strip() for c in line.strip().split("|")[1:-1]]
-        if len(cols) < 3:
+        if not cols:
+            continue
+        if cols[0] == "WO":  # header row — reset to the index default if absent
+            status_col = _status_col_index(cols, 2)
+            continue
+        if not cols[0].startswith("WO-") or len(cols) <= status_col:
             continue
         wo = cols[0]
-        title = cols[1]
-        status = cols[2]
+        title = cols[1] if len(cols) > 1 else ""
+        status = cols[status_col]
         if section != "Completed":
             statuses[wo] = status
             if next_wo == "none" and status not in {"Complete", "Deferred"}:

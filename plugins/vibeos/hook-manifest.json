@@ -73,6 +73,32 @@
       "timeout": 5000
     },
     {
+      "name": "governance-guard",
+      "event_type": "UserPromptSubmit",
+      "script": "hooks/scripts/governance-guard.sh",
+      "purpose": "Blocks user prompts containing patterns that attempt to bypass quality gates, skip audits, disable hooks, or force unsafe operations",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "proof-protection",
+      "event_type": "PreToolUse",
+      "matcher": "Edit|Write",
+      "script": "hooks/scripts/proof-protection.sh",
+      "purpose": "Blocks implementation agents from removing assertions in test files and from deleting evidence bundles",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "file-budget",
+      "event_type": "PreToolUse",
+      "matcher": "Edit|Write",
+      "script": "hooks/scripts/file-budget.sh",
+      "purpose": "Enforces per-file line budget — warns at FILE_BUDGET_WARN and blocks at FILE_BUDGET_MAX lines to keep files within size limits",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
       "name": "response-quality-stop-review",
       "event_type": "Stop",
       "script": "hooks/scripts/response-quality-stop.sh",
