@@ -8,7 +8,7 @@
     {"script": "scripts/validate-file-size.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
     {"script": "scripts/validate-code-quality.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LINTER": "ruff check"}},
     {"script": "scripts/validate-tests-required.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
-    {"script": "scripts/validate-tests-pass.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
+    {"script": "scripts/validate-tests-pass.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"TEST_CMD": "cd \"$(git rev-parse --show-toplevel)\" && python3 -m pytest tests"}},
     {"script": "scripts/validate-code-complexity.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"ONLY_CHANGED_FILES": "true", "MAX_FUNCTION_LINES": "55", "WARN_FUNCTION_LINES": "40", "MAX_PARAMS": "6", "MAX_NESTING_DEPTH": "4"}},
     {"script": "scripts/validate-dependency-versions.sh", "tier": 2, "blocking": true, "phase": "pre_commit", "env": {"ONLY_WHEN_DEP_FILES_CHANGE": "true"}},
     {"script": "scripts/validate-dependencies.sh", "tier": 2, "blocking": false, "phase": "pre_commit", "env": {"ONLY_WHEN_DEP_FILES_CHANGE": "true"}},

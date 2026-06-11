@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# FILE-SIZE-EXCEPTION: WO-145 — framework governance script (cohesive single-purpose validator/orchestrator); size accepted per operator decision, see docs/planning/WO-145-phase34-gate-floor-remediation.md
 """Plan the next VibeOS long-run autonomy loop action."""
 
 from __future__ import annotations

@@ -53,15 +53,24 @@ has_valid_exception_marker() {
     return 1
   fi
 
-  case "$ref" in
-    ADR-*)
-      compgen -G "docs/architecture/decisions/${ref}*.md" >/dev/null 2>&1 && return 0
-      ;;
-    WO-*)
-      compgen -G "docs/planning/${ref}*.md" >/dev/null 2>&1 && return 0
-      compgen -G "docs/planning/work-orders/${ref}*.md" >/dev/null 2>&1 && return 0
-      ;;
-  esac
+  # Resolve the governance reference against both the current directory and the
+  # repo root, so the marker validates regardless of where the gate is invoked
+  # from (the framework dogfoods its own gates from the plugin subdirectory).
+  local repo_root
+  repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+  local base
+  for base in "." "$repo_root"; do
+    [ -n "$base" ] || continue
+    case "$ref" in
+      ADR-*)
+        compgen -G "$base/docs/architecture/decisions/${ref}*.md" >/dev/null 2>&1 && return 0
+        ;;
+      WO-*)
+        compgen -G "$base/docs/planning/${ref}*.md" >/dev/null 2>&1 && return 0
+        compgen -G "$base/docs/planning/work-orders/${ref}*.md" >/dev/null 2>&1 && return 0
+        ;;
+    esac
+  done
 
   return 1
 }

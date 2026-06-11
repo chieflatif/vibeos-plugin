@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# FILE-SIZE-EXCEPTION: WO-145 — framework governance script (cohesive single-purpose validator/orchestrator); size accepted per operator decision, see docs/planning/WO-145-phase34-gate-floor-remediation.md
 """Stub/Placeholder/Fallback Detection Script v1.0.
 
 Scans a codebase for patterns indicating stub, placeholder, or fallback code.
@@ -83,6 +84,7 @@ EXCLUDE_DIRS: set[str] = {
     ".next",
     ".nuxt",
     "out",
+    "test-fixture",  # no-touch sample project: intentionally contains stubs to exercise this gate
 }
 
 # Governance script patterns (excluded from keyword checks to avoid self-detection)
@@ -94,6 +96,11 @@ GOVERNANCE_SCRIPT_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"^scan-"),
     re.compile(r"^audit"),
     re.compile(r"^check-"),
+    # Sibling governance/quality scripts whose own code legitimately contains
+    # detection keywords (stub/placeholder/mock) — exclude from self-detection.
+    re.compile(r"^response-quality"),
+    re.compile(r"^e2e-test"),
+    re.compile(r"^test-quality"),
 ]
 
 # Test file patterns

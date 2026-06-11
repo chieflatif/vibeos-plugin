@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# FILE-SIZE-EXCEPTION: WO-145 — framework governance script (cohesive single-purpose validator/orchestrator); size accepted per operator decision, see docs/planning/WO-145-phase34-gate-floor-remediation.md
 set -euo pipefail
 
 # plugin-upgrade.sh — VibeOS plugin upgrade mechanism

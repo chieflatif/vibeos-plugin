@@ -356,6 +356,7 @@ Authoritative scope: `docs/planning/VNEXT-UPGRADE-AUDIT-AND-MASTER-PLAN-2026-06-
 | WO-108 | Fixture Secret Quarantine + Pytest Scoping | 34 | Complete | — |
 | WO-109 | Runtime Capability Detection Repair + Extension | 34 | Complete | — |
 | WO-110 | Hook-Manifest Sync + WO Status Reconciliation | 34 | Complete | — |
+| WO-145 | Phase 34 Gate-Floor Remediation | 34 | Complete | WO-107..110 |
 | WO-111 | WO Frontmatter Schema + Template | 35 | Planned | Phase 34 |
 | WO-112 | Frontmatter Generators | 35 | Planned | WO-111 |
 | WO-113 | Migration + Drift Lint + Generated WO-INDEX | 35 | Planned | WO-112 |
