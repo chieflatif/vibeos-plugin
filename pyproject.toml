@@ -1,0 +1,10 @@
+[project]
+name = "vibeos-plugin"
+version = "2.2.0"
+description = "VibeOS — a governed development operating layer for AI-assisted engineering (Claude Code plugin)"
+requires-python = ">=3.7"
+
+# Test collection is governed by pytest.ini (testpaths = tests), which takes
+# precedence over any [tool.pytest.ini_options] here. This marker also lets the
+# quality gates correctly detect the repository as a Python project (so the
+# complexity gate uses the Python AST analyzer and the tests-pass gate runs pytest).

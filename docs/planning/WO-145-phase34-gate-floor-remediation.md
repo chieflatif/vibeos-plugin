@@ -18,7 +18,9 @@ Bring the `pre_commit` gate floor to fully green for the first time so the Phase
 - [x] Add `FILE-SIZE-EXCEPTION: WO-145` header markers (with justification) to the 24 framework governance scripts that exceed the 300-line "code" limit — these are cohesive single-purpose validators/orchestrators, a different class than application source
 - [x] Extend `validate-file-size.sh` `has_valid_exception_marker()` so the referenced WO/ADR file is resolved against **both** the cwd and the git repo root (`git rev-parse --show-toplevel`) — required because the gate runs from the plugin subdirectory while WO files live at the repo root; without it the markers can never validate
 - [x] `detect-stubs-placeholders.py`: add `test-fixture` to `EXCLUDE_DIRS` (the no-touch fixture intentionally contains stubs) and add the self-referential sibling scripts (`response-quality-stop`, `e2e-test-runner`, `test-quality-gate`) to `GOVERNANCE_SCRIPT_PATTERNS`
-- [x] `validate-tests-pass.sh`: provide `TEST_CMD` via the gate manifest env so the gate runs the suite (the repo has no root project marker, so language auto-detection returns `unknown`)
+- [x] Add a root `pyproject.toml` so the gates correctly detect the repo as a Python project — this is the root fix for both `validate-tests-pass.sh` and `validate-code-complexity.sh`, which otherwise mis-detect language as `unknown`
+- [x] `validate-tests-pass.sh`: also set `TEST_CMD` via the manifest env (belt-and-suspenders with the `pyproject.toml` marker)
+- [x] `validate-code-complexity.sh`: exclude the framework governance scripts (`plugins/vibeos/scripts`, `.vibeos/scripts`) via the manifest `EXCLUDE_DIRS` env — operator decision, consistent with the file-size exception posture (framework validators/orchestrators are a different class than application code; the gate stays fully strict for app code VibeOS generates)
 - [x] Tests asserting the markers validate, the exclusions hold, and the tests-pass gate is configured
 - [ ] Verify the `pre_commit` floor runs green end-to-end on a clean tree
 
@@ -38,7 +40,7 @@ Bring the `pre_commit` gate floor to fully green for the first time so the Phase
 1. `validate-file-size.sh` classifies `plugins/vibeos/scripts/*` as application code (300-line hard limit) and reports **24 hard breaches** (306–990 lines). These are framework governance scripts, a legitimately larger class (the gate already grants docs 500 / work-orders 600).
 2. `detect-stubs-placeholders.py` flags the intentional no-touch fixture stubs and three sibling scripts whose code legitimately contains detection keywords (self-detection).
 3. `validate-tests-pass.sh` language detection returns `unknown` (no root `pyproject.toml`/`setup.py`/`requirements.txt`) and exits "Cannot determine test command"; it accepts a `TEST_CMD` override.
-4. `validate-code-complexity.sh` runs `ONLY_CHANGED_FILES=true` in pre_commit, so on a clean (committed) tree it has nothing to check and passes — no change needed for the floor.
+4. **Correction (initial finding was wrong):** `validate-code-complexity.sh` does **not** pass on a clean tree. `ONLY_CHANGED_FILES=true` does not limit it when there are no changes — it scans all 54 files. With language mis-detected as `unknown` it failed confusingly via a generic heuristic; once `pyproject.toml` makes it detect Python, the AST analyzer surfaces ~20+ genuine functions over the strict 55-line limit across framework scripts (e.g. `validate` 154 lines, `run_smoke` 141, `render_plan` 121). Per operator decision these framework scripts are excluded from the complexity gate (not refactored); the ~4 genuinely long functions are tracked for a future deliberate refactor.
 5. **Disclosure:** one of the 24 marked scripts, `runtime-capabilities.py` (428 lines), was enlarged earlier this same Phase 34 session by WO-109 (version helpers + `compute_claude_capabilities` + new capability fields), which carried it from 300 over the limit. WO-109's "Known Out-of-Scope Failures" assigned that file-size posture to this remediation WO. The exception is valid; this note keeps the cause traceable.
 6. The marker mechanism itself was non-functional in the dogfooding layout: `has_valid_exception_marker()` resolved the WO-reference path relative to cwd (the plugin subdir), where the repo-root WO files are not found — so the gate change in scope item 2 is a prerequisite for the markers to validate at all, not optional polish.
 
@@ -88,7 +90,11 @@ Bring the `pre_commit` gate floor to fully green for the first time so the Phase
 
 ## Known Out-of-Scope Failures
 
-None remaining on the `pre_commit` floor after this WO — that is the point of WO-145. The largest framework scripts (detect-stubs 990, gate-runner 754, validate-code-complexity 573) carry valid exception markers and remain candidates for a future, optional refactor WO. The repo's git pre-commit hook path wiring (logs "gate-runner.sh not found") is tracked separately and does not affect the gate-runner-driven floor.
+None remaining on the `pre_commit` floor after this WO — that is the point of WO-145. Tracked for a future, optional refactor WO (deliberately, not under time pressure):
+- File-size: the largest framework scripts (detect-stubs 990, gate-runner 754, validate-code-complexity 573) carry valid exception markers.
+- Complexity: ~4 genuinely long framework functions (`validate-long-run-autonomy.validate` 154, `autonomy-smoke.run_smoke` 141, `comp-plan.render_plan` 121, plus a few ~105–108) are currently exempted by the `EXCLUDE_DIRS` exclusion; splitting these would improve readability but carries regression risk in enforcement machinery, so it is deferred.
+
+The repo's git pre-commit hook path wiring (logs "gate-runner.sh not found") is tracked separately and does not affect the gate-runner-driven floor.
 
 ## Evidence
 
