@@ -1,19 +1,19 @@
 {
   "cost": {
     "label": "estimate; reconcile against billing",
-    "total_cost_usd": 0
+    "total_cost_usd": 0.1737791
   },
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T22:04:01Z",
+  "generated_at": "2026-06-14T22:19:03Z",
   "limitations": [
     "This report is parsed from local headless command output.",
     "Treat values as estimates and reconcile against provider billing before public cost claims."
   ],
   "run": {
-    "duration_ms": 28,
+    "duration_ms": 63025,
     "model": null,
-    "num_turns": 1,
-    "session_id": "12fd341e-6f46-4de7-a40d-30fd3646416b"
+    "num_turns": 6,
+    "session_id": "6b9f63f1-01eb-4e4f-9c09-3d259f8a95be"
   },
   "schema_version": "1.0",
   "source": {

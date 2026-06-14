@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # VibeOS Plugin — Night Loop Wrapper
+# FILE-SIZE-EXCEPTION: WO-121 — cohesive scheduled Claude headless wrapper with auth, cost, and autonomy-loop evidence capture.
 # Dry-run-first wrapper for scheduled headless Claude ticks.
 
 set -euo pipefail
@@ -24,6 +25,8 @@ from typing import Any
 FRAMEWORK_VERSION = "2.2.0"
 DEFAULT_ALLOWED_TOOLS = ["Bash", "Read", "Grep", "Glob"]
 COST_LABEL = "estimate; reconcile against billing"
+DEFAULT_MODEL = "sonnet"
+DEFAULT_MAX_BUDGET_USD = "1.00"
 
 
 def iso_now() -> str:
@@ -103,17 +106,28 @@ def sdk_credit_confirmed(root: Path) -> bool:
     )
 
 
-def claude_command(prompt: str, allowed_tools: list[str]) -> list[str]:
-    return [
+def claude_command(args: argparse.Namespace, allowed_tools: list[str]) -> list[str]:
+    command = [
         "claude",
         "-p",
-        prompt,
-        "--bare",
+        args.prompt,
+        "--model",
+        args.model,
         "--output-format",
         "json",
+        "--max-budget-usd",
+        args.max_budget_usd,
         "--allowedTools",
         ",".join(allowed_tools),
+        "--no-session-persistence",
     ]
+    if args.headless_auth_mode == "api-key-bare":
+        command.insert(3, "--bare")
+    elif args.safe_mode:
+        command.append("--safe-mode")
+    if args.claude_settings:
+        command.extend(["--settings", args.claude_settings])
+    return command
 
 
 def base_report(root: Path, evidence_dir: Path, args: argparse.Namespace) -> dict[str, Any]:
@@ -126,6 +140,10 @@ def base_report(root: Path, evidence_dir: Path, args: argparse.Namespace) -> dic
         "execute": args.execute,
         "timeout_seconds": args.timeout_seconds,
         "allowed_tools": args.allow_tool or DEFAULT_ALLOWED_TOOLS,
+        "headless_auth_mode": args.headless_auth_mode,
+        "model": args.model,
+        "max_budget_usd": args.max_budget_usd,
+        "safe_mode": args.safe_mode if args.headless_auth_mode != "api-key-bare" else False,
         "d3_agent_sdk_credit_confirmed": sdk_credit_confirmed(root),
         "steps": [],
         "summary": {
@@ -157,6 +175,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--evidence-dir", default="", help="Evidence output directory.")
     parser.add_argument("--execute", action="store_true", help="Run live headless Claude and tick commands.")
     parser.add_argument("--prompt", default="Run one VibeOS night-loop tick and return JSON evidence.", help="Headless Claude prompt.")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help="Claude model alias or full model id for the headless tick.")
+    parser.add_argument("--max-budget-usd", default=DEFAULT_MAX_BUDGET_USD, help="Claude CLI maximum budget for the headless command.")
+    parser.add_argument(
+        "--headless-auth-mode",
+        choices=["subscription", "api-key-bare"],
+        default="subscription",
+        help="Use logged-in Claude subscription auth by default; use api-key-bare only with ANTHROPIC_API_KEY or --claude-settings apiKeyHelper.",
+    )
+    parser.add_argument("--claude-settings", default="", help="Optional Claude settings JSON/path, useful for apiKeyHelper in api-key-bare mode.")
+    parser.add_argument("--safe-mode", dest="safe_mode", action="store_true", default=True, help="Use Claude safe mode for subscription-auth headless runs.")
+    parser.add_argument("--no-safe-mode", dest="safe_mode", action="store_false", help="Disable Claude safe mode for subscription-auth headless runs.")
     parser.add_argument("--timeout-seconds", type=int, default=900, help="Runtime ceiling per command.")
     parser.add_argument("--allow-tool", action="append", default=[], help="Allowed Claude tool name. Repeatable.")
     parser.add_argument("--headless-json", default="", help="Existing headless JSON to capture cost from.")
@@ -192,7 +221,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     allowed_tools = args.allow_tool or DEFAULT_ALLOWED_TOOLS
-    planned_claude = claude_command(args.prompt, allowed_tools)
+    planned_claude = claude_command(args, allowed_tools)
     add_step(report, "claude_headless", "planned" if not args.execute else "pending", command=planned_claude)
     add_step(
         report,
@@ -233,6 +262,38 @@ def main(argv: list[str] | None = None) -> int:
         report["summary"].update({"status": "failed_claude_not_found", "live_headless_run": False})
         write_and_print(report, report_path, args.json)
         return 1
+
+    if args.headless_auth_mode == "subscription":
+        auth = run_command(["claude", "auth", "status"], root, args.timeout_seconds)
+        auth_payload = parse_stdout_json(auth)
+        auth_ok = auth["exit_code"] == 0 and isinstance(auth_payload, dict) and bool(auth_payload.get("loggedIn"))
+        auth_step = {
+            "command": auth["argv"],
+            "exit_code": auth["exit_code"],
+        }
+        if isinstance(auth_payload, dict):
+            auth_step.update(
+                {
+                    "auth_method": auth_payload.get("authMethod"),
+                    "api_provider": auth_payload.get("apiProvider"),
+                    "subscription_type": auth_payload.get("subscriptionType"),
+                }
+            )
+        add_step(report, "claude_auth_status", "pass" if auth_ok else "blocked", **auth_step)
+        if not auth_ok:
+            report["summary"].update({"status": "blocked_claude_subscription_auth_required", "live_headless_run": False})
+            write_and_print(report, report_path, args.json)
+            return 2
+    elif not os.environ.get("ANTHROPIC_API_KEY") and not args.claude_settings:
+        add_step(
+            report,
+            "claude_bare_auth",
+            "blocked",
+            reason="api-key-bare mode requires ANTHROPIC_API_KEY or --claude-settings with apiKeyHelper because Claude --bare does not read OAuth/keychain auth.",
+        )
+        report["summary"].update({"status": "blocked_bare_api_key_required", "live_headless_run": False})
+        write_and_print(report, report_path, args.json)
+        return 2
 
     # Live execution is intentionally after guard + D-3 confirmation.
     headless_output = evidence_dir / "headless-output.json"

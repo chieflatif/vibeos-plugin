@@ -239,10 +239,17 @@ def parse_stdout_json(record: dict[str, Any]) -> dict[str, Any] | None:
     return data if isinstance(data, dict) else None
 
 
+def runtime_script(root: Path, name: str) -> Path:
+    installed = root / ".vibeos/scripts" / name
+    if installed.exists():
+        return installed
+    return Path(__file__).resolve().parent / name
+
+
 def supervisor_args(root: Path, now: str) -> list[str]:
     args = [
         "python3",
-        str(root / ".vibeos/scripts/autonomy-supervisor.py"),
+        str(runtime_script(root, "autonomy-supervisor.py")),
         "--project-dir",
         str(root),
         "--json",
@@ -255,7 +262,7 @@ def supervisor_args(root: Path, now: str) -> list[str]:
 def runner_args(root: Path, execute: bool) -> list[str]:
     args = [
         "python3",
-        str(root / ".vibeos/scripts/autonomy-runner.py"),
+        str(runtime_script(root, "autonomy-runner.py")),
         "--project-dir",
         str(root),
         "--json",

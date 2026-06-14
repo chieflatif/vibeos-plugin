@@ -42,6 +42,13 @@ class NightLoopTests(unittest.TestCase):
             self.assertEqual(payload["summary"]["status"], "dry_run")
             self.assertFalse(payload["summary"]["live_headless_run"])
             self.assertTrue((evidence / "night-loop-report.json").is_file())
+            self.assertEqual(payload["headless_auth_mode"], "subscription")
+            self.assertEqual(payload["model"], "sonnet")
+            self.assertEqual(payload["max_budget_usd"], "1.00")
+            self.assertTrue(payload["safe_mode"])
+            claude_step = next(step for step in payload["steps"] if step["name"] == "claude_headless")
+            self.assertIn("--safe-mode", claude_step["command"])
+            self.assertNotIn("--bare", claude_step["command"])
             cost = json.loads((evidence / "cost-report.json").read_text(encoding="utf-8"))
             self.assertEqual(cost["cost"]["label"], "estimate; reconcile against billing")
             self.assertEqual(cost["cost"]["total_cost_usd"], 0.02)
@@ -91,6 +98,10 @@ class NightLoopTests(unittest.TestCase):
             fake_claude = fake_bin / "claude"
             fake_claude.write_text(
                 "#!/usr/bin/env bash\n"
+                "if [[ \"$1\" == \"auth\" && \"$2\" == \"status\" ]]; then\n"
+                "  printf '%s\\n' '{\"loggedIn\":true,\"authMethod\":\"claude.ai\",\"apiProvider\":\"firstParty\",\"subscriptionType\":\"max\"}'\n"
+                "  exit 0\n"
+                "fi\n"
                 "printf '%s\\n' '{\"session_id\":\"live-fixture\",\"model\":\"sonnet\",\"total_cost_usd\":0.03}'\n",
                 encoding="utf-8",
             )
@@ -119,9 +130,68 @@ class NightLoopTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertEqual(payload["summary"]["status"], "pass")
             self.assertTrue(payload["summary"]["live_headless_run"])
+            auth_step = next(step for step in payload["steps"] if step["name"] == "claude_auth_status")
+            self.assertEqual(auth_step["status"], "pass")
+            self.assertEqual(auth_step["subscription_type"], "max")
             self.assertTrue((evidence / "headless-output.json").is_file())
             cost = json.loads((evidence / "cost-report.json").read_text(encoding="utf-8"))
             self.assertEqual(cost["cost"]["total_cost_usd"], 0.03)
+
+    def test_execute_blocks_when_subscription_auth_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fake_claude = fake_bin / "claude"
+            fake_claude.write_text(
+                "#!/usr/bin/env bash\n"
+                "if [[ \"$1\" == \"auth\" && \"$2\" == \"status\" ]]; then\n"
+                "  printf '%s\\n' '{\"loggedIn\":false}'\n"
+                "  exit 0\n"
+                "fi\n"
+                "printf '%s\\n' '{\"unexpected\":true}'\n",
+                encoding="utf-8",
+            )
+            fake_claude.chmod(0o755)
+
+            result = self.run_night_loop(
+                root,
+                "--execute",
+                "--json",
+                env={
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "VIBEOS_AGENT_SDK_CREDIT_CONFIRMED": "1",
+                },
+            )
+
+            self.assertEqual(result.returncode, 2)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["summary"]["status"], "blocked_claude_subscription_auth_required")
+            self.assertFalse(payload["summary"]["live_headless_run"])
+            self.assertEqual(payload["steps"][-1]["name"], "claude_auth_status")
+            self.assertEqual(payload["steps"][-1]["status"], "blocked")
+
+    def test_api_key_bare_mode_requires_api_key_or_settings(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fake_claude = fake_bin / "claude"
+            fake_claude.write_text("#!/usr/bin/env bash\nprintf '%s\\n' '{\"unexpected\":true}'\n", encoding="utf-8")
+            fake_claude.chmod(0o755)
+
+            env = {
+                "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                "VIBEOS_AGENT_SDK_CREDIT_CONFIRMED": "1",
+                "ANTHROPIC_API_KEY": "",
+            }
+            result = self.run_night_loop(root, "--execute", "--json", "--headless-auth-mode", "api-key-bare", env=env)
+
+            self.assertEqual(result.returncode, 2)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["summary"]["status"], "blocked_bare_api_key_required")
+            claude_step = next(step for step in payload["steps"] if step["name"] == "claude_headless")
+            self.assertIn("--bare", claude_step["command"])
 
     def test_execute_captures_cost_report_from_failed_headless_json(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -132,6 +202,10 @@ class NightLoopTests(unittest.TestCase):
             fake_claude = fake_bin / "claude"
             fake_claude.write_text(
                 "#!/usr/bin/env bash\n"
+                "if [[ \"$1\" == \"auth\" && \"$2\" == \"status\" ]]; then\n"
+                "  printf '%s\\n' '{\"loggedIn\":true,\"authMethod\":\"claude.ai\",\"apiProvider\":\"firstParty\",\"subscriptionType\":\"max\"}'\n"
+                "  exit 0\n"
+                "fi\n"
                 "printf '%s\\n' '{\"type\":\"result\",\"is_error\":true,\"result\":\"Not logged in\",\"total_cost_usd\":0}'\n"
                 "printf '%s\\n' 'login required' >&2\n"
                 "exit 1\n",

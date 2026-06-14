@@ -9,8 +9,12 @@
   "evidence_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live",
   "execute": true,
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T22:04:01Z",
+  "generated_at": "2026-06-14T22:17:59Z",
+  "headless_auth_mode": "subscription",
+  "max_budget_usd": "1.00",
+  "model": "sonnet",
   "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin",
+  "safe_mode": true,
   "schema_version": "1.0",
   "steps": [
     {
@@ -30,16 +34,21 @@
         "claude",
         "-p",
         "Run one VibeOS night-loop tick and return JSON evidence.",
-        "--bare",
+        "--model",
+        "sonnet",
         "--output-format",
         "json",
+        "--max-budget-usd",
+        "1.00",
         "--allowedTools",
-        "Bash,Read,Grep,Glob"
+        "Bash,Read,Grep,Glob",
+        "--no-session-persistence",
+        "--safe-mode"
       ],
-      "exit_code": 1,
+      "exit_code": 0,
       "name": "claude_headless",
       "output": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live/headless-output.json",
-      "status": "failed",
+      "status": "pass",
       "stderr_output": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live/headless-stderr.txt"
     },
     {
@@ -89,6 +98,19 @@
       "status": "not_run"
     },
     {
+      "api_provider": "firstParty",
+      "auth_method": "claude.ai",
+      "command": [
+        "claude",
+        "auth",
+        "status"
+      ],
+      "exit_code": 0,
+      "name": "claude_auth_status",
+      "status": "pass",
+      "subscription_type": "max"
+    },
+    {
       "command": [
         "python3",
         "/Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos/scripts/capture-headless-cost.py",
@@ -100,12 +122,26 @@
       "exit_code": 0,
       "name": "live_cost_capture",
       "status": "pass"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos/scripts/autonomy-loop.py",
+        "--project-dir",
+        "/Users/latifhorst/cursor projects/vibeos-plugin",
+        "--max-iterations",
+        "1",
+        "--json"
+      ],
+      "exit_code": 0,
+      "name": "live_autonomy_loop",
+      "status": "pass"
     }
   ],
   "summary": {
     "cost_label": "estimate; reconcile against billing",
     "live_headless_run": true,
-    "status": "failed_claude_headless"
+    "status": "pass"
   },
   "timeout_seconds": 900
 }

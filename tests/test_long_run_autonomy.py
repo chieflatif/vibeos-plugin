@@ -255,6 +255,21 @@ class LongRunAutonomyTests(unittest.TestCase):
         self.assertEqual(payload["summary"]["iterations"], 1)
         self.assertEqual(payload["iterations"][0]["runner_summary"]["handoff_required"], 1)
 
+    def test_loop_falls_back_to_framework_scripts_when_not_installed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = self.run_heartbeat(root)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+            loop = self.run_loop(root, "--now", "2026-04-29T00:05:00Z")
+            self.assertTrue((root / ".vibeos/autonomy/loop-state.json").is_file())
+
+        self.assertEqual(loop.returncode, 0, loop.stdout + loop.stderr)
+        payload = json.loads(loop.stdout)
+        self.assertEqual(payload["summary"]["status"], "handoff_required")
+        self.assertIn("plugins/vibeos/scripts/autonomy-supervisor.py", payload["iterations"][0]["supervisor"]["argv"][1])
+        self.assertIn("plugins/vibeos/scripts/autonomy-runner.py", payload["iterations"][0]["runner"]["argv"][1])
+
     def test_failure_detector_passes_clean_history(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
