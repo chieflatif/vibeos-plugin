@@ -100,6 +100,9 @@ class ClaudeCapabilityTests(unittest.TestCase):
         with mock.patch.dict(os.environ, env_clean, clear=True):
             self.assertEqual(self._caps(version="2.1.170")["agent_teams"], "unavailable")
 
+    def test_agent_teams_env_matches_current_claude_code_docs(self):
+        self.assertEqual(runtime_capabilities.AGENT_TEAMS_ENV, "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS")
+
     def test_dynamic_workflows_version_gated_and_disable_respected(self):
         env_clean = {k: v for k, v in os.environ.items()
                      if k != runtime_capabilities.DYNAMIC_WORKFLOWS_DISABLE_ENV}

@@ -5,7 +5,7 @@
 
 | WO | Title | Phase | Status | Source |
 |---|---|---|---|---|
-| WO-117 | Worktree + team-governance hooks (dormant) | 37 | Planned | master-plan |
+| WO-118 | Model policy table + lint | 38 | Planned | master-plan |
 
 ## vNext Machine-Readable View
 
@@ -26,7 +26,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-114 | Lane Return-Packet Schema | 36 | Complete | frontmatter |
 | WO-115 | Lane-Readiness Gate | 36 | Complete | frontmatter |
 | WO-116 | PostToolUse + SubagentStop + SessionEnd/PreCompact Hooks | 37 | Complete | frontmatter |
-| WO-117 | Worktree + team-governance hooks (dormant) | 37 | Planned | master-plan |
+| WO-117 | Worktree + Team-Governance Hooks (Dormant) | 37 | Complete | frontmatter |
 | WO-118 | Model policy table + lint | 38 | Planned | master-plan |
 | WO-119 | ConfigChange downgrade guard + cost capture | 38 | Planned | master-plan |
 | WO-120 | Lane-loop ceilings + goal-verified stop | 39 | Planned | master-plan |

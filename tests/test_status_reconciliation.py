@@ -39,22 +39,22 @@ class HookManifestSyncTests(unittest.TestCase):
     def test_manifest_documents_all_configured_command_hooks(self):
         configured = set(configured_command_hooks())
         documented = set(documented_hook_scripts())
-        self.assertEqual(len(configured), 16)
+        self.assertEqual(len(configured), 20)
         self.assertEqual(
             documented,
             configured,
             f"missing from manifest: {configured - documented}; extra: {documented - configured}",
         )
 
-    def test_inventory_counts_match_twelve(self):
+    def test_inventory_counts_match_configured_hooks(self):
         subprocess.run(
             ["python3", str(INVENTORY_GEN), "--project-dir", str(REPO)],
             capture_output=True, text=True, check=True, cwd=str(REPO),
         )
         inv = json.loads((REPO / "docs/evidence/vnext/generated-inventory.json").read_text())
         hooks = inv["inventory"]["hooks"]
-        self.assertEqual(hooks["configured_command_count"], 16)
-        self.assertEqual(hooks["documented_count"], 16)
+        self.assertEqual(hooks["configured_command_count"], 20)
+        self.assertEqual(hooks["documented_count"], 20)
 
 
 class StatusReconciliationTests(unittest.TestCase):

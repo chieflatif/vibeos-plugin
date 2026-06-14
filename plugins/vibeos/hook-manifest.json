@@ -133,6 +133,38 @@
       "timeout": 5000
     },
     {
+      "name": "worktree-scope-setup",
+      "event_type": "WorktreeCreate",
+      "script": "hooks/scripts/worktree-scope-setup.sh",
+      "purpose": "Creates Claude git worktrees and copies VibeOS worktree-scope state into the isolated checkout.",
+      "blocking": true,
+      "timeout": 30000
+    },
+    {
+      "name": "team-governance-task-created",
+      "event_type": "TaskCreated",
+      "script": "hooks/scripts/team-governance.sh",
+      "purpose": "Dormant-by-default agent-team governance hook. When enabled, requires created tasks to cite their governing WO and include a scoped description.",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "team-governance-task-completed",
+      "event_type": "TaskCompleted",
+      "script": "hooks/scripts/team-governance.sh",
+      "purpose": "Dormant-by-default agent-team governance hook. When enabled, prevents team task completion without a governing WO reference.",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "team-governance-teammate-idle",
+      "event_type": "TeammateIdle",
+      "script": "hooks/scripts/team-governance.sh",
+      "purpose": "Dormant-by-default agent-team governance hook that records enabled teammate idle events for pilot evidence.",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
       "name": "response-quality-stop-review",
       "event_type": "Stop",
       "script": "hooks/scripts/response-quality-stop.sh",

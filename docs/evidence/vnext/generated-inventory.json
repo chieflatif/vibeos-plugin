@@ -103,13 +103,15 @@
         "plugins/vibeos/hooks/scripts/response-quality-stop.sh",
         "plugins/vibeos/hooks/scripts/secrets-scan.sh",
         "plugins/vibeos/hooks/scripts/state-flush.sh",
+        "plugins/vibeos/hooks/scripts/team-governance.sh",
         "plugins/vibeos/hooks/scripts/test-diff-audit.sh",
         "plugins/vibeos/hooks/scripts/test-file-protection.sh",
         "plugins/vibeos/hooks/scripts/validate-agent-return.sh",
         "plugins/vibeos/hooks/scripts/worktree-bash-guard.sh",
-        "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh"
+        "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh",
+        "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh"
       ],
-      "value": 15
+      "value": 17
     },
     {
       "claim": "Configured and documented hooks",
@@ -121,8 +123,8 @@
         "plugins/vibeos/hooks/hooks.json"
       ],
       "value": {
-        "configured_command_count": 16,
-        "documented_count": 16
+        "configured_command_count": 20,
+        "documented_count": 20
       }
     },
     {
@@ -426,11 +428,12 @@
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
         "tests/test_system_invariants.py",
+        "tests/test_team_governance_hooks.py",
         "tests/test_wo_contracts.py",
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 27
+      "value": 28
     },
     {
       "claim": "Work order documents",
@@ -557,10 +560,11 @@
         "docs/planning/WO-114-lane-return-packet-schema.md",
         "docs/planning/WO-115-check-lane-readiness.md",
         "docs/planning/WO-116-hook-lifecycle-modernization.md",
+        "docs/planning/WO-117-worktree-team-governance-hooks.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 121
+      "value": 122
     },
     {
       "claim": "Quality gate manifest entries",
@@ -606,7 +610,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T19:05:41Z",
+  "generated_at": "2026-06-14T19:20:57Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -739,7 +743,7 @@
     },
     "hook_scripts": {
       "claim_label": "Hook scripts",
-      "count": 15,
+      "count": 17,
       "paths": [
         "plugins/vibeos/hooks/scripts/file-budget.sh",
         "plugins/vibeos/hooks/scripts/frozen-files.sh",
@@ -751,17 +755,19 @@
         "plugins/vibeos/hooks/scripts/response-quality-stop.sh",
         "plugins/vibeos/hooks/scripts/secrets-scan.sh",
         "plugins/vibeos/hooks/scripts/state-flush.sh",
+        "plugins/vibeos/hooks/scripts/team-governance.sh",
         "plugins/vibeos/hooks/scripts/test-diff-audit.sh",
         "plugins/vibeos/hooks/scripts/test-file-protection.sh",
         "plugins/vibeos/hooks/scripts/validate-agent-return.sh",
         "plugins/vibeos/hooks/scripts/worktree-bash-guard.sh",
-        "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh"
+        "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh",
+        "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh"
       ]
     },
     "hooks": {
       "claim_label": "Configured and documented hooks",
       "config_path": "plugins/vibeos/hooks/hooks.json",
-      "configured_command_count": 16,
+      "configured_command_count": 20,
       "configured_events": [
         "PostToolUse",
         "PreCompact",
@@ -770,9 +776,13 @@
         "SessionStart",
         "Stop",
         "SubagentStop",
-        "UserPromptSubmit"
+        "TaskCompleted",
+        "TaskCreated",
+        "TeammateIdle",
+        "UserPromptSubmit",
+        "WorktreeCreate"
       ],
-      "documented_count": 16,
+      "documented_count": 20,
       "manifest_path": "plugins/vibeos/hook-manifest.json"
     },
     "reference": {
@@ -1011,7 +1021,7 @@
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 27,
+      "count": 28,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1037,6 +1047,7 @@
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
         "tests/test_system_invariants.py",
+        "tests/test_team_governance_hooks.py",
         "tests/test_wo_contracts.py",
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
@@ -1044,7 +1055,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 121,
+      "count": 122,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1165,6 +1176,7 @@
         "docs/planning/WO-114-lane-return-packet-schema.md",
         "docs/planning/WO-115-check-lane-readiness.md",
         "docs/planning/WO-116-hook-lifecycle-modernization.md",
+        "docs/planning/WO-117-worktree-team-governance-hooks.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]
@@ -1181,7 +1193,7 @@
       "version": "2.2.0"
     },
     "runtime_capabilities": {
-      "generated_at": "2026-06-10T17:25:04+00:00",
+      "generated_at": "2026-06-14T19:14:49+00:00",
       "path": ".vibeos/runtime-capabilities.json",
       "strategy": {
         "orchestration_mode": "claude-subagents",
