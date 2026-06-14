@@ -172,6 +172,7 @@
         "plugins/vibeos/scripts/generate-inventory.py",
         "plugins/vibeos/scripts/health-check.sh",
         "plugins/vibeos/scripts/lane-readiness.py",
+        "plugins/vibeos/scripts/night-loop.sh",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
         "plugins/vibeos/scripts/register-audit-report.sh",
         "plugins/vibeos/scripts/register-session-audit-report.sh",
@@ -234,7 +235,7 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "value": 98
+      "value": 99
     },
     {
       "claim": "Decision engine files",
@@ -432,6 +433,7 @@
         "tests/test_long_run_autonomy.py",
         "tests/test_model_policy.py",
         "tests/test_model_policy_guard.py",
+        "tests/test_night_loop.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
@@ -441,7 +443,7 @@
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 31
+      "value": 32
     },
     {
       "claim": "Work order documents",
@@ -572,10 +574,11 @@
         "docs/planning/WO-118-model-policy-table-lint.md",
         "docs/planning/WO-119-configchange-downgrade-guard-cost-capture.md",
         "docs/planning/WO-120-lane-loop-ceilings-goal-verified-stop.md",
+        "docs/planning/WO-121-night-loop-headless-wrapper.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 125
+      "value": 126
     },
     {
       "claim": "Quality gate manifest entries",
@@ -621,7 +624,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T19:51:21Z",
+  "generated_at": "2026-06-14T19:57:28Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -932,7 +935,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 98,
+      "count": 99,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -971,6 +974,7 @@
         "plugins/vibeos/scripts/generate-inventory.py",
         "plugins/vibeos/scripts/health-check.sh",
         "plugins/vibeos/scripts/lane-readiness.py",
+        "plugins/vibeos/scripts/night-loop.sh",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
         "plugins/vibeos/scripts/register-audit-report.sh",
         "plugins/vibeos/scripts/register-session-audit-report.sh",
@@ -1034,11 +1038,11 @@
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
       "python_count": 34,
-      "shell_count": 62
+      "shell_count": 63
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 31,
+      "count": 32,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1063,6 +1067,7 @@
         "tests/test_long_run_autonomy.py",
         "tests/test_model_policy.py",
         "tests/test_model_policy_guard.py",
+        "tests/test_night_loop.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
@@ -1075,7 +1080,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 125,
+      "count": 126,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1200,6 +1205,7 @@
         "docs/planning/WO-118-model-policy-table-lint.md",
         "docs/planning/WO-119-configchange-downgrade-guard-cost-capture.md",
         "docs/planning/WO-120-lane-loop-ceilings-goal-verified-stop.md",
+        "docs/planning/WO-121-night-loop-headless-wrapper.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]
