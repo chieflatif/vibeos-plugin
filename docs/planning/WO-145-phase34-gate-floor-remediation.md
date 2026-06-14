@@ -1,3 +1,33 @@
+---
+wo: WO-145
+title: Phase 34 Gate-Floor Remediation
+status: Complete
+phase: 34
+phase_name: Foundation Repair
+wo_class: harness
+write_scope:
+  - docs/planning/WO-145-phase34-gate-floor-remediation.md
+  - docs/planning/WO-INDEX.md
+  - docs/planning/DEVELOPMENT-PLAN.md
+  - plugins/vibeos/quality-gate-manifest.json
+  - plugins/vibeos/scripts/*.py
+  - plugins/vibeos/scripts/*.sh
+  - pyproject.toml
+  - tests/test_gate_floor.py
+no_touch:
+  - plugins/vibeos/test-fixture/**
+  - /Users/latifhorst/latifhorstweb/**
+  - /Users/latifhorst/Joan4U/**
+required_auditors:
+  - correctness-auditor
+  - evidence-auditor
+model_policy: implementation
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-145: Phase 34 Gate-Floor Remediation
 
 ## Status

@@ -1,3 +1,31 @@
+---
+wo: WO-110
+title: Hook-Manifest Sync + WO Status Reconciliation
+status: Complete
+phase: 34
+phase_name: Foundation Repair
+wo_class: harness
+write_scope:
+  - docs/evidence/vnext/generated-inventory.json
+  - docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md
+  - docs/planning/WO-INDEX.md
+  - docs/planning/DEVELOPMENT-PLAN.md
+  - plugins/vibeos/hook-manifest.json
+  - plugins/vibeos/hooks/scripts/prereq-check.sh
+  - tests/test_status_reconciliation.py
+no_touch:
+  - /Users/latifhorst/latifhorstweb/**
+  - /Users/latifhorst/Joan4U/**
+required_auditors:
+  - correctness-auditor
+  - evidence-auditor
+model_policy: implementation
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-110: Hook-Manifest Sync + WO Status Reconciliation
 
 ## Status

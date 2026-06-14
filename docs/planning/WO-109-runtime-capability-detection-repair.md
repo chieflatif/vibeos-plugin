@@ -1,3 +1,29 @@
+---
+wo: WO-109
+title: Runtime Capability Detection Repair + Extension
+status: Complete
+phase: 34
+phase_name: Foundation Repair
+wo_class: harness
+write_scope:
+  - docs/planning/WO-109-runtime-capability-detection-repair.md
+  - docs/planning/WO-INDEX.md
+  - plugins/vibeos/scripts/runtime-capabilities.py
+  - plugins/vibeos/scripts/detect-runtime-capabilities.sh
+  - tests/test_runtime_capabilities.py
+no_touch:
+  - /Users/latifhorst/latifhorstweb/**
+  - /Users/latifhorst/Joan4U/**
+required_auditors:
+  - correctness-auditor
+  - evidence-auditor
+model_policy: implementation
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-109: Runtime Capability Detection Repair + Extension
 
 ## Status

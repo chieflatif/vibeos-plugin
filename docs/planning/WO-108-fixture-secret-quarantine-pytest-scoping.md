@@ -1,3 +1,32 @@
+---
+wo: WO-108
+title: Fixture Secret Quarantine + Pytest Scoping
+status: Complete
+phase: 34
+phase_name: Foundation Repair
+wo_class: auth-security
+write_scope:
+  - docs/planning/WO-108-fixture-secret-quarantine-pytest-scoping.md
+  - docs/planning/WO-INDEX.md
+  - plugins/vibeos/scripts/validate-no-secrets.sh
+  - plugins/vibeos/scripts/secrets-allowlist.json
+  - pytest.ini
+  - tests/test_no_secrets_allowlist.py
+no_touch:
+  - plugins/vibeos/test-fixture/**
+  - /Users/latifhorst/latifhorstweb/**
+  - /Users/latifhorst/Joan4U/**
+required_auditors:
+  - security-auditor
+  - correctness-auditor
+  - evidence-auditor
+model_policy: implementation
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-108: Fixture Secret Quarantine + Pytest Scoping
 
 ## Status

@@ -1,3 +1,30 @@
+---
+wo: WO-107
+title: Gate-Runner Tier-Schema Fix
+status: Complete
+phase: 34
+phase_name: Foundation Repair
+wo_class: logic-change
+write_scope:
+  - docs/planning/WO-107-gate-runner-tier-schema-fix.md
+  - docs/planning/WO-INDEX.md
+  - docs/planning/DEVELOPMENT-PLAN.md
+  - plugins/vibeos/scripts/gate-runner.sh
+  - plugins/vibeos/quality-gate-manifest.json
+  - tests/test_gate_runner.py
+no_touch:
+  - /Users/latifhorst/latifhorstweb/**
+  - /Users/latifhorst/Joan4U/**
+required_auditors:
+  - correctness-auditor
+  - evidence-auditor
+model_policy: implementation
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-107: Gate-Runner Tier-Schema Fix
 
 ## Status

@@ -1,3 +1,29 @@
+---
+wo: WO-106
+title: vNext Generated Inventory and Claim Ledger
+status: Implemented Locally
+phase: 33
+phase_name: VibeOS vNext Public Proof Foundation
+wo_class: release-proof
+write_scope:
+  - docs/evidence/vnext/generated-inventory.json
+  - docs/planning/WO-106-vnext-generated-inventory-and-claim-ledger.md
+  - docs/planning/WO-INDEX.md
+  - docs/planning/DEVELOPMENT-PLAN.md
+  - plugins/vibeos/scripts/generate-inventory.py
+  - tests/test_generate_inventory.py
+no_touch:
+  - /Users/latifhorst/latifhorstweb/**
+  - /Users/latifhorst/Joan4U/**
+required_auditors:
+  - evidence-auditor
+model_policy: implementation
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-106: vNext Generated Inventory and Claim Ledger
 
 ## Status

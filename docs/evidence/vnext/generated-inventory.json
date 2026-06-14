@@ -216,12 +216,14 @@
         "plugins/vibeos/scripts/validate-test-integrity.sh",
         "plugins/vibeos/scripts/validate-tests-pass.sh",
         "plugins/vibeos/scripts/validate-tests-required.sh",
+        "plugins/vibeos/scripts/validate-wo-frontmatter.sh",
         "plugins/vibeos/scripts/validate-wo-status-integrity.sh",
         "plugins/vibeos/scripts/validate-work-order.sh",
         "plugins/vibeos/scripts/validate-worktree-freshness.sh",
-        "plugins/vibeos/scripts/wo-contracts.py"
+        "plugins/vibeos/scripts/wo-contracts.py",
+        "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "value": 92
+      "value": 94
     },
     {
       "claim": "Decision engine files",
@@ -416,9 +418,10 @@
         "tests/test_status_reconciliation.py",
         "tests/test_system_invariants.py",
         "tests/test_wo_contracts.py",
+        "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 23
+      "value": 24
     },
     {
       "claim": "Work order documents",
@@ -541,10 +544,11 @@
         "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md",
         "docs/planning/WO-111-wo-frontmatter-schema-template.md",
         "docs/planning/WO-112-frontmatter-generators.md",
+        "docs/planning/WO-113-migration-drift-lint-generated-index.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 117
+      "value": 118
     },
     {
       "claim": "Quality gate manifest entries",
@@ -555,7 +559,7 @@
         "plugins/vibeos/quality-gate-manifest.json",
         null
       ],
-      "value": 55
+      "value": 56
     },
     {
       "claim": "Codex has Claude-equivalent hook parity",
@@ -590,7 +594,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T17:31:08Z",
+  "generated_at": "2026-06-14T17:43:10Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -703,10 +707,10 @@
       ]
     },
     "gates": {
-      "advisory_entries": 29,
+      "advisory_entries": 30,
       "blocking_entries": 26,
       "claim_label": "Quality gate manifest entries",
-      "gate_entries": 55,
+      "gate_entries": 56,
       "manifest_path": "plugins/vibeos/quality-gate-manifest.json",
       "manifest_version": "2.2.0",
       "missing_gate_scripts": [],
@@ -716,10 +720,10 @@
         "pre_commit": 10,
         "session_end": 1,
         "session_start": 2,
-        "wo_entry": 2,
+        "wo_entry": 3,
         "wo_exit": 11
       },
-      "unique_gate_scripts": 47
+      "unique_gate_scripts": 48
     },
     "hook_scripts": {
       "claim_label": "Hook scripts",
@@ -883,7 +887,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 92,
+      "count": 94,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -973,17 +977,19 @@
         "plugins/vibeos/scripts/validate-test-integrity.sh",
         "plugins/vibeos/scripts/validate-tests-pass.sh",
         "plugins/vibeos/scripts/validate-tests-required.sh",
+        "plugins/vibeos/scripts/validate-wo-frontmatter.sh",
         "plugins/vibeos/scripts/validate-wo-status-integrity.sh",
         "plugins/vibeos/scripts/validate-work-order.sh",
         "plugins/vibeos/scripts/validate-worktree-freshness.sh",
-        "plugins/vibeos/scripts/wo-contracts.py"
+        "plugins/vibeos/scripts/wo-contracts.py",
+        "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "python_count": 30,
-      "shell_count": 60
+      "python_count": 31,
+      "shell_count": 61
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 23,
+      "count": 24,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1007,12 +1013,13 @@
         "tests/test_status_reconciliation.py",
         "tests/test_system_invariants.py",
         "tests/test_wo_contracts.py",
+        "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ]
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 117,
+      "count": 118,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1129,6 +1136,7 @@
         "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md",
         "docs/planning/WO-111-wo-frontmatter-schema-template.md",
         "docs/planning/WO-112-frontmatter-generators.md",
+        "docs/planning/WO-113-migration-drift-lint-generated-index.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]

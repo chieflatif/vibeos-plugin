@@ -1,10 +1,60 @@
 # Work Order Index
 
+<!-- VIBEOS-GENERATED-START: wo-frontmatter-index -->
 ## Active
 
-| WO | Title | Phase | Status | Dependencies |
+| WO | Title | Phase | Status | Source |
 |---|---|---|---|---|
-| WO-113 | Migration + Drift Lint + Generated WO-INDEX | 35 | Planned | WO-112 |
+| WO-114 | Lane return-packet schema | 36 | Planned | master-plan |
+
+## vNext Machine-Readable View
+
+Generated from WO frontmatter plus the vNext master plan. Do not edit this block by hand.
+
+| WO | Title | Phase | Status | Source |
+|---|---|---|---|---|
+| WO-106 | vNext Generated Inventory and Claim Ledger | 33 | Implemented Locally | frontmatter |
+| WO-107 | Gate-Runner Tier-Schema Fix | 34 | Complete | frontmatter |
+| WO-108 | Fixture Secret Quarantine + Pytest Scoping | 34 | Complete | frontmatter |
+| WO-109 | Runtime Capability Detection Repair + Extension | 34 | Complete | frontmatter |
+| WO-110 | Hook-Manifest Sync + WO Status Reconciliation | 34 | Complete | frontmatter |
+| WO-145 | Phase 34 Gate-Floor Remediation | 34 | Complete | frontmatter |
+| WO-146 | Tests-Pass Recursion Guard | 34 | Complete | frontmatter |
+| WO-111 | WO Frontmatter Schema + Template | 35 | Complete | frontmatter |
+| WO-112 | Frontmatter Generators | 35 | Complete | frontmatter |
+| WO-113 | Migration + Drift Lint + Generated WO-INDEX | 35 | Complete | frontmatter |
+| WO-114 | Lane return-packet schema | 36 | Planned | master-plan |
+| WO-115 | `check-lane-readiness.sh` | 36 | Planned | master-plan |
+| WO-116 | PostToolUse + SubagentStop + SessionEnd/PreCompact hooks | 37 | Planned | master-plan |
+| WO-117 | Worktree + team-governance hooks (dormant) | 37 | Planned | master-plan |
+| WO-118 | Model policy table + lint | 38 | Planned | master-plan |
+| WO-119 | ConfigChange downgrade guard + cost capture | 38 | Planned | master-plan |
+| WO-120 | Lane-loop ceilings + goal-verified stop | 39 | Planned | master-plan |
+| WO-121 | Night-loop headless wrapper | 39 | Planned | master-plan |
+| WO-122 | Recovery-loop execution shell | 39 | Planned | master-plan |
+| WO-139 | Session-limit-aware self-rescheduling | 39 | Planned | master-plan |
+| WO-123 | Workflow governance policy + capability detection | 40 | Planned | master-plan |
+| WO-124 | Bounded first use: audit fan-out workflow | 40 | Planned | master-plan |
+| WO-125 | Pilot plan + evidence model | 41 | Planned | master-plan |
+| WO-126 | Pilot execution: parallel WO lanes as team | 41 | Planned | master-plan |
+| WO-127 | Auditor-artifact + waiver-expiry + executed-vs-declared gates | 42 | Planned | master-plan |
+| WO-128 | Product-direction lint + hygiene policy + doc budget | 42 | Planned | master-plan |
+| WO-129 | Framework-ownership manifest | 43 | Planned | master-plan |
+| WO-130 | Deterministic delta engine | 43 | Planned | master-plan |
+| WO-131 | Cognition review layer (Claude) | 43 | Planned | master-plan |
+| WO-132 | Apply + preserve + rollback engine | 43 | Planned | master-plan |
+| WO-133 | Upgrade fixture smoke test | 43 | Planned | master-plan |
+| WO-134 | Product docs (VISION, PRODUCT-ANCHOR, PRD) — **requires Latif approval of anchor text** | 44 | Planned | master-plan |
+| WO-135 | Architecture + runtime manifest + limitations + proof-package spec + upgrade spec; CLAUDE.md slimmed; docs-pyramid lint gate | 44 | Planned | master-plan |
+| WO-136 | Independent audit | 45 | Planned | master-plan |
+| WO-137 | Proof package assembly | 45 | Planned | master-plan |
+| WO-138 | Public-readiness gate + website handoff | 45 | Planned | master-plan |
+| WO-140 | Reusable-object registry + spec | 46 | Planned | master-plan |
+| WO-141 | Own-repo reuse scanner | 46 | Planned | master-plan |
+| WO-142 | Secure ingestion sandbox | 46 | Planned | master-plan |
+| WO-143 | Marketplace indexer + project-setup integration | 46 | Planned | master-plan |
+| WO-144 | Enterprise internal-marketplace mode | 46 | Planned | master-plan |
+<!-- VIBEOS-GENERATED-END: wo-frontmatter-index -->
 
 ## Backlog
 
@@ -345,50 +395,3 @@
 | WO | Title | Status | Dependencies |
 |---|---|---|---|
 | WO-106 | vNext Generated Inventory and Claim Ledger | Implemented Locally | WO-072, WO-121/WO-122 read-only evidence |
-
-### Phases 34–46: VibeOS vNext Upgrade (approved 2026-06-10)
-
-Authoritative scope: `docs/planning/VNEXT-UPGRADE-AUDIT-AND-MASTER-PLAN-2026-06-10.md` (Section 7). This index becomes a generated view at WO-113. WO numbers are allocation order; WO-139 executes in Phase 39.
-
-| WO | Title | Phase | Status | Dependencies |
-|---|---|---|---|---|
-| WO-107 | Gate-Runner Tier-Schema Fix | 34 | Complete | WO-106 commit |
-| WO-108 | Fixture Secret Quarantine + Pytest Scoping | 34 | Complete | — |
-| WO-109 | Runtime Capability Detection Repair + Extension | 34 | Complete | — |
-| WO-110 | Hook-Manifest Sync + WO Status Reconciliation | 34 | Complete | — |
-| WO-145 | Phase 34 Gate-Floor Remediation | 34 | Complete | WO-107..110 |
-| WO-146 | Tests-Pass Recursion Guard | 34 | Complete | WO-145 |
-| WO-111 | WO Frontmatter Schema + Template | 35 | Complete | Phase 34 |
-| WO-112 | Frontmatter Generators | 35 | Complete | WO-111 |
-| WO-113 | Migration + Drift Lint + Generated WO-INDEX | 35 | Planned | WO-112 |
-| WO-114 | Lane Return-Packet Schema | 36 | Planned | Phase 35 |
-| WO-115 | Lane-Readiness Gate (check-lane-readiness.sh) | 36 | Planned | WO-107, WO-114 |
-| WO-116 | PostToolUse + SubagentStop + SessionEnd/PreCompact Hooks | 37 | Planned | Phase 34 |
-| WO-117 | Worktree + Team-Governance Hooks (dormant) | 37 | Planned | WO-116 |
-| WO-118 | Model Policy Table + Lint | 38 | Planned | Phase 35 |
-| WO-119 | ConfigChange Downgrade Guard + Cost Capture | 38 | Planned | WO-118 |
-| WO-120 | Lane-Loop Ceilings + Goal-Verified Stop | 39 | Planned | Phases 35, 37, 38 |
-| WO-121 | Night-Loop Headless Wrapper | 39 | Planned | WO-120, Decision D-3 |
-| WO-122 | Recovery-Loop Execution Shell | 39 | Planned | WO-121 |
-| WO-139 | Session-Limit-Aware Self-Rescheduling | 39 | Planned | WO-116, WO-121 |
-| WO-123 | Workflow Governance Policy + Capability Detection | 40 | Planned | WO-109 |
-| WO-124 | Bounded First Use: Audit Fan-Out Workflow | 40 | Planned | WO-123 |
-| WO-125 | Agent-Team Pilot Plan + Evidence Model | 41 | Planned | Phases 36, 37 |
-| WO-126 | Agent-Team Pilot Execution | 41 | Planned | WO-125 |
-| WO-127 | Auditor-Artifact + Waiver-Expiry + Executed-vs-Declared Gates | 42 | Planned | Phase 35 |
-| WO-128 | Product-Direction Lint + Hygiene Policy + Doc Budget | 42 | Planned | WO-127 |
-| WO-129 | Framework-Ownership Manifest | 43 | Planned | Phases 34–38, 42 |
-| WO-130 | Deterministic Upgrade Delta Engine | 43 | Planned | WO-129 |
-| WO-131 | Upgrade Cognition Review Layer | 43 | Planned | WO-130 |
-| WO-132 | Upgrade Apply + Preserve + Rollback Engine | 43 | Planned | WO-131 |
-| WO-133 | Upgrade Fixture Smoke Test | 43 | Planned | WO-132 |
-| WO-134 | Product Docs (VISION, PRODUCT-ANCHOR, PRD) | 44 | Planned | Phase 43, Decision D-7 |
-| WO-135 | Architecture/Runtime/Limitations/Proof/Upgrade Docs + CLAUDE.md Slim | 44 | Planned | WO-134 |
-| WO-136 | Independent vNext Audit | 45 | Planned | Phases 34–44 |
-| WO-137 | Proof Package Assembly | 45 | Planned | WO-136 |
-| WO-138 | Public-Readiness Gate + Website Handoff | 45 | Planned | WO-137, Decision D-8 |
-| WO-140 | Reusable-Object Registry + Spec | 46 | Planned | Phase 45 / Decision D-9 |
-| WO-141 | Own-Repo Reuse Scanner | 46 | Planned | WO-140 |
-| WO-142 | Secure Ingestion Sandbox | 46 | Planned | WO-140, Decision D-10 |
-| WO-143 | Marketplace Indexer + Project-Setup Integration | 46 | Planned | WO-142 |
-| WO-144 | Enterprise Internal-Marketplace Mode | 46 | Planned | WO-143 |

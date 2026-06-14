@@ -1,3 +1,30 @@
+---
+wo: WO-146
+title: Tests-Pass Recursion Guard
+status: Complete
+phase: 34
+phase_name: Foundation Repair
+wo_class: test-only
+write_scope:
+  - docs/evidence/vnext/generated-inventory.json
+  - docs/planning/WO-146-tests-pass-recursion-guard.md
+  - docs/planning/WO-INDEX.md
+  - docs/planning/DEVELOPMENT-PLAN.md
+  - plugins/vibeos/scripts/validate-tests-pass.sh
+  - tests/test_gate_runner.py
+no_touch:
+  - /Users/latifhorst/latifhorstweb/**
+  - /Users/latifhorst/Joan4U/**
+required_auditors:
+  - test-auditor
+  - evidence-auditor
+model_policy: implementation
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-146: Tests-Pass Recursion Guard
 
 ## Status
