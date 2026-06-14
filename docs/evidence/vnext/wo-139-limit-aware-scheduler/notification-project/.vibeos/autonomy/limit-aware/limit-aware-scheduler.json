@@ -1,0 +1,55 @@
+{
+  "artifacts": [
+    {
+      "kind": "shell",
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/notification-project/.vibeos/autonomy/limit-aware/resume-once.sh",
+      "written": true
+    },
+    {
+      "kind": "cron",
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/notification-project/.vibeos/autonomy/limit-aware/resume-once.cron",
+      "written": true
+    },
+    {
+      "kind": "launchd",
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/notification-project/.vibeos/autonomy/limit-aware/com.vibeos.limit-resume.plist",
+      "written": true
+    }
+  ],
+  "dispatch_policy": {
+    "framework_version": "2.2.0",
+    "generated_at": "2026-04-29T00:00:00Z",
+    "large_dispatch_allowed": false,
+    "large_dispatch_definition": "multi-agent audit sweeps, parallel lanes, and high-tier workflows keyed by wo_class/governance tier",
+    "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/notification-project",
+    "reason": "provider/session limit warning detected",
+    "reset_at": "2026-04-29T05:00:00Z",
+    "schema_version": "1.0"
+  },
+  "framework_version": "2.2.0",
+  "generated_at": "2026-04-29T00:00:00Z",
+  "input_path": "stdin",
+  "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/notification-project",
+  "schedule": {
+    "fallback_minutes": 60,
+    "fallback_used": false,
+    "reset_at": "2026-04-29T05:00:00Z",
+    "reset_epoch": 1777438800,
+    "reset_source": "iso-text"
+  },
+  "schema_version": "1.0",
+  "signal": {
+    "detected": true,
+    "excerpt": "Notification\nidle_prompt\nApproaching 5-hour session limit. Resets at 2026-04-29T05:00:00Z.",
+    "finding_id": "",
+    "pattern": "session limit",
+    "source": "notification"
+  },
+  "source": "notification",
+  "summary": {
+    "event_log": ".vibeos/autonomy/limit-aware/limit-events.jsonl",
+    "scheduled": true,
+    "state_file": ".vibeos/autonomy/limit-aware/limit-aware-scheduler.json",
+    "status": "LIMIT_WARNING_SCHEDULED"
+  }
+}

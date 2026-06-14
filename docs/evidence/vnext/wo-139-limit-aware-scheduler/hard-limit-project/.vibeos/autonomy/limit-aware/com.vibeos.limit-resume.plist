@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.vibeos.limit-resume</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/resume-once.sh</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Month</key><integer>4</integer>
+    <key>Day</key><integer>29</integer>
+    <key>Hour</key><integer>1</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/resume-once.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/resume-once.log</string>
+  <!-- Review timezone behavior before loading. resume-once.sh prevents pre-reset execution. -->
+</dict>
+</plist>

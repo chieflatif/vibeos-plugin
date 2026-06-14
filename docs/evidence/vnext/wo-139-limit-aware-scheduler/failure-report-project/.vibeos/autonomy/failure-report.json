@@ -1,0 +1,1 @@
+{"summary":{"status":"fail","finding_count":1,"blocking_count":1},"findings":[{"id":"AUTONOMY-PROVIDER-LIMIT","blocking":true,"evidence":{"pattern":"rate limit","excerpt":"provider rate limit reached; retry after 1800 seconds"}}]}

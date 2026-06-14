@@ -1,0 +1,19 @@
+{
+  "limit_pause": {
+    "generated_at": "2026-04-29T00:00:00Z",
+    "reset_at": "2026-04-29T00:30:00Z",
+    "reset_source": "retry-after-text",
+    "signal": {
+      "detected": true,
+      "excerpt": "provider rate limit reached; retry after 1800 seconds",
+      "finding_id": "AUTONOMY-PROVIDER-LIMIT",
+      "pattern": "rate limit",
+      "source": ".vibeos/autonomy/failure-report.json"
+    }
+  },
+  "summary": {
+    "limit_pause_source": "failure-report",
+    "next_resume_after": "2026-04-29T00:30:00Z",
+    "status": "PAUSED_FOR_LIMIT"
+  }
+}

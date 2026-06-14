@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# VibeOS long-run autonomy scheduler tick.
+# Safe default: local VibeOS loop commands execute;
+# model runtime launches only when generated with --launch-runtime.
+cd '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project' && python3 '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/scripts/autonomy-scheduler-guard.py' --project-dir '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project' --json && bash '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/scripts/detect-runtime-capabilities.sh' --project-dir '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project' --quiet && python3 '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/scripts/autonomy-loop.py' --project-dir '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project' --execute --json && python3 '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/scripts/autonomy-runtime-adapter.py' --project-dir '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project' --provider auto --json

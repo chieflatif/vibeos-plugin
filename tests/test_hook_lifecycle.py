@@ -11,6 +11,7 @@ HOOKS_JSON = REPO_ROOT / "plugins/vibeos/hooks/hooks.json"
 GATE_CAPTURE = REPO_ROOT / "plugins/vibeos/hooks/scripts/gate-result-capture.sh"
 AGENT_RETURN = REPO_ROOT / "plugins/vibeos/hooks/scripts/validate-agent-return.sh"
 STATE_FLUSH = REPO_ROOT / "plugins/vibeos/hooks/scripts/state-flush.sh"
+LIMIT_WARNING = REPO_ROOT / "plugins/vibeos/hooks/scripts/limit-warning-capture.sh"
 
 
 class HookLifecycleTests(unittest.TestCase):
@@ -32,11 +33,13 @@ class HookLifecycleTests(unittest.TestCase):
         self.assertIn("SubagentStop", hooks)
         self.assertIn("PreCompact", hooks)
         self.assertIn("SessionEnd", hooks)
+        self.assertIn("Notification", hooks)
         self.assertEqual(hooks["PostToolUse"][0]["matcher"], "Bash")
         self.assertIn("gate-result-capture.sh", hooks["PostToolUse"][0]["hooks"][0]["command"])
         self.assertIn("validate-agent-return.sh", hooks["SubagentStop"][0]["hooks"][0]["command"])
         self.assertIn("state-flush.sh", hooks["PreCompact"][0]["hooks"][0]["command"])
         self.assertIn("state-flush.sh", hooks["SessionEnd"][0]["hooks"][0]["command"])
+        self.assertIn("limit-warning-capture.sh", hooks["Notification"][0]["hooks"][0]["command"])
 
     def test_gate_result_capture_records_gate_bash_result(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -122,6 +125,44 @@ class HookLifecycleTests(unittest.TestCase):
             self.assertEqual(flush["event"], "SessionEnd")
             history = (root / ".vibeos/hook-events/session-flush.jsonl").read_text(encoding="utf-8").splitlines()
             self.assertEqual(len(history), 2)
+
+    def test_limit_warning_capture_schedules_limit_notification(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = self.run_hook(
+                LIMIT_WARNING,
+                {
+                    "hook_event_name": "Notification",
+                    "notification_type": "idle_prompt",
+                    "message": "Approaching 5-hour session limit. Resets at 2026-04-29T05:00:00Z.",
+                },
+                root,
+            )
+            state_path = root / ".vibeos/autonomy/limit-aware/limit-aware-scheduler.json"
+            state_exists = state_path.is_file()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertTrue(payload["captured"])
+        self.assertEqual(payload["summary"]["status"], "LIMIT_WARNING_SCHEDULED")
+        self.assertTrue(state_exists)
+
+    def test_limit_warning_capture_ignores_non_limit_notification(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            result = self.run_hook(
+                LIMIT_WARNING,
+                {
+                    "hook_event_name": "Notification",
+                    "notification_type": "permission_prompt",
+                    "message": "Claude needs your permission",
+                },
+                root,
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["captured"])
 
 
 if __name__ == "__main__":

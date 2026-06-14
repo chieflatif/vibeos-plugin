@@ -1,0 +1,1 @@
+{"generated_at": "2026-04-29T00:00:00Z", "pattern": "rate limit", "reset_at": "2026-04-29T00:30:00Z", "reset_source": "retry-after-text", "source": "failure-report", "status": "PAUSED_FOR_LIMIT"}

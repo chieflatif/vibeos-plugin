@@ -233,6 +233,9 @@ def build_report(root: Path, args: argparse.Namespace) -> dict[str, Any]:
         "interval_minutes": args.interval_minutes,
         "provider": args.provider,
         "launch_runtime": args.launch_runtime,
+        "limit_aware_scheduler": {
+            "command": f"python3 {quote(root / '.vibeos/scripts/limit-aware-scheduler.py')} --project-dir {quote(root)} --source failure-report --json",
+            "profile_dir": str(root / ".vibeos/autonomy/limit-aware"), "installs_external_scheduler": False},
         "artifacts": artifacts,
         "summary": {
             "status": "pass",

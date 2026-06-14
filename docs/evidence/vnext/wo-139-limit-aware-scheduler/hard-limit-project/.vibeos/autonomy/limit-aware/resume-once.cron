@@ -1,0 +1,4 @@
+# VibeOS one-shot provider/session-limit resume profile.
+# Review before installing. The shell script has its own reset-time and one-shot guards.
+CRON_TZ=UTC
+0 1 29 4 * bash '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/resume-once.sh' >> '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/resume-once.log' 2>&1

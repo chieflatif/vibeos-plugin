@@ -1,0 +1,40 @@
+target=/var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmp.2HdrXH6hKh
+
+╔══════════════════════════════════════════════════════╗
+║  VibeOS — Autonomous Development Engine v2.2.0     ║
+╚══════════════════════════════════════════════════════╝
+
+[vibeos-init] PASS: Source validated: /Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos
+[vibeos-init] PASS: Target validated: /var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmp.2HdrXH6hKh
+[vibeos-init] Project mode: greenfield
+[vibeos-init] Installing skills...
+[vibeos-init] PASS: 15 skills installed
+[vibeos-init] Installing agents...
+[vibeos-init] PASS: 32 agents installed
+[vibeos-init] Installing hook scripts...
+[vibeos-init] PASS: 12 hook scripts installed
+[vibeos-init] Installing framework runtime...
+[vibeos-init] PASS: Framework runtime installed
+[vibeos-init] Installing documentation...
+[vibeos-init] PASS: Documentation installed
+[vibeos-init] PASS: .claude/settings.json generated with hooks
+[vibeos-init] PASS: .claude/CLAUDE.md generated
+[vibeos-init] PASS: .gitignore updated
+[vibeos-init] PASS: Project config initialized
+
+╔══════════════════════════════════════════════════════╗
+║  VibeOS installed successfully!                     ║
+╚══════════════════════════════════════════════════════╝
+
+  Project: /var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmp.2HdrXH6hKh
+  Mode:    greenfield
+
+  Open this project in Claude Code or Cursor and say:
+
+    "I want to build [describe your idea]"
+
+  VibeOS will take it from there.
+
+limit-aware-scheduler.py installed: yes
+limit-warning-capture.sh installed: yes
+Notification hook setting installed: yes

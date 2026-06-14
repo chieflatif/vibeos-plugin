@@ -1,0 +1,39 @@
+{
+  "artifacts": [
+    {
+      "launch_runtime": false,
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/autonomy/scheduler/vibeos-autonomy-tick.sh",
+      "profile": "shell",
+      "provider": "auto",
+      "written": true
+    },
+    {
+      "launch_runtime": false,
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/autonomy/scheduler/vibeos-autonomy.cron",
+      "profile": "cron",
+      "provider": "auto",
+      "written": true
+    }
+  ],
+  "framework_version": "2.2.0",
+  "generated_at": "2026-06-14T23:40:05Z",
+  "interval_minutes": 10,
+  "launch_runtime": false,
+  "limit_aware_scheduler": {
+    "command": "python3 '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/scripts/limit-aware-scheduler.py' --project-dir '/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project' --source failure-report --json",
+    "installs_external_scheduler": false,
+    "profile_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project/.vibeos/autonomy/limit-aware"
+  },
+  "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/profile-project",
+  "provider": "auto",
+  "schema_version": "1.0",
+  "summary": {
+    "profile_count": 2,
+    "profiles": [
+      "shell",
+      "cron"
+    ],
+    "state_file": ".vibeos/autonomy/scheduler-profile.json",
+    "status": "pass"
+  }
+}

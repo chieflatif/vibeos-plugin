@@ -1,0 +1,19 @@
+{
+  "limit_pause": {
+    "generated_at": "2026-04-29T00:00:00Z",
+    "reset_at": "2026-04-29T01:00:00Z",
+    "reset_source": "fallback",
+    "signal": {
+      "detected": true,
+      "excerpt": "system\nrate_limit: 429 usage limit reached",
+      "finding_id": "",
+      "pattern": "usage limit",
+      "source": "headless-json"
+    }
+  },
+  "summary": {
+    "limit_pause_source": "headless-json",
+    "next_resume_after": "2026-04-29T01:00:00Z",
+    "status": "PAUSED_FOR_LIMIT"
+  }
+}

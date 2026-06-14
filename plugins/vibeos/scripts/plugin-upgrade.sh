@@ -118,6 +118,7 @@ V22_NEW_GATE_SCRIPTS=(
   "autonomy-smoke.py"
   "autonomy-supervisor.py"
   "autonomy_lease.py"
+  "limit-aware-scheduler.py"
   "validate-long-run-autonomy.py"
   "detect-runtime-capabilities.sh"
   "runtime-capabilities.py"
@@ -131,6 +132,10 @@ V22_NEW_GATE_SCRIPTS=(
   "validate-system-invariants.py"
   "validate-dependency-intelligence.py"
   "validate-delivery-infrastructure.py"
+)
+
+V22_NEW_HOOK_SCRIPTS=(
+  "limit-warning-capture.sh"
 )
 
 V22_NEW_AGENT_FILES=(
@@ -293,6 +298,17 @@ case "$COMMAND" in
             cp "$PLUGIN_DIR/scripts/$script" "$VIBEOS_SCRIPTS_DIR/$script"
             chmod +x "$VIBEOS_SCRIPTS_DIR/$script"
             echo "[plugin-upgrade] Installed v2.2 script: $script"
+          fi
+        done
+      fi
+
+      CLAUDE_HOOKS_DIR="${PROJECT_DIR:-.}/.claude/hooks"
+      if [ -d "$PLUGIN_DIR/hooks/scripts" ] && [ -d "$CLAUDE_HOOKS_DIR" ]; then
+        for hook in "${V22_NEW_HOOK_SCRIPTS[@]}"; do
+          if [ -f "$PLUGIN_DIR/hooks/scripts/$hook" ]; then
+            cp "$PLUGIN_DIR/hooks/scripts/$hook" "$CLAUDE_HOOKS_DIR/$hook"
+            chmod +x "$CLAUDE_HOOKS_DIR/$hook"
+            echo "[plugin-upgrade] Installed v2.2 hook: $hook"
           fi
         done
       fi

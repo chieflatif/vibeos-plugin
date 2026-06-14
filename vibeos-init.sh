@@ -201,6 +201,7 @@ uninstall() {
     rm -f "$TARGET_DIR/.claude/hooks/file-budget.sh"
     rm -f "$TARGET_DIR/.claude/hooks/worktree-scope-guard.sh"
     rm -f "$TARGET_DIR/.claude/hooks/worktree-bash-guard.sh"
+    rm -f "$TARGET_DIR/.claude/hooks/limit-warning-capture.sh"
 
     # Clean up empty directories
     rmdir "$TARGET_DIR/.claude/skills" 2>/dev/null || true
@@ -289,7 +290,7 @@ copy_hooks() {
     echo "[vibeos-init] Installing hook scripts..."
     mkdir -p "$TARGET_DIR/.claude/hooks"
 
-    local hooks=("intent-router.sh" "secrets-scan.sh" "frozen-files.sh" "test-file-protection.sh" "test-diff-audit.sh" "prereq-check.sh" "governance-guard.sh" "proof-protection.sh" "file-budget.sh" "worktree-scope-guard.sh" "worktree-bash-guard.sh")
+    local hooks=("intent-router.sh" "secrets-scan.sh" "frozen-files.sh" "test-file-protection.sh" "test-diff-audit.sh" "prereq-check.sh" "governance-guard.sh" "proof-protection.sh" "file-budget.sh" "worktree-scope-guard.sh" "worktree-bash-guard.sh" "limit-warning-capture.sh")
     for hook in "${hooks[@]}"; do
         cp "$SOURCE_DIR/hooks/scripts/$hook" "$TARGET_DIR/.claude/hooks/$hook"
         chmod +x "$TARGET_DIR/.claude/hooks/$hook"
@@ -424,6 +425,17 @@ generate_settings() {
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./.claude/hooks/limit-warning-capture.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }
@@ -458,7 +470,7 @@ An autonomous, self-governing development engine. You guide users through produc
 ```
 .claude/skills/          ← 15 user-invocable skills (/discover, /plan, /build, /comp, /codex-audit, etc.)
 .claude/agents/          ← 32 specialized subagents (20 base + 12 same-tree variants)
-.claude/hooks/           ← Event-driven enforcement (11 hooks: intent routing, governance, proof, budget, scope)
+.claude/hooks/           ← Event-driven enforcement (12 hooks: intent routing, governance, proof, budget, scope, limit capture)
 .vibeos/scripts/         ← 89 quality gate and utility scripts
 .vibeos/cache/           ← Generated local evidence recall cache
 .vibeos/autonomy/        ← Generated long-run heartbeat and resume evidence

@@ -133,6 +133,14 @@
       "timeout": 5000
     },
     {
+      "name": "limit-warning-capture",
+      "event_type": "Notification",
+      "script": "hooks/scripts/limit-warning-capture.sh",
+      "purpose": "Captures Claude Code provider/session-limit notifications and writes reviewed one-shot local resume artifacts without blocking the notification event.",
+      "blocking": false,
+      "timeout": 5000
+    },
+    {
       "name": "worktree-scope-setup",
       "event_type": "WorktreeCreate",
       "script": "hooks/scripts/worktree-scope-setup.sh",

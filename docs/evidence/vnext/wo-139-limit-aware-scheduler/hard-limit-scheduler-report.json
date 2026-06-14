@@ -1,0 +1,55 @@
+{
+  "artifacts": [
+    {
+      "kind": "shell",
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/resume-once.sh",
+      "written": true
+    },
+    {
+      "kind": "cron",
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/resume-once.cron",
+      "written": true
+    },
+    {
+      "kind": "launchd",
+      "path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project/.vibeos/autonomy/limit-aware/com.vibeos.limit-resume.plist",
+      "written": true
+    }
+  ],
+  "dispatch_policy": {
+    "framework_version": "2.2.0",
+    "generated_at": "2026-04-29T00:00:00Z",
+    "large_dispatch_allowed": false,
+    "large_dispatch_definition": "multi-agent audit sweeps, parallel lanes, and high-tier workflows keyed by wo_class/governance tier",
+    "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project",
+    "reason": "provider/session limit warning detected",
+    "reset_at": "2026-04-29T01:00:00Z",
+    "schema_version": "1.0"
+  },
+  "framework_version": "2.2.0",
+  "generated_at": "2026-04-29T00:00:00Z",
+  "input_path": "stdin",
+  "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-139-limit-aware-scheduler/hard-limit-project",
+  "schedule": {
+    "fallback_minutes": 60,
+    "fallback_used": true,
+    "reset_at": "2026-04-29T01:00:00Z",
+    "reset_epoch": 1777424400,
+    "reset_source": "fallback"
+  },
+  "schema_version": "1.0",
+  "signal": {
+    "detected": true,
+    "excerpt": "system\nrate_limit: 429 usage limit reached",
+    "finding_id": "",
+    "pattern": "usage limit",
+    "source": "headless-json"
+  },
+  "source": "headless-json",
+  "summary": {
+    "event_log": ".vibeos/autonomy/limit-aware/limit-events.jsonl",
+    "scheduled": true,
+    "state_file": ".vibeos/autonomy/limit-aware/limit-aware-scheduler.json",
+    "status": "PAUSED_FOR_LIMIT"
+  }
+}

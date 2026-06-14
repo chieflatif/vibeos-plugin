@@ -10,6 +10,7 @@ HEARTBEAT = REPO_ROOT / "plugins/vibeos/scripts/autonomy-heartbeat.py"
 LOOP = REPO_ROOT / "plugins/vibeos/scripts/autonomy-loop.py"
 ADAPTER = REPO_ROOT / "plugins/vibeos/scripts/autonomy-runtime-adapter.py"
 DETECTOR = REPO_ROOT / "plugins/vibeos/scripts/autonomy-failure-detector.py"
+LIMIT_SCHEDULER = REPO_ROOT / "plugins/vibeos/scripts/limit-aware-scheduler.py"
 RECOVERY = REPO_ROOT / "plugins/vibeos/scripts/autonomy-recovery-planner.py"
 RECOVERY_LOOP = REPO_ROOT / "plugins/vibeos/scripts/autonomy-recovery-loop.py"
 RESOLUTION = REPO_ROOT / "plugins/vibeos/scripts/autonomy-recovery-resolution.py"
@@ -85,6 +86,14 @@ class LongRunAutonomyTests(unittest.TestCase):
     def run_detector(self, root: Path, *extra: str) -> subprocess.CompletedProcess:
         return subprocess.run(
             ["python3", str(DETECTOR), "--project-dir", str(root), "--json", *extra],
+            capture_output=True,
+            text=True,
+        )
+
+    def run_limit_scheduler(self, root: Path, payload: str = "", *extra: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            ["python3", str(LIMIT_SCHEDULER), "--project-dir", str(root), "--json", *extra],
+            input=payload,
             capture_output=True,
             text=True,
         )
@@ -354,6 +363,120 @@ class LongRunAutonomyTests(unittest.TestCase):
         finding_ids = {finding["id"] for finding in payload["findings"]}
         self.assertIn("AUTONOMY-PROVIDER-LIMIT", finding_ids)
         self.assertIn("AUTONOMY-RUNTIME-FAILED", finding_ids)
+
+    def test_limit_scheduler_schedules_notification_reset(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            notification = json.dumps(
+                {
+                    "hook_event_name": "Notification",
+                    "notification_type": "idle_prompt",
+                    "message": "Approaching 5-hour session limit. Resets at 2026-04-29T05:00:00Z.",
+                }
+            )
+
+            scheduled = self.run_limit_scheduler(
+                root,
+                notification,
+                "--source",
+                "notification",
+                "--now",
+                "2026-04-29T00:00:00Z",
+            )
+            state_path = root / ".vibeos/autonomy/limit-aware/limit-aware-scheduler.json"
+            resume_script = root / ".vibeos/autonomy/limit-aware/resume-once.sh"
+            cron_profile = root / ".vibeos/autonomy/limit-aware/resume-once.cron"
+            launchd_profile = root / ".vibeos/autonomy/limit-aware/com.vibeos.limit-resume.plist"
+            dispatch_policy = root / ".vibeos/autonomy/limit-aware/dispatch-policy.json"
+            state_exists = state_path.is_file()
+            resume_exists = resume_script.is_file()
+            cron_exists = cron_profile.is_file()
+            launchd_exists = launchd_profile.is_file()
+            dispatch_exists = dispatch_policy.is_file()
+            resume_text = resume_script.read_text(encoding="utf-8")
+            cron_text = cron_profile.read_text(encoding="utf-8")
+
+        self.assertEqual(scheduled.returncode, 0, scheduled.stdout + scheduled.stderr)
+        payload = json.loads(scheduled.stdout)
+        self.assertEqual(payload["summary"]["status"], "LIMIT_WARNING_SCHEDULED")
+        self.assertEqual(payload["schedule"]["reset_at"], "2026-04-29T05:00:00Z")
+        self.assertFalse(payload["dispatch_policy"]["large_dispatch_allowed"])
+        self.assertTrue(state_exists)
+        self.assertTrue(resume_exists)
+        self.assertTrue(cron_exists)
+        self.assertTrue(launchd_exists)
+        self.assertTrue(dispatch_exists)
+        self.assertIn("night-loop.sh", resume_text)
+        self.assertIn("CRON_TZ=UTC", cron_text)
+
+    def test_limit_scheduler_marks_reactive_limit_pause_with_fallback(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            hard_limit = json.dumps(
+                {
+                    "type": "system",
+                    "error": {"message": "rate_limit: 429 usage limit reached"},
+                }
+            )
+
+            scheduled = self.run_limit_scheduler(
+                root,
+                hard_limit,
+                "--source",
+                "headless-json",
+                "--now",
+                "2026-04-29T00:00:00Z",
+                "--fallback-minutes",
+                "60",
+            )
+            loop_state = json.loads((root / ".vibeos/autonomy/loop-state.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(scheduled.returncode, 0, scheduled.stdout + scheduled.stderr)
+        payload = json.loads(scheduled.stdout)
+        self.assertEqual(payload["summary"]["status"], "PAUSED_FOR_LIMIT")
+        self.assertEqual(payload["schedule"]["reset_at"], "2026-04-29T01:00:00Z")
+        self.assertEqual(payload["schedule"]["reset_source"], "fallback")
+        self.assertEqual(loop_state["summary"]["status"], "PAUSED_FOR_LIMIT")
+        self.assertEqual(loop_state["summary"]["next_resume_after"], "2026-04-29T01:00:00Z")
+
+    def test_limit_scheduler_consumes_failure_report_provider_limit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            report = root / ".vibeos/autonomy/failure-report.json"
+            report.parent.mkdir(parents=True)
+            report.write_text(
+                json.dumps(
+                    {
+                        "summary": {"status": "fail", "finding_count": 1, "blocking_count": 1},
+                        "findings": [
+                            {
+                                "id": "AUTONOMY-PROVIDER-LIMIT",
+                                "blocking": True,
+                                "evidence": {
+                                    "pattern": "rate limit",
+                                    "excerpt": "provider rate limit reached; retry after 1800 seconds",
+                                },
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            scheduled = self.run_limit_scheduler(
+                root,
+                "",
+                "--source",
+                "failure-report",
+                "--now",
+                "2026-04-29T00:00:00Z",
+            )
+
+        self.assertEqual(scheduled.returncode, 0, scheduled.stdout + scheduled.stderr)
+        payload = json.loads(scheduled.stdout)
+        self.assertEqual(payload["summary"]["status"], "PAUSED_FOR_LIMIT")
+        self.assertEqual(payload["schedule"]["reset_at"], "2026-04-29T00:30:00Z")
+        self.assertEqual(payload["signal"]["finding_id"], "AUTONOMY-PROVIDER-LIMIT")
 
     def test_recovery_planner_passes_clean_failure_report(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -951,6 +1074,7 @@ class LongRunAutonomyTests(unittest.TestCase):
         self.assertTrue(shell_exists)
         self.assertTrue(cron_exists)
         self.assertTrue(state_exists)
+        self.assertIn("limit-aware-scheduler.py", payload["limit_aware_scheduler"]["command"])
         self.assertIn("autonomy-scheduler-guard.py", shell_text)
         self.assertIn("autonomy-loop.py", shell_text)
         self.assertIn("*/10 * * * *", cron_text)
