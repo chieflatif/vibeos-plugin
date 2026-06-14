@@ -144,6 +144,7 @@
         "plugins/vibeos/scripts/autonomy-smoke.py",
         "plugins/vibeos/scripts/autonomy-supervisor.py",
         "plugins/vibeos/scripts/autonomy_lease.py",
+        "plugins/vibeos/scripts/check-lane-readiness.sh",
         "plugins/vibeos/scripts/codex-audit-adapter.sh",
         "plugins/vibeos/scripts/codex-audit-broker.sh",
         "plugins/vibeos/scripts/comp-dossier.py",
@@ -162,6 +163,7 @@
         "plugins/vibeos/scripts/gate-runner.sh",
         "plugins/vibeos/scripts/generate-inventory.py",
         "plugins/vibeos/scripts/health-check.sh",
+        "plugins/vibeos/scripts/lane-readiness.py",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
         "plugins/vibeos/scripts/register-audit-report.sh",
         "plugins/vibeos/scripts/register-session-audit-report.sh",
@@ -223,7 +225,7 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "value": 94
+      "value": 96
     },
     {
       "claim": "Decision engine files",
@@ -414,6 +416,7 @@
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
         "tests/test_lane_packet_schema.py",
+        "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
@@ -423,7 +426,7 @@
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 25
+      "value": 26
     },
     {
       "claim": "Work order documents",
@@ -548,10 +551,11 @@
         "docs/planning/WO-112-frontmatter-generators.md",
         "docs/planning/WO-113-migration-drift-lint-generated-index.md",
         "docs/planning/WO-114-lane-return-packet-schema.md",
+        "docs/planning/WO-115-check-lane-readiness.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 119
+      "value": 120
     },
     {
       "claim": "Quality gate manifest entries",
@@ -597,7 +601,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T17:54:37Z",
+  "generated_at": "2026-06-14T18:04:36Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -891,7 +895,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 94,
+      "count": 96,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -909,6 +913,7 @@
         "plugins/vibeos/scripts/autonomy-smoke.py",
         "plugins/vibeos/scripts/autonomy-supervisor.py",
         "plugins/vibeos/scripts/autonomy_lease.py",
+        "plugins/vibeos/scripts/check-lane-readiness.sh",
         "plugins/vibeos/scripts/codex-audit-adapter.sh",
         "plugins/vibeos/scripts/codex-audit-broker.sh",
         "plugins/vibeos/scripts/comp-dossier.py",
@@ -927,6 +932,7 @@
         "plugins/vibeos/scripts/gate-runner.sh",
         "plugins/vibeos/scripts/generate-inventory.py",
         "plugins/vibeos/scripts/health-check.sh",
+        "plugins/vibeos/scripts/lane-readiness.py",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
         "plugins/vibeos/scripts/register-audit-report.sh",
         "plugins/vibeos/scripts/register-session-audit-report.sh",
@@ -988,12 +994,12 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "python_count": 31,
-      "shell_count": 61
+      "python_count": 32,
+      "shell_count": 62
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 25,
+      "count": 26,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1012,6 +1018,7 @@
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
         "tests/test_lane_packet_schema.py",
+        "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
@@ -1024,7 +1031,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 119,
+      "count": 120,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1143,6 +1150,7 @@
         "docs/planning/WO-112-frontmatter-generators.md",
         "docs/planning/WO-113-migration-drift-lint-generated-index.md",
         "docs/planning/WO-114-lane-return-packet-schema.md",
+        "docs/planning/WO-115-check-lane-readiness.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]
