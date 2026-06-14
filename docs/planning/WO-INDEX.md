@@ -5,7 +5,7 @@
 
 | WO | Title | Phase | Status | Source |
 |---|---|---|---|---|
-| WO-120 | Lane-loop ceilings + goal-verified stop | 39 | Planned | master-plan |
+| WO-121 | Night-loop headless wrapper | 39 | Planned | master-plan |
 
 ## vNext Machine-Readable View
 
@@ -29,7 +29,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-117 | Worktree + Team-Governance Hooks (Dormant) | 37 | Complete | frontmatter |
 | WO-118 | Model Policy Table + Lint | 38 | Complete | frontmatter |
 | WO-119 | ConfigChange Downgrade Guard + Cost Capture | 38 | Complete | frontmatter |
-| WO-120 | Lane-loop ceilings + goal-verified stop | 39 | Planned | master-plan |
+| WO-120 | Lane-Loop Ceilings + Goal-Verified Stop | 39 | Complete | frontmatter |
 | WO-121 | Night-loop headless wrapper | 39 | Planned | master-plan |
 | WO-122 | Recovery-loop execution shell | 39 | Planned | master-plan |
 | WO-139 | Session-limit-aware self-rescheduling | 39 | Planned | master-plan |

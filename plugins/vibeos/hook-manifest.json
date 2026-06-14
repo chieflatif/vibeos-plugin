@@ -178,6 +178,14 @@
       "script": "hooks/scripts/response-quality-stop.sh",
       "purpose": "Deterministically inspects the most recent assistant response and blocks only on concrete stub, placeholder, incomplete-code, or swallowed-error markers. No-ops on non-code turns",
       "blocking": true
+    },
+    {
+      "name": "lane-loop-stop",
+      "event_type": "Stop",
+      "script": "hooks/scripts/lane-loop-stop.sh",
+      "purpose": "Enforces bounded lane loops from active WO frontmatter. Verifies loop_goal only from captured gate/test evidence and records STALLED_AT_CEILING in session state when the turn ceiling is reached.",
+      "blocking": true,
+      "timeout": 5000
     }
   ]
 }

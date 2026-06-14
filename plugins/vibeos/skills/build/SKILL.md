@@ -834,6 +834,19 @@ Log the check-in: `[timestamp] check-in WO-NNN [user-choice]`
 - If continuing: loop back to Step 1 with the next eligible WO
 - If stopping: report final progress summary, clear any active autonomous session override, mark `.vibeos/session-state.json` inactive with `ended_at`, and save build state
 
+### Lane Loop Ceilings
+
+When an active WO frontmatter declares `loop_goal` and `loop_ceiling_turns`, the `lane-loop-stop.sh` Stop hook is the deterministic lane-loop controller.
+
+Build behavior:
+
+1. Read `.vibeos/session-state.json` after each Stop-hook cycle.
+2. If `lane_loop.status = RUNNING`, continue only within `lane_loop.ceiling_turns`.
+3. If `lane_loop.status = GOAL_VERIFIED`, treat the loop goal as verified only because captured gate/test evidence matched the WO `loop_goal`.
+4. If `lane_loop.status = STALLED_AT_CEILING`, stop the lane, report the WO as `STALLED_AT_CEILING`, and do not claim completion.
+
+Assistant text is not evidence for loop completion. The build loop must rely on the hook-recorded gate/test evidence stored in `lane_loop.evidence`.
+
 ## Error Recovery
 
 ### Agent Timeout

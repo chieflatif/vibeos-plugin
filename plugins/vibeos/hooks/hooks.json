@@ -183,6 +183,11 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/response-quality-stop.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/lane-loop-stop.sh",
+            "timeout": 5
           }
         ]
       },

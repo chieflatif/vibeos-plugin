@@ -50,6 +50,18 @@
     "last_audit_at": "string | null — latest audit timestamp",
     "status": "string — running | checkpoint | audit | blocked | paused | complete",
     "stop_reason": "string | null — terminal reason when blocked, paused, or complete"
+  },
+  "lane_loop": {
+    "wo": "string — active WO id for the bounded lane loop",
+    "active_wo": "string — relative path to the active WO file",
+    "goal": "string — loop_goal from active WO frontmatter",
+    "ceiling_turns": "number — loop_ceiling_turns from active WO frontmatter",
+    "turn_count": "number — Stop-hook turn count for this WO loop",
+    "status": "string — RUNNING | GOAL_VERIFIED | STALLED_AT_CEILING",
+    "active": "boolean — true while the lane loop may continue",
+    "goal_verified": "boolean — true only when gate/test evidence matched the loop_goal",
+    "evidence": "object — gate/test evidence source and matched command or miss reason",
+    "last_updated": "string — ISO-8601 timestamp of last lane-loop write"
   }
 }
 ```
@@ -88,6 +100,23 @@ These fields are present when the project is running a deliberate 24-48 hour aut
 | `long_run.last_heartbeat_at` | string/null | `autonomy-heartbeat.py` | Status, stale-run detection |
 | `long_run.last_checkpoint_at` | string/null | `autonomy-heartbeat.py`, checkpoint flow | Validators |
 | `long_run.last_audit_at` | string/null | `autonomy-heartbeat.py`, session audit | Validators |
+
+### Lane Loop Fields
+
+These fields are present when a WO declares `loop_goal` and `loop_ceiling_turns` and the `lane-loop-stop.sh` Stop hook has evaluated the loop.
+
+| Field | Type | Set By | Read By |
+|---|---|---|---|
+| `lane_loop.wo` | string | `lane-loop-stop.sh` | Build, status, session audit |
+| `lane_loop.goal` | string | `lane-loop-stop.sh` from active WO frontmatter | Build, status |
+| `lane_loop.ceiling_turns` | number | `lane-loop-stop.sh` from active WO frontmatter | Build, status |
+| `lane_loop.turn_count` | number | `lane-loop-stop.sh` | Build, status |
+| `lane_loop.status` | string | `lane-loop-stop.sh` | Build, status, session audit |
+| `lane_loop.goal_verified` | boolean | `lane-loop-stop.sh` from captured gate/test evidence | Build, status, session audit |
+| `loop_status` | string/null | `lane-loop-stop.sh` | Build, status |
+| `current_wo_status` | string/null | `lane-loop-stop.sh` | Build, status |
+
+`STALLED_AT_CEILING` means the loop hit its declared turn ceiling without matching gate/test evidence for `loop_goal`. It is a controlled stop state, not a completion claim.
 
 ### Audit Visibility Modes
 
