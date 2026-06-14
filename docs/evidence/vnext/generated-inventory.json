@@ -368,9 +368,10 @@
         "plugins/vibeos/reference/skills/wo-audit.md.ref",
         "plugins/vibeos/reference/skills/wo-complete.md.ref",
         "plugins/vibeos/reference/skills/wo-research.md.ref",
+        "plugins/vibeos/reference/wo-frontmatter.schema.json",
         "plugins/vibeos/reference/worktree-scopes.schema.json"
       ],
-      "value": 122
+      "value": 123
     },
     {
       "claim": "Convergence scripts",
@@ -412,9 +413,10 @@
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
-        "tests/test_system_invariants.py"
+        "tests/test_system_invariants.py",
+        "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 21
+      "value": 22
     },
     {
       "claim": "Work order documents",
@@ -535,10 +537,11 @@
         "docs/planning/WO-108-fixture-secret-quarantine-pytest-scoping.md",
         "docs/planning/WO-109-runtime-capability-detection-repair.md",
         "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md",
+        "docs/planning/WO-111-wo-frontmatter-schema-template.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 115
+      "value": 116
     },
     {
       "claim": "Quality gate manifest entries",
@@ -584,7 +587,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T17:15:20Z",
+  "generated_at": "2026-06-14T17:23:49Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -748,7 +751,7 @@
     },
     "reference": {
       "claim_label": "Reference files",
-      "count": 122,
+      "count": 123,
       "paths": [
         "plugins/vibeos/reference/autonomy/LONG-RUN-AUTONOMY.md.ref",
         "plugins/vibeos/reference/autonomy/SCHEDULER-PROFILES.md.ref",
@@ -871,6 +874,7 @@
         "plugins/vibeos/reference/skills/wo-audit.md.ref",
         "plugins/vibeos/reference/skills/wo-complete.md.ref",
         "plugins/vibeos/reference/skills/wo-research.md.ref",
+        "plugins/vibeos/reference/wo-frontmatter.schema.json",
         "plugins/vibeos/reference/worktree-scopes.schema.json"
       ]
     },
@@ -975,7 +979,7 @@
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 21,
+      "count": 22,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -997,12 +1001,13 @@
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
-        "tests/test_system_invariants.py"
+        "tests/test_system_invariants.py",
+        "tests/test_wo_frontmatter_schema.py"
       ]
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 115,
+      "count": 116,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1117,6 +1122,7 @@
         "docs/planning/WO-108-fixture-secret-quarantine-pytest-scoping.md",
         "docs/planning/WO-109-runtime-capability-detection-repair.md",
         "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md",
+        "docs/planning/WO-111-wo-frontmatter-schema-template.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]

@@ -4,7 +4,7 @@
 
 | WO | Title | Phase | Status | Dependencies |
 |---|---|---|---|---|
-| WO-111 | WO Frontmatter Schema + Template | 35 | Planned | Phase 34 |
+| WO-112 | Frontmatter Generators | 35 | Planned | WO-111 |
 
 ## Backlog
 
@@ -358,7 +358,7 @@ Authoritative scope: `docs/planning/VNEXT-UPGRADE-AUDIT-AND-MASTER-PLAN-2026-06-
 | WO-110 | Hook-Manifest Sync + WO Status Reconciliation | 34 | Complete | — |
 | WO-145 | Phase 34 Gate-Floor Remediation | 34 | Complete | WO-107..110 |
 | WO-146 | Tests-Pass Recursion Guard | 34 | Complete | WO-145 |
-| WO-111 | WO Frontmatter Schema + Template | 35 | Planned | Phase 34 |
+| WO-111 | WO Frontmatter Schema + Template | 35 | Complete | Phase 34 |
 | WO-112 | Frontmatter Generators | 35 | Planned | WO-111 |
 | WO-113 | Migration + Drift Lint + Generated WO-INDEX | 35 | Planned | WO-112 |
 | WO-114 | Lane Return-Packet Schema | 36 | Planned | Phase 35 |

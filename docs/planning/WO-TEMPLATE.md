@@ -1,3 +1,22 @@
+---
+wo: WO-NNN
+title: [Title]
+status: Draft
+phase: N
+phase_name: [Phase Name]
+wo_class: planning
+write_scope:
+  - docs/planning/WO-NNN-[slug].md
+no_touch: []
+required_auditors:
+  - evidence-auditor
+model_policy: drafting
+budget_posture:
+  token_ceiling: null
+  turn_ceiling: null
+  cost_ceiling_usd: null
+---
+
 # WO-NNN: [Title]
 
 ## Status
