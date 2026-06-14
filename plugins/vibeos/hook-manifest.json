@@ -165,6 +165,14 @@
       "timeout": 5000
     },
     {
+      "name": "model-policy-guard",
+      "event_type": "ConfigChange",
+      "script": "hooks/scripts/model-policy-guard.sh",
+      "purpose": "Blocks model and effort downgrades for active model-policy tiers that do not allow downgrades. Observes policy_settings only because Claude Code does not allow those changes to be blocked.",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
       "name": "response-quality-stop-review",
       "event_type": "Stop",
       "script": "hooks/scripts/response-quality-stop.sh",

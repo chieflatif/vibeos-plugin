@@ -39,7 +39,7 @@ class HookManifestSyncTests(unittest.TestCase):
     def test_manifest_documents_all_configured_command_hooks(self):
         configured = set(configured_command_hooks())
         documented = set(documented_hook_scripts())
-        self.assertEqual(len(configured), 20)
+        self.assertEqual(len(configured), 21)
         self.assertEqual(
             documented,
             configured,
@@ -53,8 +53,8 @@ class HookManifestSyncTests(unittest.TestCase):
         )
         inv = json.loads((REPO / "docs/evidence/vnext/generated-inventory.json").read_text())
         hooks = inv["inventory"]["hooks"]
-        self.assertEqual(hooks["configured_command_count"], 20)
-        self.assertEqual(hooks["documented_count"], 20)
+        self.assertEqual(hooks["configured_command_count"], 21)
+        self.assertEqual(hooks["documented_count"], 21)
 
 
 class StatusReconciliationTests(unittest.TestCase):

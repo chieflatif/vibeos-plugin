@@ -98,6 +98,7 @@
         "plugins/vibeos/hooks/scripts/gate-result-capture.sh",
         "plugins/vibeos/hooks/scripts/governance-guard.sh",
         "plugins/vibeos/hooks/scripts/intent-router.sh",
+        "plugins/vibeos/hooks/scripts/model-policy-guard.sh",
         "plugins/vibeos/hooks/scripts/prereq-check.sh",
         "plugins/vibeos/hooks/scripts/proof-protection.sh",
         "plugins/vibeos/hooks/scripts/response-quality-stop.sh",
@@ -111,7 +112,7 @@
         "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh",
         "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh"
       ],
-      "value": 17
+      "value": 18
     },
     {
       "claim": "Configured and documented hooks",
@@ -123,8 +124,8 @@
         "plugins/vibeos/hooks/hooks.json"
       ],
       "value": {
-        "configured_command_count": 20,
-        "documented_count": 20
+        "configured_command_count": 21,
+        "documented_count": 21
       }
     },
     {
@@ -149,6 +150,7 @@
         "plugins/vibeos/scripts/autonomy-smoke.py",
         "plugins/vibeos/scripts/autonomy-supervisor.py",
         "plugins/vibeos/scripts/autonomy_lease.py",
+        "plugins/vibeos/scripts/capture-headless-cost.py",
         "plugins/vibeos/scripts/check-lane-readiness.sh",
         "plugins/vibeos/scripts/codex-audit-adapter.sh",
         "plugins/vibeos/scripts/codex-audit-broker.sh",
@@ -231,7 +233,7 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "value": 97
+      "value": 98
     },
     {
       "claim": "Decision engine files",
@@ -427,6 +429,7 @@
         "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_model_policy.py",
+        "tests/test_model_policy_guard.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
@@ -436,7 +439,7 @@
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 29
+      "value": 30
     },
     {
       "claim": "Work order documents",
@@ -565,10 +568,11 @@
         "docs/planning/WO-116-hook-lifecycle-modernization.md",
         "docs/planning/WO-117-worktree-team-governance-hooks.md",
         "docs/planning/WO-118-model-policy-table-lint.md",
+        "docs/planning/WO-119-configchange-downgrade-guard-cost-capture.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 123
+      "value": 124
     },
     {
       "claim": "Quality gate manifest entries",
@@ -614,7 +618,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T19:32:40Z",
+  "generated_at": "2026-06-14T19:45:02Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -747,13 +751,14 @@
     },
     "hook_scripts": {
       "claim_label": "Hook scripts",
-      "count": 17,
+      "count": 18,
       "paths": [
         "plugins/vibeos/hooks/scripts/file-budget.sh",
         "plugins/vibeos/hooks/scripts/frozen-files.sh",
         "plugins/vibeos/hooks/scripts/gate-result-capture.sh",
         "plugins/vibeos/hooks/scripts/governance-guard.sh",
         "plugins/vibeos/hooks/scripts/intent-router.sh",
+        "plugins/vibeos/hooks/scripts/model-policy-guard.sh",
         "plugins/vibeos/hooks/scripts/prereq-check.sh",
         "plugins/vibeos/hooks/scripts/proof-protection.sh",
         "plugins/vibeos/hooks/scripts/response-quality-stop.sh",
@@ -771,8 +776,9 @@
     "hooks": {
       "claim_label": "Configured and documented hooks",
       "config_path": "plugins/vibeos/hooks/hooks.json",
-      "configured_command_count": 20,
+      "configured_command_count": 21,
       "configured_events": [
+        "ConfigChange",
         "PostToolUse",
         "PreCompact",
         "PreToolUse",
@@ -786,7 +792,7 @@
         "UserPromptSubmit",
         "WorktreeCreate"
       ],
-      "documented_count": 20,
+      "documented_count": 21,
       "manifest_path": "plugins/vibeos/hook-manifest.json"
     },
     "reference": {
@@ -922,7 +928,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 97,
+      "count": 98,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -940,6 +946,7 @@
         "plugins/vibeos/scripts/autonomy-smoke.py",
         "plugins/vibeos/scripts/autonomy-supervisor.py",
         "plugins/vibeos/scripts/autonomy_lease.py",
+        "plugins/vibeos/scripts/capture-headless-cost.py",
         "plugins/vibeos/scripts/check-lane-readiness.sh",
         "plugins/vibeos/scripts/codex-audit-adapter.sh",
         "plugins/vibeos/scripts/codex-audit-broker.sh",
@@ -1022,12 +1029,12 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "python_count": 33,
+      "python_count": 34,
       "shell_count": 62
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 29,
+      "count": 30,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1050,6 +1057,7 @@
         "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_model_policy.py",
+        "tests/test_model_policy_guard.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
@@ -1062,7 +1070,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 123,
+      "count": 124,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1185,6 +1193,7 @@
         "docs/planning/WO-116-hook-lifecycle-modernization.md",
         "docs/planning/WO-117-worktree-team-governance-hooks.md",
         "docs/planning/WO-118-model-policy-table-lint.md",
+        "docs/planning/WO-119-configchange-downgrade-guard-cost-capture.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]
@@ -1201,7 +1210,7 @@
       "version": "2.2.0"
     },
     "runtime_capabilities": {
-      "generated_at": "2026-06-14T19:14:49+00:00",
+      "generated_at": "2026-06-14T19:34:01+00:00",
       "path": ".vibeos/runtime-capabilities.json",
       "strategy": {
         "orchestration_mode": "claude-subagents",

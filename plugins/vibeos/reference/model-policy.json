@@ -69,6 +69,7 @@
   "public_limitations": [
     "Tier names are policy contracts, not pinned provider model IDs.",
     "Runtime detection decides what is locally available before orchestration claims are made.",
-    "ConfigChange downgrade blocking is reserved for WO-119."
+    "ConfigChange downgrade blocking applies to Claude Code hook events only; Codex hook parity is not claimed.",
+    "Cost reports parsed from headless output are estimates and must be reconciled against provider billing before public claims."
   ]
 }
