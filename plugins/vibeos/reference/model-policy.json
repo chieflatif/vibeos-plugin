@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0",
+  "framework_version": "2.2.0",
+  "description": "Provider-neutral VibeOS model and effort policy. Tiers resolve at runtime; this file intentionally avoids hardcoded current model IDs.",
+  "effort_levels": ["low", "medium", "high", "xhigh", "max"],
+  "tiers": {
+    "drafting": {
+      "purpose": "Low-risk prose, summaries, and documentation cleanup.",
+      "minimum_capability": "low_cost",
+      "default_effort": "low",
+      "allow_downgrade": true,
+      "allowed_model_aliases": ["haiku", "sonnet"],
+      "resolution_strategy": "Prefer the cheapest locally available model that can follow project instructions."
+    },
+    "implementation": {
+      "purpose": "General code changes, tests, scripts, and bounded harness work.",
+      "minimum_capability": "balanced_coding",
+      "default_effort": "medium",
+      "allow_downgrade": false,
+      "allowed_model_aliases": ["sonnet", "opus"],
+      "resolution_strategy": "Prefer the current balanced coding model alias; escalate when the WO class or audit findings require it."
+    },
+    "frontier-audit": {
+      "purpose": "High-risk architecture, security, correctness, invariant, red-team, and release-proof audits.",
+      "minimum_capability": "frontier_reasoning",
+      "default_effort": "xhigh",
+      "allow_downgrade": false,
+      "allowed_model_aliases": ["opus"],
+      "resolution_strategy": "Resolve to the strongest locally available audit model alias; never silently downgrade audit-class work."
+    },
+    "dependency-research": {
+      "purpose": "Current-source package, SDK, framework, security, compatibility, and upgrade-path research.",
+      "minimum_capability": "current_source_reasoning",
+      "default_effort": "high",
+      "allow_downgrade": false,
+      "allowed_model_aliases": ["sonnet", "opus"],
+      "resolution_strategy": "Use current documentation evidence and the strongest economical model alias that can reason over compatibility constraints."
+    },
+    "cost-sensitive": {
+      "purpose": "Repeatable low-risk checks where cost control matters more than frontier reasoning.",
+      "minimum_capability": "low_cost",
+      "default_effort": "low",
+      "allow_downgrade": true,
+      "allowed_model_aliases": ["haiku", "sonnet"],
+      "resolution_strategy": "Prefer a low-cost model alias and keep output structured for downstream deterministic gates."
+    }
+  },
+  "agent_model_aliases": {
+    "haiku": {
+      "tier": "drafting",
+      "provider_family": "claude",
+      "runtime_resolution": "Claude Code model alias or runtime default equivalent"
+    },
+    "sonnet": {
+      "tier": "implementation",
+      "provider_family": "claude",
+      "runtime_resolution": "Claude Code model alias or runtime default equivalent"
+    },
+    "opus": {
+      "tier": "frontier-audit",
+      "provider_family": "claude",
+      "runtime_resolution": "Claude Code model alias or runtime default equivalent"
+    }
+  },
+  "codex_mapping": {
+    "posture": "deferred",
+    "rule": "Codex mappings must resolve from local runtime capabilities and must not claim Claude hook or model parity."
+  },
+  "public_limitations": [
+    "Tier names are policy contracts, not pinned provider model IDs.",
+    "Runtime detection decides what is locally available before orchestration claims are made.",
+    "ConfigChange downgrade blocking is reserved for WO-119."
+  ]
+}

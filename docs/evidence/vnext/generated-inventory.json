@@ -208,6 +208,7 @@
         "plugins/vibeos/scripts/validate-infrastructure-manifest.sh",
         "plugins/vibeos/scripts/validate-logging-patterns.sh",
         "plugins/vibeos/scripts/validate-long-run-autonomy.py",
+        "plugins/vibeos/scripts/validate-model-policy.py",
         "plugins/vibeos/scripts/validate-model-versions.sh",
         "plugins/vibeos/scripts/validate-no-secrets.sh",
         "plugins/vibeos/scripts/validate-observability.sh",
@@ -230,7 +231,7 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "value": 96
+      "value": 97
     },
     {
       "claim": "Decision engine files",
@@ -341,6 +342,7 @@
         "plugins/vibeos/reference/lane-packet.schema.json",
         "plugins/vibeos/reference/manifests/pre-commit-config.yaml.ref",
         "plugins/vibeos/reference/manifests/quality-gate-manifest.json.ref",
+        "plugins/vibeos/reference/model-policy.json",
         "plugins/vibeos/reference/parallel-worktree-execution.md",
         "plugins/vibeos/reference/parallel-worktree-guide.md",
         "plugins/vibeos/reference/product/ARCHITECTURE-OUTLINE.md.ref",
@@ -382,7 +384,7 @@
         "plugins/vibeos/reference/wo-frontmatter.schema.json",
         "plugins/vibeos/reference/worktree-scopes.schema.json"
       ],
-      "value": 124
+      "value": 125
     },
     {
       "claim": "Convergence scripts",
@@ -424,6 +426,7 @@
         "tests/test_lane_packet_schema.py",
         "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
+        "tests/test_model_policy.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
@@ -433,7 +436,7 @@
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 28
+      "value": 29
     },
     {
       "claim": "Work order documents",
@@ -561,10 +564,11 @@
         "docs/planning/WO-115-check-lane-readiness.md",
         "docs/planning/WO-116-hook-lifecycle-modernization.md",
         "docs/planning/WO-117-worktree-team-governance-hooks.md",
+        "docs/planning/WO-118-model-policy-table-lint.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 122
+      "value": 123
     },
     {
       "claim": "Quality gate manifest entries",
@@ -575,7 +579,7 @@
         "plugins/vibeos/quality-gate-manifest.json",
         null
       ],
-      "value": 56
+      "value": 57
     },
     {
       "claim": "Codex has Claude-equivalent hook parity",
@@ -610,7 +614,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T19:20:57Z",
+  "generated_at": "2026-06-14T19:32:40Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -724,9 +728,9 @@
     },
     "gates": {
       "advisory_entries": 30,
-      "blocking_entries": 26,
+      "blocking_entries": 27,
       "claim_label": "Quality gate manifest entries",
-      "gate_entries": 56,
+      "gate_entries": 57,
       "manifest_path": "plugins/vibeos/quality-gate-manifest.json",
       "manifest_version": "2.2.0",
       "missing_gate_scripts": [],
@@ -736,10 +740,10 @@
         "pre_commit": 10,
         "session_end": 1,
         "session_start": 2,
-        "wo_entry": 3,
+        "wo_entry": 4,
         "wo_exit": 11
       },
-      "unique_gate_scripts": 48
+      "unique_gate_scripts": 49
     },
     "hook_scripts": {
       "claim_label": "Hook scripts",
@@ -787,7 +791,7 @@
     },
     "reference": {
       "claim_label": "Reference files",
-      "count": 124,
+      "count": 125,
       "paths": [
         "plugins/vibeos/reference/autonomy/LONG-RUN-AUTONOMY.md.ref",
         "plugins/vibeos/reference/autonomy/SCHEDULER-PROFILES.md.ref",
@@ -873,6 +877,7 @@
         "plugins/vibeos/reference/lane-packet.schema.json",
         "plugins/vibeos/reference/manifests/pre-commit-config.yaml.ref",
         "plugins/vibeos/reference/manifests/quality-gate-manifest.json.ref",
+        "plugins/vibeos/reference/model-policy.json",
         "plugins/vibeos/reference/parallel-worktree-execution.md",
         "plugins/vibeos/reference/parallel-worktree-guide.md",
         "plugins/vibeos/reference/product/ARCHITECTURE-OUTLINE.md.ref",
@@ -917,7 +922,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 96,
+      "count": 97,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -994,6 +999,7 @@
         "plugins/vibeos/scripts/validate-infrastructure-manifest.sh",
         "plugins/vibeos/scripts/validate-logging-patterns.sh",
         "plugins/vibeos/scripts/validate-long-run-autonomy.py",
+        "plugins/vibeos/scripts/validate-model-policy.py",
         "plugins/vibeos/scripts/validate-model-versions.sh",
         "plugins/vibeos/scripts/validate-no-secrets.sh",
         "plugins/vibeos/scripts/validate-observability.sh",
@@ -1016,12 +1022,12 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "python_count": 32,
+      "python_count": 33,
       "shell_count": 62
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 28,
+      "count": 29,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1043,6 +1049,7 @@
         "tests/test_lane_packet_schema.py",
         "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
+        "tests/test_model_policy.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
@@ -1055,7 +1062,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 122,
+      "count": 123,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1177,6 +1184,7 @@
         "docs/planning/WO-115-check-lane-readiness.md",
         "docs/planning/WO-116-hook-lifecycle-modernization.md",
         "docs/planning/WO-117-worktree-team-governance-hooks.md",
+        "docs/planning/WO-118-model-policy-table-lint.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]

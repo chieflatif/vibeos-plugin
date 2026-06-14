@@ -128,7 +128,7 @@
           "pattern": "^custom-[a-z0-9][a-z0-9-]*$"
         }
       ],
-      "description": "Model/effort tier name. Resolved by the future model-policy table, never hardcoded to provider model IDs."
+      "description": "Model/effort tier name. Resolved by plugins/vibeos/reference/model-policy.json, never hardcoded to provider model IDs."
     },
     "budget_posture": {
       "type": "object",

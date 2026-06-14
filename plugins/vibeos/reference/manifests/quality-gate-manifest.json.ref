@@ -185,6 +185,15 @@
           }
         },
         {
+          "name": "model-policy",
+          "script": "scripts/validate-model-policy.py",
+          "tier": 1,
+          "_comment": "REQUIRED vNext: validates provider-neutral model policy tiers, agent model aliases, and WO model_policy frontmatter.",
+          "env": {
+            "PROJECT_ROOT": "$PROJECT_ROOT"
+          }
+        },
+        {
           "name": "infrastructure-manifest",
           "script": "scripts/validate-infrastructure-manifest.sh",
           "tier": 2

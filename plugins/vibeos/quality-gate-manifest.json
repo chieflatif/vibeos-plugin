@@ -28,6 +28,7 @@
 
     {"script": "scripts/validate-work-order.sh", "tier": 1, "blocking": true, "phase": "wo_entry", "env": {}},
     {"script": "scripts/validate-wo-frontmatter.sh", "tier": 2, "blocking": false, "phase": "wo_entry", "env": {}},
+    {"script": "scripts/validate-model-policy.py", "tier": 1, "blocking": true, "phase": "wo_entry", "env": {"PROJECT_ROOT": "$PROJECT_ROOT"}},
     {"script": "scripts/validate-infrastructure-manifest.sh", "tier": 2, "blocking": false, "phase": "wo_entry", "env": {}},
 
     {"script": "scripts/enforce-architecture.sh", "tier": 1, "blocking": true, "phase": "wo_exit", "env": {}},
