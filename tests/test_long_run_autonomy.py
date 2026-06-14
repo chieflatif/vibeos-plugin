@@ -11,6 +11,7 @@ LOOP = REPO_ROOT / "plugins/vibeos/scripts/autonomy-loop.py"
 ADAPTER = REPO_ROOT / "plugins/vibeos/scripts/autonomy-runtime-adapter.py"
 DETECTOR = REPO_ROOT / "plugins/vibeos/scripts/autonomy-failure-detector.py"
 RECOVERY = REPO_ROOT / "plugins/vibeos/scripts/autonomy-recovery-planner.py"
+RECOVERY_LOOP = REPO_ROOT / "plugins/vibeos/scripts/autonomy-recovery-loop.py"
 RESOLUTION = REPO_ROOT / "plugins/vibeos/scripts/autonomy-recovery-resolution.py"
 GUARD = REPO_ROOT / "plugins/vibeos/scripts/autonomy-scheduler-guard.py"
 SCHEDULER = REPO_ROOT / "plugins/vibeos/scripts/autonomy-scheduler-profile.py"
@@ -91,6 +92,13 @@ class LongRunAutonomyTests(unittest.TestCase):
     def run_recovery(self, root: Path, *extra: str) -> subprocess.CompletedProcess:
         return subprocess.run(
             ["python3", str(RECOVERY), "--project-dir", str(root), "--json", *extra],
+            capture_output=True,
+            text=True,
+        )
+
+    def run_recovery_loop(self, root: Path, *extra: str) -> subprocess.CompletedProcess:
+        return subprocess.run(
+            ["python3", str(RECOVERY_LOOP), "--project-dir", str(root), "--json", *extra],
             capture_output=True,
             text=True,
         )
@@ -430,6 +438,126 @@ class LongRunAutonomyTests(unittest.TestCase):
         self.assertEqual(payload["actions"][0]["id"], "RECOVERY-PROVIDER-SESSION-LIMIT")
         self.assertTrue(payload["summary"]["stop_scheduler_until_resolved"])
         self.assertTrue(any("provider_or_session_limit" in command for command in payload["actions"][0]["commands"]))
+
+    def test_recovery_loop_plans_one_retry_without_execution(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plan = root / ".vibeos/autonomy/recovery-plan.json"
+            plan.parent.mkdir(parents=True)
+            plan.write_text(
+                json.dumps(
+                    {
+                        "generated_at": "2026-04-29T00:00:00Z",
+                        "summary": {"status": "recovery_required", "blocking_action_count": 1},
+                        "actions": [{"id": "RECOVERY-REPAIR-RUNNER-PLAN", "requires_review": True}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            resume = root / ".vibeos/autonomy/resume-plan.json"
+            resume.write_text(json.dumps({"commands": ["continue with current Work Order"]}), encoding="utf-8")
+
+            recovery_loop = self.run_recovery_loop(root)
+            state = json.loads((root / ".vibeos/autonomy/recovery-loop-state.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(recovery_loop.returncode, 0, recovery_loop.stdout + recovery_loop.stderr)
+        payload = json.loads(recovery_loop.stdout)
+        self.assertEqual(payload["summary"]["status"], "planned")
+        self.assertEqual(payload["summary"]["attempt_count_for_plan"], 0)
+        self.assertEqual(state["summary"]["status"], "planned")
+
+    def test_recovery_loop_second_failure_escalates_without_retrying_again(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plan = root / ".vibeos/autonomy/recovery-plan.json"
+            plan.parent.mkdir(parents=True)
+            plan.write_text(
+                json.dumps(
+                    {
+                        "generated_at": "2026-04-29T00:00:00Z",
+                        "summary": {"status": "recovery_required", "blocking_action_count": 1},
+                        "actions": [{"id": "RECOVERY-REPAIR-RUNNER-PLAN", "requires_review": True}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            resume = root / ".vibeos/autonomy/resume-plan.json"
+            resume.write_text(
+                json.dumps(
+                    {
+                        "commands": [
+                            'python3 ".vibeos/scripts/autonomy-heartbeat.py" --status running --summary "retry" --next-action "continue"'
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            first = self.run_recovery_loop(root, "--execute")
+            second = self.run_recovery_loop(root, "--execute")
+            state = json.loads((root / ".vibeos/autonomy/recovery-loop-state.json").read_text(encoding="utf-8"))
+
+        self.assertEqual(first.returncode, 1, first.stdout + first.stderr)
+        first_payload = json.loads(first.stdout)
+        self.assertEqual(first_payload["summary"]["status"], "retry_failed")
+        self.assertEqual(first_payload["runner"]["exit_code"], 1)
+        self.assertEqual(second.returncode, 2, second.stdout + second.stderr)
+        second_payload = json.loads(second.stdout)
+        self.assertEqual(second_payload["summary"]["status"], "escalated_retry_already_attempted")
+        self.assertIsNone(second_payload["runner"])
+        self.assertEqual(len(state["attempts"]), 1)
+
+    def test_recovery_loop_does_not_unblock_without_resolution_evidence(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plan = root / ".vibeos/autonomy/recovery-plan.json"
+            plan.parent.mkdir(parents=True)
+            plan.write_text(
+                json.dumps(
+                    {
+                        "generated_at": "2026-04-29T00:00:00Z",
+                        "summary": {"status": "recovery_required", "blocking_action_count": 1},
+                        "actions": [{"id": "RECOVERY-RUNTIME-HANDOFF", "requires_review": True}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            scripts_dir = root / ".vibeos/scripts"
+            scripts_dir.mkdir(parents=True)
+            heartbeat_target = scripts_dir / "autonomy-heartbeat.py"
+            heartbeat_target.write_text(HEARTBEAT.read_text(encoding="utf-8"), encoding="utf-8")
+            heartbeat_target.chmod(0o755)
+            resume = root / ".vibeos/autonomy/resume-plan.json"
+            resume.write_text(
+                json.dumps(
+                    {
+                        "commands": [
+                            'python3 ".vibeos/scripts/autonomy-heartbeat.py" --status running --summary "retry" --next-action "continue"'
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            retry = self.run_recovery_loop(root, "--execute")
+            blocked_guard = self.run_guard(root)
+            resolution = self.run_resolution(
+                root,
+                "--action-id",
+                "RECOVERY-RUNTIME-HANDOFF",
+                "--summary",
+                "one retry executed and reviewed",
+                "--evidence",
+                ".vibeos/autonomy/recovery-loop-state.json",
+            )
+            unblocked_guard = self.run_guard(root)
+
+        self.assertEqual(retry.returncode, 0, retry.stdout + retry.stderr)
+        retry_payload = json.loads(retry.stdout)
+        self.assertEqual(retry_payload["summary"]["status"], "retry_completed")
+        self.assertEqual(blocked_guard.returncode, 2, blocked_guard.stdout + blocked_guard.stderr)
+        self.assertEqual(resolution.returncode, 0, resolution.stdout + resolution.stderr)
+        self.assertEqual(unblocked_guard.returncode, 0, unblocked_guard.stdout + unblocked_guard.stderr)
 
     def test_scheduler_guard_passes_without_recovery_actions(self):
         with tempfile.TemporaryDirectory() as tmp:

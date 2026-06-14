@@ -1,0 +1,58 @@
+{
+  "attempts": [
+    {
+      "action_ids": [
+        "RECOVERY-REPAIR-RUNNER-PLAN"
+      ],
+      "attempted_at": "2026-06-14T22:33:20Z",
+      "recovery_plan_generated_at": "2026-04-29T00:00:00Z",
+      "recovery_plan_key": "2026-04-29T00:00:00Z|RECOVERY-REPAIR-RUNNER-PLAN",
+      "resume_plan": "/private/var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmp.GRxiqybM8u/.vibeos/autonomy/resume-plan.json",
+      "runner_exit_code": 1,
+      "runner_summary_status": "failed",
+      "status": "retry_failed"
+    }
+  ],
+  "execute": true,
+  "framework_version": "2.2.0",
+  "generated_at": "2026-06-14T22:33:20Z",
+  "inputs": {
+    "recovery_plan": ".vibeos/autonomy/recovery-plan.json",
+    "recovery_plan_generated_at": "2026-04-29T00:00:00Z",
+    "recovery_plan_key": "2026-04-29T00:00:00Z|RECOVERY-REPAIR-RUNNER-PLAN",
+    "recovery_plan_present": true,
+    "recovery_resolution": ".vibeos/autonomy/recovery-resolution.json",
+    "resume_plan": "/private/var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmp.GRxiqybM8u/.vibeos/autonomy/resume-plan.json",
+    "state_file": ".vibeos/autonomy/recovery-loop-state.json"
+  },
+  "previous_attempts": [
+    {
+      "action_ids": [
+        "RECOVERY-REPAIR-RUNNER-PLAN"
+      ],
+      "attempted_at": "2026-06-14T22:33:20Z",
+      "recovery_plan_generated_at": "2026-04-29T00:00:00Z",
+      "recovery_plan_key": "2026-04-29T00:00:00Z|RECOVERY-REPAIR-RUNNER-PLAN",
+      "resume_plan": "/private/var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmp.GRxiqybM8u/.vibeos/autonomy/resume-plan.json",
+      "runner_exit_code": 1,
+      "runner_summary_status": "failed",
+      "status": "retry_failed"
+    }
+  ],
+  "project_dir": "/private/var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmp.GRxiqybM8u",
+  "runner": null,
+  "schema_version": "1.0",
+  "summary": {
+    "attempt_count_for_plan": 1,
+    "resolution_required_to_unblock": true,
+    "state_file": ".vibeos/autonomy/recovery-loop-state.json",
+    "status": "escalated_retry_already_attempted",
+    "unresolved_count": 1
+  },
+  "unresolved_actions": [
+    {
+      "id": "RECOVERY-REPAIR-RUNNER-PLAN",
+      "requires_review": true
+    }
+  ]
+}

@@ -5,7 +5,7 @@
 
 | WO | Title | Phase | Status | Source |
 |---|---|---|---|---|
-| WO-122 | Recovery-loop execution shell | 39 | Planned | master-plan |
+| WO-139 | Session-limit-aware self-rescheduling | 39 | Planned | master-plan |
 
 ## vNext Machine-Readable View
 
@@ -31,7 +31,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-119 | ConfigChange Downgrade Guard + Cost Capture | 38 | Complete | frontmatter |
 | WO-120 | Lane-Loop Ceilings + Goal-Verified Stop | 39 | Complete | frontmatter |
 | WO-121 | Night-Loop Headless Wrapper | 39 | Complete | frontmatter |
-| WO-122 | Recovery-loop execution shell | 39 | Planned | master-plan |
+| WO-122 | Recovery-loop Execution Shell | 39 | Complete | frontmatter |
 | WO-139 | Session-limit-aware self-rescheduling | 39 | Planned | master-plan |
 | WO-123 | Workflow governance policy + capability detection | 40 | Planned | master-plan |
 | WO-124 | Bounded first use: audit fan-out workflow | 40 | Planned | master-plan |

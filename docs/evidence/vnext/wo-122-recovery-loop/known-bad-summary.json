@@ -1,0 +1,6 @@
+{
+  "first_exit": 1,
+  "second_exit": 2,
+  "expected_first_status": "retry_failed",
+  "expected_second_status": "escalated_retry_already_attempted"
+}

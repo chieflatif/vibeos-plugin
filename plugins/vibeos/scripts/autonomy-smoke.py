@@ -25,6 +25,7 @@ REQUIRED_SCRIPTS = [
     "autonomy-runtime-adapter.py",
     "autonomy-failure-detector.py",
     "autonomy-recovery-planner.py",
+    "autonomy-recovery-loop.py",
     "autonomy-recovery-resolution.py",
     "autonomy-scheduler-guard.py",
     "autonomy_lease.py",
@@ -244,6 +245,19 @@ def run_smoke(target: Path, source_dir: Path, provider: str, execute_runtime: bo
             [
                 "python3",
                 str(target / ".vibeos/scripts/autonomy-recovery-planner.py"),
+                "--project-dir",
+                str(target),
+                "--json",
+            ],
+            target,
+        )
+    )
+    steps.append(
+        run_step(
+            "recovery-loop",
+            [
+                "python3",
+                str(target / ".vibeos/scripts/autonomy-recovery-loop.py"),
                 "--project-dir",
                 str(target),
                 "--json",

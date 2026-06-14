@@ -111,6 +111,7 @@ V22_NEW_GATE_SCRIPTS=(
   "autonomy-runtime-adapter.py"
   "autonomy-failure-detector.py"
   "autonomy-recovery-planner.py"
+  "autonomy-recovery-loop.py"
   "autonomy-recovery-resolution.py"
   "autonomy-scheduler-guard.py"
   "autonomy-scheduler-profile.py"

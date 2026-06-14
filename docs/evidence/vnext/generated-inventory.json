@@ -142,6 +142,7 @@
         "plugins/vibeos/scripts/autonomy-failure-detector.py",
         "plugins/vibeos/scripts/autonomy-heartbeat.py",
         "plugins/vibeos/scripts/autonomy-loop.py",
+        "plugins/vibeos/scripts/autonomy-recovery-loop.py",
         "plugins/vibeos/scripts/autonomy-recovery-planner.py",
         "plugins/vibeos/scripts/autonomy-recovery-resolution.py",
         "plugins/vibeos/scripts/autonomy-runner.py",
@@ -235,7 +236,7 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "value": 99
+      "value": 100
     },
     {
       "claim": "Decision engine files",
@@ -575,10 +576,11 @@
         "docs/planning/WO-119-configchange-downgrade-guard-cost-capture.md",
         "docs/planning/WO-120-lane-loop-ceilings-goal-verified-stop.md",
         "docs/planning/WO-121-night-loop-headless-wrapper.md",
+        "docs/planning/WO-122-recovery-loop-execution-shell.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 126
+      "value": 127
     },
     {
       "claim": "Quality gate manifest entries",
@@ -624,7 +626,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T22:23:11Z",
+  "generated_at": "2026-06-14T22:40:47Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -935,7 +937,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 99,
+      "count": 100,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -944,6 +946,7 @@
         "plugins/vibeos/scripts/autonomy-failure-detector.py",
         "plugins/vibeos/scripts/autonomy-heartbeat.py",
         "plugins/vibeos/scripts/autonomy-loop.py",
+        "plugins/vibeos/scripts/autonomy-recovery-loop.py",
         "plugins/vibeos/scripts/autonomy-recovery-planner.py",
         "plugins/vibeos/scripts/autonomy-recovery-resolution.py",
         "plugins/vibeos/scripts/autonomy-runner.py",
@@ -1037,7 +1040,7 @@
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py"
       ],
-      "python_count": 34,
+      "python_count": 35,
       "shell_count": 63
     },
     "tests": {
@@ -1080,7 +1083,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 126,
+      "count": 127,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1206,6 +1209,7 @@
         "docs/planning/WO-119-configchange-downgrade-guard-cost-capture.md",
         "docs/planning/WO-120-lane-loop-ceilings-goal-verified-stop.md",
         "docs/planning/WO-121-night-loop-headless-wrapper.md",
+        "docs/planning/WO-122-recovery-loop-execution-shell.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]
