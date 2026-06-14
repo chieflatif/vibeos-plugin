@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -159,6 +160,10 @@ class TierResolutionTests(unittest.TestCase):
 class PreCommitExecutionTests(unittest.TestCase):
     """WO-107: pre_commit must execute all gates end-to-end (no tier-resolution crash)."""
 
+    @unittest.skipIf(
+        os.environ.get("VIBEOS_TESTS_PASS_GATE") == "1",
+        "pre_commit execution test is skipped inside validate-tests-pass to avoid recursive gate invocation",
+    )
     def test_pre_commit_executes_all_ten_gates(self):
         result = _run(
             "pre_commit",

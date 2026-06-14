@@ -630,7 +630,7 @@ Use Claude Code's native capabilities exclusively (skills + hooks + agents + MCP
 
 | Phase | Title | WOs | Depends on |
 |---|---|---|---|
-| 34 | Foundation Repair | WO-107, WO-108, WO-109, WO-110, WO-145 | — |
+| 34 | Foundation Repair | WO-107, WO-108, WO-109, WO-110, WO-145, WO-146 | — |
 | 35 | Machine-Readable WO Contracts (U1) | WO-111, WO-112, WO-113 | 34 |
 | 36 | Lane-Readiness Automation (U2) | WO-114, WO-115 | 34, 35 |
 | 37 | Hook Lifecycle Modernization | WO-116, WO-117 | 34 |

@@ -53,6 +53,7 @@ cd "$repo_root"
 # If TEST_CMD is explicitly set, use it
 if [[ -n "${TEST_CMD:-}" ]]; then
   echo "[$GATE_NAME] Using TEST_CMD: $TEST_CMD"
+  export VIBEOS_TESTS_PASS_GATE=1
   if eval "$TEST_CMD"; then
     echo "[$GATE_NAME] PASS: Tests passed"
     exit 0
@@ -151,6 +152,7 @@ run_tests() {
 }
 
 # Run tests and capture exit code
+export VIBEOS_TESTS_PASS_GATE=1
 if run_tests; then
   echo "[$GATE_NAME] PASS: All tests passed"
   exit 0

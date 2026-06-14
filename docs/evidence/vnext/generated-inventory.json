@@ -405,6 +405,7 @@
         "tests/test_dependency_intelligence.py",
         "tests/test_evidence_recall.py",
         "tests/test_flow_integrity.py",
+        "tests/test_gate_floor.py",
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
         "tests/test_long_run_autonomy.py",
@@ -413,7 +414,7 @@
         "tests/test_status_reconciliation.py",
         "tests/test_system_invariants.py"
       ],
-      "value": 20
+      "value": 21
     },
     {
       "claim": "Work order documents",
@@ -533,9 +534,11 @@
         "docs/planning/WO-107-gate-runner-tier-schema-fix.md",
         "docs/planning/WO-108-fixture-secret-quarantine-pytest-scoping.md",
         "docs/planning/WO-109-runtime-capability-detection-repair.md",
-        "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md"
+        "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md",
+        "docs/planning/WO-145-phase34-gate-floor-remediation.md",
+        "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 113
+      "value": 115
     },
     {
       "claim": "Quality gate manifest entries",
@@ -581,7 +584,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-10T17:39:34Z",
+  "generated_at": "2026-06-14T17:15:20Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -972,7 +975,7 @@
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 20,
+      "count": 21,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -987,6 +990,7 @@
         "tests/test_dependency_intelligence.py",
         "tests/test_evidence_recall.py",
         "tests/test_flow_integrity.py",
+        "tests/test_gate_floor.py",
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
         "tests/test_long_run_autonomy.py",
@@ -998,7 +1002,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 113,
+      "count": 115,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1112,7 +1116,9 @@
         "docs/planning/WO-107-gate-runner-tier-schema-fix.md",
         "docs/planning/WO-108-fixture-secret-quarantine-pytest-scoping.md",
         "docs/planning/WO-109-runtime-capability-detection-repair.md",
-        "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md"
+        "docs/planning/WO-110-hook-manifest-sync-status-reconciliation.md",
+        "docs/planning/WO-145-phase34-gate-floor-remediation.md",
+        "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]
     }
   },
