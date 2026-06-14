@@ -95,18 +95,21 @@
       "source_paths": [
         "plugins/vibeos/hooks/scripts/file-budget.sh",
         "plugins/vibeos/hooks/scripts/frozen-files.sh",
+        "plugins/vibeos/hooks/scripts/gate-result-capture.sh",
         "plugins/vibeos/hooks/scripts/governance-guard.sh",
         "plugins/vibeos/hooks/scripts/intent-router.sh",
         "plugins/vibeos/hooks/scripts/prereq-check.sh",
         "plugins/vibeos/hooks/scripts/proof-protection.sh",
         "plugins/vibeos/hooks/scripts/response-quality-stop.sh",
         "plugins/vibeos/hooks/scripts/secrets-scan.sh",
+        "plugins/vibeos/hooks/scripts/state-flush.sh",
         "plugins/vibeos/hooks/scripts/test-diff-audit.sh",
         "plugins/vibeos/hooks/scripts/test-file-protection.sh",
+        "plugins/vibeos/hooks/scripts/validate-agent-return.sh",
         "plugins/vibeos/hooks/scripts/worktree-bash-guard.sh",
         "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh"
       ],
-      "value": 12
+      "value": 15
     },
     {
       "claim": "Configured and documented hooks",
@@ -118,8 +121,8 @@
         "plugins/vibeos/hooks/hooks.json"
       ],
       "value": {
-        "configured_command_count": 12,
-        "documented_count": 12
+        "configured_command_count": 16,
+        "documented_count": 16
       }
     },
     {
@@ -415,6 +418,7 @@
         "tests/test_gate_floor.py",
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
+        "tests/test_hook_lifecycle.py",
         "tests/test_lane_packet_schema.py",
         "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
@@ -426,7 +430,7 @@
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 26
+      "value": 27
     },
     {
       "claim": "Work order documents",
@@ -552,10 +556,11 @@
         "docs/planning/WO-113-migration-drift-lint-generated-index.md",
         "docs/planning/WO-114-lane-return-packet-schema.md",
         "docs/planning/WO-115-check-lane-readiness.md",
+        "docs/planning/WO-116-hook-lifecycle-modernization.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 120
+      "value": 121
     },
     {
       "claim": "Quality gate manifest entries",
@@ -601,7 +606,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T18:04:36Z",
+  "generated_at": "2026-06-14T19:05:41Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -734,18 +739,21 @@
     },
     "hook_scripts": {
       "claim_label": "Hook scripts",
-      "count": 12,
+      "count": 15,
       "paths": [
         "plugins/vibeos/hooks/scripts/file-budget.sh",
         "plugins/vibeos/hooks/scripts/frozen-files.sh",
+        "plugins/vibeos/hooks/scripts/gate-result-capture.sh",
         "plugins/vibeos/hooks/scripts/governance-guard.sh",
         "plugins/vibeos/hooks/scripts/intent-router.sh",
         "plugins/vibeos/hooks/scripts/prereq-check.sh",
         "plugins/vibeos/hooks/scripts/proof-protection.sh",
         "plugins/vibeos/hooks/scripts/response-quality-stop.sh",
         "plugins/vibeos/hooks/scripts/secrets-scan.sh",
+        "plugins/vibeos/hooks/scripts/state-flush.sh",
         "plugins/vibeos/hooks/scripts/test-diff-audit.sh",
         "plugins/vibeos/hooks/scripts/test-file-protection.sh",
+        "plugins/vibeos/hooks/scripts/validate-agent-return.sh",
         "plugins/vibeos/hooks/scripts/worktree-bash-guard.sh",
         "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh"
       ]
@@ -753,14 +761,18 @@
     "hooks": {
       "claim_label": "Configured and documented hooks",
       "config_path": "plugins/vibeos/hooks/hooks.json",
-      "configured_command_count": 12,
+      "configured_command_count": 16,
       "configured_events": [
+        "PostToolUse",
+        "PreCompact",
         "PreToolUse",
+        "SessionEnd",
         "SessionStart",
         "Stop",
+        "SubagentStop",
         "UserPromptSubmit"
       ],
-      "documented_count": 12,
+      "documented_count": 16,
       "manifest_path": "plugins/vibeos/hook-manifest.json"
     },
     "reference": {
@@ -999,7 +1011,7 @@
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 26,
+      "count": 27,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1017,6 +1029,7 @@
         "tests/test_gate_floor.py",
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
+        "tests/test_hook_lifecycle.py",
         "tests/test_lane_packet_schema.py",
         "tests/test_lane_readiness.py",
         "tests/test_long_run_autonomy.py",
@@ -1031,7 +1044,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 120,
+      "count": 121,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1151,6 +1164,7 @@
         "docs/planning/WO-113-migration-drift-lint-generated-index.md",
         "docs/planning/WO-114-lane-return-packet-schema.md",
         "docs/planning/WO-115-check-lane-readiness.md",
+        "docs/planning/WO-116-hook-lifecycle-modernization.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]

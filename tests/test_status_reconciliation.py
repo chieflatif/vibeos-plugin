@@ -17,25 +17,29 @@ PREREQ = REPO / "plugins/vibeos/hooks/scripts/prereq-check.sh"
 
 def configured_command_hooks():
     h = json.loads(HOOKS_JSON.read_text())
-    names = []
-    for arr in h.get("hooks", {}).values():
+    entries = []
+    for event, arr in h.get("hooks", {}).items():
         for entry in arr:
+            matcher = entry.get("matcher", "")
             for hk in entry.get("hooks", []):
                 if hk.get("type") == "command":
-                    names.append(hk.get("command", "").split("/")[-1])
-    return names
+                    entries.append((event, matcher, hk.get("command", "").split("/")[-1]))
+    return entries
 
 
 def documented_hook_scripts():
     m = json.loads(HOOK_MANIFEST.read_text())
-    return [h.get("script", "").split("/")[-1] for h in m.get("hooks", [])]
+    return [
+        (h.get("event_type", ""), h.get("matcher", ""), h.get("script", "").split("/")[-1])
+        for h in m.get("hooks", [])
+    ]
 
 
 class HookManifestSyncTests(unittest.TestCase):
     def test_manifest_documents_all_configured_command_hooks(self):
         configured = set(configured_command_hooks())
         documented = set(documented_hook_scripts())
-        self.assertEqual(len(configured), 12)
+        self.assertEqual(len(configured), 16)
         self.assertEqual(
             documented,
             configured,
@@ -49,8 +53,8 @@ class HookManifestSyncTests(unittest.TestCase):
         )
         inv = json.loads((REPO / "docs/evidence/vnext/generated-inventory.json").read_text())
         hooks = inv["inventory"]["hooks"]
-        self.assertEqual(hooks["configured_command_count"], 12)
-        self.assertEqual(hooks["documented_count"], 12)
+        self.assertEqual(hooks["configured_command_count"], 16)
+        self.assertEqual(hooks["documented_count"], 16)
 
 
 class StatusReconciliationTests(unittest.TestCase):

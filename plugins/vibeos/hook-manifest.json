@@ -5,6 +5,7 @@
     {
       "name": "prereq-check",
       "event_type": "SessionStart",
+      "matcher": "startup",
       "script": "hooks/scripts/prereq-check.sh",
       "purpose": "Validates tool prerequisites (bash, python3, jq, git) and provides rich session context on startup including recovery hints, lifecycle detection, and anchor checks",
       "blocking": false,
@@ -96,6 +97,39 @@
       "script": "hooks/scripts/file-budget.sh",
       "purpose": "Enforces per-file line budget — warns at FILE_BUDGET_WARN and blocks at FILE_BUDGET_MAX lines to keep files within size limits",
       "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "gate-result-capture",
+      "event_type": "PostToolUse",
+      "matcher": "Bash",
+      "script": "hooks/scripts/gate-result-capture.sh",
+      "purpose": "Records completed Bash gate/test command outcomes to .vibeos hook-event evidence after tool execution. Capture-only: it does not claim to prevent completed tool effects.",
+      "blocking": false,
+      "timeout": 5000
+    },
+    {
+      "name": "validate-agent-return",
+      "event_type": "SubagentStop",
+      "script": "hooks/scripts/validate-agent-return.sh",
+      "purpose": "Validates audit subagent return packets and blocks failed or critical/high audit returns before the primary agent continues.",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "state-flush-precompact",
+      "event_type": "PreCompact",
+      "script": "hooks/scripts/state-flush.sh",
+      "purpose": "Flushes durable VibeOS hook-event state before context compaction.",
+      "blocking": true,
+      "timeout": 5000
+    },
+    {
+      "name": "state-flush-session-end",
+      "event_type": "SessionEnd",
+      "script": "hooks/scripts/state-flush.sh",
+      "purpose": "Flushes durable VibeOS hook-event state at session end.",
+      "blocking": false,
       "timeout": 5000
     },
     {
