@@ -1,0 +1,111 @@
+{
+  "allowed_tools": [
+    "Bash",
+    "Read",
+    "Grep",
+    "Glob"
+  ],
+  "d3_agent_sdk_credit_confirmed": true,
+  "evidence_dir": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live",
+  "execute": true,
+  "framework_version": "2.2.0",
+  "generated_at": "2026-06-14T22:04:01Z",
+  "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin",
+  "schema_version": "1.0",
+  "steps": [
+    {
+      "command": [
+        "python3",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos/scripts/autonomy-scheduler-guard.py",
+        "--project-dir",
+        "/Users/latifhorst/cursor projects/vibeos-plugin",
+        "--json"
+      ],
+      "exit_code": 0,
+      "name": "scheduler_guard",
+      "status": "pass"
+    },
+    {
+      "command": [
+        "claude",
+        "-p",
+        "Run one VibeOS night-loop tick and return JSON evidence.",
+        "--bare",
+        "--output-format",
+        "json",
+        "--allowedTools",
+        "Bash,Read,Grep,Glob"
+      ],
+      "exit_code": 1,
+      "name": "claude_headless",
+      "output": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live/headless-output.json",
+      "status": "failed",
+      "stderr_output": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live/headless-stderr.txt"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos/scripts/autonomy-loop.py",
+        "--project-dir",
+        "/Users/latifhorst/cursor projects/vibeos-plugin",
+        "--max-iterations",
+        "1",
+        "--json"
+      ],
+      "name": "autonomy_loop",
+      "status": "pending"
+    },
+    {
+      "command": [
+        "bash",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos/scripts/gate-runner.sh",
+        "full_audit",
+        "--continue-on-failure",
+        "--project-dir",
+        "/Users/latifhorst/cursor projects/vibeos-plugin"
+      ],
+      "name": "full_audit_gate",
+      "status": "pending"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos/scripts/wo-frontmatter-lint.py",
+        "validate-index",
+        "--project-dir",
+        "/Users/latifhorst/cursor projects/vibeos-plugin"
+      ],
+      "name": "drift_sweep",
+      "status": "planned"
+    },
+    {
+      "name": "waiver_check",
+      "reason": "Waiver-expiry scan is planned in WO-127.",
+      "status": "deferred_until_WO-127"
+    },
+    {
+      "name": "cost_capture",
+      "reason": "No headless JSON was supplied or produced.",
+      "status": "not_run"
+    },
+    {
+      "command": [
+        "python3",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/plugins/vibeos/scripts/capture-headless-cost.py",
+        "--input",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live/headless-output.json",
+        "--evidence-dir",
+        "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live"
+      ],
+      "exit_code": 0,
+      "name": "live_cost_capture",
+      "status": "pass"
+    }
+  ],
+  "summary": {
+    "cost_label": "estimate; reconcile against billing",
+    "live_headless_run": true,
+    "status": "failed_claude_headless"
+  },
+  "timeout_seconds": 900
+}

@@ -1,0 +1,23 @@
+{
+  "cost": {
+    "label": "estimate; reconcile against billing",
+    "total_cost_usd": 0
+  },
+  "framework_version": "2.2.0",
+  "generated_at": "2026-06-14T22:04:01Z",
+  "limitations": [
+    "This report is parsed from local headless command output.",
+    "Treat values as estimates and reconcile against provider billing before public cost claims."
+  ],
+  "run": {
+    "duration_ms": 28,
+    "model": null,
+    "num_turns": 1,
+    "session_id": "12fd341e-6f46-4de7-a40d-30fd3646416b"
+  },
+  "schema_version": "1.0",
+  "source": {
+    "input_format": "claude_headless_json",
+    "source_path": "/Users/latifhorst/cursor projects/vibeos-plugin/docs/evidence/vnext/wo-121-night-loop-live/headless-output.json"
+  }
+}

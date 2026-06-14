@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -11,7 +12,7 @@ FRAMEWORK = REPO_ROOT / "plugins/vibeos"
 
 
 class NightLoopTests(unittest.TestCase):
-    def run_night_loop(self, root: Path, *extra: str):
+    def run_night_loop(self, root: Path, *extra: str, env: dict[str, str] | None = None):
         return subprocess.run(
             [
                 "bash",
@@ -24,6 +25,7 @@ class NightLoopTests(unittest.TestCase):
             ],
             capture_output=True,
             text=True,
+            env={**os.environ, **(env or {})},
         )
 
     def test_dry_run_writes_report_and_cost_fixture(self):
@@ -79,6 +81,85 @@ class NightLoopTests(unittest.TestCase):
             self.assertEqual(payload["summary"]["status"], "blocked_agent_sdk_credit_required")
             self.assertFalse(payload["summary"]["live_headless_run"])
             self.assertIn("D-3", payload["steps"][1]["reason"])
+
+    def test_execute_creates_evidence_dir_before_saving_headless_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            evidence = root / "missing-evidence-dir"
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fake_claude = fake_bin / "claude"
+            fake_claude.write_text(
+                "#!/usr/bin/env bash\n"
+                "printf '%s\\n' '{\"session_id\":\"live-fixture\",\"model\":\"sonnet\",\"total_cost_usd\":0.03}'\n",
+                encoding="utf-8",
+            )
+            fake_claude.chmod(0o755)
+            scripts = root / ".vibeos/scripts"
+            scripts.mkdir(parents=True)
+            fake_loop = scripts / "autonomy-loop.py"
+            fake_loop.write_text(
+                "import json\nprint(json.dumps({'summary': {'status': 'pass'}}))\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_night_loop(
+                root,
+                "--evidence-dir",
+                str(evidence),
+                "--execute",
+                "--json",
+                env={
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "VIBEOS_AGENT_SDK_CREDIT_CONFIRMED": "1",
+                },
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["summary"]["status"], "pass")
+            self.assertTrue(payload["summary"]["live_headless_run"])
+            self.assertTrue((evidence / "headless-output.json").is_file())
+            cost = json.loads((evidence / "cost-report.json").read_text(encoding="utf-8"))
+            self.assertEqual(cost["cost"]["total_cost_usd"], 0.03)
+
+    def test_execute_captures_cost_report_from_failed_headless_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            evidence = root / "failed-headless-evidence"
+            fake_bin = root / "bin"
+            fake_bin.mkdir()
+            fake_claude = fake_bin / "claude"
+            fake_claude.write_text(
+                "#!/usr/bin/env bash\n"
+                "printf '%s\\n' '{\"type\":\"result\",\"is_error\":true,\"result\":\"Not logged in\",\"total_cost_usd\":0}'\n"
+                "printf '%s\\n' 'login required' >&2\n"
+                "exit 1\n",
+                encoding="utf-8",
+            )
+            fake_claude.chmod(0o755)
+
+            result = self.run_night_loop(
+                root,
+                "--evidence-dir",
+                str(evidence),
+                "--execute",
+                "--json",
+                env={
+                    "PATH": f"{fake_bin}:{os.environ['PATH']}",
+                    "VIBEOS_AGENT_SDK_CREDIT_CONFIRMED": "1",
+                },
+            )
+
+            self.assertEqual(result.returncode, 1)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["summary"]["status"], "failed_claude_headless")
+            self.assertTrue((evidence / "headless-output.json").is_file())
+            self.assertTrue((evidence / "headless-stderr.txt").is_file())
+            cost = json.loads((evidence / "cost-report.json").read_text(encoding="utf-8"))
+            self.assertEqual(cost["cost"]["total_cost_usd"], 0)
+            self.assertEqual(payload["steps"][-1]["name"], "live_cost_capture")
+            self.assertEqual(payload["steps"][-1]["status"], "pass")
 
 
 if __name__ == "__main__":

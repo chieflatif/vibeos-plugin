@@ -236,18 +236,44 @@ def main(argv: list[str] | None = None) -> int:
 
     # Live execution is intentionally after guard + D-3 confirmation.
     headless_output = evidence_dir / "headless-output.json"
+    headless_stderr = evidence_dir / "headless-stderr.txt"
+    headless_output.parent.mkdir(parents=True, exist_ok=True)
     claude = run_command(planned_claude, root, args.timeout_seconds)
     headless_output.write_text(claude["stdout"], encoding="utf-8")
-    report["steps"] = [step if step["name"] != "claude_headless" else {**step, "status": "pass" if claude["exit_code"] == 0 else "failed", "exit_code": claude["exit_code"], "output": str(headless_output)} for step in report["steps"]]
+    headless_stderr.write_text(claude["stderr"], encoding="utf-8")
+    report["steps"] = [
+        step
+        if step["name"] != "claude_headless"
+        else {
+            **step,
+            "status": "pass" if claude["exit_code"] == 0 else "failed",
+            "exit_code": claude["exit_code"],
+            "output": str(headless_output),
+            "stderr_output": str(headless_stderr),
+        }
+        for step in report["steps"]
+    ]
+    cost_script = script_path(root, framework_dir, "capture-headless-cost.py")
+    if claude["stdout"].strip():
+        failed_or_live_cost = run_command(
+            ["python3", str(cost_script), "--input", str(headless_output), "--evidence-dir", str(evidence_dir)],
+            root,
+            args.timeout_seconds,
+        )
+        add_step(
+            report,
+            "live_cost_capture",
+            "pass" if failed_or_live_cost["exit_code"] == 0 else "failed",
+            command=failed_or_live_cost["argv"],
+            exit_code=failed_or_live_cost["exit_code"],
+        )
     if claude["exit_code"] != 0:
         report["summary"].update({"status": "failed_claude_headless", "live_headless_run": True})
         write_and_print(report, report_path, args.json)
         return 1
 
-    cost_script = script_path(root, framework_dir, "capture-headless-cost.py")
-    cost = run_command(["python3", str(cost_script), "--input", str(headless_output), "--evidence-dir", str(evidence_dir)], root, args.timeout_seconds)
-    add_step(report, "live_cost_capture", "pass" if cost["exit_code"] == 0 else "failed", command=cost["argv"], exit_code=cost["exit_code"])
-    if cost["exit_code"] != 0:
+    live_cost_status = report["steps"][-1] if report["steps"] and report["steps"][-1]["name"] == "live_cost_capture" else {}
+    if live_cost_status.get("status") == "failed":
         report["summary"].update({"status": "cost_capture_failed", "live_headless_run": True})
         write_and_print(report, report_path, args.json)
         return 1

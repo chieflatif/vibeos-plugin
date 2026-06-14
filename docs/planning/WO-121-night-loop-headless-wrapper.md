@@ -1,7 +1,7 @@
 ---
 wo: WO-121
 title: Night-Loop Headless Wrapper
-status: Implemented Locally
+status: Awaiting Real-Path Verification
 phase: 39
 phase_name: Loop & Headless Execution
 wo_class: harness
@@ -9,6 +9,7 @@ write_scope:
   - docs/planning/WO-121-night-loop-headless-wrapper.md
   - docs/planning/WO-INDEX.md
   - docs/evidence/vnext/generated-inventory.json
+  - docs/evidence/vnext/wo-121-night-loop-live/**
   - plugins/vibeos/scripts/night-loop.sh
   - tests/test_night_loop.py
 no_touch:
@@ -28,7 +29,7 @@ budget_posture:
 
 ## Status
 
-`Implemented Locally`
+`Awaiting Real-Path Verification`
 
 ## Phase
 
@@ -54,12 +55,13 @@ Add a dry-run-first night-loop wrapper for scheduled Claude headless ticks while
 - [x] Plan the one-tick `autonomy-loop.py` handoff
 - [x] Plan full-audit, drift, waiver, and cost-capture steps
 - [x] Capture cost into evidence when a headless JSON fixture/path is supplied
+- [x] Preserve failed live headless JSON, stderr, and cost evidence when Claude exits nonzero
 - [x] Add deterministic tests for dry-run report, scheduler-guard block, and D-3 live-run refusal
 
 ### Out of Scope
 - Running a live scheduled headless Claude loop
 - Claiming 24-48 hour autonomy proof
-- Resolving D-3
+- Marking D-3 durably resolved in repo config or the master plan
 - Implementing waiver-expiry scanning before WO-127
 - Website changes
 
@@ -79,12 +81,15 @@ Until then, the script exits 2 with `blocked_agent_sdk_credit_required`. This ke
 - [x] AC-1: Dry-run mode is default and writes `night-loop-report.json`
 - [x] AC-2: Scheduler-guard block exits 2 and records `scheduler_guard_blocked`
 - [x] AC-3: Live `--execute` refuses to run while D-3 is open
-- [x] AC-4: Cost capture writes `cost-report.json` when headless JSON is supplied
+- [x] AC-4: Cost capture writes `cost-report.json` when headless JSON is supplied or failed live headless output still includes `total_cost_usd`
 - [x] AC-5: Planned steps include Claude headless, one autonomy loop tick, full audit, drift sweep, waiver check, and cost capture
 
 ## Remaining Exit Blocker
 
-- D-3 remains open in the master plan. This WO is intentionally `Implemented Locally`, not `Complete`, until Latif confirms the Agent SDK credit and a live scheduled-run proof can be produced.
+- Latif authorized a live attempt on 2026-06-14 by saying `ok go`, and the wrapper ran with `VIBEOS_AGENT_SDK_CREDIT_CONFIRMED=1`.
+- The real-path attempt reached local Claude Code headless execution but failed because this shell is not logged in: `Not logged in · Please run /login`.
+- The failed headless JSON reported `total_cost_usd: 0`, and `capture-headless-cost.py` wrote an estimate-only `cost-report.json`.
+- This WO remains `Awaiting Real-Path Verification`, not `Complete`, until Claude Code is logged in or API-key auth is configured and a live scheduled-run proof succeeds.
 
 ## Test Strategy
 
@@ -106,8 +111,8 @@ Until then, the script exits 2 with `blocked_agent_sdk_credit_required`. This ke
 
 ### Pre-Commit Audit
 - Status: `complete`
-- Findings: The wrapper does not run live Claude in default mode and refuses `--execute` until D-3 is explicitly confirmed. Waiver scan is represented as planned/deferred until WO-127.
-- Test status: Focused tests passed; full suite passed; `pre_commit` gate passed.
+- Findings: The wrapper does not run live Claude in default mode and refuses `--execute` until D-3 is explicitly confirmed. After operator approval, the real-path attempt reached Claude Code but failed on local auth with `Not logged in · Please run /login`; the wrapper now preserves stdout, stderr, and cost evidence for this nonzero headless path. Waiver scan is represented as planned/deferred until WO-127.
+- Test status: Focused tests passed after the live-failure regression patch; full suite passed; WO-121 gate passed; `pre_commit` gate passed.
 
 ## Evidence
 
@@ -115,14 +120,22 @@ Until then, the script exits 2 with `blocked_agent_sdk_credit_required`. This ke
 - [x] Tests pass
 - [x] Gates pass
 - [x] Documentation updated
-- [ ] D-3 live-run prerequisite resolved
+- [x] D-3 operator live-attempt authorization received
+- [x] Failed live-attempt evidence captured with zero reported cost
+- [ ] Claude Code headless auth available
 - [ ] Live scheduled headless proof produced
 
 ### Proof Commands
 
 ```bash
 python3 -m pytest tests/test_night_loop.py
-# 3 passed in 0.33s
+# 5 passed in 1.09s
+
+VIBEOS_AGENT_SDK_CREDIT_CONFIRMED=1 bash plugins/vibeos/scripts/night-loop.sh --project-dir . --framework-dir plugins/vibeos --evidence-dir docs/evidence/vnext/wo-121-night-loop-live --execute --json
+# exit 1
+# summary.status: failed_claude_headless
+# headless result: Not logged in · Please run /login
+# cost-report.json total_cost_usd: 0
 
 python3 plugins/vibeos/scripts/wo-frontmatter-lint.py validate-index --project-dir .
 # [wo-frontmatter] PASS: WO-INDEX.md generated block is current
@@ -132,7 +145,7 @@ bash plugins/vibeos/scripts/gate-runner.sh wo_entry --continue-on-failure --mani
 # Result: PASS
 
 python3 -m pytest tests
-# 195 passed in 35.22s
+# 197 passed in 41.05s
 
 bash plugins/vibeos/scripts/gate-runner.sh pre_commit --continue-on-failure --manifest plugins/vibeos/quality-gate-manifest.json --project-dir . --framework-dir plugins/vibeos
 # Total: 10 | Passed: 6 | Failed: 0 | Skipped: 4
