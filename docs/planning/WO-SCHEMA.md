@@ -100,3 +100,23 @@ WO-111 defines the contract only. Later WOs consume it:
 - WO-127 enforces `required_auditors`.
 
 Until WO-113 completes, legacy WOs may remain prose-only. New vNext WOs should use the contract block immediately.
+
+## Lane Return Packet
+
+Phase 36 adds a second machine-readable contract for parallel work lanes. The authoritative JSON Schema lives at:
+
+`plugins/vibeos/reference/lane-packet.schema.json`
+
+Lane packets are produced by lane-readiness automation after a scratch-worktree rebase and gate run. The packet is not an assistant claim; it is a structured receipt that future `check-lane-readiness.sh` logic can validate before a lane is accepted.
+
+Required fields:
+
+| Field | Purpose |
+|---|---|
+| `wo_number` | Canonical WO completed or deferred by the lane. |
+| `lane_status` | `ACCEPT` when the lane is ready for integration, `DEFER` when it is not. |
+| `gate_results[]` | Gate phase summaries with pass/fail/skip counts and optional command/evidence paths. |
+| `defects[]` | Defects explaining why a lane is deferred or what residual risk was observed. |
+| `evidence_bundle_path` | Repo-relative evidence bundle path for the lane packet. |
+
+WO-115 consumes this schema. It will rebase the lane in a scratch worktree, run `wo_exit`, validate the packet, and re-check the actual diff against the WO frontmatter `write_scope` before returning `ACCEPT` or `DEFER`.

@@ -331,6 +331,7 @@
         "plugins/vibeos/reference/hooks/session/session-start.sh.ref",
         "plugins/vibeos/reference/hooks/subagent/validate-audit-result.sh.ref",
         "plugins/vibeos/reference/hooks/user-prompt/governance-guard.sh.ref",
+        "plugins/vibeos/reference/lane-packet.schema.json",
         "plugins/vibeos/reference/manifests/pre-commit-config.yaml.ref",
         "plugins/vibeos/reference/manifests/quality-gate-manifest.json.ref",
         "plugins/vibeos/reference/parallel-worktree-execution.md",
@@ -374,7 +375,7 @@
         "plugins/vibeos/reference/wo-frontmatter.schema.json",
         "plugins/vibeos/reference/worktree-scopes.schema.json"
       ],
-      "value": 123
+      "value": 124
     },
     {
       "claim": "Convergence scripts",
@@ -412,6 +413,7 @@
         "tests/test_gate_floor.py",
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
+        "tests/test_lane_packet_schema.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
@@ -421,7 +423,7 @@
         "tests/test_wo_frontmatter_lint.py",
         "tests/test_wo_frontmatter_schema.py"
       ],
-      "value": 24
+      "value": 25
     },
     {
       "claim": "Work order documents",
@@ -545,10 +547,11 @@
         "docs/planning/WO-111-wo-frontmatter-schema-template.md",
         "docs/planning/WO-112-frontmatter-generators.md",
         "docs/planning/WO-113-migration-drift-lint-generated-index.md",
+        "docs/planning/WO-114-lane-return-packet-schema.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 118
+      "value": 119
     },
     {
       "claim": "Quality gate manifest entries",
@@ -594,7 +597,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-14T17:43:10Z",
+  "generated_at": "2026-06-14T17:54:37Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -758,7 +761,7 @@
     },
     "reference": {
       "claim_label": "Reference files",
-      "count": 123,
+      "count": 124,
       "paths": [
         "plugins/vibeos/reference/autonomy/LONG-RUN-AUTONOMY.md.ref",
         "plugins/vibeos/reference/autonomy/SCHEDULER-PROFILES.md.ref",
@@ -841,6 +844,7 @@
         "plugins/vibeos/reference/hooks/session/session-start.sh.ref",
         "plugins/vibeos/reference/hooks/subagent/validate-audit-result.sh.ref",
         "plugins/vibeos/reference/hooks/user-prompt/governance-guard.sh.ref",
+        "plugins/vibeos/reference/lane-packet.schema.json",
         "plugins/vibeos/reference/manifests/pre-commit-config.yaml.ref",
         "plugins/vibeos/reference/manifests/quality-gate-manifest.json.ref",
         "plugins/vibeos/reference/parallel-worktree-execution.md",
@@ -989,7 +993,7 @@
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 24,
+      "count": 25,
       "paths": [
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
@@ -1007,6 +1011,7 @@
         "tests/test_gate_floor.py",
         "tests/test_gate_runner.py",
         "tests/test_generate_inventory.py",
+        "tests/test_lane_packet_schema.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_no_secrets_allowlist.py",
         "tests/test_runtime_capabilities.py",
@@ -1019,7 +1024,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 118,
+      "count": 119,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1137,6 +1142,7 @@
         "docs/planning/WO-111-wo-frontmatter-schema-template.md",
         "docs/planning/WO-112-frontmatter-generators.md",
         "docs/planning/WO-113-migration-drift-lint-generated-index.md",
+        "docs/planning/WO-114-lane-return-packet-schema.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ]

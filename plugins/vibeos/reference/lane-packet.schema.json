@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VibeOS Lane Return Packet",
+  "description": "Machine-readable return packet emitted by a parallel work lane before lane-readiness automation accepts or defers the lane.",
+  "type": "object",
+  "required": ["wo_number", "lane_status", "gate_results", "defects", "evidence_bundle_path"],
+  "additionalProperties": false,
+  "properties": {
+    "wo_number": {
+      "type": "string",
+      "pattern": "^WO-[0-9]{3}[a-z]?$",
+      "description": "Work Order completed or deferred by the lane."
+    },
+    "lane_status": {
+      "type": "string",
+      "enum": ["ACCEPT", "DEFER"],
+      "description": "ACCEPT means the lane is ready for integration. DEFER means it must not be integrated yet."
+    },
+    "gate_results": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Gate results observed by the lane-readiness check.",
+      "items": {
+        "type": "object",
+        "required": ["phase", "status", "passed", "failed", "skipped"],
+        "additionalProperties": false,
+        "properties": {
+          "phase": {
+            "type": "string",
+            "minLength": 2,
+            "description": "Gate phase, for example wo_exit, pre_commit, or comp_gauntlet."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PASS", "FAIL", "SKIP"]
+          },
+          "passed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "command": {
+            "type": "string"
+          },
+          "summary_path": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "defects": {
+      "type": "array",
+      "description": "Blocking or advisory lane defects found during readiness validation.",
+      "items": {
+        "type": "object",
+        "required": ["severity", "source", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": ["critical", "high", "medium", "low", "info"]
+          },
+          "source": {
+            "type": "string",
+            "minLength": 2
+          },
+          "message": {
+            "type": "string",
+            "minLength": 3
+          },
+          "path": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "evidence_bundle_path": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "pattern": "(^|/)\\.\\.(?:/|$)"
+      },
+      "description": "Repo-relative path to the lane evidence bundle."
+    },
+    "lane_branch": {
+      "type": "string",
+      "description": "Optional branch name for the lane."
+    },
+    "base_ref": {
+      "type": "string",
+      "description": "Optional base ref used by the scratch rebase check."
+    },
+    "commit": {
+      "type": "string",
+      "description": "Optional lane commit hash."
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}
