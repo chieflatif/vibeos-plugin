@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# FILE-SIZE-EXCEPTION: WO-124 - inventory generator now includes saved workflow claim ledger; cohesive source-derived proof script.
 """Generate VibeOS source inventory and public claim ledger.
 
 This utility is intentionally deterministic except for the generated_at field.
@@ -93,6 +94,7 @@ def build_inventory(root: Path, generated_at: str | None = None) -> dict[str, An
     claude_skills = files(root, "plugins/vibeos/skills/*/SKILL.md")
     codex_skills = files(root, "plugins/vibeos/reference/codex/skills/*/SKILL.md")
     agents = files(root, "plugins/vibeos/agents/*.md")
+    claude_workflows = files(root, ".claude/workflows/*")
     hook_scripts = files(root, "plugins/vibeos/hooks/scripts/*.sh")
     scripts = files(root, "plugins/vibeos/scripts/*")
     decision_files = files(root, "plugins/vibeos/decision-engine/*.md")
@@ -121,6 +123,11 @@ def build_inventory(root: Path, generated_at: str | None = None) -> dict[str, An
             "same_tree_count": sum(1 for path in agents if path.name.endswith("-same-tree.md")),
             "paths": [rel(path, root) for path in agents],
             "claim_label": "Claude/Cursor agent contracts",
+        },
+        "claude_workflows": {
+            "count": len(claude_workflows),
+            "paths": [rel(path, root) for path in claude_workflows],
+            "claim_label": "Reviewed Claude Code saved workflow scripts",
         },
         "hook_scripts": {
             "count": len(hook_scripts),
@@ -257,6 +264,7 @@ def build_inventory(root: Path, generated_at: str | None = None) -> dict[str, An
             "Do not claim Codex hook parity with Claude Code.",
             "Do not claim full automatic write-time enforcement across runtimes.",
             "Do not claim 24-48 hour autonomy without durable heartbeat/checkpoint/sample-run proof.",
+            "Do not claim saved workflow default adoption without WO-124 bounded run, token/cost comparison, and adoption-verdict evidence.",
             "Do not reuse old VibeOS5 or website count claims as current facts.",
             "Do not link this repo publicly as vNext until a clean tag, install proof, gate proof, secret scan, real sample trace, and public-safe limitation statement exist.",
         ],

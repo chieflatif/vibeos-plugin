@@ -1,0 +1,20 @@
+{
+  "command": [
+    "claude",
+    "-p",
+    "<prompt>",
+    "--model",
+    "sonnet",
+    "--output-format",
+    "json",
+    "--max-budget-usd",
+    "0.35",
+    "--allowedTools",
+    "Read,Glob,Grep",
+    "--no-session-persistence"
+  ],
+  "duration_seconds": 53.638,
+  "returncode": 0,
+  "stderr_bytes": 0,
+  "stdout_bytes": 2560
+}

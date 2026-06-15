@@ -1,0 +1,202 @@
+const meta = {
+  name: "vibeos-audit-sweep",
+  description: "Run the VibeOS 12-auditor consensus sweep on a bounded report-only target.",
+  version: "1.0.0"
+};
+
+/* global args, agent, runAgent, Agent */
+
+// VIBEOS_WORKFLOW_ID: vibeos-audit-sweep
+// VIBEOS_WORKFLOW_AUDITORS: security-auditor,architecture-auditor,correctness-auditor,test-auditor,evidence-auditor,product-drift-auditor,flow-auditor,system-invariant-auditor,dependency-intelligence-auditor,delivery-infrastructure-auditor,red-team-auditor,contract-validator
+// VIBEOS_WORKFLOW_DEFAULT_TARGET: plugins/vibeos/scripts/runtime-capabilities.py
+// VIBEOS_WORKFLOW_GOVERNANCE_NO_WRITE: docs/planning/**,.vibeos/**,.claude/settings*.json,.claude/workflows/**
+// VIBEOS_WORKFLOW_STATUS: reviewed-candidate; bounded-live-run-required-before-default-adoption
+
+const AUDITORS = Object.freeze([
+  {
+    id: "security-auditor",
+    label: "Security",
+    file: "plugins/vibeos/agents/security-auditor.md",
+    focus: "OWASP, secrets, injection, PII, permission boundaries"
+  },
+  {
+    id: "architecture-auditor",
+    label: "Architecture",
+    file: "plugins/vibeos/agents/architecture-auditor.md",
+    focus: "layer boundaries, circular dependencies, runtime architecture drift"
+  },
+  {
+    id: "correctness-auditor",
+    label: "Correctness",
+    file: "plugins/vibeos/agents/correctness-auditor.md",
+    focus: "logic errors, missing error paths, user-visible regressions"
+  },
+  {
+    id: "test-auditor",
+    label: "Test Quality",
+    file: "plugins/vibeos/agents/test-auditor.md",
+    focus: "assertion quality, fixture realism, coverage of changed behavior"
+  },
+  {
+    id: "evidence-auditor",
+    label: "Evidence",
+    file: "plugins/vibeos/agents/evidence-auditor.md",
+    focus: "claim-to-proof mapping, stale evidence, unverifiable completion claims"
+  },
+  {
+    id: "product-drift-auditor",
+    label: "Product Drift",
+    file: "plugins/vibeos/agents/product-drift-auditor.md",
+    focus: "product promise drift, stale decisions, objective mismatch"
+  },
+  {
+    id: "flow-auditor",
+    label: "Flow",
+    file: "plugins/vibeos/agents/flow-auditor.md",
+    focus: "end-to-end workflow, layer handoffs, user feedback and recovery"
+  },
+  {
+    id: "system-invariant-auditor",
+    label: "System Invariants",
+    file: "plugins/vibeos/agents/system-invariant-auditor.md",
+    focus: "state ownership, idempotency, durable boundaries, recovery safety"
+  },
+  {
+    id: "dependency-intelligence-auditor",
+    label: "Dependency Intelligence",
+    file: "plugins/vibeos/agents/dependency-intelligence-auditor.md",
+    focus: "current-source evidence, lockfiles, compatibility, transitive risk"
+  },
+  {
+    id: "delivery-infrastructure-auditor",
+    label: "Delivery Infrastructure",
+    file: "plugins/vibeos/agents/delivery-infrastructure-auditor.md",
+    focus: "CI/CD, environment, observability, smoke checks, rollback, runbooks"
+  },
+  {
+    id: "red-team-auditor",
+    label: "Red Team",
+    file: "plugins/vibeos/agents/red-team-auditor.md",
+    focus: "adversarial corruption, shortcutting, fake completion, hidden fragility"
+  },
+  {
+    id: "contract-validator",
+    label: "Contract",
+    file: "plugins/vibeos/agents/contract-validator.md",
+    focus: "cross-boundary contract mismatch and integration breakage"
+  }
+]);
+
+const DEFAULT_TARGETS = Object.freeze(["plugins/vibeos/scripts/runtime-capabilities.py"]);
+const GOVERNANCE_NO_WRITE = Object.freeze([
+  "docs/planning/**",
+  ".vibeos/**",
+  ".claude/settings*.json",
+  ".claude/workflows/**"
+]);
+
+function normalizeArgs(input) {
+  const supplied = input && typeof input === "object" ? input : {};
+  const target = supplied.target || supplied.targets || DEFAULT_TARGETS;
+  const targets = Array.isArray(target) ? target : [target];
+  return {
+    mode: supplied.mode || "bounded-slice",
+    targets,
+    maxFindingsPerAuditor: Number.isInteger(supplied.maxFindingsPerAuditor)
+      ? supplied.maxFindingsPerAuditor
+      : 3,
+    noWriteGlobs: supplied.noWriteGlobs || GOVERNANCE_NO_WRITE
+  };
+}
+
+function buildPrompt(auditor, config) {
+  return [
+    `You are the VibeOS ${auditor.label} auditor for a bounded dynamic workflow probe.`,
+    `Read the auditor contract at ${auditor.file}, then audit only: ${config.targets.join(", ")}.`,
+    `Focus: ${auditor.focus}.`,
+    "Report-only mode: do not edit files, do not write governance files, do not run shell commands, and do not launch additional workflows.",
+    `No-write governance globs: ${config.noWriteGlobs.join(", ")}.`,
+    `Return at most ${config.maxFindingsPerAuditor} actionable findings as JSON with keys: auditor, status, findings, evidence, limitations.`,
+    "If the slice is clean for your focus area, return status=clean and an empty findings array.",
+    "Do not fabricate findings or infer whole-repo health from this bounded slice."
+  ].join("\n");
+}
+
+function workflowAgentLauncher() {
+  if (typeof agent === "function") {
+    return (spec) => agent(spec);
+  }
+  if (typeof runAgent === "function") {
+    return (spec) => runAgent(spec);
+  }
+  if (typeof Agent !== "undefined" && Agent && typeof Agent.run === "function") {
+    return (spec) => Agent.run(spec);
+  }
+  return null;
+}
+
+async function runAuditor(auditor, config, launch) {
+  const spec = {
+    name: `vibeos-${auditor.id}`,
+    description: `VibeOS ${auditor.label} bounded audit`,
+    prompt: buildPrompt(auditor, config)
+  };
+  if (!launch) {
+    return {
+      auditor: auditor.id,
+      status: "blocked_runtime_api_unavailable",
+      findings: [],
+      limitations: ["The saved workflow script could not find a supported workflow agent-launch API."]
+    };
+  }
+  const result = await launch(spec);
+  return {
+    auditor: auditor.id,
+    status: "complete",
+    result
+  };
+}
+
+function consensus(results) {
+  const findings = [];
+  for (const item of results) {
+    const payload = item && item.result ? item.result : item;
+    if (!payload || !Array.isArray(payload.findings)) {
+      continue;
+    }
+    for (const finding of payload.findings) {
+      findings.push({ ...finding, auditor: item.auditor || payload.auditor });
+    }
+  }
+  return {
+    finding_count: findings.length,
+    consensus_status: findings.length === 0 ? "clean_or_unparseable_slice" : "review_required",
+    findings
+  };
+}
+
+async function main() {
+  const config = normalizeArgs(typeof args === "undefined" ? undefined : args);
+  const launch = workflowAgentLauncher();
+  const results = await Promise.all(AUDITORS.map((auditor) => runAuditor(auditor, config, launch)));
+  return {
+    workflow_id: "vibeos-audit-sweep",
+    mode: config.mode,
+    targets: config.targets,
+    auditors_requested: AUDITORS.map((auditor) => auditor.id),
+    auditors_completed: results.filter((item) => item.status === "complete").length,
+    governance: {
+      report_only: true,
+      no_write_globs: config.noWriteGlobs
+    },
+    results,
+    consensus: consensus(results),
+    limitations: [
+      "This workflow is approved only for bounded slices until WO-124 live evidence compares cost and findings against the subagent path.",
+      "Do not treat a clean bounded-slice result as whole-repo audit proof.",
+      "Do not use this workflow to write project governance files."
+    ]
+  };
+}
+
+await main();

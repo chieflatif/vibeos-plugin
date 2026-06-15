@@ -1,0 +1,123 @@
+{
+  "adoption_verdict": "DEFER_LIVE_WORKFLOW_BUDGET_LIMIT",
+  "comparison": {
+    "auditor_count_delta": 0,
+    "auditor_list_matches_baseline": true,
+    "baseline_total_cost_usd": null,
+    "findings_comparison_status": "pending_live_subagent_and_workflow_findings",
+    "token_or_cost_comparison_status": "pending_baseline_or_workflow_token_evidence",
+    "workflow_total_cost_usd": 0.179895
+  },
+  "framework_version": "2.2.0",
+  "generated_at": "2026-06-15T00:48:53Z",
+  "limitations": [
+    "This report does not claim Claude/Codex parity.",
+    "This report does not claim automatic write-time enforcement.",
+    "A live workflow result cannot be treated as whole-repo audit proof unless the target covers the whole repo.",
+    "Cost values parsed from Claude output remain estimates and must be reconciled against provider billing before public cost claims."
+  ],
+  "live_workflow_run": {
+    "error": null,
+    "errors": [
+      "Reached maximum budget ($0.15)"
+    ],
+    "is_error": true,
+    "num_turns": 4,
+    "output_path": "docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-output.json",
+    "permission_denials_count": 0,
+    "result_type": "error_max_budget_usd",
+    "status": "budget_limited",
+    "stderr_path": "docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-stderr.txt",
+    "total_cost_usd": 0.179895,
+    "workflow_permission_denied": false
+  },
+  "objective": "Bounded first use of the VibeOS audit fan-out dynamic workflow.",
+  "schema_version": "1.0",
+  "static_workflow_checks": {
+    "agent_launch_candidates": [
+      "agent",
+      "runAgent",
+      "Agent.run"
+    ],
+    "auditor_count": 12,
+    "auditor_count_ok": true,
+    "auditors": [
+      "security-auditor",
+      "architecture-auditor",
+      "correctness-auditor",
+      "test-auditor",
+      "evidence-auditor",
+      "product-drift-auditor",
+      "flow-auditor",
+      "system-invariant-auditor",
+      "dependency-intelligence-auditor",
+      "delivery-infrastructure-auditor",
+      "red-team-auditor",
+      "contract-validator"
+    ],
+    "default_target": "plugins/vibeos/scripts/runtime-capabilities.py",
+    "direct_filesystem_or_shell_access_ok": true,
+    "direct_filesystem_or_shell_access_patterns": [],
+    "expected_auditor_count": 12,
+    "governance_no_write": [
+      "docs/planning/**",
+      ".vibeos/**",
+      ".claude/settings*.json",
+      ".claude/workflows/**"
+    ],
+    "governance_no_write_ok": true,
+    "max_concurrent_agents_declared": null,
+    "max_concurrent_agents_ok": true,
+    "meta_first_statement_ok": true,
+    "status": "pass",
+    "target": "plugins/vibeos/scripts/runtime-capabilities.py",
+    "uses_args_global": true,
+    "workflow_exists": true,
+    "workflow_id": "vibeos-audit-sweep",
+    "workflow_path": ".claude/workflows/vibeos-audit-sweep",
+    "workflow_status_marker": "reviewed-candidate; bounded-live-run-required-before-default-adoption"
+  },
+  "subagent_path_baseline": {
+    "auditor_count": 12,
+    "auditors": [
+      "security-auditor",
+      "architecture-auditor",
+      "correctness-auditor",
+      "test-auditor",
+      "evidence-auditor",
+      "product-drift-auditor",
+      "flow-auditor",
+      "system-invariant-auditor",
+      "dependency-intelligence-auditor",
+      "delivery-infrastructure-auditor",
+      "red-team-auditor",
+      "contract-validator"
+    ],
+    "baseline_id": "vibeos-audit-subagent-path-source-derived",
+    "cost": {
+      "status": "not_captured",
+      "total_cost_usd": null
+    },
+    "execution_status": "source_derived_not_live",
+    "findings": {
+      "count": null,
+      "status": "not_captured"
+    },
+    "limitations": [
+      "This baseline is derived from the existing audit skill dispatch list.",
+      "It is not live subagent execution evidence and cannot satisfy the WO-124 live comparison by itself."
+    ],
+    "schema_version": "1.0",
+    "source": "plugins/vibeos/skills/audit/SKILL.md",
+    "target": "plugins/vibeos/scripts/runtime-capabilities.py",
+    "tokens": {
+      "status": "not_captured",
+      "total": null
+    }
+  },
+  "summary": {
+    "readiness": "defer_live_workflow_budget_limit",
+    "status": "pass"
+  },
+  "wo": "WO-124"
+}

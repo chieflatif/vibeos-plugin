@@ -19,6 +19,7 @@ class GenerateInventoryTests(unittest.TestCase):
             "plugins/vibeos/skills/build",
             "plugins/vibeos/reference/codex/skills/vibeos-build",
             "plugins/vibeos/agents",
+            ".claude/workflows",
             "plugins/vibeos/hooks/scripts",
             "plugins/vibeos/scripts",
             "plugins/vibeos/decision-engine",
@@ -35,6 +36,7 @@ class GenerateInventoryTests(unittest.TestCase):
         (root / "plugins/vibeos/reference/codex/skills/vibeos-build/SKILL.md").write_text("# Build\n", encoding="utf-8")
         (root / "plugins/vibeos/agents/backend.md").write_text("# Backend\n", encoding="utf-8")
         (root / "plugins/vibeos/agents/test-auditor-same-tree.md").write_text("# Audit\n", encoding="utf-8")
+        (root / ".claude/workflows/vibeos-audit-sweep").write_text("// workflow\n", encoding="utf-8")
         (root / "plugins/vibeos/hooks/scripts/secrets-scan.sh").write_text("#!/usr/bin/env bash\n", encoding="utf-8")
         (root / "plugins/vibeos/scripts/gate-runner.sh").write_text("#!/usr/bin/env bash\n", encoding="utf-8")
         (root / "plugins/vibeos/scripts/runtime-capabilities.py").write_text("#!/usr/bin/env python3\n", encoding="utf-8")
@@ -83,6 +85,7 @@ class GenerateInventoryTests(unittest.TestCase):
         self.assertEqual(inventory["inventory"]["codex_skills"]["count"], 1)
         self.assertEqual(inventory["inventory"]["agents"]["count"], 2)
         self.assertEqual(inventory["inventory"]["agents"]["same_tree_count"], 1)
+        self.assertEqual(inventory["inventory"]["claude_workflows"]["count"], 1)
         self.assertEqual(inventory["inventory"]["gates"]["gate_entries"], 2)
         self.assertEqual(inventory["inventory"]["gates"]["unique_gate_scripts"], 2)
         self.assertFalse(inventory["inventory"]["gates"]["missing_gate_scripts"])
@@ -94,6 +97,7 @@ class GenerateInventoryTests(unittest.TestCase):
 
         claims = {claim["claim_id"]: claim for claim in inventory["claim_ledger"]}
         self.assertEqual(claims["inventory.claude_skills"]["value"], 1)
+        self.assertEqual(claims["inventory.claude_workflows"]["value"], 1)
         self.assertFalse(claims["posture.codex_hook_parity"]["value"])
         self.assertEqual(claims["posture.codex_hook_parity"]["public_status"], "blocked_overclaim")
         self.assertFalse(claims["posture.repo_link_readiness"]["value"])
