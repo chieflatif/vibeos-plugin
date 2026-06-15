@@ -1,1 +1,14 @@
-{"schema_version":"1.0","wo":"WO-126","arm":"teams","status":"TEMPLATE_PENDING","team_total_tokens":null,"team_total_usd":null,"lane_a":null,"lane_b":null,"wall_clock_ms":null,"subagent_baseline_total_tokens":157456,"delta_pct_vs_baseline":null,"note":"Run /cost after both lanes close."}
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "arm": "teams",
+  "status": "PENDING_OPERATOR_COST_CAPTURE",
+  "team_total_tokens": null,
+  "team_total_usd": null,
+  "lane_a": null,
+  "lane_b": null,
+  "wall_clock_ms": 270000,
+  "subagent_baseline_total_tokens": 157456,
+  "delta_pct_vs_baseline": null,
+  "note": "The /cost command is an interactive Claude Code CLI command and cannot be invoked programmatically by the lead agent. The operator must run /cost in this session and paste the totals into team_total_tokens / team_total_usd / lane_a / lane_b, then compute delta_pct_vs_baseline = (team_total_tokens - 157456) / 157456 * 100. Adoption guard: no default adoption if team cost exceeds the subagent baseline by more than 25 percent without a justified quality win. This is the one of five criteria the lead could not self-measure."
+}

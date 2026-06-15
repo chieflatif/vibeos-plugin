@@ -1,1 +1,20 @@
-{"schema_version":"1.0","wo":"WO-126","arm":"teams","status":"TEMPLATE_PENDING","caught_before_merge":null,"total_defects":null,"defects":[],"note":"List any material issue teammates caught before merge/closeout. Compare count/severity to the subagent arm (5 defects, 1 major)."}
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "arm": "teams",
+  "status": "COMPLETE",
+  "caught_before_merge": 6,
+  "total_defects": 6,
+  "lane_defects": 5,
+  "infra_defects": 1,
+  "major_count": 1,
+  "comparison_to_subagent_baseline": "Subagent baseline caught 5 defects (1 major). Team arm caught the same 5 lane defects (1 major, D-A1) PLUS 1 infrastructure defect (D-TEAM-1) that the subagent arm structurally could not surface, because subagents have no TaskCreated/TeammateIdle team lifecycle to exercise the governance hooks.",
+  "defects": [
+    {"id": "D-A1", "lane": "A", "severity": "major", "location": "plugins/vibeos/scripts/gate-runner.sh:413-414", "finding": "A declared gate whose script file is missing emits 'SKIP|<name>|script_not_found|0' and returns 0, so a deleted/renamed blocking gate silently never runs and never fails the phase (Joan NF-1 failure mode, currently exploitable). WO-127's executed-vs-declared gate is the defense.", "caught_pre_merge": true},
+    {"id": "D-A2", "lane": "A", "severity": "minor", "location": "plugins/vibeos/quality-gate-manifest.json + validate-audit-completeness.sh:51,199-201", "finding": "validate-audit-completeness.sh is registered advisory (blocking:false, env {}) so ENFORCE_AUDIT_LOOP defaults false; it exits 0 even when completed WOs miss every audit checkpoint — a prose linter, not an artifact verifier. WO-127's auditor-artifact gate should be registered blocking.", "caught_pre_merge": true},
+    {"id": "D-A3", "lane": "A", "severity": "informational", "location": "plugins/vibeos/scripts/night-loop.sh:239", "finding": "waiver_check is stubbed 'deferred_until_WO-127'; the implementing WO must flip it to the real validate-waiver-expiry.sh invocation or the night-loop keeps skipping waiver expiry.", "caught_pre_merge": true},
+    {"id": "D1", "lane": "B", "severity": "informational", "location": "docs/FILE-INVENTORY.md vs actual docs/ tree", "finding": "FILE-INVENTORY.md lists product-pyramid docs that do not exist in this meta/framework repo (expected — they are created downstream). Concrete reason WO-128's pyramid root + enforcement tier must be configurable and advisory-by-default. Not a plugin defect.", "caught_pre_merge": true, "actionable": false},
+    {"id": "D2", "lane": "B", "severity": "low", "location": "doc-budget interaction with WO file growth", "finding": "136 of 154 governed md are docs/planning/WO-*.md; a naive doc-budget trips on normal WO accumulation. Spec resolves it by defaulting doc_budget.exclude_globs to exclude docs/planning/WO-*.md. Design caution that prevents a false-positive gate.", "caught_pre_merge": true, "actionable": true},
+    {"id": "D-TEAM-1", "lane": "infra", "severity": "major", "location": "plugins/vibeos/hooks/hooks.json:147-179 + plugins/vibeos/hooks/scripts/team-governance.sh", "finding": "The WO-117 team-governance hook is registered for event names TaskCreated / TaskCompleted / TeammateIdle, but the Claude Code agent-teams runtime in this build does not emit those hook events. The hook never executed: .vibeos/team-governance/ was never created and events.jsonl is empty. Consequence: the WO-citation veto (TaskCreated/TaskCompleted) and the stall-detection log (TeammateIdle) are both inert. The pilot's entire governed-observability premise depends on this wiring. Remediation: confirm the exact team-lifecycle hook event names this Claude Code build emits (if any) and re-bind team-governance.sh to them, or implement the governance as a lead-side discipline + message-channel monitor. UNIQUE TO THE TEAM ARM — the subagent baseline could not have surfaced it.", "caught_pre_merge": true}
+  ]
+}

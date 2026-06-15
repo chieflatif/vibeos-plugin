@@ -1,0 +1,289 @@
+{
+  "schema_version": "1.0",
+  "lane": "B",
+  "lane_name": "wo128-hygiene-planning-slice",
+  "governing_wo": "WO-126",
+  "lane_target_wo": "WO-128",
+  "lane_target_title": "Product-direction lint + hygiene policy + doc budget",
+  "arm": "agent-team",
+  "produced_by": "lane-b-hygiene",
+  "status": "COMPLETE",
+  "produced_at": "2026-06-15T16:34:00Z",
+  "note_vs_subagent_baseline": "This is the agent-team arm's independent return for lane B, written to the team-arm-kit/evidence-template/ path per the WO-126 pilot brief. It was produced by independently re-inspecting the live tree (Read/Grep/find/jq only), not by copying the committed subagent baseline at docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-b-wo128-return.json. Where my live readings differ from that baseline, my numbers are the verified-current ones and the deltas are called out in current_behavior_summary.deltas_from_committed_baseline.",
+  "files_inspected": [
+    "docs/evidence/vnext/wo-126-agent-team-pilot/team-arm-kit/lane-packets/lane-b-wo128.json (lane packet / required keys)",
+    "docs/evidence/vnext/wo-126-agent-team-pilot/team-arm-kit/WO-126-TEAM-PILOT-BRIEF.md (write-path + evidence rules)",
+    "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-b-wo128-return.json (committed subagent baseline, read-only for cross-check)",
+    "plugins/vibeos/hooks/scripts/file-budget.sh (budget-hook precedent)",
+    ".vibeos/config.json (read-only — where product_direction/hygiene keys would live)",
+    "docs/ tree (find docs -name '*.md'): 154 governed md",
+    "docs/FILE-INVENTORY.md (de-facto pyramid manifest)",
+    "docs/evidence/vnext/generated-inventory.json (read-only; schema 1.0, fw 2.2.0, generated 2026-06-15T16:15:01Z)",
+    "docs/planning/VNEXT-UPGRADE-AUDIT-AND-MASTER-PLAN-2026-06-10.md (WO-128 row line 335; U7 line 154; Efficiency principle line 34; generated-not-duplicated line 47)"
+  ],
+  "current_behavior_summary": {
+    "file_budget_hook": "plugins/vibeos/hooks/scripts/file-budget.sh is a PreToolUse(Edit|Write) hook (FRAMEWORK_VERSION 2.2.0). It reads the tool event JSON from stdin via jq, derives PROJECT_ROOT from CLAUDE_PROJECT_DIR or git toplevel, normalizes the target to a repo-relative REL_PATH, then short-circuits allow() for excluded classes: tests/spec dirs (tests/|test/|spec/), test_/_test/conftest/.spec/.test filenames, docs (.md/.rst/.txt), config (.json/.yaml/.yml/.toml/.ini/.cfg/.conf/.env/.env.example), generated (*_pb2.py/*.generated.*/*.min.js/.css), migrations/alembic, and ALL plugins/vibeos/{hooks,scripts,agents,skills,decision-engine,reference,convergence}. It only enforces on recognized source extensions (.py/.ts/.tsx/.js/.jsx/.go/.rs/.java/.cs/.rb). For Write it counts proposed content lines via jq+wc; for Edit it uses the on-disk wc -l of the existing file as a proxy. Thresholds via env: FILE_BUDGET_WARN (default 250) -> allow_with_warning, FILE_BUDGET_MAX (default 300) -> deny. Output is the standard hookSpecificOutput JSON with permissionDecision allow|deny + permissionDecisionReason.",
+    "the_gap_wo128_closes": ".md files are EXPLICITLY EXCLUDED from file-budget.sh (line ~101, case *.md). file-budget governs per-file LINE size of source code; it does nothing about the NUMBER of governed docs. WO-128 doc-budget closes that orthogonal axis (doc COUNT, plus orphan-doc reachability), reusing the same budget-hook shape.",
+    "config_shape_today": ".vibeos/config.json holds only {onboarding_complete:true, autonomy:{level:'phase', negotiated_at, session_override:{mode:'autonomous',active:true,...}}, features:{agent_team_governance:true}}. There is NO product_direction, anchor_terms, retired_terms, or hygiene key — all are net-new and must merge additively without disturbing autonomy/features.",
+    "docs_shape_today_live_verified": "154 governed .md under docs/**. Of these: 136 are docs/planning/WO-*.md; 2 at docs/ root (FILE-INVENTORY.md, USER-COMMUNICATION-CONTRACT.md); only 2 .md under docs/evidence (most evidence is .json). The remainder are other docs/planning/* and docs/{handoffs,showcase} files.",
+    "generated_inventory_live_verified": "docs/evidence/vnext/generated-inventory.json — schema_version 1.0, framework_version 2.2.0, generated_at 2026-06-15T16:15:01Z. Shape is counts.{category}.{claim_label,count,paths[]} (NOT a flat key->int map). agents.count=32. The doc/script/test category counts live under the same per-category structure.",
+    "pyramid_status": "docs/FILE-INVENTORY.md exists and is the de-facto pyramid manifest (it enumerates the canonical thesis->anchor->PRD->spec->arch->plan doc set), BUT the product-tier pyramid docs it names (docs/product/PRODUCT-ANCHOR.md, docs/product/PRD.md, docs/TECHNICAL-SPEC.md, docs/product/ARCHITECTURE-OUTLINE.md) DO NOT EXIST: there is no docs/product/ directory in this meta/plugin repo. VibeOS-plugin is the framework, not an instantiated VibeOS project. This is WHY WO-128 must keep the pyramid root CONFIGURABLE and ship advisory until a real pyramid lands.",
+    "master_plan_anchors": "WO-128 row at line 335 confirms full scope (configurable anchor_terms/retired_terms in .vibeos/config.json; check-product-direction-drift script; hygiene-policy.json + prune-observation-exhaust.sh with mandatory dry-run; doc-sprawl budget = per-project governed-doc ceiling + orphan-doc detection, surfaced as advisory findings; motivated by the operator's 700-deleted-documents drift incident) and the constraints: advisory tier until the doc pyramid lands then blocking; prune never deletes without --execute + git-backed archive; orphan detection has known-good/known-bad fixtures. U7 (line 154) confirms retention-policy-for-checkpoints/exhaust intent and notes this repo's exhaust problem is smaller than Joan4U's 8,600-dir case — right time to install policy before sprawl.",
+    "deltas_from_committed_baseline": [
+      "Doc count is now 154 governed md (committed baseline reported 151) — the pilot evidence dir grew since the baseline run. docs/planning/WO-*.md is 136 by live find (baseline cited 147 WO files); the difference is naming/filter scope (the baseline counted all WO-NNN-prefixed planning md broadly). The design conclusions are unchanged: the overwhelming majority of governed docs are WO records, which is the doc-budget false-economy hazard (see risks R7/defect D2).",
+      "generated-inventory.json is now generated_at 2026-06-15T16:15:01Z with a counts.{category}.{count,paths} structure and agents.count=32; the baseline cited a flatter count list. No design impact — the inventory is read-only context for current scale, not a WO-128 dependency.",
+      "No docs/product/ directory exists (confirmed live), reaffirming the configurable+advisory-by-default pyramid posture."
+    ]
+  },
+  "config_schema_spec": {
+    "location": ".vibeos/config.json",
+    "rationale": "Single project-config file already read by gate scripts (e.g. test-quality-gate.sh) via CONFIG_FILE=\"$PROJECT_DIR/.vibeos/config.json\" + jq -r. anchor_terms/retired_terms MUST be configurable per-project (master plan U6: 'not hardcoded product names') so the framework stays product-neutral.",
+    "new_top_level_key": "product_direction",
+    "schema": {
+      "product_direction": {
+        "anchor_terms": {
+          "type": "array<string>",
+          "required": false,
+          "default": [],
+          "semantics": "Allowed/expected product vocabulary. Presence is normal; their ABSENCE across all governed docs is a soft off-anchor signal (reported informationally, never blocking). Case-insensitive, whole-token by default.",
+          "example": ["VibeOS", "autonomous build", "quality gate", "work order"]
+        },
+        "retired_terms": {
+          "type": "array<string|object>",
+          "required": false,
+          "default": [],
+          "semantics": "Deprecated/forbidden product vocabulary. ANY occurrence in a governed doc is a drift finding. Each entry MAY be a plain string OR an object {term, replacement, since} for actionable messaging.",
+          "example": [{"term": "OldProductName", "replacement": "VibeOS", "since": "WO-055"}, "legacy-orchestrator"]
+        },
+        "match_mode": {
+          "type": "enum<word|substring|regex>",
+          "required": false,
+          "default": "word",
+          "semantics": "word = \\bTERM\\b boundary match (case-insensitive); substring = naive contains; regex = each term compiled as an ERE. word avoids partial-overlap false positives."
+        },
+        "scan_globs": {
+          "type": "array<string>",
+          "required": false,
+          "default": ["docs/**/*.md"],
+          "semantics": "Files scanned for product-direction terms. Defaults to all governed markdown."
+        },
+        "exclude_globs": {
+          "type": "array<string>",
+          "required": false,
+          "default": ["docs/evidence/**", "docs/planning/WO-*.md"],
+          "semantics": "Excluded from term scanning. Evidence/return packets legitimately quote retired terms (this packet does) and would self-trip; WO files are historical record. Tunable per project."
+        },
+        "enforcement_tier": {
+          "type": "enum<advisory|blocking>",
+          "required": false,
+          "default": "advisory",
+          "semantics": "advisory until the doc pyramid lands ('Advisory tier until the doc pyramid lands, then blocking'). When blocking, retired-term hits cause exit 1; advisory always exits 0 and prints findings."
+        }
+      },
+      "hygiene": {
+        "type": "object",
+        "required": false,
+        "note": "Retention policy lives in a dedicated .vibeos/hygiene-policy.json (see script_specs), keeping config.json operator-facing and policy machine-governed. config.json MAY carry only a pointer {hygiene:{policy_path:'.vibeos/hygiene-policy.json'}}."
+      }
+    },
+    "backward_compatibility": "All keys optional with empty/permissive defaults. A config.json with no product_direction key => the drift check SKIPs (nothing configured to enforce), exactly like file-budget allows when no relevant config applies. The writer MUST merge product_direction in additively and MUST NOT mutate existing onboarding_complete/autonomy/features keys."
+  },
+  "script_specs": [
+    {
+      "name": "check-product-direction-drift.sh",
+      "proposed_path": "plugins/vibeos/scripts/check-product-direction-drift.sh",
+      "type": "gate script (invoked by gate-runner.sh in the Fidelity/drift tier, optionally at session-start) — NOT a PreToolUse hook",
+      "conventions": "#!/usr/bin/env bash; set -euo pipefail; FRAMEWORK_VERSION=\"2.2.0\"; GATE_NAME=\"check-product-direction-drift\"; SCRIPT_DIR/PROJECT_ROOT derivation mirroring existing gate scripts; logging '[$GATE_NAME] PASS|FAIL|SKIP: message'.",
+      "inputs": [
+        "PROJECT_ROOT/.vibeos/config.json -> .product_direction.{anchor_terms,retired_terms,match_mode,scan_globs,exclude_globs,enforcement_tier}",
+        "governed markdown resolved from scan_globs minus exclude_globs"
+      ],
+      "logic": [
+        "1. CONFIG_FILE=\"$PROJECT_ROOT/.vibeos/config.json\"; if missing OR jq '.product_direction' is null/empty => echo SKIP, exit 2.",
+        "2. Normalize retired_terms (string|object -> term + optional replacement). Read anchor_terms, match_mode (default word), scan_globs (default docs/**/*.md), exclude_globs, enforcement_tier (default advisory).",
+        "3. Build the file list with find (bash 3.2-safe; no globstar reliance — use find -name '*.md' with -path include/exclude filters).",
+        "4. For each retired term, grep -RniE (word-boundary when match_mode=word) over the file list. Each hit => finding {file,line,term,replacement?,message}.",
+        "5. anchor_terms: count files containing >=1 anchor term. If anchor_terms non-empty AND zero files match => single informational finding 'no anchor terms present in governed docs (possible off-anchor drift)'. ALWAYS informational, never fails.",
+        "6. Print a deterministic, sorted findings list (file:line:term).",
+        "7. Exit: retired_hits==0 => PASS exit 0. retired_hits>0 AND advisory => print FAIL(advisory), exit 0 (gate-runner records non-blocking). retired_hits>0 AND blocking => FAIL exit 1. No config / jq parse error => SKIP exit 2."
+      ],
+      "exit_codes": {
+        "0": "PASS (no retired terms) OR advisory findings present (non-blocking)",
+        "1": "FAIL — retired terms present AND enforcement_tier == blocking",
+        "2": "SKIP — no .product_direction config, or jq/parse error (not-applicable)"
+      },
+      "tier_integration": "Registered in .claude/quality-gate-manifest.json under the Fidelity/drift tier with tier_blocking=false initially (advisory). Flip to blocking when the doc pyramid exists, via config enforcement_tier=blocking or manifest tier_blocking. Mirrors gate-runner's existing advisory-vs-blocking handling.",
+      "must_not": "Must not Write/Edit/delete any doc; pure read + report. Must not hardcode any product name — all terms come from config."
+    },
+    {
+      "name": "hygiene-policy.json",
+      "proposed_path": ".vibeos/hygiene-policy.json (project-governed) with a shipped default at plugins/vibeos/reference/hygiene/hygiene-policy.default.json",
+      "type": "machine-governed retention policy file (data, not script)",
+      "rationale": "Master plan U7 (line 154): retention policy for checkpoints/exhaust. .vibeos/checkpoints/ is currently empty and there is no exhaust accumulation yet — the plan says install the policy BEFORE sprawl, since this repo's problem is far smaller than Joan4U's 8,600-dir exhaust.",
+      "schema": {
+        "schema_version": "1.0",
+        "retention": {
+          "checkpoints": {
+            "path": ".vibeos/checkpoints",
+            "keep_last_n": 10,
+            "max_age_days": 30,
+            "min_keep": 3,
+            "semantics": "Retain the most recent keep_last_n OR anything newer than max_age_days (larger set wins); never prune below min_keep regardless of age."
+          },
+          "observation_exhaust": {
+            "paths": [".vibeos/hook-events", ".vibeos/evidence/night-loop", ".vibeos/autonomy/loop-history.jsonl"],
+            "keep_last_n": 5,
+            "max_age_days": 14,
+            "min_keep": 1,
+            "semantics": "Transient run-exhaust (hook event logs, night-loop reports, loop history). Pruned more aggressively than checkpoints."
+          }
+        },
+        "archive": {
+          "mode": "git",
+          "archive_dir": ".vibeos/archive",
+          "require_clean_git_for_execute": true,
+          "semantics": "Before any --execute deletion, pruned artifacts are git mv'd into archive_dir and committed, so deletion is always recoverable from git history. mode=git is the only supported mode in v1 ('git-backed archive')."
+        },
+        "doc_budget": {
+          "max_governed_docs": 200,
+          "warn_governed_docs": 180,
+          "scan_globs": ["docs/**/*.md"],
+          "exclude_globs": ["docs/evidence/**", "docs/planning/WO-*.md"],
+          "pyramid_index": "docs/FILE-INVENTORY.md",
+          "semantics": "Per-project ceiling on governed-doc COUNT (complements file-budget.sh which governs per-file LINE count and explicitly excludes .md). Live repo: 154 governed md, of which 136 are docs/planning/WO-*.md. Excluding WO records (per defect D2) and evidence, the non-record governed-doc count is small (~16); warn/max are tripwires for the 700-doc drift class, not a fail today."
+        }
+      },
+      "validation": "Not executable; consumed by prune-observation-exhaust.sh and check-doc-budget.sh. A jq presence/type-check should run in the existing JSON quality gate so a malformed policy is caught at the commit boundary.",
+      "must_not": "This lane does NOT create this file (.vibeos/** is a prohibited write path); it only specifies the schema. The implementing WO writes the default template under plugins/vibeos/reference and instantiates .vibeos/hygiene-policy.json during discover/plan."
+    },
+    {
+      "name": "prune-observation-exhaust.sh",
+      "proposed_path": "plugins/vibeos/scripts/prune-observation-exhaust.sh",
+      "type": "utility script (operator-invoked / autonomy-invoked) — NEVER a hook",
+      "conventions": "#!/usr/bin/env bash; set -euo pipefail; FRAMEWORK_VERSION=\"2.2.0\"; reuses the --dry-run flag idiom already present in gate-runner.sh.",
+      "inputs": [
+        "--policy <path> (default .vibeos/hygiene-policy.json)",
+        "--execute (OPT-IN; absence => dry-run)",
+        "--scope <checkpoints|observation_exhaust|all> (default all)"
+      ],
+      "dry_run_contract": {
+        "default_mode": "DRY-RUN IS THE MANDATORY DEFAULT. With no flags it performs a plan-only pass: computes the prune set, prints exactly which files/dirs WOULD be archived+deleted, prints the retained set, prints a summary count, and EXITS 0 having modified NOTHING on disk.",
+        "execute_preconditions": [
+          "--execute must be explicitly present.",
+          "git working tree must be clean if archive.require_clean_git_for_execute is true (refuse with exit 2 otherwise).",
+          "For every artifact to prune: git mv into archive.archive_dir preserving relative path, THEN git commit the move ('hygiene: archive pruned exhaust per hygiene-policy'). Deletion == archival move, so bytes survive in git history.",
+          "No artifact below min_keep is ever touched, even with --execute."
+        ],
+        "output_shape": "Deterministic, sorted: 'WOULD ARCHIVE: <path> (age Nd, rank K/total)', 'RETAIN: <path> (reason: within keep_last_n | newer than max_age_days | min_keep floor)', then 'SUMMARY: would_prune=N retain=M scope=...'. With --execute, the same lines but 'ARCHIVED:' plus a trailing 'COMMIT: <sha>'.",
+        "idempotency": "Re-running dry-run after an --execute run yields would_prune=0."
+      },
+      "exit_codes": {
+        "0": "Dry-run completed (always), OR --execute completed successfully",
+        "1": "--execute attempted but a git op failed (mv/commit) — partial state reported, safe to re-run",
+        "2": "Refused: missing/invalid policy, OR --execute with dirty git tree when require_clean_git_for_execute is true"
+      },
+      "must_not": "MUST NOT delete with plain rm. MUST NOT delete without --execute. MUST NOT delete without first archiving to git. MUST NOT prune anything outside the policy's enumerated paths. No interactive prompts (non-interactive bash constraint)."
+    },
+    {
+      "name": "check-doc-budget.sh",
+      "proposed_path": "plugins/vibeos/scripts/check-doc-budget.sh",
+      "type": "gate script (advisory tier) reading hygiene-policy.json .doc_budget — implements both the doc-COUNT ceiling and orphan-doc detection",
+      "conventions": "#!/usr/bin/env bash; set -euo pipefail; FRAMEWORK_VERSION=\"2.2.0\"; GATE_NAME=\"check-doc-budget\"; logging '[$GATE_NAME] PASS|FAIL|SKIP: message'.",
+      "logic": [
+        "1. Resolve policy (default .vibeos/hygiene-policy.json); if absent => SKIP exit 2.",
+        "2. doc-count: count files matching doc_budget.scan_globs minus exclude_globs. If count>max_governed_docs => advisory finding 'doc budget exceeded: N > MAX'. If count>warn_governed_docs => advisory warning.",
+        "3. orphan detection: if doc_budget.pyramid_index is missing on disk => SKIP that sub-check (graceful, exit 2 for the orphan portion) rather than declaring every doc an orphan. Otherwise BFS reachability from pyramid_index (see doc_budget_and_orphan_design).",
+        "4. Exit 0 always in advisory tier; exit 1 only when promoted to blocking AND (over max OR orphans>0)."
+      ],
+      "exit_codes": {"0": "advisory pass/findings", "1": "blocking failure when promoted", "2": "SKIP — no policy or missing pyramid root"},
+      "must_not": "Pure read+report; never deletes a doc; pyramid root configurable; graceful-skip on missing root."
+    }
+  ],
+  "doc_budget_and_orphan_design": {
+    "doc_budget_ceiling": {
+      "rule": "Count governed docs matching doc_budget.scan_globs minus exclude_globs. count>max_governed_docs => advisory 'doc budget exceeded: N > MAX'; count>warn_governed_docs => advisory warning. Surfaced as an advisory gate finding, never blocking initially. Complements file-budget.sh: file-budget governs per-file LINE size and EXPLICITLY excludes .md; doc-budget governs project-wide doc COUNT. Same budget-hook shape, orthogonal axis.",
+      "current_repo_reading_live": "154 governed md (docs/**/*.md). With default exclude docs/evidence/** (2 md) and docs/planning/WO-*.md (136 records) removed per D2 recommendation, the non-record governed-doc count is ~16 — well under any sane ceiling. At warn=180/max=200 the repo is UNDER budget, the correct steady state: the ceiling is a tripwire for the 700-doc drift class, not a fail today.",
+      "implemented_by": "check-doc-budget.sh reading hygiene-policy.json .doc_budget. Exit 0 in advisory tier; exit 1 only when promoted to blocking AND over max."
+    },
+    "orphan_reachability_rule": {
+      "rule": "A governed doc is REACHABLE if it is the pyramid root (doc_budget.pyramid_index, default docs/FILE-INVENTORY.md) OR is linked transitively from the root. Build the reachability set by BFS from the root, parsing each reachable doc for (a) markdown links [text](path), (b) bare relative .md path mentions, (c) documented wildcard classes like docs/planning/WO-*.md that an index-style root explicitly authorizes. Any governed doc NOT in the reachability set is an ORPHAN => advisory finding 'orphan doc: <path> not reachable from <pyramid_index>'.",
+      "config_dependency": "pyramid_index is configurable (hygiene-policy.json). Because this meta-repo's product-tier pyramid docs (docs/product/*.md) do NOT exist (confirmed: no docs/product/ dir), the detector must tolerate a missing pyramid root by SKIPPING the orphan sub-check (exit 2) rather than declaring all 154 docs orphans. That graceful-skip is part of the 'advisory until the doc pyramid lands' contract.",
+      "wildcard_handling": "FILE-INVENTORY.md authorizes docs/planning/WO-*.md as a class. The resolver MUST expand documented '*'/'NNN' wildcard tokens into the matching glob, or all 136 WO files become false-positive orphans. Without this, orphan detection is uselessly noisy on this repo."
+    },
+    "known_good_fixture": {
+      "name": "reachable-doc",
+      "intent": "A governed doc that IS linked from the pyramid index => REACHABLE, not an orphan.",
+      "construction": "Fixture root tests/fixtures/wo128/doc-pyramid/INDEX.md containing a markdown link to tests/fixtures/wo128/doc-pyramid/child-linked.md. Running orphan detection with pyramid_index pointed at that INDEX.md yields zero orphans for child-linked.md. Deterministic: literal link, no globs needed.",
+      "expected_result": "orphans=0; child-linked.md REACHABLE; exit 0 PASS."
+    },
+    "known_bad_fixture": {
+      "name": "orphan-doc",
+      "intent": "A governed doc NOT linked from anywhere => ORPHAN.",
+      "construction": "tests/fixtures/wo128/doc-pyramid/child-orphan.md in the same fixture dir with NO inbound link from INDEX.md or any reachable doc. Orphan detection yields exactly one orphan: child-orphan.md.",
+      "expected_result": "orphans=1 (child-orphan.md); advisory finding emitted; exit 0 advisory (exit 1 if promoted to blocking). Self-contained — independent of the live docs/ tree."
+    },
+    "lint_known_good_fixture": {
+      "name": "anchor-only-doc",
+      "construction": "tests/fixtures/wo128/product-direction/good.md contains only anchor_terms ('VibeOS','work order') and NO retired_terms, with fixture config product_direction.retired_terms=['OldProductName'], anchor_terms=['VibeOS'].",
+      "expected_result": "retired_hits=0 => PASS exit 0."
+    },
+    "lint_known_bad_fixture": {
+      "name": "retired-term-doc",
+      "construction": "tests/fixtures/wo128/product-direction/bad.md contains the retired term 'OldProductName' with the same fixture config.",
+      "expected_result": "retired_hits>=1 => advisory FAIL (exit 0, finding printed) advisory tier; exit 1 when enforcement_tier=blocking."
+    }
+  },
+  "fixture_plan": {
+    "location_root": "tests/fixtures/wo128/ (proposed; created by the IMPLEMENTING WO, not this lane — tests/** is a prohibited write path)",
+    "fixtures": [
+      {"path": "tests/fixtures/wo128/doc-pyramid/INDEX.md", "role": "pyramid root linking child-linked.md only"},
+      {"path": "tests/fixtures/wo128/doc-pyramid/child-linked.md", "role": "known-good reachable doc"},
+      {"path": "tests/fixtures/wo128/doc-pyramid/child-orphan.md", "role": "known-bad orphan doc (no inbound link)"},
+      {"path": "tests/fixtures/wo128/product-direction/config.json", "role": "fixture .vibeos config: retired_terms=['OldProductName'], anchor_terms=['VibeOS']"},
+      {"path": "tests/fixtures/wo128/product-direction/good.md", "role": "known-good: anchor terms only"},
+      {"path": "tests/fixtures/wo128/product-direction/bad.md", "role": "known-bad: contains retired term"},
+      {"path": "tests/fixtures/wo128/hygiene/exhaust/*.jsonl (3 stale + 2 fresh)", "role": "prune dry-run fixture: proves WOULD-prune count is deterministic and nothing is deleted in default mode"}
+    ],
+    "determinism_guarantee": "All fixtures are static, self-contained, and independent of the live docs/ tree, generated-inventory.json, or wall-clock (fixed mtimes or relative-age stubs injected via the policy). Orphan/lint outcomes fully reproducible.",
+    "test_harness_note": "Per CLAUDE.md tests are written from spec not code and live under tests/. This lane specifies fixtures + expected results; it writes NONE of them (tests/** prohibited)."
+  },
+  "risks": [
+    "R1 Pyramid root absent in meta-repo: VibeOS-plugin has no docs/product/*.md pyramid tier (FILE-INVENTORY.md documents them but they are not instantiated here — confirmed no docs/product/ dir). Orphan detection MUST graceful-skip (exit 2) on missing root, else it flags all 154 docs. Mitigation baked into orphan_reachability_rule.",
+    "R2 Wildcard reachability: FILE-INVENTORY.md authorizes docs/planning/WO-*.md as a wildcard. Literal-only matching makes all 136 WO files false-positive orphans. Mitigation: documented-wildcard expansion (specified).",
+    "R3 Self-tripping lint: evidence/return packets (including THIS file) legitimately quote retired-term examples ('OldProductName'). Default exclude_globs must cover docs/evidence/** or the lint flags its own evidence. Specified.",
+    "R4 Advisory->blocking flip risk: promoting enforcement_tier to blocking before a real pyramid exists would hard-block commits. The tier flip MUST be tied to pyramid-presence, not a date.",
+    "R5 Prune safety: any deviation from archive-then-delete (a future --force path, or rm fallback) reintroduces the data-loss risk WO-128 exists to prevent (the operator's 700-deleted-documents incident). The dry-run-default + git-archive contract must be enforced by a test asserting default mode changes zero bytes on disk.",
+    "R6 config.json schema additivity: product_direction is net-new; the writer must MERGE into existing config (preserve onboarding_complete/autonomy/features), not overwrite.",
+    "R7 Doc-budget false economy: 136 of 154 governed md are docs/planning/WO-*.md. Counting WO records toward a ceiling means normal WO growth trips the budget rather than genuine sprawl. The default doc_budget.exclude_globs in this spec therefore excludes docs/planning/WO-*.md (delta from the committed baseline, which left WO files in the count and flagged the issue as open). The implementing WO should confirm this exclusion or scope the budget to non-record docs."
+  ],
+  "defects_found": [
+    {
+      "id": "D1",
+      "severity": "info",
+      "where": "docs/FILE-INVENTORY.md vs actual docs/ tree",
+      "finding": "FILE-INVENTORY.md lists product-pyramid docs (docs/product/PRODUCT-ANCHOR.md, docs/product/PRD.md, docs/TECHNICAL-SPEC.md, docs/product/ARCHITECTURE-OUTLINE.md, etc.) as files the plugin creates, but they do NOT exist in this repo (no docs/product/ dir — confirmed live). This is EXPECTED for a meta/framework repo (those are created in downstream instantiated projects), not a plugin defect — but it is the concrete reason WO-128's pyramid root and enforcement tier must be configurable and advisory-by-default.",
+      "actionable": false
+    },
+    {
+      "id": "D2",
+      "severity": "low",
+      "where": "doc budget interaction with WO file growth",
+      "finding": "136 of 154 governed md are docs/planning/WO-*.md. A naive doc-budget counting these toward the ceiling trips on normal WO accumulation rather than genuine sprawl. This spec resolves it by defaulting doc_budget.exclude_globs (and product_direction.exclude_globs) to exclude docs/planning/WO-*.md. The implementing WO should confirm. Not a code defect (no code exists yet); a design caution that prevents a false-positive gate.",
+      "actionable": true
+    }
+  ],
+  "scope_compliance": {
+    "paths_written": [
+      "docs/evidence/vnext/wo-126-agent-team-pilot/team-arm-kit/evidence-template/lane-b-wo128-return.json"
+    ],
+    "paths_written_equals_allowed": true,
+    "allowed_write_path_note": "Per the WO-126 pilot brief (lines 17-20), lane B writes EXACTLY ONE file: team-arm-kit/evidence-template/lane-b-wo128-return.json. This differs from the committed subagent baseline path (lane-packets/lane-b-wo128-return.json), which is the prior arm's output and was treated as read-only here.",
+    "prohibited_touched": false,
+    "framework_scripts_modified": false,
+    "docs_deleted": false,
+    "lane_a_files_touched": false,
+    "external_repos_touched": false,
+    "statement": "The ONLY file written is the single allowed return packet at the evidence-template path. No file under plugins/, tests/, .vibeos/, docs/planning/, the generated inventory, or any lane-a-wo127* file was created, edited, or deleted. No doc was deleted. /Users/latifhorst/latifhorstweb/** and /Users/latifhorst/Joan4U/** were not touched. All inspection was read-only (Read/Grep/Glob and read-only Bash: cat/find/jq/grep/wc/ls)."
+  },
+  "citations": ["WO-126", "WO-128"]
+}

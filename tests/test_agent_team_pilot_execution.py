@@ -119,8 +119,14 @@ class WO126EvidenceBundleTests(unittest.TestCase):
         self.assertTrue((KIT / "WO-126-TEAM-PILOT-BRIEF.md").exists())
         self.assertTrue((KIT / "lane-packets" / "lane-a-wo127.json").exists())
         self.assertTrue((KIT / "lane-packets" / "lane-b-wo128.json").exists())
+        # The evidence-template pilot-summary is either the unfilled template
+        # (lists allowed_verdicts) or the operator-filled team-arm result
+        # (records a single verdict). Accept both; the verdict must be in range.
         tmpl = load(KIT / "evidence-template" / "pilot-summary.json")
-        self.assertEqual(set(tmpl["allowed_verdicts"]), ALLOWED_VERDICTS)
+        if "allowed_verdicts" in tmpl:
+            self.assertEqual(set(tmpl["allowed_verdicts"]), ALLOWED_VERDICTS)
+        else:
+            self.assertIn(tmpl.get("verdict"), ALLOWED_VERDICTS)
 
     def test_wo_doc_frontmatter_and_fallback_recorded(self):
         text = WO_DOC.read_text(encoding="utf-8")

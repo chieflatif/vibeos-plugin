@@ -2,18 +2,43 @@
   "schema_version": "1.0",
   "wo": "WO-126",
   "arm": "teams",
-  "status": "TEMPLATE_PENDING_OPERATOR_RUN",
-  "agent_teams_actually_ran": null,
-  "teammates_spawned": null,
+  "status": "COMPLETE_PENDING_COST",
+  "executed_window_utc": "2026-06-15T16:31:50Z .. 2026-06-15T16:36:20Z",
+  "surface": "terminal-tui",
+  "runtime_note": "Claude Code experimental agent teams (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1).",
+  "agent_teams_actually_ran": true,
+  "teammates_spawned": 2,
+  "teammate_names": ["lane-a-auditgates", "lane-b-hygiene"],
   "lane_assignments": {"lane-a-auditgates": "WO-127", "lane-b-hygiene": "WO-128"},
+  "both_lanes_returned": true,
   "criteria": {
-    "stall_detection_latency": {"result": null, "detail": "fill from team-governance-events.jsonl: was TeammateIdle / missing-return detected within 5min p95 / 10min max?"},
-    "pre_merge_defects_caught": {"result": null, "detail": "fill from defect-ledger.json"},
-    "coordinator_labor_vs_sequential": {"result": null, "detail": "fill from coordinator-labor.json"},
-    "scope_safety": {"result": null, "detail": "git diff: any out-of-scope writes? any missing-WO closures vetoed/observed?"},
-    "cost_posture": {"result": null, "detail": "fill from cost-report.json; compare to subagent baseline 157456 tokens (no default adoption if >25% over without a quality win)"}
+    "stall_detection_latency": {
+      "result": "MIXED",
+      "operational": "PASS",
+      "as_governed": "FAIL",
+      "detail": "Operationally, every teammate turn-end/idle surfaced to the lead within ~1-8s via idle_notification messages on the TUI channel — far inside the 5min p95 / 10min max target. HOWEVER the GOVERNED mechanism the brief specified (WO-117 team-governance.sh logging TeammateIdle to .vibeos/team-governance/events.jsonl) never fired: the runtime does not emit the TaskCreated/TaskCompleted/TeammateIdle hook events the plugin registers, so the log was never created. The single criterion that justifies running the team arm is satisfiable in capability but NOT through the project's governance layer as currently wired. See D-TEAM-1."
+    },
+    "pre_merge_defects_caught": {
+      "result": "PASS",
+      "detail": "6 defects caught pre-merge: 5 lane defects (1 major, D-A1 gate-runner silent-skip) matching the subagent baseline, PLUS 1 infrastructure defect (D-TEAM-1) the subagent arm structurally could not surface. See defect-ledger.json."
+    },
+    "coordinator_labor_vs_sequential": {
+      "result": "PASS",
+      "detail": "Wall-clock spawn-to-close 270s = 0.64 of the 419567ms sequential baseline (target <=0.80); 0 mid-flight interventions. CAVEAT: small disjoint read-only lanes did not stress known team limitations; not extrapolable to long/contended runs. See coordinator-labor.json."
+    },
+    "scope_safety": {
+      "result": "PASS_WITH_CAVEAT",
+      "detail": "Outcome clean: git shows only the two allowed evidence-template return packets written; zero out-of-scope writes; both tasks cited WO refs at create AND close; the committed subagent baseline was not clobbered. CAVEAT: zero missing-WO closures held by teammate discipline and lead instruction, NOT by the governance veto — that veto was inert (D-TEAM-1), so scope safety was not machine-enforced this run."
+    },
+    "cost_posture": {
+      "result": "PENDING",
+      "detail": "Lead cannot invoke /cost programmatically. Operator must run /cost and fill cost-report.json. Subagent baseline = 157456 tokens; guard = no default adoption if >25% over without a justified quality win."
+    }
   },
-  "verdict": null,
-  "allowed_verdicts": ["NO_GO", "FALLBACK_TO_SUBAGENTS", "PARTIAL_UNLOCK_CANDIDATE"],
-  "verdict_rationale": null
+  "verdict": "FALLBACK_TO_SUBAGENTS",
+  "verdict_is_recommendation_pending_operator_ratification": true,
+  "verdict_rationale": "Agent teams genuinely ran: two named teammates spawned, divided disjoint scope, wrote only their allowed paths, cited WOs, and caught 6 pre-merge defects including one the subagent arm could not. That is a real, promising result. BUT the criterion that uniquely justifies the team arm — governed stall detection — is not satisfied through the project's governance layer, because the WO-117 hooks do not fire on this runtime's team lifecycle (D-TEAM-1). Per comparison-model.json decision_logic, failure of the governed stall-detection path is a path_to_no_go trigger for DEFAULT adoption, and cost remains unmeasured. The honest call is therefore FALLBACK_TO_SUBAGENTS for now: subagents remain the working, fully-governed path. This is NOT a dead end — see path_to_partial_unlock_candidate.",
+  "path_to_partial_unlock_candidate": "Re-score as PARTIAL_UNLOCK_CANDIDATE once (a) team-governance.sh is re-bound to hook events this Claude Code build actually emits for the team lifecycle (or governance is reimplemented as a lead-side message-channel monitor) so stall detection and the WO-citation veto are machine-enforced and logged, AND (b) the operator captures /cost and it lands within 25% of the 157456-token baseline (or a justified quality win is documented). The lane mechanics already pass; only the governance wiring and cost remain.",
+  "teams_remain_non_default": true,
+  "no_production_readiness_claim": "This pilot makes no claim of production readiness, Claude/Codex parity, default team adoption, or 24-48h autonomy. It is an experimental, bounded canary."
 }
