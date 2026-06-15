@@ -105,12 +105,46 @@ class ClaudeCapabilityTests(unittest.TestCase):
 
     def test_dynamic_workflows_version_gated_and_disable_respected(self):
         env_clean = {k: v for k, v in os.environ.items()
-                     if k != runtime_capabilities.DYNAMIC_WORKFLOWS_DISABLE_ENV}
+                     if k not in runtime_capabilities.DYNAMIC_WORKFLOWS_DISABLE_ENVS}
         with mock.patch.dict(os.environ, env_clean, clear=True):
             self.assertEqual(self._caps(version="2.1.154")["dynamic_workflows"], "available")
             self.assertEqual(self._caps(version="2.1.153")["dynamic_workflows"], "unavailable")
         with mock.patch.dict(os.environ, {runtime_capabilities.DYNAMIC_WORKFLOWS_DISABLE_ENV: "1"}):
             self.assertEqual(self._caps(version="2.1.170")["dynamic_workflows"], "unavailable")
+
+    def test_dynamic_workflows_disable_env_matches_current_claude_code_docs(self):
+        self.assertEqual(runtime_capabilities.DYNAMIC_WORKFLOWS_DISABLE_ENV, "CLAUDE_CODE_DISABLE_WORKFLOWS")
+
+    def test_legacy_dynamic_workflows_disable_env_remains_conservative(self):
+        with mock.patch.dict(os.environ, {runtime_capabilities.LEGACY_DYNAMIC_WORKFLOWS_DISABLE_ENV: "1"}):
+            self.assertEqual(self._caps(version="2.1.170")["dynamic_workflows"], "unavailable")
+
+    def test_workflow_governance_policy_records_required_controls(self):
+        claude = {
+            "capabilities": {"dynamic_workflows": "available"},
+            "capability_evidence": {"dynamic_workflows": "version >= 2.1.154"},
+        }
+        policy = runtime_capabilities.workflow_governance_policy(claude)
+        self.assertEqual(policy["status"], "available")
+        self.assertEqual(policy["saved_project_workflow_dir"], ".claude/workflows")
+        self.assertTrue(policy["slice_first_cost_probe_required"])
+        self.assertFalse(policy["project_governance_writes_allowed"])
+        self.assertIn("CLAUDE_CODE_DISABLE_WORKFLOWS=1", policy["disable_paths"])
+        self.assertIn("saved+reviewed", policy["recurring_use_policy"])
+
+    def test_build_matrix_includes_workflow_governance(self):
+        with mock.patch.object(runtime_capabilities, "detect_codex", return_value={"capabilities": {}}), \
+             mock.patch.object(
+                 runtime_capabilities,
+                 "detect_claude",
+                 return_value={
+                     "capabilities": {"dynamic_workflows": "available"},
+                     "capability_evidence": {"dynamic_workflows": "version >= 2.1.154"},
+                 },
+             ):
+            matrix = runtime_capabilities.build_matrix(Path("/tmp/project"))
+        self.assertIn("workflow_governance", matrix)
+        self.assertEqual(matrix["workflow_governance"]["status"], "available")
 
     def test_headless_available_when_binary_present(self):
         self.assertEqual(self._caps(path="/usr/local/bin/claude")["headless"], "available")

@@ -234,7 +234,14 @@ elif [ -f "scripts/detect-runtime-capabilities.sh" ]; then
 fi
 ```
 
-Read `.vibeos/runtime-capabilities.json` after it is generated. Use it to decide whether the current session can use Codex multi-agent work, Claude subagents, worktree sessions, runtime hooks, or must fall back to sequential execution. Feature availability does not remove the requirement for VibeOS gates, Git hooks, real-path verification, or truthful partial states.
+Read `.vibeos/runtime-capabilities.json` after it is generated. Use it to decide whether the current session can use Codex multi-agent work, Claude subagents, worktree sessions, runtime hooks, Claude dynamic workflows, or must fall back to sequential execution. Feature availability does not remove the requirement for VibeOS gates, Git hooks, real-path verification, or truthful partial states.
+
+If considering Claude dynamic workflows, read `workflow_governance` from the same matrix first:
+- use workflows only when `workflow_governance.status == "available"`
+- do not use workflows for recurring build orchestration until a bounded slice has run and the script has been saved/reviewed under `.claude/workflows/`
+- run a slice-first cost probe before broad repo workflows
+- do not let workflow agents write project-governance files (`docs/planning/**`, `.vibeos/**`, `.claude/settings*.json`, saved workflow scripts) unless the active WO explicitly scopes that write and review accepts it
+- if workflows are disabled or policy is missing, fall back to subagents, worktrees, or sequential execution
 
 ### Step 2d: Long-Run Autonomy Heartbeat
 

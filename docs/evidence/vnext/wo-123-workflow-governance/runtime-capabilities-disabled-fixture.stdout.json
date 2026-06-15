@@ -1,0 +1,110 @@
+{
+  "framework_version": "2.2.0",
+  "generated_at": "2026-06-15T00:12:01+00:00",
+  "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin",
+  "runtimes": {
+    "claude": {
+      "agents": {
+        "active_count": null,
+        "agents": [],
+        "vibeos_agents": []
+      },
+      "available": true,
+      "capabilities": {
+        "agent_teams": "unavailable",
+        "custom_agents_cli": "available",
+        "dynamic_workflows": "unavailable",
+        "headless": "available",
+        "hooks": "available",
+        "subagents": "available",
+        "worktree_sessions": "available"
+      },
+      "capability_evidence": {
+        "agent_teams": "env CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=unset; version >= 2.1.32",
+        "dynamic_workflows": "version >= 2.1.154; disabled via CLAUDE_CODE_DISABLE_WORKFLOWS",
+        "headless": "claude binary present at /opt/homebrew/bin/claude",
+        "subagents": "claude 2.1.177 present at /opt/homebrew/bin/claude; >= 2.0.0 (claude agents --json (non-TTY retry))"
+      },
+      "errors": [],
+      "limitations": [
+        "Subagents cannot spawn subagents; orchestration must stay in the main thread.",
+        "Agent teams are experimental and gated behind an explicit opt-in env var and version."
+      ],
+      "path": "/opt/homebrew/bin/claude",
+      "version": "2.1.177"
+    },
+    "codex": {
+      "available": true,
+      "capabilities": {
+        "app_worktrees": "unavailable",
+        "automations": "unavailable",
+        "browser_use": "unavailable",
+        "hooks": "unavailable",
+        "plugins": "unavailable",
+        "repo_skills": "available",
+        "subagents": "unavailable"
+      },
+      "errors": [
+        "codex features list failed: Error: /Users/latifhorst/.codex/config.toml:14:16: unknown variant `default`, expected `fast` or `flex`\n\nCaused by:\n    unknown variant `default`, expected `fast` or `flex`\n    in `service_tier`"
+      ],
+      "features": {},
+      "limitations": [
+        "Codex hooks are not treated as Claude Code hook parity; use Git hooks and VibeOS gates for commit-boundary enforcement.",
+        "Subagent use still requires explicit orchestration and bounded ownership."
+      ],
+      "path": "/opt/homebrew/bin/codex",
+      "version": "0.125.0"
+    }
+  },
+  "schema_version": "1.0",
+  "sources": [
+    "local: codex --version",
+    "local: codex features list",
+    "local: claude --version",
+    "local: claude agents (--json retry on non-TTY failure)",
+    "local: claude --help"
+  ],
+  "strategy": {
+    "orchestration_mode": "claude-subagents",
+    "reasons": [
+      "Claude Code subagents are available locally.",
+      "Runtime hooks are available on at least one surface, but Git hooks remain the cross-runtime enforcement fallback."
+    ],
+    "recommended_primary": "claude",
+    "requires_explicit_gates": true,
+    "requires_git_hooks": true
+  },
+  "workflow_governance": {
+    "adoption_gate": "WO-124 must run a bounded slice and compare workflow evidence against the subagent baseline before default adoption.",
+    "capability": "claude.dynamic_workflows",
+    "capability_evidence": "version >= 2.1.154; disabled via CLAUDE_CODE_DISABLE_WORKFLOWS",
+    "disable_paths": [
+      "/config -> Dynamic workflows off",
+      "~/.claude/settings.json: {\"disableWorkflows\": true}",
+      "managed settings: {\"disableWorkflows\": true}",
+      "CLAUDE_CODE_DISABLE_WORKFLOWS=1"
+    ],
+    "documented_limits": {
+      "max_concurrent_agents": 16,
+      "max_total_agents_per_run": 1000,
+      "resume_scope": "same Claude Code session only"
+    },
+    "governance_write_no_touch": [
+      "docs/planning/**",
+      ".vibeos/**",
+      ".claude/settings*.json",
+      ".claude/workflows/**"
+    ],
+    "limitations": [
+      "Dynamic workflow availability does not remove VibeOS gates, hooks, Work Orders, or evidence requirements.",
+      "Workflow agents may edit implementation files according to the active tool allowlist, but recurring workflow scripts and governance files require separate review.",
+      "Large workflow runs can consume materially more tokens; run a narrow cost probe first."
+    ],
+    "project_governance_writes_allowed": false,
+    "recurring_use_policy": "saved+reviewed scripts only after a bounded successful run",
+    "saved_project_workflow_dir": ".claude/workflows",
+    "schema_version": "1.0",
+    "slice_first_cost_probe_required": true,
+    "status": "unavailable"
+  }
+}

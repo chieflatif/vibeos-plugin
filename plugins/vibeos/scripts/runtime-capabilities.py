@@ -24,7 +24,12 @@ AGENT_TEAMS_MIN_VERSION = (2, 1, 32)
 DYNAMIC_WORKFLOWS_MIN_VERSION = (2, 1, 154)
 # Operator opt-in / opt-out environment variables.
 AGENT_TEAMS_ENV = "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS"
-DYNAMIC_WORKFLOWS_DISABLE_ENV = "CLAUDE_DISABLE_DYNAMIC_WORKFLOWS"
+DYNAMIC_WORKFLOWS_DISABLE_ENV = "CLAUDE_CODE_DISABLE_WORKFLOWS"
+LEGACY_DYNAMIC_WORKFLOWS_DISABLE_ENV = "CLAUDE_DISABLE_DYNAMIC_WORKFLOWS"
+DYNAMIC_WORKFLOWS_DISABLE_ENVS = (
+    DYNAMIC_WORKFLOWS_DISABLE_ENV,
+    LEGACY_DYNAMIC_WORKFLOWS_DISABLE_ENV,
+)
 
 
 def version_tuple(version: str | None) -> tuple[int, ...]:
@@ -52,6 +57,10 @@ def version_ge(version: str | None, threshold: tuple[int, ...]) -> bool:
 
 def _env_truthy(name: str) -> bool:
     return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _truthy_envs(names: tuple[str, ...]) -> list[str]:
+    return [name for name in names if _env_truthy(name)]
 
 
 def _fmt_version(t: tuple[int, ...]) -> str:
@@ -166,9 +175,9 @@ def compute_claude_capabilities(
         else "unavailable"
     )
 
-    dynamic_disabled = _env_truthy(DYNAMIC_WORKFLOWS_DISABLE_ENV)
+    disabled_envs = _truthy_envs(DYNAMIC_WORKFLOWS_DISABLE_ENVS)
     dynamic_version_ok = version_ge(version, DYNAMIC_WORKFLOWS_MIN_VERSION)
-    dynamic_workflows = status(binary_present and dynamic_version_ok and not dynamic_disabled)
+    dynamic_workflows = status(binary_present and dynamic_version_ok and not disabled_envs)
 
     capabilities = {
         "subagents": status(subagents),
@@ -193,7 +202,7 @@ def compute_claude_capabilities(
         ),
         "dynamic_workflows": (
             f"version {'>=' if dynamic_version_ok else '<'} {_fmt_version(DYNAMIC_WORKFLOWS_MIN_VERSION)}"
-            + (f"; disabled via {DYNAMIC_WORKFLOWS_DISABLE_ENV}" if dynamic_disabled else "")
+            + (f"; disabled via {', '.join(disabled_envs)}" if disabled_envs else "")
         ),
         "headless": (
             f"claude binary present at {path}" if binary_present else "claude binary not found"
@@ -318,6 +327,45 @@ def detect_claude() -> dict[str, Any]:
     return result
 
 
+def workflow_governance_policy(claude: dict[str, Any]) -> dict[str, Any]:
+    caps = claude.get("capabilities", {})
+    evidence = claude.get("capability_evidence", {})
+    status_value = caps.get("dynamic_workflows", "unavailable")
+    return {
+        "schema_version": "1.0",
+        "status": status_value,
+        "capability": "claude.dynamic_workflows",
+        "capability_evidence": evidence.get("dynamic_workflows", ""),
+        "saved_project_workflow_dir": ".claude/workflows",
+        "recurring_use_policy": "saved+reviewed scripts only after a bounded successful run",
+        "slice_first_cost_probe_required": True,
+        "project_governance_writes_allowed": False,
+        "governance_write_no_touch": [
+            "docs/planning/**",
+            ".vibeos/**",
+            ".claude/settings*.json",
+            ".claude/workflows/**",
+        ],
+        "disable_paths": [
+            "/config -> Dynamic workflows off",
+            "~/.claude/settings.json: {\"disableWorkflows\": true}",
+            "managed settings: {\"disableWorkflows\": true}",
+            f"{DYNAMIC_WORKFLOWS_DISABLE_ENV}=1",
+        ],
+        "documented_limits": {
+            "max_concurrent_agents": 16,
+            "max_total_agents_per_run": 1000,
+            "resume_scope": "same Claude Code session only",
+        },
+        "adoption_gate": "WO-124 must run a bounded slice and compare workflow evidence against the subagent baseline before default adoption.",
+        "limitations": [
+            "Dynamic workflow availability does not remove VibeOS gates, hooks, Work Orders, or evidence requirements.",
+            "Workflow agents may edit implementation files according to the active tool allowlist, but recurring workflow scripts and governance files require separate review.",
+            "Large workflow runs can consume materially more tokens; run a narrow cost probe first.",
+        ],
+    }
+
+
 def recommend_strategy(codex: dict[str, Any], claude: dict[str, Any]) -> dict[str, Any]:
     reasons: list[str] = []
     codex_caps = codex.get("capabilities", {})
@@ -363,6 +411,7 @@ def build_matrix(project_dir: Path) -> dict[str, Any]:
             "claude": claude,
         },
         "strategy": recommend_strategy(codex, claude),
+        "workflow_governance": workflow_governance_policy(claude),
         "sources": [
             "local: codex --version",
             "local: codex features list",
@@ -396,7 +445,8 @@ def summary(matrix: dict[str, Any], out_path: Path) -> str:
         f"[runtime-capabilities] Claude: {'available' if claude['available'] else 'missing'}"
         f" version={claude.get('version') or 'unknown'}"
         f" subagents={claude['capabilities'].get('subagents', 'unknown')}"
-        f" worktrees={claude['capabilities'].get('worktree_sessions', 'unknown')}",
+        f" worktrees={claude['capabilities'].get('worktree_sessions', 'unknown')}"
+        f" workflows={claude['capabilities'].get('dynamic_workflows', 'unknown')}",
         f"[runtime-capabilities] Strategy: {strategy['recommended_primary']} / {strategy['orchestration_mode']}",
     ]
     return "\n".join(lines)

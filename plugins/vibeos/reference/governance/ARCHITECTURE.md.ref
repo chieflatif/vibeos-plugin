@@ -41,3 +41,24 @@
 
 <!-- ADAPT: Describe deployment topology -->
 <!-- OPTIONAL: Only if project has deployment configuration -->
+
+## Runtime And Workflow Governance
+
+<!-- REQUIRED: Generate from .vibeos/runtime-capabilities.json when present. -->
+
+VibeOS chooses orchestration from detected runtime capabilities, not assumptions. Before using subagents, agent teams, dynamic workflows, headless loops, or Codex multi-agent features, run:
+
+```bash
+bash ".vibeos/scripts/detect-runtime-capabilities.sh" --project-dir "."
+```
+
+Then read `.vibeos/runtime-capabilities.json`.
+
+Dynamic workflows follow this policy:
+
+- Use workflows only when `workflow_governance.status` is `available`.
+- For recurring use, save only reviewed workflow scripts under `.claude/workflows/` after a bounded successful run.
+- Run a slice-first cost probe before broad repository workflows.
+- Do not let workflow agents write project-governance artifacts such as `docs/planning/**`, `.vibeos/**`, or `.claude/settings*.json` unless a governing Work Order explicitly scopes that write.
+- Keep VibeOS gates, hooks, Work Orders, and evidence requirements active; workflow availability is orchestration capacity, not governance enforcement.
+- Disable workflows through `/config`, `disableWorkflows`, managed settings, or `CLAUDE_CODE_DISABLE_WORKFLOWS=1` when the project needs sequential or subagent-only execution.

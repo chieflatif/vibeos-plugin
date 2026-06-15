@@ -56,6 +56,14 @@ fi
 
 Read `.vibeos/runtime-capabilities.json` if it exists. Use it as advisory input for runtime selection, but keep `select-audit-visibility-mode.sh` as the authority for same-tree versus worktree audit visibility inside VibeOS build sessions.
 
+If considering a Claude dynamic workflow for audit fan-out, read `workflow_governance` first:
+- use workflows only when `workflow_governance.status == "available"`
+- before WO-124 evidence exists, run only bounded slices and compare against the existing subagent audit baseline
+- save recurring audit workflows only after review under `.claude/workflows/`
+- run a slice-first cost probe before whole-repo audit workflows
+- do not let workflow agents write project-governance files (`docs/planning/**`, `.vibeos/**`, `.claude/settings*.json`, saved workflow scripts) unless the active WO explicitly scopes that write and review accepts it
+- if workflows are disabled or policy is missing, use the existing selected subagent/worktree/sequential audit path
+
 ### Step 3: Select Audit Visibility Mode
 
 Before dispatching any auditor, choose visibility automatically:

@@ -1,0 +1,48 @@
+# <!-- REQUIRED -->
+# <!-- ADAPT: Generate from .vibeos/runtime-capabilities.json and project policy -->
+# {{PROJECT_NAME}} — Runtime Manifest
+
+This document records the runtime surfaces VibeOS is allowed to use in this project.
+
+## Detection Command
+
+Run this before selecting orchestration:
+
+```bash
+bash ".vibeos/scripts/detect-runtime-capabilities.sh" --project-dir "."
+```
+
+The generated source of truth is `.vibeos/runtime-capabilities.json`.
+
+## Runtime Matrix
+
+<!-- ADAPT: Copy the current strategy summary from .vibeos/runtime-capabilities.json -->
+
+| Surface | Status | Evidence | Limitations |
+|---|---|---|---|
+| Claude Code subagents | <!-- ADAPT --> | <!-- ADAPT --> | Subagents are orchestration capacity, not independent audit identity. |
+| Claude Code dynamic workflows | <!-- ADAPT --> | <!-- ADAPT --> | Requires workflow governance below before use. |
+| Claude Code agent teams | <!-- ADAPT --> | <!-- ADAPT --> | Experimental; non-default until pilot evidence approves use. |
+| Claude Code headless | <!-- ADAPT --> | <!-- ADAPT --> | Must respect scheduler guard, run lease, cost capture, and provider/session limits. |
+| Codex multi-agent/hooks | <!-- ADAPT --> | <!-- ADAPT --> | No Claude hook parity; explicit gates and Git hooks remain the baseline. |
+
+## Dynamic Workflow Governance
+
+<!-- REQUIRED: Keep in sync with runtime-capabilities.workflow_governance. -->
+
+- **Availability:** Use only when `workflow_governance.status == "available"`.
+- **Recurring scripts:** Save recurring workflows only as reviewed scripts under `.claude/workflows/` after a bounded successful run.
+- **Slice-first cost probe:** Run a narrow path or question before broad repository workflows.
+- **Governance no-write rule:** Workflow agents must not write project-governance artifacts such as `docs/planning/**`, `.vibeos/**`, `.claude/settings*.json`, or saved workflow scripts unless the active Work Order explicitly scopes that write and a review accepts it.
+- **Evidence:** Capture workflow prompt, saved script path when any, phase/agent counts, token evidence, findings, and comparison against the non-workflow baseline.
+- **Disable path:** Turn workflows off through `/config`, `disableWorkflows`, managed settings, or `CLAUDE_CODE_DISABLE_WORKFLOWS=1`.
+
+## Adoption Status
+
+<!-- ADAPT: Planned | Bounded Slice | Adopted | Rejected | Disabled -->
+
+Dynamic workflows are not default until a bounded slice produces evidence and an adoption verdict.
+
+## Last Detection
+
+<!-- ADAPT: generated_at, detector version, runtime versions, and strategy from .vibeos/runtime-capabilities.json -->
