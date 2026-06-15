@@ -1,15 +1,17 @@
 {
-  "adoption_verdict": "DEFER_LIVE_WORKFLOW_BUDGET_LIMIT",
+  "adoption_verdict": "PARTIAL_UNLOCK_CANDIDATE_REVIEW_BEFORE_DEFAULT",
   "comparison": {
     "auditor_count_delta": 0,
     "auditor_list_matches_baseline": true,
-    "baseline_total_cost_usd": null,
-    "findings_comparison_status": "pending_live_subagent_and_workflow_findings",
-    "token_or_cost_comparison_status": "pending_baseline_or_workflow_token_evidence",
-    "workflow_total_cost_usd": 2.105614499999999
+    "baseline_finding_count": 11,
+    "baseline_total_cost_usd": 0.9119877000000001,
+    "findings_comparison_status": "available",
+    "token_or_cost_comparison_status": "available",
+    "workflow_finding_count": 1,
+    "workflow_total_cost_usd": 0.4981767
   },
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-15T01:42:21Z",
+  "generated_at": "2026-06-15T05:33:56Z",
   "limitations": [
     "This report does not claim Claude/Codex parity.",
     "This report does not claim automatic write-time enforcement.",
@@ -17,18 +19,19 @@
     "Cost values parsed from Claude output remain estimates and must be reconciled against provider billing before public cost claims."
   ],
   "live_workflow_run": {
+    "auditor_count": 2,
     "error": null,
-    "errors": [
-      "Reached maximum budget ($1.5)"
-    ],
-    "is_error": true,
-    "num_turns": 1,
+    "errors": [],
+    "finding_count": 1,
+    "is_error": false,
+    "mode": "canary",
+    "num_turns": 8,
     "output_path": "docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-output.json",
     "permission_denials_count": 0,
-    "result_type": "error_max_budget_usd",
-    "status": "budget_limited",
+    "result_type": "success",
+    "status": "completed_or_returned",
     "stderr_path": "docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-stderr.txt",
-    "total_cost_usd": 2.105614499999999,
+    "total_cost_usd": 0.4981767,
     "workflow_permission_denied": false
   },
   "objective": "Bounded first use of the VibeOS audit fan-out dynamic workflow.",
@@ -55,6 +58,12 @@
       "red-team-auditor",
       "contract-validator"
     ],
+    "cost_controls": [
+      "mode=canary",
+      "auditorLimit",
+      "maxConcurrentAuditors"
+    ],
+    "cost_controls_ok": true,
     "default_target": "plugins/vibeos/scripts/runtime-capabilities.py",
     "direct_filesystem_or_shell_access_ok": true,
     "direct_filesystem_or_shell_access_patterns": [],
@@ -78,45 +87,83 @@
     "workflow_status_marker": "reviewed-candidate; bounded-live-run-required-before-default-adoption"
   },
   "subagent_path_baseline": {
-    "auditor_count": 12,
+    "auditor_count": 2,
     "auditors": [
       "security-auditor",
-      "architecture-auditor",
-      "correctness-auditor",
-      "test-auditor",
-      "evidence-auditor",
-      "product-drift-auditor",
-      "flow-auditor",
-      "system-invariant-auditor",
-      "dependency-intelligence-auditor",
-      "delivery-infrastructure-auditor",
-      "red-team-auditor",
-      "contract-validator"
+      "architecture-auditor"
     ],
-    "baseline_id": "vibeos-audit-subagent-path-source-derived",
+    "baseline_id": "vibeos-audit-subagent-path-live-canary",
     "cost": {
-      "status": "not_captured",
-      "total_cost_usd": null
+      "status": "captured_from_claude_output",
+      "total_cost_usd": 0.9119877000000001
     },
-    "execution_status": "source_derived_not_live",
+    "execution_status": "live_completed",
     "findings": {
-      "count": null,
-      "status": "not_captured"
+      "count": 11,
+      "status": "captured",
+      "summary": "security-auditor reported 8 findings; architecture-auditor reported 3 informational findings"
     },
     "limitations": [
-      "This baseline is derived from the existing audit skill dispatch list.",
-      "It is not live subagent execution evidence and cannot satisfy the WO-124 live comparison by itself."
+      "This baseline covers only security-auditor and architecture-auditor on one bounded target.",
+      "Cost values are local Claude output estimates and require provider billing reconciliation before public cost claims."
     ],
+    "mode": "canary-two-auditor-baseline",
+    "run": {
+      "duration_ms": 241252,
+      "num_turns": 3,
+      "returncode": 0
+    },
     "schema_version": "1.0",
-    "source": "plugins/vibeos/skills/audit/SKILL.md",
+    "source": "docs/evidence/vnext/wo-124-audit-fanout-workflow/subagent-baseline-output.json",
     "target": "plugins/vibeos/scripts/runtime-capabilities.py",
     "tokens": {
-      "status": "not_captured",
-      "total": null
+      "modelUsage": {
+        "claude-sonnet-4-6": {
+          "cacheCreationInputTokens": 88585,
+          "cacheReadInputTokens": 1035604,
+          "contextWindow": 200000,
+          "costUSD": 0.9119877000000001,
+          "inputTokens": 47,
+          "maxOutputTokens": 32000,
+          "outputTokens": 14898,
+          "webSearchRequests": 0
+        }
+      },
+      "status": "captured_from_claude_output",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 20223,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 20223,
+        "cache_read_input_tokens": 49366,
+        "inference_geo": "not_available",
+        "input_tokens": 6,
+        "iterations": [
+          {
+            "cache_creation": {
+              "ephemeral_1h_input_tokens": 6841,
+              "ephemeral_5m_input_tokens": 0
+            },
+            "cache_creation_input_tokens": 6841,
+            "cache_read_input_tokens": 31374,
+            "input_tokens": 3,
+            "output_tokens": 755,
+            "type": "message"
+          }
+        ],
+        "output_tokens": 1337,
+        "server_tool_use": {
+          "web_fetch_requests": 0,
+          "web_search_requests": 0
+        },
+        "service_tier": "standard",
+        "speed": "standard"
+      }
     }
   },
   "summary": {
-    "readiness": "defer_live_workflow_budget_limit",
+    "readiness": "partial_unlock_candidate_review_before_default",
     "status": "pass"
   },
   "wo": "WO-124"

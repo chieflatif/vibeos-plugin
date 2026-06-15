@@ -16,6 +16,7 @@ export const meta = {
 // VIBEOS_WORKFLOW_AUDITORS: security-auditor,architecture-auditor,correctness-auditor,test-auditor,evidence-auditor,product-drift-auditor,flow-auditor,system-invariant-auditor,dependency-intelligence-auditor,delivery-infrastructure-auditor,red-team-auditor,contract-validator
 // VIBEOS_WORKFLOW_DEFAULT_TARGET: plugins/vibeos/scripts/runtime-capabilities.py
 // VIBEOS_WORKFLOW_GOVERNANCE_NO_WRITE: docs/planning/**,.vibeos/**,.claude/settings*.json,.claude/workflows/**
+// VIBEOS_WORKFLOW_COST_CONTROLS: mode=canary,auditorLimit,maxConcurrentAuditors
 // VIBEOS_WORKFLOW_STATUS: reviewed-candidate; bounded-live-run-required-before-default-adoption
 
 const AUDITORS = Object.freeze([
@@ -101,18 +102,46 @@ const GOVERNANCE_NO_WRITE = Object.freeze([
   ".claude/workflows/**"
 ]);
 
+function parseArgs(input) {
+  if (input && typeof input === "object") {
+    return input;
+  }
+  if (typeof input !== "string" || !input.trim()) {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(input);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
 function normalizeArgs(input) {
-  const supplied = input && typeof input === "object" ? input : {};
+  const supplied = parseArgs(input);
   const target = supplied.target || supplied.targets || DEFAULT_TARGETS;
   const targets = Array.isArray(target) ? target : [target];
+  const mode = supplied.mode || "bounded-slice";
+  const auditorLimit = Number.isInteger(supplied.auditorLimit)
+    ? Math.max(1, Math.min(supplied.auditorLimit, AUDITORS.length))
+    : (mode === "canary" ? 2 : AUDITORS.length);
+  const maxConcurrentAuditors = Number.isInteger(supplied.maxConcurrentAuditors)
+    ? Math.max(1, Math.min(supplied.maxConcurrentAuditors, 4))
+    : (mode === "canary" ? 1 : 2);
   return {
-    mode: supplied.mode || "bounded-slice",
+    mode,
     targets,
+    auditorLimit,
+    maxConcurrentAuditors,
     maxFindingsPerAuditor: Number.isInteger(supplied.maxFindingsPerAuditor)
       ? supplied.maxFindingsPerAuditor
       : 3,
     noWriteGlobs: supplied.noWriteGlobs || GOVERNANCE_NO_WRITE
   };
+}
+
+function selectedAuditors(config) {
+  return AUDITORS.slice(0, config.auditorLimit);
 }
 
 function buildPrompt(auditor, config) {
@@ -163,6 +192,15 @@ async function runAuditor(auditor, config, launch) {
   };
 }
 
+async function runInBatches(items, limit, task) {
+  const results = [];
+  for (let index = 0; index < items.length; index += limit) {
+    const batch = items.slice(index, index + limit);
+    results.push(...await Promise.all(batch.map(task)));
+  }
+  return results;
+}
+
 function consensus(results) {
   const findings = [];
   for (const item of results) {
@@ -184,13 +222,23 @@ function consensus(results) {
 async function main() {
   const config = normalizeArgs(typeof args === "undefined" ? undefined : args);
   const launch = workflowAgentLauncher();
-  const results = await Promise.all(AUDITORS.map((auditor) => runAuditor(auditor, config, launch)));
+  const auditors = selectedAuditors(config);
+  const results = await runInBatches(
+    auditors,
+    config.maxConcurrentAuditors,
+    (auditor) => runAuditor(auditor, config, launch)
+  );
   return {
     workflow_id: "vibeos-audit-sweep",
     mode: config.mode,
     targets: config.targets,
-    auditors_requested: AUDITORS.map((auditor) => auditor.id),
+    auditors_requested: auditors.map((auditor) => auditor.id),
+    auditors_available: AUDITORS.map((auditor) => auditor.id),
     auditors_completed: results.filter((item) => item.status === "complete").length,
+    cost_controls: {
+      auditor_limit: config.auditorLimit,
+      max_concurrent_auditors: config.maxConcurrentAuditors
+    },
     governance: {
       report_only: true,
       no_write_globs: config.noWriteGlobs

@@ -32,6 +32,11 @@ DIRECT_ACCESS_PATTERNS = [
 ]
 
 
+def extract_int(pattern: str, text: str) -> int | None:
+    match = re.search(pattern, text, flags=re.I)
+    return int(match.group(1)) if match else None
+
+
 def iso_now() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -119,6 +124,7 @@ def static_workflow_checks(root: Path, workflow_path: Path, target: str) -> dict
     markers = marker_map(text)
     auditors = csv_marker(markers.get("VIBEOS_WORKFLOW_AUDITORS"))
     no_write = csv_marker(markers.get("VIBEOS_WORKFLOW_GOVERNANCE_NO_WRITE"))
+    cost_controls = csv_marker(markers.get("VIBEOS_WORKFLOW_COST_CONTROLS"))
     max_concurrency = parse_int_constant(text, "MAX_CONCURRENT_AGENTS")
     direct_access = direct_access_findings(text)
     meta_first_statement_ok = text.lstrip().startswith("export const meta =")
@@ -137,6 +143,11 @@ def static_workflow_checks(root: Path, workflow_path: Path, target: str) -> dict
         "auditor_count_ok": len(auditors) == 12,
         "governance_no_write": no_write,
         "governance_no_write_ok": all(item in no_write for item in REQUIRED_NO_WRITE),
+        "cost_controls": cost_controls,
+        "cost_controls_ok": all(
+            item in cost_controls
+            for item in ["mode=canary", "auditorLimit", "maxConcurrentAuditors"]
+        ),
         "uses_args_global": re.search(r"\bargs\b", text) is not None,
         "direct_filesystem_or_shell_access_patterns": direct_access,
         "direct_filesystem_or_shell_access_ok": not direct_access,
@@ -154,6 +165,7 @@ def static_workflow_checks(root: Path, workflow_path: Path, target: str) -> dict
             checks["meta_first_statement_ok"],
             checks["auditor_count_ok"],
             checks["governance_no_write_ok"],
+            checks["cost_controls_ok"],
             checks["uses_args_global"],
             checks["direct_filesystem_or_shell_access_ok"],
             checks["max_concurrent_agents_ok"],
@@ -249,6 +261,11 @@ def live_output_summary(root: Path, live_output: Path | None, live_stderr: Path 
     result = find_key(payload, "result")
     if isinstance(result, str):
         lowered = result.lower()
+        summary["auditor_count"] = extract_int(r"\bAgents:\*\*\s*(\d+)", result)
+        summary["finding_count"] = extract_int(r"\bConsensus:\*\*\s*(\d+)\s+actionable finding", result)
+        mode_match = re.search(r"\bMode:\*\*\s*([a-z0-9_-]+)", result, flags=re.I)
+        if mode_match:
+            summary["mode"] = mode_match.group(1)
         if (
             "unknown command" in lowered
             or "not found" in lowered
@@ -284,14 +301,29 @@ def comparison(static_checks: dict[str, Any], baseline: dict[str, Any], live: di
     baseline_cost = (baseline.get("cost") or {}).get("total_cost_usd")
     workflow_cost = live.get("total_cost_usd")
     baseline_findings = (baseline.get("findings") or {}).get("count")
+    workflow_auditor_count = live.get("auditor_count")
+    workflow_finding_count = live.get("finding_count")
+    baseline_auditor_count = baseline.get("auditor_count") or len(baseline_auditors)
     return {
-        "auditor_count_delta": static_checks["auditor_count"] - len(baseline_auditors),
-        "auditor_list_matches_baseline": static_checks["auditors"] == baseline_auditors,
+        "auditor_count_delta": (
+            workflow_auditor_count - baseline_auditor_count
+            if workflow_auditor_count is not None
+            else static_checks["auditor_count"] - baseline_auditor_count
+        ),
+        "auditor_list_matches_baseline": (
+            workflow_auditor_count == baseline_auditor_count
+            if workflow_auditor_count is not None
+            else static_checks["auditors"] == baseline_auditors
+        ),
         "findings_comparison_status": (
             "pending_live_subagent_and_workflow_findings"
-            if baseline_findings is None or live.get("status") in {"not_run", "unparseable", "failed"}
+            if baseline_findings is None
+            or workflow_finding_count is None
+            or live.get("status") in {"not_run", "unparseable", "failed"}
             else "available"
         ),
+        "baseline_finding_count": baseline_findings,
+        "workflow_finding_count": workflow_finding_count,
         "token_or_cost_comparison_status": (
             "available"
             if baseline_cost is not None and workflow_cost is not None

@@ -1,0 +1,76 @@
+{
+  "auditor_count": 2,
+  "auditors": [
+    "security-auditor",
+    "architecture-auditor"
+  ],
+  "baseline_id": "vibeos-audit-subagent-path-live-canary",
+  "cost": {
+    "status": "captured_from_claude_output",
+    "total_cost_usd": 0.9119877000000001
+  },
+  "execution_status": "live_completed",
+  "findings": {
+    "count": 11,
+    "status": "captured",
+    "summary": "security-auditor reported 8 findings; architecture-auditor reported 3 informational findings"
+  },
+  "limitations": [
+    "This baseline covers only security-auditor and architecture-auditor on one bounded target.",
+    "Cost values are local Claude output estimates and require provider billing reconciliation before public cost claims."
+  ],
+  "mode": "canary-two-auditor-baseline",
+  "run": {
+    "duration_ms": 241252,
+    "num_turns": 3,
+    "returncode": 0
+  },
+  "schema_version": "1.0",
+  "source": "docs/evidence/vnext/wo-124-audit-fanout-workflow/subagent-baseline-output.json",
+  "target": "plugins/vibeos/scripts/runtime-capabilities.py",
+  "tokens": {
+    "modelUsage": {
+      "claude-sonnet-4-6": {
+        "cacheCreationInputTokens": 88585,
+        "cacheReadInputTokens": 1035604,
+        "contextWindow": 200000,
+        "costUSD": 0.9119877000000001,
+        "inputTokens": 47,
+        "maxOutputTokens": 32000,
+        "outputTokens": 14898,
+        "webSearchRequests": 0
+      }
+    },
+    "status": "captured_from_claude_output",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 20223,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 20223,
+      "cache_read_input_tokens": 49366,
+      "inference_geo": "not_available",
+      "input_tokens": 6,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 6841,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 6841,
+          "cache_read_input_tokens": 31374,
+          "input_tokens": 3,
+          "output_tokens": 755,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 1337,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    }
+  }
+}

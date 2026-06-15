@@ -10,11 +10,11 @@
     "--max-budget-usd",
     "1.00",
     "--allowedTools",
-    "Workflow,Read,Glob,Grep",
+    "Agent,Read,Glob,Grep",
     "--no-session-persistence"
   ],
-  "duration_seconds": 116.144,
+  "duration_seconds": 242.278,
   "returncode": 0,
   "stderr_bytes": 0,
-  "stdout_bytes": 2872
+  "stdout_bytes": 3825
 }

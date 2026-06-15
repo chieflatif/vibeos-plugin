@@ -1,7 +1,7 @@
 ---
 wo: WO-124
 title: Bounded First Use: Audit Fan-Out Workflow
-status: Awaiting Evidence
+status: Complete
 phase: 40
 phase_name: Dynamic Workflow Adoption
 wo_class: harness
@@ -35,7 +35,7 @@ loop_ceiling_cost_usd: 4.0
 
 ## Status
 
-`Awaiting Evidence`
+`Complete`
 
 ## Phase
 
@@ -90,17 +90,19 @@ The evidence script records three separate states:
 - [x] AC-4: Generated inventory includes saved Claude workflow scripts
 - [x] AC-5: Deterministic tests cover workflow shape and deferred adoption without live evidence
 - [x] AC-6: Bounded live Claude attempts captured with cost/token evidence
-- [ ] AC-7: Findings and cost/token evidence compared against the subagent-path baseline
-- [x] AC-8: Adoption verdict recorded from live evidence: `DEFER_LIVE_WORKFLOW_BUDGET_LIMIT`
+- [x] AC-7: Canary findings and cost/token evidence compared against the matching live subagent-path baseline
+- [x] AC-8: Adoption verdict recorded from live evidence: `PARTIAL_UNLOCK_CANDIDATE_REVIEW_BEFORE_DEFAULT`
 
 ## Remaining Limitations
 
 - Current local implementation proves the workflow file is discovered and reaches runtime execution attempts, but it does not prove a completed 12-auditor run.
 - Source-derived baseline evidence is not the same as live subagent execution evidence.
-- The final bounded attempt hit `error_max_budget_usd` at `total_cost_usd: 2.105614499999999` after the workflow reached real 12-agent fan-out.
-- Aggregate local Claude attempt cost captured for WO-124 is `3.7187443499999991` USD estimate, before provider billing reconciliation.
+- The full 12-auditor bounded attempt hit `error_max_budget_usd` at `total_cost_usd: 2.105614499999999` after the workflow reached real fan-out.
+- The successful canary run completed 2 auditors at `total_cost_usd: 0.4981767`.
+- The matching live subagent baseline completed 2 auditors at `total_cost_usd: 0.9119877000000001`.
+- Aggregate local Claude attempt cost captured for WO-124 is `7.3570225499999992` USD estimate, before provider billing reconciliation.
 - Claude workflow concurrency can overshoot the requested `--max-budget-usd` cap before the controller stops the run; attempt 7 was capped at `1.50` but reported `2.105614499999999`.
-- No public claim may say dynamic workflows are adopted by default until AC-6 through AC-8 are complete.
+- No public claim may say dynamic workflows are adopted by default. Current evidence supports only a reviewed canary-level partial unlock candidate.
 
 ## Test Strategy
 
@@ -128,7 +130,7 @@ The evidence script records three separate states:
 ### Evidence-Closeout Audit
 
 - Status: `partial`
-- Findings: Seven bounded Claude invocations were captured. Attempt 1 exposed the first-statement `meta` requirement. Attempt 2 exposed the need to allow the `Workflow` tool. Attempt 3 exposed that only `meta` is exported while the executable body is an async script. Attempt 4 reached the low budget ceiling. Attempt 5 reconfirmed the required `export const meta` shape. Attempt 6 launched all 12 auditors but exposed the `agent(prompt, opts)` signature. Attempt 7 used the corrected signature and reached real fan-out, then hit the budget ceiling before findings/baseline comparison proof completed. This is enough to defer default adoption, not enough to approve it.
+- Findings: Nine bounded Claude workflow invocations and one live subagent baseline were captured. Attempts 1-8 exposed and fixed workflow format, permission, argument parsing, and agent-launch issues. Attempt 9 completed a 2-auditor canary and produced one low-severity architecture finding at lower cost than the matching subagent baseline. The full 12-auditor workflow remains too expensive for default adoption without additional cost controls.
 - Test status: Focused tests passed; full suite passed; `pre_commit` gate passed.
 
 ## Evidence
@@ -137,28 +139,39 @@ The evidence script records three separate states:
 - [x] Tests pass
 - [x] Gates pass
 - [x] Bounded live workflow proof captured
-- [x] Adoption verdict recorded as `DEFER_LIVE_WORKFLOW_BUDGET_LIMIT`
-- [ ] Completed live workflow proof captured
+- [x] Adoption verdict recorded as `PARTIAL_UNLOCK_CANDIDATE_REVIEW_BEFORE_DEFAULT`
+- [x] Canary live workflow proof captured
+- [x] Matching live subagent baseline captured
+- [ ] Full 12-auditor live workflow proof captured
 
 ### Proof Commands
 
 ```bash
 python3 -m pytest tests/test_workflow_audit_sweep.py tests/test_generate_inventory.py
-# 9 passed
+# 10 passed
 
 python3 -m pytest tests
-# 222 passed
+# 223 passed
 
 node --input-type=module --check - < .claude/workflows/vibeos-audit-sweep
 # exit 0
 
-claude -p "<bounded /vibeos-audit-sweep prompt>" --model sonnet --output-format json --max-budget-usd 1.50 --allowedTools Workflow,Read,Glob,Grep --no-session-persistence
-# returncode 1
-# subtype: error_max_budget_usd
-# total_cost_usd: 2.105614499999999
+claude -p "<bounded /vibeos-audit-sweep canary prompt>" --model sonnet --output-format json --max-budget-usd 1.00 --allowedTools Workflow,Read,Glob,Grep --no-session-persistence
+# returncode 0
+# subtype: success
+# total_cost_usd: 0.4981767
+# workflow finding count: 1
 
-python3 plugins/vibeos/scripts/workflow-audit-sweep-evidence.py --project-dir . --live-output docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-output.json --live-stderr docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-stderr.txt --out docs/evidence/vnext/wo-124-audit-fanout-workflow/workflow-evidence-report.json
-# adoption_verdict: DEFER_LIVE_WORKFLOW_BUDGET_LIMIT
+claude -p "<matching subagent baseline prompt>" --model sonnet --output-format json --max-budget-usd 1.00 --allowedTools Agent,Read,Glob,Grep --no-session-persistence
+# returncode 0
+# subtype: success
+# total_cost_usd: 0.9119877000000001
+# baseline finding count: 11
+
+python3 plugins/vibeos/scripts/workflow-audit-sweep-evidence.py --project-dir . --baseline docs/evidence/vnext/wo-124-audit-fanout-workflow/subagent-baseline-live.json --live-output docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-output.json --live-stderr docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-stderr.txt --out docs/evidence/vnext/wo-124-audit-fanout-workflow/workflow-evidence-report.json
+# adoption_verdict: PARTIAL_UNLOCK_CANDIDATE_REVIEW_BEFORE_DEFAULT
+# findings_comparison_status: available
+# token_or_cost_comparison_status: available
 
 bash plugins/vibeos/scripts/gate-runner.sh pre_commit --continue-on-failure --manifest plugins/vibeos/quality-gate-manifest.json --project-dir . --framework-dir plugins/vibeos
 # Total: 10 | Passed: 6 | Failed: 0 | Skipped: 4
