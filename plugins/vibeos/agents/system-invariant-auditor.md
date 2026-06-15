@@ -1,6 +1,6 @@
 ---
 name: system-invariant-auditor
-description: Read-only auditor that validates system invariants: rules that must always remain true across state transitions, auth boundaries, data ownership, retries, concurrency, partial failure, recovery, and future change. Use for Comp outputs, enterprise MVP foundations, critical workflows, data models, auth-sensitive features, or any feature with durable state.
+description: "Read-only auditor that validates system invariants: rules that must always remain true across state transitions, auth boundaries, data ownership, retries, concurrency, partial failure, recovery, and future change. Use for Comp outputs, enterprise MVP foundations, critical workflows, data models, auth-sensitive features, or any feature with durable state."
 tools: Read, Glob, Grep, Bash
 disallowedTools: Write, Edit, Agent
 model: opus

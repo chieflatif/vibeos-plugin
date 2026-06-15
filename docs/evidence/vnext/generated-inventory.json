@@ -601,9 +601,10 @@
         "docs/planning/WO-126-agent-team-pilot-execution.md",
         "docs/planning/WO-139-session-limit-aware-self-rescheduling.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
-        "docs/planning/WO-146-tests-pass-recursion-guard.md"
+        "docs/planning/WO-146-tests-pass-recursion-guard.md",
+        "docs/planning/WO-147-plugin-install-integrity-remediation.md"
       ],
-      "value": 132
+      "value": 133
     },
     {
       "claim": "Quality gate manifest entries",
@@ -649,7 +650,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-15T16:15:01Z",
+  "generated_at": "2026-06-15T17:10:33Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -1122,7 +1123,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 132,
+      "count": 133,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1255,7 +1256,8 @@
         "docs/planning/WO-126-agent-team-pilot-execution.md",
         "docs/planning/WO-139-session-limit-aware-self-rescheduling.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
-        "docs/planning/WO-146-tests-pass-recursion-guard.md"
+        "docs/planning/WO-146-tests-pass-recursion-guard.md",
+        "docs/planning/WO-147-plugin-install-integrity-remediation.md"
       ]
     }
   },

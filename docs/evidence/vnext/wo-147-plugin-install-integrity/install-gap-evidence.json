@@ -1,0 +1,123 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-147",
+  "artifact": "plugin_install_integrity_evidence",
+  "discovered_by": "WO-126 agent-team pilot (Terminal arm hook errors); extended during the upgrade-mechanics investigation",
+  "captured_at": "2026-06-15T17:05:00Z",
+  "summary": "The marketplace-installed plugin vibeos@vibeos resolves to a stale AND internally-broken cached package. Every Claude Code session on this machine (desktop and terminal) loads it, so none of the local 2.2.0 vNext enforcement actually executes at runtime. Separately, the local 2.2.0 source is not yet cleanly install-ready (one agent has broken frontmatter) and has never been published to the marketplace.",
+  "install_scope": {
+    "scope": "user (system-wide)",
+    "enabled_in": "~/.claude/settings.json enabledPlugins -> vibeos@vibeos:true",
+    "cache_path": "~/.claude/plugins/cache/vibeos/vibeos/1.0.5/",
+    "applies_to": "every repository and session on this machine; NOT repo-specific",
+    "per_repo_state": "project state (.vibeos/, docs/planning/, WO files) is per-repo; the plugin engine is the one shared global install"
+  },
+  "installed_plugin": {
+    "enable_key": "vibeos@vibeos",
+    "marketplace_source": "GitHub chieflatif/vibeos-plugin",
+    "marketplace_catalog_last_refreshed": "2026-03-11",
+    "resolved_path": "~/.claude/plugins/cache/vibeos/vibeos/1.0.5/",
+    "plugin_json_version": "1.0.5",
+    "framework_version": "1.0.0",
+    "installed_git_commit": "21236f92b1fba9a754f06cbe9688e42432037ca2",
+    "hooks_json_registered_events": ["PreToolUse", "SessionStart", "Stop", "UserPromptSubmit"],
+    "registers_team_events": false,
+    "shipped_hook_scripts": [
+      "frozen-files.sh",
+      "intent-router.sh",
+      "prereq-check.sh",
+      "response-quality-stop.sh",
+      "secrets-scan.sh",
+      "significance-stop.sh",
+      "test-diff-audit.sh",
+      "test-file-protection.sh"
+    ]
+  },
+  "defect_1_broken_release": {
+    "severity": "critical",
+    "description": "The installed 1.0.5 hooks.json references hook scripts that are NOT present in its own hooks/scripts/ directory. Every PreToolUse invocation tries to exec a missing script and fails with '/bin/sh: <path>: No such file or directory' (non-blocking). The enforcement hooks are therefore inert at runtime.",
+    "scripts_referenced_but_missing_in_package": [
+      "governance-guard.sh",
+      "proof-protection.sh",
+      "file-budget.sh",
+      "worktree-bash-guard.sh",
+      "worktree-scope-guard.sh"
+    ],
+    "runtime_symptom": "Observed in the WO-126 Terminal arm: PreToolUse:Bash / PreToolUse:Write / PreToolUse:Edit / UserPromptSubmit hook errors on essentially every tool call, all pointing at ~/.claude/plugins/cache/vibeos/vibeos/1.0.5/hooks/scripts/<name>.sh.",
+    "desktop_inference": "The desktop app loads the same install (intent-router.sh and prereq-check.sh from 1.0.5 fire in desktop sessions) but does not surface non-blocking hook stderr, so the same errors occur silently there."
+  },
+  "defect_2_stale_release": {
+    "severity": "critical",
+    "description": "1.0.5 is FRAMEWORK_VERSION 1.0.0 and predates all of vNext (Phases 34-46, WO-107..146). The local dev tree is 2.2.0. None of frontmatter governance, lane-readiness, model policy, autonomy control plane, or team-governance hooks (WO-117) exist in the installed package.",
+    "consequence": "Dogfooding has been validating a ghost: the plugin built across Phases 34-46 has never governed a live session on this machine."
+  },
+  "defect_3_local_source_not_install_ready": {
+    "severity": "high",
+    "description": "claude plugin validate plugins/vibeos FAILS: plugins/vibeos/agents/system-invariant-auditor.md has YAML frontmatter that fails to parse, so the agent loads with empty metadata (all frontmatter fields silently dropped) at runtime.",
+    "root_cause": "The description: value contains a colon-space sequence ('...system invariants: rules...'). YAML reads ': ' inside an unquoted plain scalar as a nested mapping and errors. Fix: quote the description value (or remove the internal ': ').",
+    "implication": "Even the immediate fix (Path A publish or Path B local-dev marketplace) must repair this first, or the published/loaded 2.2.0 plugin ships a broken invariant-auditor agent.",
+    "tooling": "Surfaced by the built-in `claude plugin validate`."
+  },
+  "publish_gap": {
+    "severity": "critical",
+    "description": "The local 2.2.0 vNext work has never been published to the marketplace source repo in installable form, so a plain `claude plugin update` cannot reach it.",
+    "facts": {
+      "origin_remote": "https://github.com/chieflatif/vibeos-plugin.git (== the marketplace source)",
+      "installed_commit_is_ancestor_of_head": true,
+      "commits_since_installed": 47,
+      "vnext_work_branch": "codex/vibeos-vnext-continuation (feature branch)",
+      "local_main_vs_origin_main": "local main is 5 commits ahead of origin/main; 0 behind",
+      "github_main_has_2_2_0": false
+    },
+    "consequence": "Running `claude plugin marketplace update vibeos` + `claude plugin update vibeos@vibeos` today would pull the old GitHub version, not 2.2.0. The new engine exists only on this laptop."
+  },
+  "update_paths": {
+    "path_a_publish": {
+      "label": "Publish then update (release path)",
+      "steps": [
+        "Fix defect_3 (frontmatter) so `claude plugin validate plugins/vibeos` passes.",
+        "Merge the vNext branch to main and push to chieflatif/vibeos-plugin.",
+        "`claude plugin tag` to cut a version tag (validates plugin.json + marketplace entry agree).",
+        "`claude plugin marketplace update vibeos` then `claude plugin update vibeos@vibeos`; restart to apply."
+      ],
+      "result": "2.2.0 installed system-wide, reproducible, installable by anyone."
+    },
+    "path_b_local_dev_marketplace": {
+      "label": "Local-dev marketplace (dogfooding path)",
+      "steps": [
+        "Fix defect_3 (frontmatter).",
+        "`claude plugin marketplace add \"/Users/latifhorst/cursor projects/vibeos-plugin\"` (marketplace.json source ./plugins/vibeos points at the 2.2.0 plugin; marketplace.json already validates).",
+        "Install/enable vibeos from the local marketplace; disable/uninstall the stale GitHub-sourced install so they do not collide.",
+        "Restart to apply."
+      ],
+      "result": "Runtime == local working tree (2.2.0), live. Best while actively building vNext."
+    },
+    "note": "Both are system-wide once enabled in user settings. A restart is required to apply install changes, so these steps are operator-run, not agent-run."
+  },
+  "built_in_guards": {
+    "claude_plugin_validate": "validates a plugin or marketplace manifest (caught defect_3).",
+    "claude_plugin_tag": "creates a {name}--v{version} release tag, validating plugin.json and the enclosing marketplace entry agree.",
+    "wo147_validator_complements": "validate-plugin-package.sh adds the unshipped-hook-script + version-skew checks that the built-ins do not cover (the class that broke 1.0.5)."
+  },
+  "misdiagnosis_corrected": {
+    "wo_126_d_team_1_claim": "the Claude Code agent-teams runtime does not emit TaskCreated/TaskCompleted/TeammateIdle hook events",
+    "actual_root_cause": "The installed 1.0.5 hooks.json does not register those team events at all (predates WO-117) and the package does not contain team-governance.sh. The local 2.2.0 team-governance wiring was never loaded in the Terminal arm.",
+    "open_question": "Whether this Claude Code build emits team-lifecycle hook events remains UNTESTED. It can only be answered after the current-source plugin (with team events registered) is actually installed and a team arm is re-run."
+  },
+  "local_dev_tree": {
+    "plugin_json_version": "2.2.0",
+    "framework_version": "2.2.0",
+    "marketplace_json_valid": true,
+    "plugin_validate_passes": false,
+    "plugin_validate_blocker": "system-invariant-auditor.md frontmatter (defect_3)",
+    "hooks_json_complete": true,
+    "all_referenced_scripts_present": true,
+    "team_governance_registered": true,
+    "note": "The source hooks are complete and team-governance is registered; only the published/installed artifact is stale and broken, and the source has the one frontmatter blocker to repair before install."
+  },
+  "git_pre_commit_note": {
+    "severity": "low",
+    "observation": "The repo git pre-commit hook looks for .vibeos/scripts/gate-runner.sh (the installed-into-project layout) which does not exist in this meta-repo, so it prints 'gate-runner.sh not found — skipping' and runs no gates at commit time. Same install-layout theme; minor.",
+    "mitigation": "Gates were run manually against plugins/vibeos/scripts/gate-runner.sh and passed."
+  }
+}
