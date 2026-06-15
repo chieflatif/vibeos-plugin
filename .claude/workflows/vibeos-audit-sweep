@@ -1,6 +1,12 @@
-const meta = {
+export const meta = {
   name: "vibeos-audit-sweep",
   description: "Run the VibeOS 12-auditor consensus sweep on a bounded report-only target.",
+  phases: [
+    {
+      name: "bounded-audit-fanout",
+      description: "Dispatch the VibeOS report-only auditor set against the requested bounded target."
+    }
+  ],
   version: "1.0.0"
 };
 
@@ -124,10 +130,10 @@ function buildPrompt(auditor, config) {
 
 function workflowAgentLauncher() {
   if (typeof agent === "function") {
-    return (spec) => agent(spec);
+    return (spec) => agent(spec.prompt, { label: spec.name });
   }
   if (typeof runAgent === "function") {
-    return (spec) => runAgent(spec);
+    return (spec) => runAgent(spec.prompt, { label: spec.name });
   }
   if (typeof Agent !== "undefined" && Agent && typeof Agent.run === "function") {
     return (spec) => Agent.run(spec);

@@ -8,13 +8,13 @@
     "--output-format",
     "json",
     "--max-budget-usd",
-    "1.50",
+    "1.00",
     "--allowedTools",
     "Workflow,Read,Glob,Grep",
     "--no-session-persistence"
   ],
-  "duration_seconds": 172.983,
-  "returncode": 1,
+  "duration_seconds": 19.496,
+  "returncode": 0,
   "stderr_bytes": 0,
-  "stdout_bytes": 973
+  "stdout_bytes": 1822
 }

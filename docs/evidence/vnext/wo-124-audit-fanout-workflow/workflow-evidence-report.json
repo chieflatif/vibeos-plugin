@@ -6,10 +6,10 @@
     "baseline_total_cost_usd": null,
     "findings_comparison_status": "pending_live_subagent_and_workflow_findings",
     "token_or_cost_comparison_status": "pending_baseline_or_workflow_token_evidence",
-    "workflow_total_cost_usd": 0.179895
+    "workflow_total_cost_usd": 2.105614499999999
   },
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-15T00:48:53Z",
+  "generated_at": "2026-06-15T01:42:21Z",
   "limitations": [
     "This report does not claim Claude/Codex parity.",
     "This report does not claim automatic write-time enforcement.",
@@ -19,16 +19,16 @@
   "live_workflow_run": {
     "error": null,
     "errors": [
-      "Reached maximum budget ($0.15)"
+      "Reached maximum budget ($1.5)"
     ],
     "is_error": true,
-    "num_turns": 4,
+    "num_turns": 1,
     "output_path": "docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-output.json",
     "permission_denials_count": 0,
     "result_type": "error_max_budget_usd",
     "status": "budget_limited",
     "stderr_path": "docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-stderr.txt",
-    "total_cost_usd": 0.179895,
+    "total_cost_usd": 2.105614499999999,
     "workflow_permission_denied": false
   },
   "objective": "Bounded first use of the VibeOS audit fan-out dynamic workflow.",

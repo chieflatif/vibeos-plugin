@@ -25,10 +25,10 @@ model_policy: implementation
 budget_posture:
   token_ceiling: null
   turn_ceiling: 1
-  cost_ceiling_usd: 0.75
+  cost_ceiling_usd: 4.0
 loop_goal: workflow candidate and bounded-run evidence are recorded without default adoption overclaim
 loop_ceiling_turns: 1
-loop_ceiling_cost_usd: 0.75
+loop_ceiling_cost_usd: 4.0
 ---
 
 # WO-124: Bounded First Use: Audit Fan-Out Workflow
@@ -97,8 +97,9 @@ The evidence script records three separate states:
 
 - Current local implementation proves the workflow file is discovered and reaches runtime execution attempts, but it does not prove a completed 12-auditor run.
 - Source-derived baseline evidence is not the same as live subagent execution evidence.
-- The final bounded attempt hit `error_max_budget_usd` at `total_cost_usd: 0.179895`.
-- Aggregate local Claude attempt cost captured for WO-124 is `0.6758316` USD estimate, before provider billing reconciliation.
+- The final bounded attempt hit `error_max_budget_usd` at `total_cost_usd: 2.105614499999999` after the workflow reached real 12-agent fan-out.
+- Aggregate local Claude attempt cost captured for WO-124 is `3.7187443499999991` USD estimate, before provider billing reconciliation.
+- Claude workflow concurrency can overshoot the requested `--max-budget-usd` cap before the controller stops the run; attempt 7 was capped at `1.50` but reported `2.105614499999999`.
 - No public claim may say dynamic workflows are adopted by default until AC-6 through AC-8 are complete.
 
 ## Test Strategy
@@ -127,7 +128,7 @@ The evidence script records three separate states:
 ### Evidence-Closeout Audit
 
 - Status: `partial`
-- Findings: Four bounded Claude invocations were captured. Attempt 1 exposed the first-statement `meta` requirement. Attempt 2 exposed the need to allow the `Workflow` tool. Attempt 3 exposed that saved workflows execute as an async script body rather than an ES module. Attempt 4 reached the budget ceiling after those fixes. This is enough to defer default adoption, not enough to approve it.
+- Findings: Seven bounded Claude invocations were captured. Attempt 1 exposed the first-statement `meta` requirement. Attempt 2 exposed the need to allow the `Workflow` tool. Attempt 3 exposed that only `meta` is exported while the executable body is an async script. Attempt 4 reached the low budget ceiling. Attempt 5 reconfirmed the required `export const meta` shape. Attempt 6 launched all 12 auditors but exposed the `agent(prompt, opts)` signature. Attempt 7 used the corrected signature and reached real fan-out, then hit the budget ceiling before findings/baseline comparison proof completed. This is enough to defer default adoption, not enough to approve it.
 - Test status: Focused tests passed; full suite passed; `pre_commit` gate passed.
 
 ## Evidence
@@ -143,18 +144,18 @@ The evidence script records three separate states:
 
 ```bash
 python3 -m pytest tests/test_workflow_audit_sweep.py tests/test_generate_inventory.py
-# 8 passed
+# 9 passed
 
 python3 -m pytest tests
-# 221 passed
+# 222 passed
 
 node --input-type=module --check - < .claude/workflows/vibeos-audit-sweep
 # exit 0
 
-claude -p "<bounded /vibeos-audit-sweep prompt>" --model sonnet --output-format json --max-budget-usd 0.15 --allowedTools Workflow,Read,Glob,Grep --no-session-persistence
+claude -p "<bounded /vibeos-audit-sweep prompt>" --model sonnet --output-format json --max-budget-usd 1.50 --allowedTools Workflow,Read,Glob,Grep --no-session-persistence
 # returncode 1
 # subtype: error_max_budget_usd
-# total_cost_usd: 0.179895
+# total_cost_usd: 2.105614499999999
 
 python3 plugins/vibeos/scripts/workflow-audit-sweep-evidence.py --project-dir . --live-output docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-output.json --live-stderr docs/evidence/vnext/wo-124-audit-fanout-workflow/claude-workflow-stderr.txt --out docs/evidence/vnext/wo-124-audit-fanout-workflow/workflow-evidence-report.json
 # adoption_verdict: DEFER_LIVE_WORKFLOW_BUDGET_LIMIT

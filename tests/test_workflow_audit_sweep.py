@@ -19,7 +19,7 @@ class WorkflowAuditSweepTests(unittest.TestCase):
         markers = workflow_evidence.marker_map(text)
         auditors = workflow_evidence.csv_marker(markers["VIBEOS_WORKFLOW_AUDITORS"])
 
-        self.assertTrue(text.startswith("const meta ="))
+        self.assertTrue(text.startswith("export const meta ="))
         self.assertEqual(markers["VIBEOS_WORKFLOW_ID"], "vibeos-audit-sweep")
         self.assertEqual(len(auditors), 12)
         self.assertIn("security-auditor", auditors)
@@ -30,6 +30,8 @@ class WorkflowAuditSweepTests(unittest.TestCase):
         )
         self.assertIn("bounded-live-run-required", markers["VIBEOS_WORKFLOW_STATUS"])
         self.assertIn("typeof args", text)
+        self.assertIn("agent(spec.prompt", text)
+        self.assertNotIn("agent(spec);", text)
         self.assertNotIn("require(\"fs\")", text)
         self.assertNotIn("child_process", text)
 
@@ -167,6 +169,38 @@ class WorkflowAuditSweepTests(unittest.TestCase):
 
         self.assertEqual(report["live_workflow_run"]["status"], "budget_limited")
         self.assertEqual(report["adoption_verdict"], "DEFER_LIVE_WORKFLOW_BUDGET_LIMIT")
+
+    def test_agent_signature_failure_defers_adoption(self):
+        with tempfile.TemporaryDirectory() as tempdir:
+            root = Path(tempdir)
+            output = root / "claude-output.json"
+            output.write_text(
+                json.dumps(
+                    {
+                        "type": "result",
+                        "subtype": "success",
+                        "is_error": False,
+                        "num_turns": 5,
+                        "total_cost_usd": 0.8,
+                        "result": "The workflow completed but all agents saw [object Object] due to a signature mismatch.",
+                        "permission_denials": [],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            report = workflow_evidence.build_report(
+                root=REPO,
+                workflow_path=WORKFLOW,
+                target="plugins/vibeos/scripts/runtime-capabilities.py",
+                baseline_path=None,
+                live_output=output,
+                live_stderr=None,
+                generated_at="2026-06-15T00:00:00Z",
+            )
+
+        self.assertEqual(report["live_workflow_run"]["status"], "agent_signature_failed")
+        self.assertEqual(report["adoption_verdict"], "DEFER_WORKFLOW_AGENT_SIGNATURE_FIX_REQUIRED")
 
 
 if __name__ == "__main__":

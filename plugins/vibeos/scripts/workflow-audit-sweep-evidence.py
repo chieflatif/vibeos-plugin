@@ -121,7 +121,7 @@ def static_workflow_checks(root: Path, workflow_path: Path, target: str) -> dict
     no_write = csv_marker(markers.get("VIBEOS_WORKFLOW_GOVERNANCE_NO_WRITE"))
     max_concurrency = parse_int_constant(text, "MAX_CONCURRENT_AGENTS")
     direct_access = direct_access_findings(text)
-    meta_first_statement_ok = text.lstrip().startswith("const meta =")
+    meta_first_statement_ok = text.lstrip().startswith("export const meta =")
 
     checks = {
         "workflow_exists": exists,
@@ -258,9 +258,16 @@ def live_output_summary(root: Path, live_output: Path | None, live_stderr: Path 
             or "review dynamic workflow before running" in lowered
             or "did not launch" in lowered
             or "never ran" in lowered
+            or "signature mismatch" in lowered
+            or "[object object]" in lowered
+            or "prompt-serialization bug" in lowered
+            or "zero valid findings" in lowered
             or ("workflow" in lowered and "error" in lowered)
         ):
-            summary["status"] = "blocked_review_gate" if summary["workflow_permission_denied"] else "failed"
+            if "signature mismatch" in lowered or "[object object]" in lowered or "prompt-serialization bug" in lowered:
+                summary["status"] = "agent_signature_failed"
+            else:
+                summary["status"] = "blocked_review_gate" if summary["workflow_permission_denied"] else "failed"
         else:
             summary["status"] = "completed_or_returned"
     if summary["workflow_permission_denied"]:
@@ -304,6 +311,8 @@ def verdict(static_checks: dict[str, Any], live: dict[str, Any], compare: dict[s
         return "DEFER_WORKFLOW_REVIEW_GATE_NOT_APPROVED"
     if live.get("status") == "budget_limited":
         return "DEFER_LIVE_WORKFLOW_BUDGET_LIMIT"
+    if live.get("status") == "agent_signature_failed":
+        return "DEFER_WORKFLOW_AGENT_SIGNATURE_FIX_REQUIRED"
     if live.get("status") in {"failed", "unparseable"}:
         return "DEFER_LIVE_WORKFLOW_NOT_PROVEN"
     if compare["token_or_cost_comparison_status"] != "available":
