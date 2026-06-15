@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-125",
+  "artifact": "agent_team_pilot_evidence_model",
+  "version_pin": {
+    "runtime_pin_path": "docs/evidence/vnext/wo-125-agent-team-pilot/runtime-pin.json",
+    "minimum_claude_code_version": "2.1.32",
+    "local_claude_code_version": "2.1.177",
+    "agent_team_opt_in_env": "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1",
+    "status_with_opt_in": "experimental_available"
+  },
+  "pilot_scope": {
+    "wo": "WO-126",
+    "lane_count_min": 2,
+    "lane_count_max": 3,
+    "allowed_lane_shape": "disjoint-scope WOs with no same-file contention",
+    "default_adoption_allowed": false
+  },
+  "feature_flags": {
+    "repo_default_agent_teams": false,
+    "pilot_only_team_governance_flag": {
+      "path": ".vibeos/config.json",
+      "json": {
+        "features": {
+          "agent_team_governance": true
+        }
+      }
+    }
+  },
+  "manual_fallback": {
+    "fallback_state": "FALLBACK_TO_SUBAGENTS",
+    "required_steps": [
+      "preserve .vibeos/team-governance/events.jsonl",
+      "capture task-list state and partial lane packets",
+      "finish through sequential/subagent VibeOS build path",
+      "record fallback reason before completion claim"
+    ]
+  },
+  "go_no_go_criteria": [
+    {
+      "id": "stall_detection_latency",
+      "partial_unlock_target": "TeammateIdle or missing-return detection recorded within 5 minutes p95 and 10 minutes max",
+      "no_go_condition": "any unrecorded stall or max latency over 10 minutes",
+      "evidence": [
+        "team-governance-events.jsonl",
+        "task-list snapshots",
+        "pilot-summary.json"
+      ]
+    },
+    {
+      "id": "pre_merge_defects_caught",
+      "partial_unlock_target": "at least one material issue caught before merge/closeout, or every scoped lane records clean pre-merge evidence with no post-closeout regression",
+      "no_go_condition": "defect found only after closeout or missing evidence that checks ran before merge",
+      "evidence": [
+        "lane-packets/*.json",
+        "defect-ledger.json",
+        "gate output"
+      ]
+    },
+    {
+      "id": "coordinator_labor_vs_sequential",
+      "partial_unlock_target": "lead coordination time no more than 80 percent of the sequential baseline for the same lane count",
+      "no_go_condition": "coordination time equals or exceeds sequential baseline, or is not measured",
+      "evidence": [
+        "coordinator-labor.json",
+        "pilot-summary.json"
+      ]
+    },
+    {
+      "id": "scope_safety",
+      "partial_unlock_target": "zero unauthorized path writes and zero missing-WO task closures",
+      "no_go_condition": "any governance veto, out-of-scope edit, or missing-WO task closure",
+      "evidence": [
+        "team-governance-events.jsonl",
+        "git diff",
+        "lane-packets/*.json"
+      ]
+    },
+    {
+      "id": "cost_posture",
+      "partial_unlock_target": "pilot cost captured and reviewed; no default adoption if cost exceeds sequential/subagent baseline by more than 25 percent",
+      "no_go_condition": "missing cost evidence or materially higher cost without a quality win",
+      "evidence": [
+        "cost-report.json",
+        "Claude output JSON"
+      ]
+    }
+  ],
+  "required_evidence_bundle": [
+    "runtime-pin.json",
+    "task-list-start.json",
+    "task-list-end.json",
+    "team-governance-events.jsonl",
+    "lane-packets/*.json",
+    "cost-report.json",
+    "defect-ledger.json",
+    "coordinator-labor.json",
+    "pilot-summary.json"
+  ],
+  "allowed_verdicts": [
+    "NO_GO",
+    "FALLBACK_TO_SUBAGENTS",
+    "PARTIAL_UNLOCK_CANDIDATE"
+  ],
+  "blocked_claims": [
+    "production-ready agent teams",
+    "default agent-team adoption",
+    "Claude/Codex parity",
+    "24-48 hour autonomy"
+  ]
+}

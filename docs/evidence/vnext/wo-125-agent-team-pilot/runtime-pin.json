@@ -1,0 +1,16 @@
+{
+  "agent_team_opt_in_env": "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1",
+  "agent_teams_status_with_opt_in": "experimental_available",
+  "capability_evidence": "env CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=set; version >= 2.1.32",
+  "claude_version": "2.1.177",
+  "claude_version_output": "2.1.177 (Claude Code)",
+  "generated_at": "2026-06-15T05:39:55Z",
+  "limitations": [
+    "This is a local capability pin, not live agent-team execution proof.",
+    "Agent teams remain experimental and disabled by default."
+  ],
+  "local_binary": "/opt/homebrew/bin/claude",
+  "schema_version": "1.0",
+  "version_requirement": "Claude Code >= 2.1.32",
+  "wo": "WO-125"
+}

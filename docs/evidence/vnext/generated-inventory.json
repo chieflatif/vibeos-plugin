@@ -425,6 +425,7 @@
       "public_status": "allowed_with_this_artifact",
       "source": "generated_from_repo",
       "source_paths": [
+        "tests/test_agent_team_pilot_plan.py",
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
         "tests/test_comp_blueprint.py",
@@ -460,7 +461,7 @@
         "tests/test_workflow_audit_sweep.py",
         "tests/test_workflow_governance.py"
       ],
-      "value": 34
+      "value": 35
     },
     {
       "claim": "Work order documents",
@@ -595,11 +596,12 @@
         "docs/planning/WO-122-recovery-loop-execution-shell.md",
         "docs/planning/WO-123-workflow-governance-policy-capability-detection.md",
         "docs/planning/WO-124-bounded-first-use-audit-fan-out-workflow.md",
+        "docs/planning/WO-125-agent-team-pilot-plan-evidence-model.md",
         "docs/planning/WO-139-session-limit-aware-self-rescheduling.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
       ],
-      "value": 130
+      "value": 131
     },
     {
       "claim": "Quality gate manifest entries",
@@ -645,7 +647,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-15T05:35:54Z",
+  "generated_at": "2026-06-15T05:47:21Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -1076,8 +1078,9 @@
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 34,
+      "count": 35,
       "paths": [
+        "tests/test_agent_team_pilot_plan.py",
         "tests/test_ai_failure_modes.py",
         "tests/test_codex_bootstrap.py",
         "tests/test_comp_blueprint.py",
@@ -1116,7 +1119,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 130,
+      "count": 131,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1245,6 +1248,7 @@
         "docs/planning/WO-122-recovery-loop-execution-shell.md",
         "docs/planning/WO-123-workflow-governance-policy-capability-detection.md",
         "docs/planning/WO-124-bounded-first-use-audit-fan-out-workflow.md",
+        "docs/planning/WO-125-agent-team-pilot-plan-evidence-model.md",
         "docs/planning/WO-139-session-limit-aware-self-rescheduling.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md"
