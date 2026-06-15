@@ -1,0 +1,1 @@
+{"schema_version":"1.0","wo":"WO-126","arm":"teams","status":"TEMPLATE_PENDING","captured_at":null,"tasks":[{"task_id":"lane-a","teammate":"lane-a-auditgates","wo_references":["WO-126","WO-127"],"status":null},{"task_id":"lane-b","teammate":"lane-b-hygiene","wo_references":["WO-126","WO-128"],"status":null}]}

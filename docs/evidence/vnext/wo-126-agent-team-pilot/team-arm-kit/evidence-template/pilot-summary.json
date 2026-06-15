@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "arm": "teams",
+  "status": "TEMPLATE_PENDING_OPERATOR_RUN",
+  "agent_teams_actually_ran": null,
+  "teammates_spawned": null,
+  "lane_assignments": {"lane-a-auditgates": "WO-127", "lane-b-hygiene": "WO-128"},
+  "criteria": {
+    "stall_detection_latency": {"result": null, "detail": "fill from team-governance-events.jsonl: was TeammateIdle / missing-return detected within 5min p95 / 10min max?"},
+    "pre_merge_defects_caught": {"result": null, "detail": "fill from defect-ledger.json"},
+    "coordinator_labor_vs_sequential": {"result": null, "detail": "fill from coordinator-labor.json"},
+    "scope_safety": {"result": null, "detail": "git diff: any out-of-scope writes? any missing-WO closures vetoed/observed?"},
+    "cost_posture": {"result": null, "detail": "fill from cost-report.json; compare to subagent baseline 157456 tokens (no default adoption if >25% over without a quality win)"}
+  },
+  "verdict": null,
+  "allowed_verdicts": ["NO_GO", "FALLBACK_TO_SUBAGENTS", "PARTIAL_UNLOCK_CANDIDATE"],
+  "verdict_rationale": null
+}

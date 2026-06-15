@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "arm": "subagents",
+  "captured_at": "2026-06-15T16:01:22Z",
+  "shared_task_list_model": "In the subagent arm the shared task list is the two disjoint lane assignments. Each task cites WO-126 plus its lane-target WO, satisfying the same WO-reference contract the team-governance TaskCreated hook enforces in the team arm.",
+  "tasks": [
+    {
+      "task_id": "lane-a",
+      "teammate": "lane-a-auditgates",
+      "subject": "WO-126 / WO-127 planning slice: auditor-artifact + waiver-expiry + executed-vs-declared gate specs",
+      "wo_references": ["WO-126", "WO-127"],
+      "lane_packet": "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-a-wo127.json",
+      "allowed_write_paths": ["docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-a-wo127-return.json"],
+      "status": "dispatched",
+      "dispatched_at": "2026-06-15T16:01:22Z"
+    },
+    {
+      "task_id": "lane-b",
+      "teammate": "lane-b-hygiene",
+      "subject": "WO-126 / WO-128 planning slice: product-direction lint + hygiene policy + doc-budget/orphan-doc specs",
+      "wo_references": ["WO-126", "WO-128"],
+      "lane_packet": "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-b-wo128.json",
+      "allowed_write_paths": ["docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-b-wo128-return.json"],
+      "status": "dispatched",
+      "dispatched_at": "2026-06-15T16:01:22Z"
+    }
+  ],
+  "wo_reference_check": "Every task cites at least one WO-NNN reference; zero tasks missing a WO reference at dispatch."
+}

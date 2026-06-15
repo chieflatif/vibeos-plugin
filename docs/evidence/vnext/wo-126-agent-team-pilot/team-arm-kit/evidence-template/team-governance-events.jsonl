@@ -1,0 +1,1 @@
+{"record":"template","note":"Replace this file with .vibeos/team-governance/events.jsonl after the Terminal team run: cp .vibeos/team-governance/events.jsonl <here>. It should contain real hook-emitted TaskCreated/TaskCompleted/TeammateIdle lines (hook_fired implied true). The TeammateIdle line(s) carry the stall-detection evidence."}

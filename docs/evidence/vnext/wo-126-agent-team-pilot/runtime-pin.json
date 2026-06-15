@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "artifact": "agent_team_pilot_runtime_pin",
+  "captured_at": "2026-06-15T16:01:22Z",
+  "executing_session": {
+    "surface": "claude-desktop",
+    "entrypoint_env": "CLAUDE_CODE_ENTRYPOINT=claude-desktop",
+    "model": "claude-opus-4-8[1m]",
+    "ai_agent_env": "claude-code_2-1-170_agent",
+    "agent_sdk_version": "0.3.170",
+    "parent_process": "/Users/latifhorst/Library/Application Support/Claude/claude-code/2.1.170/claude.app/Contents/MacOS/claude",
+    "agent_teams_env_value": "UNSET",
+    "agent_teams_available_here": false,
+    "reason_unavailable": "Two independent blockers in this executing session: (1) CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS was not inherited by the desktop-app process (an env var only affects the process that inherited it; the operator exported it in a separate Terminal process); (2) per official Claude Code docs, agent teams are interactive-Terminal-TUI-only and are not exposed in the desktop app, web, or SDK/headless surfaces."
+  },
+  "local_binary": {
+    "claude_version_on_path": "2.1.177",
+    "claude_version_output": "2.1.177 (Claude Code)",
+    "path": "/opt/homebrew/bin/claude",
+    "minimum_for_agent_teams": "2.1.32",
+    "version_satisfies_minimum": true
+  },
+  "agent_team_opt_in": {
+    "env": "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1",
+    "settings_alternative": "~/.claude/settings.json -> {\"env\": {\"CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS\": \"1\"}}",
+    "status_with_opt_in_in_terminal_tui": "experimental_available",
+    "surface_constraint": "interactive Terminal TUI only (not desktop/web/SDK)",
+    "verification_in_tui": "Ctrl+T toggles the shared task list; Shift+Down cycles teammates; ask the lead to spawn a team and observe whether a teammate appears."
+  },
+  "capability_source": {
+    "runtime_capabilities_json": ".vibeos/runtime-capabilities.json (generated 2026-06-15T00:40:04Z) records claude.capabilities.agent_teams = unavailable with evidence 'env CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=unset; version >= 2.1.32'",
+    "claude_code_guide_finding": "Confirmed via official docs (code.claude.com/docs/en/agent-teams): agent teams are TUI-only, env-gated, experimental, with known limits (no teammate session resume, task-status lag, slow shutdown, one team at a time, teammates cannot spawn teams/subagents)."
+  },
+  "pilot_flag": {
+    "path": ".vibeos/config.json",
+    "key": "features.agent_team_governance",
+    "value": true,
+    "set_for_pilot": true,
+    "git_tracked": false,
+    "note": "Set locally for the pilot so the WO-117 team-governance hooks (TaskCreated/TaskCompleted/TeammateIdle) fire when the operator runs the Terminal team arm in this same working directory. The file is gitignored (.gitignore: .vibeos/), so enabling it cannot become a repository default. Inert in the desktop subagent arm because those three Claude Code team events never fire outside a real Terminal team session."
+  },
+  "limitations": [
+    "This pin reflects the executing (desktop) session, where agent teams cannot run.",
+    "It is not live agent-team execution proof. The Terminal team arm (team-arm-kit/) must be run by the operator to produce that.",
+    "Agent teams remain experimental and disabled by default regardless of this pilot's outcome."
+  ]
+}

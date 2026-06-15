@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "lane": "B",
+  "lane_name": "wo128-hygiene-planning-slice",
+  "governing_wo": "WO-126",
+  "lane_target_wo": "WO-128",
+  "lane_target_title": "Product-direction lint + hygiene policy + doc budget",
+  "objective": "Produce a precise, self-contained implementation spec for the WO-128 product-direction lint, hygiene policy, prune script (dry-run mandatory), and doc-budget/orphan-doc detection WITHOUT modifying any framework script. This is a read-only planning/evidence slice that de-risks Phase 42 and serves as the comparable unit of work for both pilot arms.",
+  "scope_reduction": {
+    "reduced": true,
+    "reason": "Full WO-128 (configurable anchor_terms/retired_terms + check-product-direction-drift script + hygiene-policy.json + prune-observation-exhaust.sh with dry-run + doc-budget ceiling + orphan-doc detection + fixtures) is too broad for a bounded, cost-controlled agent-team canary. Building executable lint/prune logic during the pilot would mix substantive Phase 42 delivery with pilot-mechanism evaluation and contaminate the cost/labor comparison. The lane is therefore reduced to a planning/evidence slice: a spec another WO can implement deterministically.",
+    "original_full_scope": "configurable anchor_terms/retired_terms in .vibeos/config.json; check-product-direction-drift script; hygiene-policy.json + prune-observation-exhaust.sh (dry-run mandatory); doc-sprawl budget + orphan-doc detection with fixtures"
+  },
+  "allowed_write_paths": [
+    "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-b-wo128-return.json"
+  ],
+  "prohibited_paths": [
+    "plugins/vibeos/**",
+    "tests/**",
+    ".vibeos/**",
+    "docs/planning/**",
+    "docs/evidence/vnext/generated-inventory.json",
+    "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-a-wo127*.json",
+    "/Users/latifhorst/latifhorstweb/**",
+    "/Users/latifhorst/Joan4U/**",
+    "any path not listed in allowed_write_paths"
+  ],
+  "disjoint_from": "Lane A (WO-127). Lane B inspects file-budget / config / docs tree; Lane A inspects audit-completeness / gate-runner / quality-gate-manifest. No same-file contention.",
+  "inputs_to_inspect": [
+    "plugins/vibeos/hooks/scripts/file-budget.sh (budget-hook pattern precedent)",
+    ".vibeos/config.json (where anchor_terms/retired_terms would live; read-only)",
+    "docs/ tree structure and any pyramid/index doc (for orphan-doc reachability)",
+    "docs/evidence/vnext/generated-inventory.json (read-only, for current doc/file counts)",
+    "docs/planning/VNEXT-UPGRADE-AUDIT-AND-MASTER-PLAN-2026-06-10.md WO-128 row (read-only)"
+  ],
+  "expected_output": "A single JSON return packet at the allowed write path describing the lint/config schema, the hygiene policy schema, the prune dry-run contract, the doc-budget + orphan-doc detection design, a fixture plan with known-good and known-bad cases, risks, and a scope-compliance self-report. No framework code is written.",
+  "tests_or_gates_to_run": [
+    "Read-only inspection only (grep, cat-equivalent reads, jq, find on docs tree).",
+    "Do NOT create or run any prune/lint script; do NOT delete any doc.",
+    "Confirm orphan-doc detection would have a deterministic known-good (reachable doc) and known-bad (orphan doc) fixture."
+  ],
+  "evidence_to_return": {
+    "required_keys": [
+      "lane",
+      "lane_target_wo",
+      "files_inspected",
+      "current_behavior_summary",
+      "config_schema_spec",
+      "script_specs",
+      "doc_budget_and_orphan_design",
+      "fixture_plan",
+      "risks",
+      "defects_found",
+      "scope_compliance"
+    ],
+    "script_specs_must_cover": [
+      "check-product-direction-drift (configurable anchor_terms allowed / retired_terms flagged; advisory tier until doc pyramid lands)",
+      "hygiene-policy.json schema (retention policy for checkpoints/observation exhaust)",
+      "prune-observation-exhaust.sh (dry-run mandatory; never deletes without --execute + git-backed archive)",
+      "doc-budget ceiling (per-project governed-doc count) + orphan-doc detection (docs not reachable from the pyramid index), surfaced as advisory findings"
+    ],
+    "scope_compliance_must_state": "exact list of paths written (must equal allowed_write_paths) and confirmation that no prohibited path was touched"
+  },
+  "stall_contract": {
+    "must_return_within_minutes": 10,
+    "on_blocked": "Return a packet with status=BLOCKED and the blocking reason rather than editing out of scope."
+  }
+}

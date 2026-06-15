@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "artifact": "two_arm_comparison_model",
+  "purpose": "Defines the head-to-head between the subagent arm (baseline, executed in desktop) and the agent-team arm (executed by the operator in the Terminal TUI). Both arms run the SAME two disjoint lanes (Lane A=WO-127 planning slice, Lane B=WO-128 planning slice) with the SAME lane packets and the SAME return-packet shape, so the five go/no-go criteria compare like-for-like.",
+  "arms": {
+    "subagents": {
+      "surface": "claude-desktop",
+      "mechanism": "Agent tool, 2 parallel scoped subagents",
+      "role": "baseline",
+      "status": "complete"
+    },
+    "teams": {
+      "surface": "terminal-tui",
+      "mechanism": "Claude Code experimental agent teams (2 named teammates, shared task list, WO-117 team-governance hooks)",
+      "role": "experimental challenger",
+      "status": "pending_operator_run",
+      "kit": "docs/evidence/vnext/wo-126-agent-team-pilot/team-arm-kit/"
+    }
+  },
+  "criteria": [
+    {
+      "id": "stall_detection_latency",
+      "target": "TeammateIdle / missing-return detection recorded within 5 minutes p95 and 10 minutes max",
+      "subagents_measurable": false,
+      "subagents_result": "N/A — the Agent tool returns synchronously; there is no idle-teammate concept and no TeammateIdle hook in the subagent arm. This criterion is structurally unmeasurable without the Terminal team arm.",
+      "teams_measurable": true,
+      "teams_result": null,
+      "decides": "Only the team arm can satisfy or fail this criterion. This is the single criterion that justifies running the Terminal arm at all."
+    },
+    {
+      "id": "pre_merge_defects_caught",
+      "target": "at least one material issue caught before merge/closeout, or every lane records clean pre-merge evidence",
+      "subagents_measurable": true,
+      "subagents_result": "PASS — 5 defects caught pre-merge (1 major: D-A1).",
+      "teams_measurable": true,
+      "teams_result": null
+    },
+    {
+      "id": "coordinator_labor_vs_sequential",
+      "target": "lead coordination time no more than 80 percent of sequential baseline",
+      "subagents_measurable": true,
+      "subagents_result": "PASS — ~60 percent of sequential baseline (1 dispatch, 0 mid-flight interventions, parallel wall-clock saving 40.6 percent).",
+      "teams_measurable": true,
+      "teams_result": null,
+      "note": "Team-arm labor may be HIGHER than the subagent baseline due to known v2.1.177 team limitations; the comparison must surface this honestly."
+    },
+    {
+      "id": "scope_safety",
+      "target": "zero unauthorized path writes and zero missing-WO task closures",
+      "subagents_measurable": true,
+      "subagents_result": "PASS — git-verified zero out-of-scope writes; both tasks cited WO references at create and close.",
+      "teams_measurable": true,
+      "teams_result": null
+    },
+    {
+      "id": "cost_posture",
+      "target": "cost captured and reviewed; no default adoption if team cost exceeds subagent baseline by more than 25 percent without a justified quality win",
+      "subagents_measurable": true,
+      "subagents_result": "baseline = 157456 lane subagent tokens.",
+      "teams_measurable": true,
+      "teams_result": null
+    }
+  ],
+  "decision_logic": {
+    "this_session_verdict": "FALLBACK_TO_SUBAGENTS",
+    "this_session_reason": "Real agent teams could not run in the executing desktop surface. The subagent baseline executed cleanly and is the architecturally correct path for a desktop-first operator.",
+    "path_to_partial_unlock_candidate": "If the operator runs the Terminal team arm and it (a) records stall detection within the 5-min p95 / 10-min max window, (b) catches >=1 pre-merge defect or shows clean pre-merge evidence per lane, (c) keeps coordinator labor <=80 percent of sequential, (d) shows zero unauthorized writes and zero missing-WO closures, and (e) costs no more than 25 percent over the subagent baseline without a quality win — THEN WO-126 may be re-scored PARTIAL_UNLOCK_CANDIDATE. Teams remain non-default regardless.",
+    "path_to_no_go": "If the team arm fails stall detection, writes out of scope, closes a task with no WO reference, or costs materially more without a quality win, the verdict stays at NO_GO for default adoption (subagents remain the path)."
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "lane": "A",
+  "lane_target_wo": "WO-127",
+  "lane_target_title": "Auditor-artifact + waiver-expiry + executed-vs-declared gates",
+  "status": "COMPLETE",
+  "produced_at_note": "Read-only planning/evidence slice. No framework script was created or modified. Spec is implementation-ready for a follow-up WO.",
+  "files_inspected": [
+    "plugins/vibeos/scripts/validate-audit-completeness.sh",
+    "plugins/vibeos/scripts/gate-runner.sh",
+    "plugins/vibeos/quality-gate-manifest.json",
+    "plugins/vibeos/reference/wo-frontmatter.schema.json",
+    "docs/planning/WO-117-worktree-team-governance-hooks.md",
+    "plugins/vibeos/scripts/audit_aggregate.py",
+    "plugins/vibeos/scripts/dispatch-audit.sh",
+    "plugins/vibeos/scripts/validate-work-order.sh",
+    "plugins/vibeos/scripts/night-loop.sh",
+    "plugins/vibeos/scripts/wo-frontmatter-lint.py",
+    "plugins/vibeos/scripts/wo-contracts.py (referenced, parser surface only)"
+  ],
+  "current_behavior_summary": "validate-audit-completeness.sh (tier 2, blocking:false, phase wo_exit) is a markdown-presence linter: it confirms WO-INDEX.md / DEVELOPMENT-PLAN.md / WO-AUDIT-FRAMEWORK.md exist and that any WO whose prose contains 'status: complete' also contains the prose strings 'planning self-audit', 'pre-implementation deep audit', 'pre-commit audit', evidence/testing references. With ENFORCE_AUDIT_LOOP=false (the manifest default, since env is {}) every gap is a WARN and the script exits 0; only ENFORCE_AUDIT_LOOP=true promotes gaps to errors and exit 1. It does NOT read frontmatter, does NOT read required_auditors, and does NOT verify any audit artifact file actually exists. There is currently NO waiver-expiry logic anywhere (validate-work-order.sh:174 only detects a test-strategy waiver keyword for gating; night-loop.sh:239 explicitly records waiver_check as 'deferred_until_WO-127'). gate-runner.sh already computes a per-run gate_count (line 519) by counting the collected gate array length for the requested phase, and collect_gates() deduplicates by script path keeping the last occurrence — so the runner already KNOWS both the declared list and the executed count, but it never asserts executed==declared and silently tolerates a gate whose script file is missing (run_single_gate emits SKIP|script_not_found and returns 0, never counted as a failure). The closest existing precedent to gate 1 is audit_aggregate.py, which already asserts 'every required auditor produced a <auditor>-findings.md' but keyed off a DISPATCH manifest's required_auditors inside docs/audits/<dispatch_id>/, not off WO frontmatter.",
+  "artifact_convention_observed": "Audit artifacts are written as docs/audits/<trigger>[-<WO|phase>]-<YYYY-MM-DD>/<auditor>-findings.md, catalogued by docs/audits/<dispatch_id>/dispatch-manifest.json (created by dispatch-audit.sh; consumed by audit_aggregate.py). Auditor role tokens match frontmatter required_auditors tokens (e.g. correctness-auditor, evidence-auditor, security-auditor) and the schema pattern ^[a-z][a-z0-9-]*$.",
+  "gate_specs": [
+    {
+      "name": "validate-auditor-artifacts",
+      "new_script_path": "plugins/vibeos/scripts/validate-auditor-artifacts.sh",
+      "check_logic": "For each WO markdown file under WO_DIR (default docs/planning) whose frontmatter status is a terminal/completion state (Complete; optionally also Pre-Commit Audit / Dev-Mode Complete per a STRICT flag), parse the frontmatter required_auditors array (reuse wo-contracts.py load_contract for deterministic parsing; the schema guarantees required_auditors is a non-empty unique array of ^[a-z][a-z0-9-]* tokens). Resolve the WO's audit dispatch directory: discover docs/audits/*-<WO-ID>-*/ (the dispatch-audit.sh naming convention) OR honor an explicit AUDIT_ARTIFACT_DIR env/glob. For every auditor token T in required_auditors, assert an artifact exists matching <dir>/<T>-findings.md (non-empty). Optionally cross-check x-vibeos-class-defaults.minimum_required_auditors for the WO's wo_class as a floor: if frontmatter required_auditors omits a class-mandated auditor, that is also a finding (this catches a WO that under-declares its auditors). Missing artifact for any declared/mandated auditor => finding. Only WOs in a completion status are evaluated, so Draft/Planned/In-Progress WOs never fail this gate.",
+      "plug_in_point": "New standalone gate script plugins/vibeos/scripts/validate-auditor-artifacts.sh (mirrors the existing audit_aggregate.py required-vs-present logic but keyed to WO frontmatter instead of a dispatch manifest). Preferred over extending validate-audit-completeness.sh because that script is prose-grep based and conflating frontmatter+filesystem assertions into it would muddy its single responsibility; a new sibling gate keeps each concern testable. Registered in quality-gate-manifest.json under phase wo_exit.",
+      "inputs": {
+        "WO_DIR": "work order dir (default docs/planning)",
+        "AUDIT_DIR": "audit artifact root (default docs/audits)",
+        "AUDIT_ARTIFACT_DIR": "optional explicit dispatch dir / glob override for a single WO run",
+        "WO_NUMBER": "optional — when set by gate-runner --wo, scope evaluation to that one WO",
+        "SCHEMA": "plugins/vibeos/reference/wo-frontmatter.schema.json (for wo_class -> minimum_required_auditors floor)",
+        "STRICT": "optional — when true, also evaluate non-Complete terminal statuses"
+      },
+      "exit_semantics": "0 = every completion-status WO has an artifact for each declared (and class-mandated) auditor (or there are no completion-status WOs in scope -> vacuous pass); 1 = at least one declared/mandated auditor has no non-empty artifact; 2 = config error (WO_DIR missing, frontmatter unparseable, schema unreadable). Recommended manifest tier 1 blocking:true (this is a real completeness guarantee, unlike the advisory prose linter).",
+      "known_good_fixture": "Fixture WO file fixtures/wo127/good/docs/planning/WO-900-good.md with frontmatter status: Complete and required_auditors: [correctness-auditor, evidence-auditor]; plus docs/audits/wo-exit-WO-900-2026-06-15/correctness-auditor-findings.md and evidence-auditor-findings.md each containing the standard '## Critical/## Major/## Minor/## Informational' sections (non-empty). Run with WO_DIR and AUDIT_DIR pointed at the fixture => exit 0.",
+      "known_bad_fixture": "Same WO-900 frontmatter (required_auditors: [correctness-auditor, evidence-auditor]) but the dispatch dir contains ONLY correctness-auditor-findings.md (evidence-auditor-findings.md absent). Run => deterministic exit 1 with a finding 'WO-900: missing artifact for required auditor evidence-auditor'. A second deterministic bad case: required_auditors declares only [evidence-auditor] for a wo_class: mutation-path WO (whose schema floor mandates correctness/security/test/evidence) => exit 1 under-declaration finding."
+    },
+    {
+      "name": "validate-waiver-expiry",
+      "new_script_path": "plugins/vibeos/scripts/validate-waiver-expiry.sh",
+      "check_logic": "Scan a configurable set of governance files (WO markdown under WO_DIR, ADRs under ADR_DIR, and DEVELOPMENT-PLAN.md) for waivers in two forms: (a) frontmatter waivers — a structured waiver key/list if present (e.g. a 'waivers:' or 'waiver_until:' frontmatter field carrying an ISO date), and (b) the prose pattern matched by the fixed regex 'WAIVER until ([0-9]{4})-([0-9]{2})-([0-9]{2})' (case-insensitive on the WAIVER token, date strictly YYYY-MM-DD). For each match, parse the date and compare against today's UTC date (date -u +%Y-%m-%d, with a TODAY_OVERRIDE env to make tests deterministic). If waiver_date < today => EXPIRED finding (file:line + the matched waiver text + how many days expired). Active (>= today) waivers are reported as INFO only. Malformed dates after the WAIVER-until token (e.g. WAIVER until 2026-13-40) are a finding (a waiver with an invalid expiry cannot be honored).",
+      "plug_in_point": "New standalone gate script plugins/vibeos/scripts/validate-waiver-expiry.sh. This is the work night-loop.sh:239 currently stubs as 'waiver_check: deferred_until_WO-127' — the implementing WO should also flip that night-loop step from 'deferred_until_WO-127' to an actual gate-runner/script invocation. Registered in quality-gate-manifest.json under phase wo_exit (and reused by the night-loop full-audit cadence).",
+      "inputs": {
+        "WO_DIR": "default docs/planning",
+        "ADR_DIR": "default docs/adr",
+        "SCAN_GLOBS": "optional extra file globs to scan for waiver prose",
+        "TODAY_OVERRIDE": "optional YYYY-MM-DD to pin 'now' for deterministic fixtures",
+        "WAIVER_REGEX": "fixed default 'WAIVER until YYYY-MM-DD'; not user-overridable to keep the contract stable"
+      },
+      "exit_semantics": "0 = no expired waivers found (zero waivers, or all matched waivers have expiry >= today); 1 = at least one expired or malformed-date waiver; 2 = config error (scan root missing). Recommended manifest tier 1 blocking:true — an expired waiver silently granting an exception is exactly the drift this gate exists to stop. (Could ship blocking:false first run to surface the existing backlog, then ratchet to blocking once clean.)",
+      "known_good_fixture": "fixtures/wo127/good/docs/planning/WO-901-good.md containing prose line 'Approved Deviations: DEV-12 WAIVER until 2099-01-01 (pending upstream fix)'. Run with TODAY_OVERRIDE=2026-06-15 => 2099-01-01 >= today => exit 0 (waiver active, reported INFO). A file with no waiver tokens at all also yields exit 0.",
+      "known_bad_fixture": "fixtures/wo127/bad/docs/planning/WO-901-bad.md containing 'WAIVER until 2026-06-14'. Run with TODAY_OVERRIDE=2026-06-15 => 2026-06-14 < 2026-06-15 => exit 1, finding 'WO-901-bad.md:<line>: expired waiver (expired 1 day ago): WAIVER until 2026-06-14'. Second deterministic bad case: 'WAIVER until 2026-13-40' => exit 1 malformed-expiry finding."
+    },
+    {
+      "name": "executed-vs-declared gate-count assertion",
+      "new_script_path": "in-place extension of plugins/vibeos/scripts/gate-runner.sh (no new script)",
+      "check_logic": "After the gate execution loop completes, assert that the number of gates actually executed for the phase equals the number declared for that phase in the manifest, so a gate cannot be silently dropped. Concretely: (1) declared_count = the length of the deduplicated gate array collect_gates() already returns (gate-runner already computes this as gate_count at line 519). (2) executed_count = total (the loop counter incremented once per gate attempted). (3) Today a gate whose script file is missing is emitted by run_single_gate as 'SKIP|...|script_not_found' and counted, AND an early --abort on a blocking failure 'break's out of the loop leaving total < declared_count. The assertion must therefore distinguish legitimate early-abort from a silently-vanished gate: assert executed_count == declared_count UNLESS the run aborted on a blocking failure (CONTINUE_ON_FAILURE=false and a blocking gate failed). Additionally, promote 'script_not_found' from a silent SKIP to a counted integrity failure (a declared gate whose script is absent is precisely the Joan NF-1 'silently-skipped gate' failure mode). On mismatch (declared != executed and not a legitimate abort, OR any script_not_found), set exit_code=1 with a [gate-runner] FAIL line naming the missing/dropped gate(s).",
+      "plug_in_point": "gate-runner.sh main execution path: capture declared_count from gate_count (already at line 519); after the while-read loop (around line 705) and before the summary block (line 707), add an integrity assertion using the existing total/skipped counters and a new not_found counter populated in run_single_gate. Surface the result in both the human summary and the --json summary object (add e.g. \"declared\": N and \"integrity\": \"ok|mismatch\"). No new file; this is a bounded edit to the orchestrator the implementing WO owns.",
+      "inputs": {
+        "declared_count": "len(collect_gates()) for the phase (manifest-derived, already computed)",
+        "executed_count": "the runner's total counter",
+        "script_not_found events": "currently silent SKIPs from run_single_gate",
+        "abort_state": "whether the run legitimately broke early on a blocking failure with CONTINUE_ON_FAILURE=false"
+      },
+      "exit_semantics": "When a script_not_found integrity failure occurs, or executed_count != declared_count without a legitimate blocking-abort, the runner exits 1 (joining blocking_failures in setting overall_result=FAIL). A clean run where every declared gate executed exits 0 as today. A legitimate --abort (blocking gate failed, no --continue-on-failure) already exits 1 via blocking_failures and must NOT additionally be reported as an integrity mismatch (avoid double-counting / false positive). Config errors remain exit 2.",
+      "known_good_fixture": "A tiny fixture manifest fixtures/wo127/good/manifest.json declaring exactly 2 gates for a phase 'mini', both pointing at trivial scripts that exist and exit 0. Run: gate-runner.sh mini --manifest fixtures/wo127/good/manifest.json --framework-dir fixtures/wo127/good => declared=2, executed=2, integrity ok => exit 0.",
+      "known_bad_fixture": "fixtures/wo127/bad/manifest.json declares 2 gates for phase 'mini' where the second gate's script path does NOT exist on disk. Run => run_single_gate hits script_not_found; with the WO-127 change this is an integrity FAIL => exit 1 with '[gate-runner] FAIL: declared 2 gate(s) for phase mini but 1 executed (missing: scripts/does-not-exist.sh)'. Today (pre-change) the same input wrongly exits 0, which is the regression the assertion closes."
+    }
+  ],
+  "fixture_plan": {
+    "location_proposal": "tests/fixtures/wo127/ with good/ and bad/ subtrees (the implementing WO owns tests/, which is out of scope for THIS planning lane). Each fixture is self-contained: a mini docs/planning tree, a mini docs/audits tree, and a mini manifest.json, so every gate runs against a pinned filesystem with TODAY_OVERRIDE for date determinism.",
+    "determinism_controls": [
+      "TODAY_OVERRIDE pins 'now' for the waiver-expiry gate so the good/bad split never drifts with the wall clock.",
+      "Fixture WO frontmatter uses static future date 2099-01-01 for the known-good waiver and a fixed past date relative to TODAY_OVERRIDE for the known-bad.",
+      "Auditor-artifact fixtures ship literal <auditor>-findings.md files with the four required severity sections so audit_aggregate-style structural checks (if reused) also pass.",
+      "Gate-count fixtures use trivial exit-0 stub scripts plus one deliberately-absent script path; no network, no clock, no randomness."
+    ],
+    "per_gate_summary": {
+      "validate-auditor-artifacts": {"good": "Complete WO + all declared auditor findings present -> exit 0", "bad": "Complete WO + one declared auditor findings file missing -> exit 1"},
+      "validate-waiver-expiry": {"good": "WAIVER until 2099-01-01 with TODAY_OVERRIDE=2026-06-15 -> exit 0", "bad": "WAIVER until 2026-06-14 with TODAY_OVERRIDE=2026-06-15 -> exit 1"},
+      "executed-vs-declared": {"good": "manifest declares 2 gates, both scripts exist -> declared==executed -> exit 0", "bad": "manifest declares 2 gates, second script absent -> integrity mismatch -> exit 1"}
+    }
+  },
+  "manifest_registration_plan": "Add two new gate entries to the 'gates' array in plugins/vibeos/quality-gate-manifest.json with \"phase\": \"wo_exit\": {\"script\": \"scripts/validate-auditor-artifacts.sh\", \"tier\": 1, \"blocking\": true, \"phase\": \"wo_exit\", \"env\": {\"WO_DIR\": \"docs/planning\", \"AUDIT_DIR\": \"docs/audits\", \"SCHEMA\": \"plugins/vibeos/reference/wo-frontmatter.schema.json\"}} and {\"script\": \"scripts/validate-waiver-expiry.sh\", \"tier\": 1, \"blocking\": true, \"phase\": \"wo_exit\", \"env\": {\"WO_DIR\": \"docs/planning\", \"ADR_DIR\": \"docs/adr\"}}. Both should also appear (script + purpose) in the 'utility_scripts' array for inventory reconciliation (test_status_reconciliation.py and generate-inventory.py count these). The executed-vs-declared assertion needs NO new gates array entry because it lives inside gate-runner.sh itself (already listed under utility_scripts). Optionally seed a known_baselines entry for each new gate set to max_allowed_failures:0 so the ratchet treats any expired-waiver/missing-artifact as a real regression from day one. Consider phasing in blocking:false on first introduction to surface the pre-existing backlog, then ratchet to blocking:true once the tree is clean (matches the project zero-debt ratchet pattern).",
+  "risks": [
+    "Auditor-artifact gate depends on the docs/audits/<dispatch_id>/ naming convention from dispatch-audit.sh; if a WO's auditors ran via a same-tree inline audit that did not write <auditor>-findings.md files, the gate would false-positive a missing artifact. Mitigation: AUDIT_ARTIFACT_DIR override + accept any of {findings.md aggregate, summary.json with required_auditors_present:true} as alternative evidence.",
+    "Turning validate-audit-completeness.sh-adjacent checks to tier 1 blocking:true could fail historical Complete WOs that predate the artifact convention. Mitigation: scope the gate to WOs at/after a configurable WO number (same require_from pattern wo-frontmatter-lint.py already uses), or ship blocking:false then ratchet.",
+    "Waiver-expiry regex is intentionally strict ('WAIVER until YYYY-MM-DD'); waivers written in other phrasings won't be detected. This is acceptable (the contract is the fixed pattern) but must be documented so authors use the canonical form.",
+    "executed-vs-declared change touches gate-runner.sh, a FILE-SIZE-EXCEPTION governance script that the pre_commit gate itself runs; the implementing WO must keep the edit minimal and re-run the full gate suite to avoid self-inflicted regressions, and must correctly exempt the legitimate blocking-abort early-break from the mismatch check to avoid false positives.",
+    "Promoting script_not_found from SKIP to FAIL is a behavior change that could surface latent manifest drift across other phases on first run; expected and desirable, but should be landed with the inventory/baseline reconciliation in the same WO."
+  ],
+  "defects_found": [
+    {
+      "id": "D-A1",
+      "severity": "major",
+      "location": "plugins/vibeos/scripts/gate-runner.sh:411-415 (run_single_gate) and the absence of an executed-vs-declared check before the summary at lines 707-716",
+      "description": "A gate whose script file is missing is emitted as 'SKIP|<name>|script_not_found|0' and returns 0, so a declared blocking gate that has been deleted/renamed/path-broken silently does not run and never fails the phase. This is exactly the Joan NF-1 silently-skipped-gate failure mode WO-127's third gate is meant to defend against, and it is currently exploitable.",
+      "evidence": "run_single_gate prints SKIP and 'return 0' on missing script; the main loop counts it as skipped, never failed; overall_result only becomes FAIL on blocking_failures, which script_not_found never increments."
+    },
+    {
+      "id": "D-A2",
+      "severity": "minor",
+      "location": "plugins/vibeos/scripts/validate-audit-completeness.sh (manifest entry env {} => ENFORCE_AUDIT_LOOP defaults false) and lines 196-204",
+      "description": "As registered in the manifest (env {}), validate-audit-completeness.sh runs in advisory mode and exits 0 even when completed WOs are missing every audit checkpoint — all gaps are WARN. Combined with tier 2 blocking:false, the gate provides effectively zero enforcement of audit completeness today; it is a presence-of-prose linter, not an artifact verifier. WO-127's auditor-artifact gate is the substantive replacement, but the gap should be called out so the new gate is registered blocking, not advisory.",
+      "evidence": "Manifest line 41: {\"script\": \"scripts/validate-audit-completeness.sh\", \"tier\": 2, \"blocking\": false, ... \"env\": {}}; script defaults ENFORCE_AUDIT_LOOP=false at line 51 and downgrades all issues to warnings, exit 0 at line 201."
+    },
+    {
+      "id": "D-A3",
+      "severity": "informational",
+      "location": "plugins/vibeos/scripts/night-loop.sh:239",
+      "description": "night-loop.sh records waiver_check as 'deferred_until_WO-127' with a hardcoded reason. The implementing WO must flip this to the real validate-waiver-expiry.sh invocation, otherwise the night-loop cadence will still skip waiver expiry even after the gate exists.",
+      "evidence": "add_step(report, \"waiver_check\", \"deferred_until_WO-127\", reason=\"Waiver-expiry scan is planned in WO-127.\")"
+    }
+  ],
+  "scope_compliance": {
+    "paths_written": [
+      "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-a-wo127-return.json"
+    ],
+    "prohibited_touched": false,
+    "notes": "Investigation was strictly read-only (Read/Grep/Glob + read-only Bash: ls/grep). No file under plugins/, tests/, .vibeos/, docs/planning/, the generated inventory, or Lane B's lane-b-wo128*.json was created or modified. No path under /Users/latifhorst/latifhorstweb/ or /Users/latifhorst/Joan4U/ was touched. The single written path equals the lane's sole allowed_write_path."
+  }
+}

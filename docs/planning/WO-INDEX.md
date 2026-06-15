@@ -5,7 +5,7 @@
 
 | WO | Title | Phase | Status | Source |
 |---|---|---|---|---|
-| WO-126 | Pilot execution: parallel WO lanes as team | 41 | Planned | master-plan |
+| WO-126 | Pilot execution: parallel WO lanes as team | 41 | In Progress | frontmatter |
 
 ## vNext Machine-Readable View
 
@@ -36,7 +36,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-123 | Workflow Governance Policy + Capability Detection | 40 | Complete | frontmatter |
 | WO-124 | Bounded First Use: Audit Fan-Out Workflow | 40 | Complete | frontmatter |
 | WO-125 | Agent-Team Pilot Plan + Evidence Model | 41 | Complete | frontmatter |
-| WO-126 | Pilot execution: parallel WO lanes as team | 41 | Planned | master-plan |
+| WO-126 | Pilot execution: parallel WO lanes as team | 41 | In Progress | frontmatter |
 | WO-127 | Auditor-artifact + waiver-expiry + executed-vs-declared gates | 42 | Planned | master-plan |
 | WO-128 | Product-direction lint + hygiene policy + doc budget | 42 | Planned | master-plan |
 | WO-129 | Framework-ownership manifest | 43 | Planned | master-plan |

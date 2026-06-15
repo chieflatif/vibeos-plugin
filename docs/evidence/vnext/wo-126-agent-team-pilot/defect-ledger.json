@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "ledger_purpose": "Records material issues caught BEFORE merge/closeout, per the pre-merge-defects-caught go/no-go criterion. All entries below were surfaced by the two lane subagents during the pilot, before any commit.",
+  "subagent_arm": {
+    "caught_before_merge": true,
+    "total_defects": 5,
+    "defects": [
+      {
+        "id": "D-A1",
+        "lane": "A",
+        "target_wo": "WO-127",
+        "severity": "major",
+        "location": "plugins/vibeos/scripts/gate-runner.sh run_single_gate (script_not_found path) + missing executed-vs-declared assertion before the summary block",
+        "description": "A declared gate whose script file is missing is emitted as SKIP|script_not_found and returns 0 — a deleted/renamed/path-broken blocking gate silently does not run and never fails the phase. This is the live Joan NF-1 'silently-skipped gate' failure mode WO-127's third gate is meant to defend against; it is currently exploitable.",
+        "actionable": true,
+        "becomes": "Directly motivates the executed-vs-declared gate spec (promote script_not_found from SKIP to integrity FAIL)."
+      },
+      {
+        "id": "D-A2",
+        "lane": "A",
+        "target_wo": "WO-127",
+        "severity": "minor",
+        "location": "plugins/vibeos/scripts/validate-audit-completeness.sh (manifest env {} => ENFORCE_AUDIT_LOOP defaults false) + tier 2 blocking:false",
+        "description": "As registered, validate-audit-completeness.sh runs advisory and exits 0 even when completed WOs miss every audit checkpoint; it is a prose linter, not an artifact verifier. WO-127's auditor-artifact gate is the substantive replacement and should be registered blocking, not advisory.",
+        "actionable": true
+      },
+      {
+        "id": "D-A3",
+        "lane": "A",
+        "target_wo": "WO-127",
+        "severity": "informational",
+        "location": "plugins/vibeos/scripts/night-loop.sh:239",
+        "description": "night-loop records waiver_check as 'deferred_until_WO-127'; the implementing WO must flip it to a real validate-waiver-expiry.sh invocation or the night-loop cadence keeps skipping waiver expiry after the gate exists.",
+        "actionable": true
+      },
+      {
+        "id": "D-B1",
+        "lane": "B",
+        "target_wo": "WO-128",
+        "severity": "informational",
+        "location": "docs/FILE-INVENTORY.md vs actual docs/ tree",
+        "description": "FILE-INVENTORY.md names product-pyramid docs (docs/product/PRODUCT-ANCHOR.md, docs/product/PRD.md, etc.) that do not exist in this meta/framework repo. Expected for a framework repo, but it is the concrete reason WO-128 must keep the pyramid root configurable and ship orphan detection advisory with a graceful-skip on a missing root.",
+        "actionable": false
+      },
+      {
+        "id": "D-B2",
+        "lane": "B",
+        "target_wo": "WO-128",
+        "severity": "low",
+        "location": "doc-budget interaction with WO file growth",
+        "description": "147 of 151 governed .md are docs/planning/WO-*.md; a naive doc-budget counting these toward the ceiling would trip on normal WO accumulation rather than genuine sprawl. The implementing WO should exclude WO-NNN-*.md from the count or scope the budget to non-record docs.",
+        "actionable": true
+      }
+    ]
+  },
+  "team_arm": {
+    "status": "pending",
+    "note": "If the Terminal team arm runs the same two lanes, record any defects its teammates catch here for a like-for-like pre-merge-defect comparison."
+  },
+  "criterion_assessment": {
+    "criterion": "pre_merge_defects_caught",
+    "target": "at least one material issue caught before merge/closeout, or every scoped lane records clean pre-merge evidence with no post-closeout regression",
+    "subagent_arm_result": "PASS — 5 issues caught pre-merge across both lanes, including one major (D-A1) that is the exact Joan NF-1 failure mode WO-127 targets. No code was changed, so there is no post-closeout regression surface for this planning slice."
+  }
+}

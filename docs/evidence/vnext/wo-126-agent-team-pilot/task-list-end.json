@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "arm": "subagents",
+  "captured_at": "2026-06-15T16:06:24Z",
+  "tasks": [
+    {
+      "task_id": "lane-a",
+      "teammate": "lane-a-auditgates",
+      "wo_references": ["WO-126", "WO-127"],
+      "status": "completed",
+      "return_packet": "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-a-wo127-return.json",
+      "return_packet_status": "COMPLETE",
+      "duration_ms": 170537,
+      "tool_uses": 17,
+      "subagent_tokens": 90035,
+      "defects_found": 3,
+      "in_scope": true,
+      "wo_reference_present_at_close": true
+    },
+    {
+      "task_id": "lane-b",
+      "teammate": "lane-b-hygiene",
+      "wo_references": ["WO-126", "WO-128"],
+      "status": "completed",
+      "return_packet": "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-b-wo128-return.json",
+      "return_packet_status": "COMPLETE",
+      "duration_ms": 249030,
+      "tool_uses": 21,
+      "subagent_tokens": 67421,
+      "defects_found": 2,
+      "in_scope": true,
+      "wo_reference_present_at_close": true
+    }
+  ],
+  "completion_summary": {
+    "tasks_total": 2,
+    "tasks_completed": 2,
+    "tasks_blocked": 0,
+    "tasks_missing_wo_reference_at_close": 0,
+    "lanes_returning_packet": 2,
+    "lanes_out_of_scope": 0,
+    "wall_clock_parallel_ms": 249030,
+    "summed_sequential_ms": 419567,
+    "parallel_wall_clock_saving_ms": 170537,
+    "parallel_wall_clock_saving_pct": 40.6
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "cost_unit": "output_tokens_reported_per_subagent (no USD figure exposed by the runtime in this session)",
+  "subagent_arm": {
+    "status": "measured",
+    "lane_a_subagent_tokens": 90035,
+    "lane_b_subagent_tokens": 67421,
+    "total_lane_subagent_tokens": 157456,
+    "tool_uses_total": 38,
+    "wall_clock_parallel_ms": 249030,
+    "notes": [
+      "Tokens are the per-subagent token counts reported by the Agent tool for the two lane subagents only.",
+      "The one-time surface-diagnosis agent (claude-code-guide, 37813 tokens) is NOT counted as pilot lane cost; it was setup/triage, not lane work.",
+      "Lead/orchestration tokens (this main session writing packets and evidence) are not separately metered by the runtime and are excluded; coordinator-labor.json captures lead effort qualitatively instead."
+    ]
+  },
+  "team_arm": {
+    "status": "pending",
+    "how_to_capture": "In the Terminal team session, run /cost (or read the session cost summary) immediately after both teammates close their lane tasks, and record total tokens + USD if shown into team-arm-kit/evidence-template/cost-report.json.",
+    "fields_to_fill": ["lane_a_tokens_or_usd", "lane_b_tokens_or_usd", "team_total_tokens_or_usd", "wall_clock_ms"]
+  },
+  "comparison": {
+    "go_no_go_rule": "No default adoption if team-arm cost exceeds the subagent baseline by more than 25 percent without a justified quality win.",
+    "subagent_baseline_total_tokens": 157456,
+    "team_arm_total": null,
+    "delta_pct": null,
+    "verdict": "pending_team_arm",
+    "note": "The subagent arm is the cost baseline. The comparison completes only after the Terminal team arm fills its cost figure."
+  }
+}

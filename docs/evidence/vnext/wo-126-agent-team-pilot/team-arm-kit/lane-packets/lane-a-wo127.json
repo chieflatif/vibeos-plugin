@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0",
+  "lane": "A",
+  "lane_name": "wo127-gates-planning-slice",
+  "governing_wo": "WO-126",
+  "lane_target_wo": "WO-127",
+  "lane_target_title": "Auditor-artifact + waiver-expiry + executed-vs-declared gates",
+  "objective": "Produce a precise, self-contained implementation spec and fixture plan for the three WO-127 gates WITHOUT modifying any framework script. This is a read-only planning/evidence slice that de-risks Phase 42 and serves as the comparable unit of work for both pilot arms.",
+  "scope_reduction": {
+    "reduced": true,
+    "reason": "Full WO-127 (three new gate behaviors + known-good/known-bad fixtures per gate + manifest registration at wo_exit) is too broad for a bounded, cost-controlled agent-team canary. Implementing executable gate logic during the pilot would mix substantive Phase 42 delivery with pilot-mechanism evaluation and contaminate the cost/labor comparison. The lane is therefore reduced to a planning/evidence slice: a spec another WO can implement deterministically.",
+    "original_full_scope": "plugins/vibeos/scripts/validate-audit-completeness.sh extension keyed to required_auditors; new waiver-expiry scan; gate-runner executed-vs-declared count assertion; fixtures; manifest registration at wo_exit"
+  },
+  "allowed_write_paths": [
+    "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-a-wo127-return.json"
+  ],
+  "prohibited_paths": [
+    "plugins/vibeos/**",
+    "tests/**",
+    ".vibeos/**",
+    "docs/planning/**",
+    "docs/evidence/vnext/generated-inventory.json",
+    "docs/evidence/vnext/wo-126-agent-team-pilot/lane-packets/lane-b-wo128*.json",
+    "/Users/latifhorst/latifhorstweb/**",
+    "/Users/latifhorst/Joan4U/**",
+    "any path not listed in allowed_write_paths"
+  ],
+  "disjoint_from": "Lane B (WO-128). Lane A inspects audit-completeness / gate-runner / quality-gate-manifest; Lane B inspects file-budget / config / docs tree. No same-file contention.",
+  "inputs_to_inspect": [
+    "plugins/vibeos/scripts/validate-audit-completeness.sh",
+    "plugins/vibeos/scripts/gate-runner.sh",
+    "plugins/vibeos/quality-gate-manifest.json",
+    "plugins/vibeos/reference/wo-frontmatter.schema.json (required_auditors field + x-vibeos-class-defaults)",
+    "docs/planning/WO-117-worktree-team-governance-hooks.md (waiver/governance precedent, read-only)"
+  ],
+  "expected_output": "A single JSON return packet at the allowed write path describing the three gate specs, a fixture plan with known-good and known-bad cases per gate, a manifest registration plan, risks, and a scope-compliance self-report. No framework code is written.",
+  "tests_or_gates_to_run": [
+    "Read-only inspection only (grep, cat-equivalent reads, jq on manifest).",
+    "Do NOT run gate-runner mutation, do NOT modify any gate.",
+    "Confirm the three proposed gates would each have a deterministic known-good (exit 0) and known-bad (exit non-zero) fixture."
+  ],
+  "evidence_to_return": {
+    "required_keys": [
+      "lane",
+      "lane_target_wo",
+      "files_inspected",
+      "current_behavior_summary",
+      "gate_specs",
+      "fixture_plan",
+      "manifest_registration_plan",
+      "risks",
+      "defects_found",
+      "scope_compliance"
+    ],
+    "gate_specs_must_cover": [
+      "auditor-artifact gate keyed to frontmatter required_auditors (assert each declared auditor produced an artifact before completion)",
+      "waiver-expiry scan (frontmatter waivers + prose pattern 'WAIVER until YYYY-MM-DD'; flag expired)",
+      "executed-vs-declared gate-count assertion (gate-runner asserts executed gate count == manifest phase count; Joan NF-1-class defense)"
+    ],
+    "scope_compliance_must_state": "exact list of paths written (must equal allowed_write_paths) and confirmation that no prohibited path was touched"
+  },
+  "stall_contract": {
+    "must_return_within_minutes": 10,
+    "on_blocked": "Return a packet with status=BLOCKED and the blocking reason rather than editing out of scope."
+  }
+}

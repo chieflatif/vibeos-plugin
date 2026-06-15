@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "wo": "WO-126",
+  "title": "Pilot execution: parallel WO lanes as team",
+  "phase": 41,
+  "generated_at": "2026-06-15T16:06:24Z",
+  "executing_surface": "claude-desktop",
+  "agent_teams_actually_ran": false,
+  "agent_teams_unavailable_reason": "The executing session is the Claude Desktop app (CLAUDE_CODE_ENTRYPOINT=claude-desktop), a separate process that did not inherit the operator's Terminal export of CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS, AND agent teams are interactive-Terminal-TUI-only per official docs. Either blocker alone is decisive.",
+  "design": "Two-arm comparison. Both arms run the same two disjoint lanes (Lane A=WO-127 planning slice, Lane B=WO-128 planning slice). Subagent arm = baseline (executed here). Team arm = experimental challenger (operator runs in Terminal via team-arm-kit/).",
+  "lane_scope_reduction": {
+    "applied": true,
+    "reason": "Full WO-127 (3 gates + fixtures + manifest registration) and full WO-128 (lint + 2 policies + prune + doc-budget + orphan detection + fixtures) are too broad for a bounded, cost-controlled agent-team canary. Each lane was reduced to a self-contained, read-only planning/evidence slice (an implementation-ready spec + fixture plan) so the pilot measures the orchestration mechanism, not Phase 42 delivery, and the cost/labor comparison stays clean."
+  },
+  "subagent_arm_results": {
+    "status": "complete",
+    "teammates_spawned": 2,
+    "lane_assignments": {"lane-a-auditgates": "WO-127 gate specs", "lane-b-hygiene": "WO-128 hygiene specs"},
+    "criteria": {
+      "stall_detection_latency": {"result": "N/A", "detail": "structurally unmeasurable in the subagent arm; requires the Terminal team arm's TeammateIdle hook"},
+      "pre_merge_defects_caught": {"result": "PASS", "detail": "5 defects caught pre-merge, including 1 major (D-A1, the Joan NF-1 silently-skipped-gate hole)"},
+      "coordinator_labor_vs_sequential": {"result": "PASS", "detail": "~60% of sequential baseline; 1 dispatch, 0 mid-flight interventions, 40.6% parallel wall-clock saving"},
+      "scope_safety": {"result": "PASS", "detail": "git-verified zero out-of-scope writes; zero missing-WO closures"},
+      "cost_posture": {"result": "BASELINE_SET", "detail": "157456 lane subagent tokens recorded as the comparison baseline"}
+    },
+    "measurable_criteria_passed": "4 of 4 measurable (stall detection is N/A in this arm)"
+  },
+  "team_arm_results": {
+    "status": "pending_operator_run",
+    "kit": "docs/evidence/vnext/wo-126-agent-team-pilot/team-arm-kit/README.md",
+    "captures_uniquely": "stall_detection_latency (the only criterion the subagent arm cannot measure)"
+  },
+  "verdict": "FALLBACK_TO_SUBAGENTS",
+  "verdict_rationale": "Real Claude Code agent teams could not run in the executing desktop surface (env not inherited + TUI-only feature). Per the WO-125 manual-fallback design, the sanctioned outcome is FALLBACK_TO_SUBAGENTS. The fallback was executed cleanly: 2 parallel scoped subagents completed both disjoint lanes, in scope, catching 5 pre-merge defects at a measured coordination cost ~60% of sequential. For a desktop-first operator this is the architecturally correct path, not a consolation. The two-arm harness is in place so the operator can run the Terminal team arm to obtain the one missing dimension (stall detection) and, if it scores well across all five criteria, re-score WO-126 as PARTIAL_UNLOCK_CANDIDATE.",
+  "blocked_claims_honored": [
+    "No production-readiness claim for agent teams.",
+    "No default agent-team adoption (teams remain experimental and non-default).",
+    "No Claude/Codex parity claim.",
+    "No 24-48 hour autonomy claim."
+  ],
+  "fallback_reason_recorded_before_completion": true,
+  "next_action_for_operator": "Optional: run the Terminal team arm (team-arm-kit/README.md) to complete the comparison and obtain stall-detection evidence. Not required to close WO-126 at FALLBACK_TO_SUBAGENTS."
+}
