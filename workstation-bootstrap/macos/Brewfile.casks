@@ -1,0 +1,9 @@
+# Cask-only desired state. install-macos.sh handles these one by one and
+# skips casks when an equivalent unmanaged app or binary is already present.
+
+cask "claude-code"
+cask "codex"
+cask "codex-app"
+cask "cursor"
+cask "docker-desktop"
+cask "gcloud-cli"

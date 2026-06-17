@@ -1,0 +1,10 @@
+# Optional npm globals from the current development machine.
+# These are intentionally not default; install only if the workflow still needs them.
+typescript
+tsx
+@azure/static-web-apps-cli
+@pnp/cli-microsoft365
+airtable-mcp-server
+exa-mcp-server
+firecrawl-mcp
+mcp-sqlite
