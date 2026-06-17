@@ -46,7 +46,7 @@ Upgrade this current Mac to the latest compatible versions of the development to
 
 ## Source Findings
 
-1. `doctor.sh` shows the current machine has the core tool spine installed, but several baseline utilities are missing: `yq`, `fd`, `tree`, `wget`, and ImageMagick's `magick`.
+1. `workstation-package.sh check` shows the current machine has the core tool spine installed, but several baseline utilities are missing: `yq`, `fd`, `tree`, `wget`, and ImageMagick's `magick`.
 2. `brew outdated --verbose` reports many outdated Homebrew formulae, including `azure-cli`, `gh`, `node`, `uv`, `render`, `ruff`, `go`, `cloudflared`, `opentofu`, `pandoc`, `poppler`, Redis, PostgreSQL, and Python formulae.
 3. `npm outdated -g --depth=0` reports outdated global packages, including `@anthropic-ai/claude-code`, `@openai/codex`, `azure-functions-core-tools`, `npm`, `pnpm`, `typescript`, `tsx`, and several MCP packages.
 4. Claude Code, Codex, Cursor, and Docker Desktop are present but not Homebrew cask-managed. The upgrade must not silently convert app ownership unless explicitly approved.
@@ -77,7 +77,7 @@ Upgrade this current Mac to the latest compatible versions of the development to
 
 | Dependency | Type | Status |
 |---|---|---|
-| WO-148 | Bootstrap package and doctor script | Draft scaffold present |
+| WO-148 | Optional workstation package harness | Complete |
 | Docker Desktop | First-run/daemon check | CLI present; daemon not running in latest check |
 | Active project smoke commands | Read-only verification | Must be selected before upgrade completion |
 
@@ -94,15 +94,15 @@ Upgrade this current Mac to the latest compatible versions of the development to
 - [ ] AC-3: Missing baseline command-line tools are installed or explicitly deferred with reason.
 - [ ] AC-4: Homebrew formula upgrades complete without unresolved brew doctor or bundle errors relevant to the baseline.
 - [ ] AC-5: npm global upgrades complete or are deferred because ownership moved to Homebrew/native installers.
-- [ ] AC-6: `verify.sh` passes with no hard failures after upgrade.
+- [ ] AC-6: `workstation-package.sh verify` passes with no hard failures after upgrade.
 - [ ] AC-7: VibeOS runtime detection succeeds after upgrade and records the actual Claude/Codex capabilities.
 - [ ] AC-8: Representative project smoke checks pass or blockers are documented with rollback/defer decisions.
 
 ## Test Strategy
 
-- **Preflight:** `workstation-bootstrap/macos/doctor.sh`
-- **Install/upgrade plan only:** inspect `brew outdated --verbose`, `brew bundle check --verbose --file workstation-bootstrap/macos/Brewfile.formulae`, and `npm outdated -g --depth=0`
-- **Post-upgrade:** `workstation-bootstrap/macos/verify.sh`
+- **Preflight:** `bash plugins/vibeos/scripts/workstation-package.sh check`
+- **Install/upgrade plan only:** inspect `brew outdated --verbose`, optional `workstation_check`, and `npm outdated -g --depth=0`
+- **Post-upgrade:** `bash plugins/vibeos/scripts/workstation-package.sh verify`
 - **VibeOS runtime:** `bash plugins/vibeos/scripts/detect-runtime-capabilities.sh --project-dir .`
 - **Project smoke candidates:**
   - `Joan4U`: Python test/gate smoke and `control_plane/web` npm smoke
@@ -113,7 +113,7 @@ Upgrade this current Mac to the latest compatible versions of the development to
 ## Implementation Plan
 
 ### Step 1: Snapshot Current State
-- Run `doctor.sh` and save output.
+- Run `workstation-package.sh check` and save output.
 - Save `brew outdated --verbose`, `npm outdated -g --depth=0`, `uv python list --only-installed`, `claude --version`, `codex --version`, and VibeOS runtime detection.
 
 ### Step 2: Ownership Decisions
@@ -122,7 +122,7 @@ Upgrade this current Mac to the latest compatible versions of the development to
 - Decide whether Codex/Claude should be updated through npm/native/Homebrew, avoiding duplicate binaries on PATH.
 
 ### Step 3: Low-Risk Baseline Installs
-- Install missing shell utilities from the bootstrap formula Brewfile: `yq`, `fd`, `tree`, `wget`, and `imagemagick`.
+- Install missing shell utilities from the optional workstation package formula list: `yq`, `fd`, `tree`, `wget`, and `imagemagick`.
 - Install uv Python 3.10 and 3.11 if compatibility still requires them.
 
 ### Step 4: Compatible Upgrades
@@ -131,7 +131,7 @@ Upgrade this current Mac to the latest compatible versions of the development to
 - Upgrade npm globals only after ownership decisions.
 
 ### Step 5: Verification and Closeout
-- Run `verify.sh`, runtime detection, and selected project smokes.
+- Run `workstation-package.sh verify`, runtime detection, and selected project smokes.
 - Record remaining defers, exact versions, and rollback notes.
 
 ## Audit Checkpoints

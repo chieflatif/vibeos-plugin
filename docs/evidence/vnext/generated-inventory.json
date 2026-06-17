@@ -247,9 +247,10 @@
         "plugins/vibeos/scripts/validate-worktree-freshness.sh",
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py",
-        "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py"
+        "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py",
+        "plugins/vibeos/scripts/workstation-package.sh"
       ],
-      "value": 102
+      "value": 103
     },
     {
       "claim": "Decision engine files",
@@ -602,9 +603,11 @@
         "docs/planning/WO-139-session-limit-aware-self-rescheduling.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md",
-        "docs/planning/WO-147-plugin-install-integrity-remediation.md"
+        "docs/planning/WO-147-plugin-install-integrity-remediation.md",
+        "docs/planning/WO-148-new-machine-bootstrap-package.md",
+        "docs/planning/WO-149-current-machine-compatible-upgrade.md"
       ],
-      "value": 133
+      "value": 135
     },
     {
       "claim": "Quality gate manifest entries",
@@ -615,7 +618,7 @@
         "plugins/vibeos/quality-gate-manifest.json",
         null
       ],
-      "value": 57
+      "value": 58
     },
     {
       "claim": "Codex has Claude-equivalent hook parity",
@@ -650,7 +653,7 @@
     }
   ],
   "framework_version": "2.2.0",
-  "generated_at": "2026-06-15T17:10:33Z",
+  "generated_at": "2026-06-17T06:27:04Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -770,10 +773,10 @@
       ]
     },
     "gates": {
-      "advisory_entries": 30,
+      "advisory_entries": 31,
       "blocking_entries": 27,
       "claim_label": "Quality gate manifest entries",
-      "gate_entries": 57,
+      "gate_entries": 58,
       "manifest_path": "plugins/vibeos/quality-gate-manifest.json",
       "manifest_version": "2.2.0",
       "missing_gate_scripts": [],
@@ -784,9 +787,10 @@
         "session_end": 1,
         "session_start": 2,
         "wo_entry": 4,
-        "wo_exit": 11
+        "wo_exit": 11,
+        "workstation_check": 1
       },
-      "unique_gate_scripts": 49
+      "unique_gate_scripts": 50
     },
     "hook_scripts": {
       "claim_label": "Hook scripts",
@@ -971,7 +975,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 102,
+      "count": 103,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -1074,10 +1078,11 @@
         "plugins/vibeos/scripts/validate-worktree-freshness.sh",
         "plugins/vibeos/scripts/wo-contracts.py",
         "plugins/vibeos/scripts/wo-frontmatter-lint.py",
-        "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py"
+        "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py",
+        "plugins/vibeos/scripts/workstation-package.sh"
       ],
       "python_count": 37,
-      "shell_count": 63
+      "shell_count": 64
     },
     "tests": {
       "claim_label": "Python test modules",
@@ -1123,7 +1128,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 133,
+      "count": 135,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1257,7 +1262,9 @@
         "docs/planning/WO-139-session-limit-aware-self-rescheduling.md",
         "docs/planning/WO-145-phase34-gate-floor-remediation.md",
         "docs/planning/WO-146-tests-pass-recursion-guard.md",
-        "docs/planning/WO-147-plugin-install-integrity-remediation.md"
+        "docs/planning/WO-147-plugin-install-integrity-remediation.md",
+        "docs/planning/WO-148-new-machine-bootstrap-package.md",
+        "docs/planning/WO-149-current-machine-compatible-upgrade.md"
       ]
     }
   },
@@ -1272,7 +1279,7 @@
       "version": "2.2.0"
     },
     "runtime_capabilities": {
-      "generated_at": "2026-06-15T00:40:04+00:00",
+      "generated_at": "2026-06-17T06:25:10+00:00",
       "path": ".vibeos/runtime-capabilities.json",
       "strategy": {
         "orchestration_mode": "claude-subagents",

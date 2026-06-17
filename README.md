@@ -80,28 +80,36 @@ Examples:
 
 ## Installation
 
-### New Mac workstation bootstrap
+### Optional Mac workstation package
 
-If this is a new Mac or a partially configured Mac, clone VibeOS first and run
-the machine bootstrap before installing VibeOS into individual projects:
+If this is a new Mac or a partially configured Mac, VibeOS includes an optional
+harness utility that can check or install the baseline development tool spine
+before you install VibeOS into individual projects:
 
 ```bash
 git clone https://github.com/chieflatif/vibeos-plugin.git
 cd vibeos-plugin
 
-# Dry-run first. This detects what is already installed.
+# Dry-run first. This detects what would be installed.
 ./vibeos-machine-init.sh
 
-# Apply the baseline workstation setup.
+# Apply the baseline workstation package.
 ./vibeos-machine-init.sh --apply
 ```
 
-This installs or adopts the baseline Mac tooling used across Latif's common
-projects: Homebrew, Git/GitHub tooling, Claude Code, Codex, Cursor, Docker
-Desktop, Node/npm/Corepack, uv/Python, Azure CLI, Azure Functions Core Tools,
-Render/Stripe/deployment tools, local service tools, and media/document tools.
-It does not copy secrets or account sessions. Authentication remains manual:
-`gh auth login`, `az login`, `claude`, and `codex`.
+The same capability is available after a project install as a harness utility:
+
+```bash
+bash .vibeos/scripts/workstation-package.sh check
+bash .vibeos/scripts/workstation-package.sh verify
+```
+
+The package covers Homebrew, Git/GitHub tooling, Claude Code, Codex, Cursor,
+Docker Desktop, Node/npm/Corepack, uv/Python, Azure CLI, Azure Functions Core
+Tools, Render/Stripe/deployment tools, local service tools, and media/document
+tools. It is optional and does not copy secrets or account sessions.
+Authentication remains manual: `gh auth login`, `az login`, `claude`, and
+`codex`.
 
 ### The recommended way: project-level bootstrap
 

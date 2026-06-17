@@ -68,6 +68,7 @@ class CodexBootstrapTests(unittest.TestCase):
             self.assertTrue((target / ".vibeos/scripts/autonomy-supervisor.py").is_file())
             self.assertTrue((target / ".vibeos/scripts/autonomy_lease.py").is_file())
             self.assertTrue((target / ".vibeos/scripts/validate-long-run-autonomy.py").is_file())
+            self.assertTrue((target / ".vibeos/scripts/workstation-package.sh").is_file())
             self.assertTrue((target / ".vibeos/reference/autonomy/LONG-RUN-AUTONOMY.md.ref").is_file())
             self.assertTrue((target / ".vibeos/reference/autonomy/SCHEDULER-PROFILES.md.ref").is_file())
             self.assertTrue((target / ".vibeos/reference/autonomy/long-run-autonomy-policy.json").is_file())
@@ -165,6 +166,7 @@ class CodexBootstrapTests(unittest.TestCase):
             self.assertTrue((target / ".vibeos/scripts/autonomy-supervisor.py").is_file())
             self.assertTrue((target / ".vibeos/scripts/autonomy_lease.py").is_file())
             self.assertTrue((target / ".vibeos/scripts/validate-long-run-autonomy.py").is_file())
+            self.assertTrue((target / ".vibeos/scripts/workstation-package.sh").is_file())
 
     def test_uninstall_removes_codex_surface_without_removing_shared_runtime(self):
         with tempfile.TemporaryDirectory() as tmp:

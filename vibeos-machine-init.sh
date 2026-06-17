@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# VibeOS machine bootstrap wrapper.
-# This prepares the Mac workstation baseline. It is separate from vibeos-init.sh,
-# which installs VibeOS governance into an individual project repository.
+# VibeOS optional workstation package wrapper.
+# The implementation lives in the shared harness at plugins/vibeos/scripts.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MACOS_BOOTSTRAP="$SCRIPT_DIR/workstation-bootstrap/macos/install-macos.sh"
+WORKSTATION_PACKAGE="$SCRIPT_DIR/plugins/vibeos/scripts/workstation-package.sh"
 
 usage() {
   cat <<'EOF'
@@ -35,9 +34,9 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   exit 2
 fi
 
-if [[ ! -x "$MACOS_BOOTSTRAP" ]]; then
-  echo "[vibeos-machine-init] FAIL: macOS bootstrap missing or not executable: $MACOS_BOOTSTRAP" >&2
+if [[ ! -x "$WORKSTATION_PACKAGE" ]]; then
+  echo "[vibeos-machine-init] FAIL: workstation package missing or not executable: $WORKSTATION_PACKAGE" >&2
   exit 2
 fi
 
-exec "$MACOS_BOOTSTRAP" "$@"
+exec "$WORKSTATION_PACKAGE" install "$@"

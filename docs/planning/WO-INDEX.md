@@ -55,7 +55,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-142 | Secure ingestion sandbox | 46 | Planned | master-plan |
 | WO-143 | Marketplace indexer + project-setup integration | 46 | Planned | master-plan |
 | WO-144 | Enterprise internal-marketplace mode | 46 | Planned | master-plan |
-| WO-148 | New Machine Bootstrap Package | 47 | Draft | frontmatter |
+| WO-148 | Optional Workstation Package Harness | 47 | Complete | frontmatter |
 | WO-149 | Current Machine Compatible Toolchain Upgrade | 47 | Draft | frontmatter |
 <!-- VIBEOS-GENERATED-END: wo-frontmatter-index -->
 

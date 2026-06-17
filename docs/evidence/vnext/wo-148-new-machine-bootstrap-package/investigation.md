@@ -1,10 +1,10 @@
-# WO-148 Investigation: New Machine Bootstrap Package
+# WO-148 Investigation: Optional Workstation Package Harness
 
 Date: 2026-06-17
 
 ## Verdict
 
-Create a workstation bootstrap path in the VibeOS GitHub checkout before treating VibeOS as ready for a new computer. VibeOS should keep the per-project governance installer, but the repository should also expose a machine-level bootstrap wrapper so a new Mac can be prepared from the same checkout before installing VibeOS into individual projects.
+Create a workstation package path in the VibeOS GitHub checkout before treating VibeOS as ready for a new computer. VibeOS should keep the per-project governance installer, and the workstation setup should be published as optional harness support rather than a separate side project.
 
 ## Repo Evidence
 
@@ -13,6 +13,7 @@ Create a workstation bootstrap path in the VibeOS GitHub checkout before treatin
 - `CLAUDE.md` states the plugin itself uses pure Claude Code capabilities plus Bash, Python, jq, git, and optional Codex CLI. It explicitly says no external frameworks are part of the plugin architecture.
 - `plugins/vibeos/reference/codex/AGENTS.md.ref` says Codex does not get Claude hook parity and must read `.vibeos/runtime-capabilities.json` before claiming orchestration capability.
 - `docs/planning/WO-147-plugin-install-integrity-remediation.md` records that the local 2.2.0 development tree may be ahead of the public marketplace/install source. That is a migration risk for a new computer.
+- `plugins/vibeos/scripts/` is the shared harness script surface copied into installed projects by both `vibeos-init.sh` and `vibeos-init-codex.sh`.
 
 ## Runtime Evidence From This Machine
 
@@ -54,7 +55,7 @@ The current machine already has several tools installed outside the Homebrew cas
 - `/Applications/Docker.app` exists and `docker` is available, but the `docker-desktop` cask is not installed.
 - `/Applications/Codex.app` exists and `codex` is available, but the `codex` / `codex-app` casks are not installed.
 
-The installer must treat this as an adoption/detection case, not a failure. The package now installs formulae separately and handles casks one by one, skipping unmanaged equivalents unless `--force-cask-ownership` is used.
+The installer must treat this as an adoption/detection case, not a failure. The package handles casks one by one, skipping unmanaged equivalents unless `--force-cask-ownership` is used.
 
 ## Current Machine Tool Inventory
 
@@ -95,15 +96,14 @@ Useful installed extras:
 
 ## Recommendation
 
-Use `workstation-bootstrap/macos/` as the first package:
+Use `plugins/vibeos/scripts/workstation-package.sh` as the optional harness package:
 
-1. `vibeos-machine-init.sh` is the top-level GitHub-checkout entrypoint for Mac baseline setup.
-2. `Brewfile` records full desired state.
-3. `Brewfile.formulae` installs formulae separately from casks.
-4. `install-macos.sh` defaults to dry-run and only installs with `--apply`.
-5. `doctor.sh` audits current or partially configured machines without installing anything.
-6. `verify.sh` checks the installed tool spine and reruns VibeOS runtime detection when available.
-7. VibeOS itself stays per-project: run `vibeos-init.sh` and `vibeos-init-codex.sh` inside each cloned project.
+1. `vibeos-machine-init.sh` is the top-level GitHub-checkout convenience wrapper.
+2. `workstation-package.sh check` audits current or partially configured machines without installing anything.
+3. `workstation-package.sh install` defaults to dry-run and only installs with `--apply`.
+4. `workstation-package.sh verify` checks the installed tool spine and reruns VibeOS runtime detection when available.
+5. `workstation_check` is an optional gate-runner phase, not part of default pre-commit/session gates.
+6. VibeOS itself stays per-project: run `vibeos-init.sh` and `vibeos-init-codex.sh` inside each cloned project.
 
 ## Known Risks
 

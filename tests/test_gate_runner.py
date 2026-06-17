@@ -84,6 +84,18 @@ class GateRunnerTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("validate-long-run-autonomy.py", result.stdout)
 
+    def test_optional_workstation_check_phase_is_registered(self):
+        result = _run(
+            "workstation_check",
+            "--framework-dir", str(FRAMEWORK),
+            "--project-dir", str(REPO_ROOT),
+            "--manifest", str(MANIFEST),
+            "--dry-run",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("workstation-package.sh", result.stdout)
+
 
 class TierResolutionTests(unittest.TestCase):
     """WO-107: get_tier_info must handle object, legacy-string, and missing tiers."""

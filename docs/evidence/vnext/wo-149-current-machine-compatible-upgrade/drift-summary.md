@@ -16,7 +16,7 @@ Summarize the current-machine evidence that justifies a separate upgrade work or
 
 ## Missing Baseline Utilities
 
-Reported by `doctor.sh` against the new baseline package:
+Reported by `workstation-package.sh check` against the optional workstation package:
 
 - `yq`
 - `fd`

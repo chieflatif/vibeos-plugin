@@ -63,7 +63,9 @@
 
     {"script": "scripts/validate-session-start.sh", "tier": 0, "blocking": false, "phase": "session_start", "env": {}},
     {"script": "scripts/validate-long-run-autonomy.py", "tier": 2, "blocking": false, "phase": "session_start", "env": {}},
-    {"script": "scripts/validate-long-run-autonomy.py", "tier": 1, "blocking": true, "phase": "session_end", "env": {"LONG_RUN_REQUIRE_CLOSED": "true"}}
+    {"script": "scripts/validate-long-run-autonomy.py", "tier": 1, "blocking": true, "phase": "session_end", "env": {"LONG_RUN_REQUIRE_CLOSED": "true"}},
+
+    {"script": "scripts/workstation-package.sh", "tier": 3, "blocking": false, "phase": "workstation_check", "env": {"WORKSTATION_PACKAGE_MODE": "check"}}
   ],
   "utility_scripts": [
     {"script": "scripts/gate-runner.sh", "purpose": "Orchestrates gate execution by phase"},
@@ -90,6 +92,7 @@
     {"script": "scripts/validate-long-run-autonomy.py", "purpose": "Validates long-run autonomy cadence, heartbeat, checkpoint, audit, and closeout policy"},
     {"script": "scripts/detect-runtime-capabilities.sh", "purpose": "Detects local Codex/Claude runtime capabilities and orchestration limits"},
     {"script": "scripts/runtime-capabilities.py", "purpose": "Testable parser and JSON writer for runtime capability detection"},
+    {"script": "scripts/workstation-package.sh", "purpose": "Optional macOS workstation package checker, installer dry-run, and post-install verifier"},
     {"script": "scripts/comp-plan.py", "purpose": "Generates VibOS Comp execution plans and worktree scope manifests from MISSION.md"},
     {"script": "scripts/comp-integration-check.py", "purpose": "Checks VibOS Comp work package evidence before integrated gauntlet execution"},
     {"script": "scripts/comp-scorecard.py", "purpose": "Generates VibOS Comp SCORECARD.md with normalized dimension pass/warn/fail results"},
@@ -130,6 +133,7 @@
   ],
   "phases": {
     "session_start": {"description": "Environment checks at session start", "enabled": true},
+    "workstation_check": {"description": "Optional macOS workstation package state check", "enabled": true},
     "wo_entry": {"description": "Prerequisites check before starting any WO", "enabled": true},
     "pre_commit": {"description": "Fast blocking checks before every commit", "enabled": true},
     "comp_gauntlet": {"description": "VibOS Comp AI failure mode and enterprise MVP foundation checks", "enabled": true},
