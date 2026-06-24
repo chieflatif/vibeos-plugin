@@ -1,5 +1,5 @@
 {
-  "description": "VibeOS Plugin — Layer 0 and Layer 1 enforcement hooks",
+  "description": "VibeOS Plugin \u2014 Layer 0 and Layer 1 enforcement hooks",
   "hooks": {
     "SessionStart": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prereq-check.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/prereq-check.sh\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/governance-guard.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/governance-guard.sh\""
           }
         ]
       },
@@ -25,7 +25,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/intent-router.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/intent-router.sh\""
           }
         ]
       }
@@ -36,7 +36,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/worktree-bash-guard.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/worktree-bash-guard.sh\"",
             "timeout": 5
           }
         ]
@@ -46,32 +46,32 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/secrets-scan.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/secrets-scan.sh\""
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/frozen-files.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/frozen-files.sh\""
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/test-file-protection.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/test-file-protection.sh\""
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/test-diff-audit.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/test-diff-audit.sh\""
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/worktree-scope-guard.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/worktree-scope-guard.sh\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/proof-protection.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/proof-protection.sh\""
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/file-budget.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/file-budget.sh\"",
             "timeout": 5
           }
         ]
@@ -83,7 +83,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/gate-result-capture.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/gate-result-capture.sh\"",
             "timeout": 5
           }
         ]
@@ -94,7 +94,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-agent-return.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/validate-agent-return.sh\"",
             "timeout": 5
           }
         ]
@@ -105,7 +105,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/state-flush.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/state-flush.sh\"",
             "timeout": 5
           }
         ]
@@ -116,7 +116,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/state-flush.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/state-flush.sh\"",
             "timeout": 5
           }
         ]
@@ -127,7 +127,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/limit-warning-capture.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/limit-warning-capture.sh\"",
             "timeout": 5
           }
         ]
@@ -138,7 +138,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/worktree-scope-setup.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/worktree-scope-setup.sh\"",
             "timeout": 30
           }
         ]
@@ -149,7 +149,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/team-governance.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/team-governance.sh\"",
             "timeout": 5
           }
         ]
@@ -160,7 +160,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/team-governance.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/team-governance.sh\"",
             "timeout": 5
           }
         ]
@@ -171,7 +171,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/team-governance.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/team-governance.sh\"",
             "timeout": 5
           }
         ]
@@ -182,7 +182,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/model-policy-guard.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/model-policy-guard.sh\"",
             "timeout": 5
           }
         ]
@@ -193,20 +193,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/response-quality-stop.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/response-quality-stop.sh\""
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/lane-loop-stop.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/lane-loop-stop.sh\"",
             "timeout": 5
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Check if your response just completed one of these three critical events:\n1. You approved, finalized, or handed off a development plan or work order tranche for execution\n2. You declared a work order complete, closed, or marked it done\n3. You completed a session summary, session audit, or session closeout\n\nIf NONE of these apply, do nothing — skip this check entirely.\n\nIf one DOES apply:\n- Run `bash plugins/vibeos/scripts/detect-significance.sh` in a Bash tool call.\n- If the output contains `\"significant\":true`:\n  - If you are in autonomous build mode (running /vibeos:build or /vibeos:autonomous): invoke the codex-audit skill immediately — do not ask, just run it. Map event type: plan handoff → 'plan', WO close → 'complete', session close → 'session'.\n  - If you are NOT in autonomous mode: surface one sentence to the user: \"Codex complementary audit recommended — say 'audit this with Codex' to run it.\"\n- Never repeat this message within the same session if you already ran or offered the audit."
           }
         ]
       }
