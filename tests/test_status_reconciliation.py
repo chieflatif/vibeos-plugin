@@ -3,6 +3,7 @@
 import json
 import os
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -23,7 +24,8 @@ def configured_command_hooks():
             matcher = entry.get("matcher", "")
             for hk in entry.get("hooks", []):
                 if hk.get("type") == "command":
-                    entries.append((event, matcher, hk.get("command", "").split("/")[-1]))
+                    command = hk.get("command", "").strip().strip('"')
+                    entries.append((event, matcher, command.split("/")[-1]))
     return entries
 
 
@@ -47,11 +49,13 @@ class HookManifestSyncTests(unittest.TestCase):
         )
 
     def test_inventory_counts_match_configured_hooks(self):
-        subprocess.run(
-            ["python3", str(INVENTORY_GEN), "--project-dir", str(REPO)],
-            capture_output=True, text=True, check=True, cwd=str(REPO),
-        )
-        inv = json.loads((REPO / "docs/evidence/vnext/generated-inventory.json").read_text())
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "generated-inventory.json"
+            subprocess.run(
+                ["python3", str(INVENTORY_GEN), "--project-dir", str(REPO), "--out", str(out)],
+                capture_output=True, text=True, check=True, cwd=str(REPO),
+            )
+            inv = json.loads(out.read_text(encoding="utf-8"))
         hooks = inv["inventory"]["hooks"]
         self.assertEqual(hooks["configured_command_count"], 23)
         self.assertEqual(hooks["documented_count"], 23)

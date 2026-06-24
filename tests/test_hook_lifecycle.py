@@ -16,7 +16,7 @@ LIMIT_WARNING = REPO_ROOT / "plugins/vibeos/hooks/scripts/limit-warning-capture.
 
 class HookLifecycleTests(unittest.TestCase):
     def run_hook(self, script: Path, payload: dict, project_dir: Path):
-        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir)}
+        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir), "VIBEOS_FORCE_HOOKS": "1"}
         return subprocess.run(
             ["bash", str(script)],
             input=json.dumps(payload),
