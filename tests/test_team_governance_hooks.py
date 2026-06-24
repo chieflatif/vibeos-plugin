@@ -14,7 +14,7 @@ WORKTREE_SETUP = REPO_ROOT / "plugins/vibeos/hooks/scripts/worktree-scope-setup.
 
 class TeamGovernanceHookTests(unittest.TestCase):
     def run_hook(self, script: Path, payload: dict, project_dir: Path):
-        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir)}
+        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir), "VIBEOS_FORCE_HOOKS": "1"}
         return subprocess.run(
             ["bash", str(script)],
             input=json.dumps(payload),
@@ -112,7 +112,7 @@ class WorktreeScopeSetupTests(unittest.TestCase):
         return subprocess.run(["git", *args], cwd=root, check=True, capture_output=True, text=True)
 
     def run_hook(self, payload: dict, project_dir: Path):
-        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir)}
+        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir), "VIBEOS_FORCE_HOOKS": "1"}
         return subprocess.run(
             ["bash", str(WORKTREE_SETUP)],
             input=json.dumps(payload),

@@ -26,3 +26,30 @@ plugins/vibeos/hooks/scripts/*.bak-*
 # Environment
 .env
 .env.*
+
+# VibeOS runtime state (not checked in)
+.vibeos/baselines/
+.vibeos/cache/
+.vibeos/autonomy/
+.vibeos/current-agent.txt
+.vibeos/runtime-capabilities.json
+.claude/settings.local.json
+.vibeos/checkpoints/
+.vibeos/build-log.md
+.vibeos/session-state.json
+.vibeos/session-audits/
+.vibeos/audit-reports/
+
+# Generated root install surfaces in the VibeOS source repo
+.agents/
+.codex/
+.claude/CLAUDE.md
+.claude/agents/
+.claude/hooks/
+.claude/settings.json
+.claude/skills/
+
+# Local evidence and handoff artifacts
+docs/evidence/vnext/wo-126-agent-team-pilot/team-arm-kit/*PRIOR-RUN-BACKUP*/
+docs/handoffs/REVENUE-TEAM-OS-INSPECTION-BRIEF.md
+plugins/vibeos/hooks/*bak*

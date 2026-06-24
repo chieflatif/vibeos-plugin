@@ -290,7 +290,7 @@ copy_hooks() {
     echo "[vibeos-init] Installing hook scripts..."
     mkdir -p "$TARGET_DIR/.claude/hooks"
 
-    local hooks=("intent-router.sh" "secrets-scan.sh" "frozen-files.sh" "test-file-protection.sh" "test-diff-audit.sh" "prereq-check.sh" "governance-guard.sh" "proof-protection.sh" "file-budget.sh" "worktree-scope-guard.sh" "worktree-bash-guard.sh" "limit-warning-capture.sh")
+    local hooks=("is-vibeos-project.sh" "intent-router.sh" "secrets-scan.sh" "frozen-files.sh" "test-file-protection.sh" "test-diff-audit.sh" "prereq-check.sh" "governance-guard.sh" "proof-protection.sh" "file-budget.sh" "worktree-scope-guard.sh" "worktree-bash-guard.sh" "limit-warning-capture.sh")
     for hook in "${hooks[@]}"; do
         cp "$SOURCE_DIR/hooks/scripts/$hook" "$TARGET_DIR/.claude/hooks/$hook"
         chmod +x "$TARGET_DIR/.claude/hooks/$hook"

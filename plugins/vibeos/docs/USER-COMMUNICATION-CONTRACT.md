@@ -286,6 +286,7 @@ Core terms with plain English definitions. Introduce each term on first use in a
 | **Phase 0 (Remediation)** | A special first phase for existing projects — fixes critical issues before feature work begins |
 | **Midstream** | When the plugin is installed on an existing project (as opposed to a brand-new "greenfield" project) |
 | **Autonomy Level** | How much independence the system has — ranges from checking in after every WO to running entire phases autonomously |
+| **Long-Run Autonomy** | A 24-48 hour resumable autonomous run controlled by heartbeat evidence, checkpoints, audit cadence, and explicit stop conditions |
 | **Check-in** | A pause point where the system shows you what was built and asks how to proceed |
 
 ## Development Plan Is the Roadmap

@@ -14,7 +14,7 @@ LANE_LOOP_STOP = REPO_ROOT / "plugins/vibeos/hooks/scripts/lane-loop-stop.sh"
 
 class LaneLoopStopTests(unittest.TestCase):
     def run_hook(self, payload: dict, project_dir: Path):
-        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir)}
+        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir), "VIBEOS_FORCE_HOOKS": "1"}
         return subprocess.run(
             ["bash", str(LANE_LOOP_STOP)],
             input=json.dumps(payload),
@@ -63,7 +63,7 @@ loop_ceiling_turns: 2
     def test_hooks_json_and_manifest_register_lane_loop_stop(self):
         hooks = json.loads(HOOKS_JSON.read_text(encoding="utf-8"))["hooks"]
         stop_commands = [
-            hook["command"].split("/")[-1]
+            hook["command"].strip('"').split("/")[-1]
             for entry in hooks["Stop"]
             for hook in entry.get("hooks", [])
             if hook.get("type") == "command"

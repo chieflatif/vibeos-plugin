@@ -15,7 +15,7 @@ COST_CAPTURE = REPO_ROOT / "plugins/vibeos/scripts/capture-headless-cost.py"
 
 class ModelPolicyGuardTests(unittest.TestCase):
     def run_guard(self, payload: dict, project_dir: Path):
-        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir)}
+        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(project_dir), "VIBEOS_FORCE_HOOKS": "1"}
         return subprocess.run(
             ["bash", str(MODEL_POLICY_GUARD)],
             input=json.dumps(payload),
