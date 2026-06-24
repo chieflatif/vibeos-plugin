@@ -22,6 +22,19 @@
 # intentionally. This is per hook convention for all VibeOS hooks.
 FRAMEWORK_VERSION="2.2.0"
 
+# --- VibeOS project-scope guard (auto-inserted) ------------------------------
+# Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so
+# without this every hook would fire in every project on the machine.
+# Override with VIBEOS_FORCE_HOOKS=1. Definition: is-vibeos-project.sh
+__VIBEOS_GUARD_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/is-vibeos-project.sh"
+if [ -f "$__VIBEOS_GUARD_LIB" ]; then
+  # shellcheck source=/dev/null
+  . "$__VIBEOS_GUARD_LIB"
+  is_vibeos_project || exit 0
+fi
+# -----------------------------------------------------------------------------
+
+
 FILE_BUDGET_WARN="${FILE_BUDGET_WARN:-250}"
 FILE_BUDGET_MAX="${FILE_BUDGET_MAX:-300}"
 
