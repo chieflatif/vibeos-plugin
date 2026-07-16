@@ -21,7 +21,15 @@ if [ ! -f "$MSG_FILE" ]; then
 fi
 
 MSG="$(sed -e '/^#/d' "$MSG_FILE")"
-SUBJECT="$(printf '%s\n' "$MSG" | awk 'NF>0 {print; exit}')"
+# Pure-bash subject extraction: awk exiting after the first line races SIGPIPE
+# against printf under `set -euo pipefail` on longer messages (exit 141).
+SUBJECT=""
+while IFS= read -r line; do
+  if [ -n "$line" ]; then
+    SUBJECT="$line"
+    break
+  fi
+done <<< "$MSG"
 
 if [ -z "$SUBJECT" ]; then
   printf 'commit-msg: empty subject\n' >&2
@@ -43,12 +51,21 @@ case "$SUBJECT" in
     ;;
 esac
 
-if ! printf '%s\n' "$MSG" | grep -qE '^Co-Authored-By:'; then
+trailer_found="no"
+while IFS= read -r line; do
+  case "$line" in
+    Co-Authored-By:*) trailer_found="yes"; break ;;
+  esac
+done <<< "$MSG"
+if [ "$trailer_found" != "yes" ]; then
   printf 'commit-msg: Co-Authored-By trailer missing\n' >&2
   exit 1
 fi
 
-if printf '%s' "$MSG" | LC_ALL=C grep -P '[\x{1F000}-\x{1FFFF}\x{2600}-\x{27FF}]' >/dev/null 2>&1; then
+# python3 instead of grep -P: BSD grep has no -P, which made this check a
+# silent no-op on macOS; python reads all of stdin, so no SIGPIPE either.
+emoji_found="$(printf '%s' "$MSG" | python3 -c 'import sys, re; print("yes" if re.search("[\U0001F000-\U0001FFFF\u2600-\u27FF]", sys.stdin.read()) else "no")')"
+if [ "$emoji_found" = "yes" ]; then
   printf 'commit-msg: message contains emoji characters (forbidden)\n' >&2
   exit 1
 fi

@@ -341,7 +341,13 @@ else:
     # Missing, empty, or non-string/non-object tier definition: safe defaults.
     blocking = default_blocking
     label = f"tier-{tier}"
-print(f"{blocking}|{label}")
+# Normalize to a canonical "true"/"false" so nonstandard manifest values
+# (1, "yes", "True") cannot silently demote a blocking tier downstream —
+# the shell comparison accepts only true/True. Unrecognized strings fail
+# closed (treated as blocking).
+if isinstance(blocking, str):
+    blocking = blocking.strip().lower() not in ("false", "no", "0", "")
+print(f"{'true' if blocking else 'false'}|{label}")
 PYEOF
 }
 
@@ -409,7 +415,9 @@ run_single_gate() {
   local script_path="$FRAMEWORK_DIR/$script"
 
   if [[ ! -f "$script_path" ]]; then
-    warn "Script not found: $script"
+    # stderr only: this function's stdout is the parsed result contract, and a
+    # WARN line on stdout displaces the SKIP header, making the status unparseable.
+    warn "Script not found: $script" >&2
     echo "SKIP|$gate_name|script_not_found|0"
     return 0
   fi
@@ -476,7 +484,9 @@ for k, v in env.items():
   fi
 
   if [[ $exit_code -eq 0 ]]; then
-    if printf '%s\n' "$output" | grep -q 'SKIP:'; then
+    # Pure-bash match: grep -q exits on first match while printf may still be
+    # writing — under pipefail that race misclassifies marker-skips as PASS.
+    if [[ "$output" == *"SKIP:"* ]]; then
       echo "SKIP|$gate_name|$exit_code|$duration"
       printf '%s\n' "$output"
     else
@@ -583,10 +593,15 @@ while IFS= read -r gate_line; do
 
   # Run the gate
   result=$(run_single_gate "$gate_script" "$gate_name" "$gate_tier" "$gate_env" "$effective_timeout")
-  result_header=$(printf '%s\n' "$result" | awk 'NR==1 {print; exit}')
-  gate_output=$(printf '%s\n' "$result" | awk 'NR>1 {print}')
-  status=$(printf '%s\n' "$result_header" | cut -d'|' -f1)
-  duration=$(printf '%s\n' "$result_header" | cut -d'|' -f4)
+  # Pure-bash extraction: piping large gate output through awk/cut dies with
+  # SIGPIPE under `set -euo pipefail` and aborts the whole phase mid-run.
+  result_header=${result%%$'\n'*}
+  gate_output=""
+  if [[ "$result" == *$'\n'* ]]; then
+    gate_output=${result#*$'\n'}
+  fi
+  status=${result_header%%|*}
+  duration=$(printf '%s' "$result_header" | cut -d'|' -f4)
 
   gate_result="pass"
 
@@ -599,10 +614,33 @@ while IFS= read -r gate_line; do
       ;;
 
     SKIP)
-      skipped=$((skipped + 1))
-      gate_result="skip"
-      if [[ "$JSON_OUTPUT" != "true" ]]; then
-        echo "SKIP"
+      skip_reason=$(printf '%s\n' "$result_header" | cut -d'|' -f3)
+      if [[ "$skip_reason" == "script_not_found" ]] && [[ "$tier_blocking" == "true" || "$tier_blocking" == "True" ]]; then
+        # A blocking gate whose script is missing must fail closed — a green
+        # run over an uninstalled gate would be a false pass.
+        failed=$((failed + 1))
+        blocking_failures=$((blocking_failures + 1))
+        gate_result="fail"
+        if [[ "$JSON_OUTPUT" != "true" ]]; then
+          echo "FAIL [BLOCKING] (script not found: $gate_script)"
+        fi
+        if [[ "$CONTINUE_ON_FAILURE" != "true" ]]; then
+          if [[ "$JSON_OUTPUT" != "true" ]]; then
+            echo ""
+            log "ABORT: Blocking gate failed. Use --continue-on-failure to run remaining gates."
+          fi
+          break
+        fi
+      else
+        skipped=$((skipped + 1))
+        gate_result="skip"
+        if [[ "$JSON_OUTPUT" != "true" ]]; then
+          if [[ "$skip_reason" == "script_not_found" ]]; then
+            echo "SKIP (script not found: $gate_script)"
+          else
+            echo "SKIP"
+          fi
+        fi
       fi
       ;;
 
@@ -672,7 +710,7 @@ while IFS= read -r gate_line; do
 
       # Show failure details for non-JSON output
       if [[ "$JSON_OUTPUT" != "true" && "$gate_result" == "fail" ]]; then
-        echo "$gate_output" | head -20 | sed 's/^/    /'
+        { echo "$gate_output" | head -20 | sed 's/^/    /'; } 2>/dev/null || true
         output_lines=$(echo "$gate_output" | wc -l | tr -d ' ')
         if [[ "$output_lines" -gt 20 ]]; then
           echo "    ... ($((output_lines - 20)) more lines)"
@@ -687,6 +725,18 @@ while IFS= read -r gate_line; do
         fi
         # Still output summary
         break
+      fi
+      ;;
+
+    *)
+      # Defensive: an unparseable result header must never count as a pass.
+      failed=$((failed + 1))
+      gate_result="fail"
+      if [[ "$tier_blocking" == "true" || "$tier_blocking" == "True" ]]; then
+        blocking_failures=$((blocking_failures + 1))
+      fi
+      if [[ "$JSON_OUTPUT" != "true" ]]; then
+        echo "FAIL (unparseable gate result: $result_header)"
       fi
       ;;
   esac

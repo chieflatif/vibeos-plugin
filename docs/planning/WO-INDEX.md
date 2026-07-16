@@ -38,6 +38,9 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-125 | Agent-Team Pilot Plan + Evidence Model | 41 | Complete | frontmatter |
 | WO-126 | Pilot execution: parallel WO lanes as team | 41 | In Progress | frontmatter |
 | WO-147 | Plugin Install Integrity Remediation (stale + broken marketplace cache) | 41 | Draft | frontmatter |
+| WO-150 | Profile Install Name/TOML/Canon Integrity | 41 | Complete | frontmatter |
+| WO-151 | Profile-Installed Target Support in Plugin Skills | 41 | Complete | frontmatter |
+| WO-152 | Gate-Runner Fail-Closed on Missing Blocking Gates | 41 | Complete | frontmatter |
 | WO-127 | Auditor-artifact + waiver-expiry + executed-vs-declared gates | 42 | Planned | master-plan |
 | WO-128 | Product-direction lint + hygiene policy + doc budget | 42 | Planned | master-plan |
 | WO-129 | Framework-ownership manifest | 43 | Planned | master-plan |

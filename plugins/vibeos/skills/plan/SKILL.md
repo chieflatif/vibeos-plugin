@@ -9,6 +9,16 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion
 
 Turn validated product documents into a complete development plan with governance setup.
 
+## Framework Asset Resolution
+
+Steps below read framework assets under `.vibeos/` (`decision-engine/`, `reference/`, `convergence/`). Profile-driven installs deliberately do not carry them (dormant payload). Resolve every such asset in this order:
+
+1. **Project-local** — `.vibeos/<asset>` if it exists (classic full-payload installs).
+2. **Install source** — profile-driven installs record the framework source in `.vibeos/install-plan.json`, and `.source` is the resolved **plugin root**. Resolve `SOURCE=$(jq -r '.source // empty' .vibeos/install-plan.json)`; the asset lives at `$SOURCE/<asset>` (with `$SOURCE/plugins/vibeos/<asset>` as a fallback should a future plan record the repo root).
+3. **Plugin root** — the installed VibeOS plugin's own directory (`${CLAUDE_PLUGIN_ROOT}` when that environment variable is set), which contains `decision-engine/`, `reference/`, and `convergence/` alongside this skill.
+
+Never copy these assets into a profile-installed target (one with `.vibeos/install-lock.json`): the generated active-surface audit fails on un-opted-in dormant payload. Read them from the resolved location instead.
+
 ## Communication Contract
 
 Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
@@ -217,7 +227,16 @@ Create the quality baseline from the findings registry. This establishes the "st
 
 ```bash
 mkdir -p .vibeos/baselines
-bash ".vibeos/convergence/baseline-check.sh" create \
+VIBEOS_ASSETS=".vibeos"
+if [ ! -d "$VIBEOS_ASSETS/convergence" ]; then
+  SOURCE=$(jq -r '.source // empty' .vibeos/install-plan.json 2>/dev/null)
+  if [ -n "$SOURCE" ] && [ -d "$SOURCE/convergence" ]; then VIBEOS_ASSETS="$SOURCE"
+  elif [ -n "$SOURCE" ] && [ -d "$SOURCE/plugins/vibeos/convergence" ]; then VIBEOS_ASSETS="$SOURCE/plugins/vibeos"
+  elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -d "${CLAUDE_PLUGIN_ROOT}/convergence" ]; then VIBEOS_ASSETS="${CLAUDE_PLUGIN_ROOT}"
+  fi
+fi
+[ -d "$VIBEOS_ASSETS/convergence" ] || { echo "[vibeos] FAIL: cannot resolve framework convergence assets"; exit 1; }
+bash "$VIBEOS_ASSETS/convergence/baseline-check.sh" create \
   --mode finding-level \
   --baseline-file ".vibeos/baselines/midstream-baseline.json" \
   --current-findings-file ".vibeos/findings-registry.json"
@@ -518,9 +537,17 @@ Each WO in the plan must have:
 
 Order WOs so dependencies complete before dependents. Typical WO size: one feature area or one integration.
 
+### Step 5a-bis: Lock-Aware Outputs (profile-installed targets)
+
+If `.vibeos/install-lock.json` exists, three of this skill's outputs — `AGENTS.md`, `.claude/CLAUDE.md`, and `.claude/quality-gate-manifest.json` — already exist as VIBEOS-generated installer files tracked by the lock. For these files:
+
+1. **Merge, don't replace (markdown surfaces).** For `AGENTS.md` and `.claude/CLAUDE.md`: keep the `<!-- VIBEOS-GENERATED ... -->` header **as line 1** (the installer's generated-file detection reads only the first line) and keep the existing project-name mentions; extend or append sections rather than rewriting wholesale. The merged file becomes a tracked local customization — future installer upgrades preserve it and write new candidates to `.vibeos/merge-conflicts/` for review, which is expected behavior. `.claude/quality-gate-manifest.json` is pure JSON and carries **no** marker — never inject comment syntax into it; it is lock-tracked by content hash alone, so edit it as plain JSON.
+2. **Manifest honesty.** Every `script` path written into `.claude/quality-gate-manifest.json` must exist under the project's framework dir (`.vibeos/scripts/`). The gate runner fails missing blocking gates closed, so wiring in a gate that was not installed produces a hard failure, not silent coverage. If a selected gate's script is absent, either copy that specific script into `.vibeos/scripts/` and record the addition in the project's pinned profile (`.vibeos/project-profile.json`, or the profile file the repo keeps at its root), or leave the gate out. After writing the manifest, verify each `script` path exists.
+3. **Re-audit before presenting.** Run `python3 .vibeos/scripts/vibeos-active-surface-audit.py` after generating outputs and resolve any failure (generic language, rejected paths, missing project mentions) before presenting the plan.
+
 ### Step 5b: Generate Audit Governance Docs
 
-Read:
+Read (per Framework Asset Resolution):
 - `.vibeos/reference/governance/AGENTS.md.ref`
 - `.vibeos/reference/governance/AUDIT-PROTOCOL.md.ref`
 - `.vibeos/reference/governance/AGENT-WORKFLOW.md.ref`

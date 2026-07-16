@@ -162,6 +162,113 @@ class ProfileInstallTests(unittest.TestCase):
             codex_hooks = json.loads((target / ".codex/hooks.json").read_text(encoding="utf-8"))
             self.assertIn("UserPromptSubmit", codex_hooks["hooks"])
 
+    def test_analyze_ignores_generated_agents_md_for_name_and_canon(self):
+        # WO-150 AC-1/AC-4: a repo whose only heading source is a prior install's
+        # generated AGENTS.md must fall back to the directory-name default and
+        # must not treat the generated file as canon.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "sync-connector"
+            target.mkdir()
+            (target / "AGENTS.md").write_text(
+                "<!-- VIBEOS-GENERATED: profile-driven-install -->\n"
+                "<!-- template_id: codex.agents-md.v1 -->\n"
+                "<!-- profile_hash: abc -->\n"
+                "<!-- source_hash: def -->\n\n"
+                "# Widget — VibeOS Project Surface\n",
+                encoding="utf-8",
+            )
+            plan = self.analyze(target)
+            self.assertEqual(plan["profile"]["project_name"], "Sync Connector")
+            self.assertNotIn("AGENTS.md", plan["detected_canon"])
+
+    def test_vibeos_surface_suffix_never_becomes_project_name(self):
+        # WO-150 AC-2: even without the generated header, a heading ending in
+        # the generated-surface suffix must not be adopted verbatim.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "boardsync"
+            target.mkdir()
+            (target / "README.md").write_text(
+                "# Widget — VibeOS Project Surface\n", encoding="utf-8"
+            )
+            plan = self.analyze(target)
+            self.assertEqual(plan["profile"]["project_name"], "Widget")
+
+    def test_heading_that_strips_to_empty_falls_back_to_directory_name(self):
+        # WO-150 AC-2 edge: a heading that is nothing but the generated-surface
+        # suffix must fall through to the directory-name default.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "boardsync"
+            target.mkdir()
+            (target / "README.md").write_text(
+                "# — VibeOS Project Surface\n", encoding="utf-8"
+            )
+            plan = self.analyze(target)
+            self.assertEqual(plan["profile"]["project_name"], "Boardsync")
+
+    def test_unpinned_reanalyze_is_idempotent_on_name_and_canon(self):
+        # WO-150 AC-4: analyze → apply → analyze without a profile must not
+        # drift the detected name, canon, or profile hash via generated files.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target)
+            first = self.analyze(target)
+            self.apply(target)
+            second = self.analyze(target)
+            self.assertEqual(second["profile"]["project_name"], first["profile"]["project_name"])
+            self.assertEqual(second["detected_canon"], first["detected_canon"])
+            self.assertEqual(second["profile_hash"], first["profile_hash"])
+
+    def test_non_ascii_project_name_renders_literally_and_passes_audit(self):
+        # WO-150 AC-3: an em-dash project name must appear literally in the
+        # generated Codex TOMLs (no — escapes) and the apply-time
+        # active-surface audit must pass.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target)
+            profile = target / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "project_name": "Team Board — Connector",
+                        "mode": "product-engineering",
+                    }
+                ),
+                encoding="utf-8",
+            )
+            self.analyze(target, profile=profile)
+            self.apply(target)
+            backend = (target / ".codex/agents/backend.toml").read_text(encoding="utf-8")
+            self.assertIn("Team Board — Connector", backend)
+            self.assertNotIn("\\u2014", backend)
+
+    def test_quoted_project_name_passes_audit(self):
+        # Quotes are string-escaped inside TOML, so the audit's mention check
+        # must accept the escaped form, not just the literal name.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            target_readme = target / "README.md"
+            target_readme.write_text('# The "Quoted" Project\n', encoding="utf-8")
+            self.analyze(target)
+            self.apply(target)
+            backend = (target / ".codex/agents/backend.toml").read_text(encoding="utf-8")
+            self.assertIn('The \\"Quoted\\" Project', backend)
+
+    def test_missing_profile_path_fails_with_clear_message(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target)
+            result = subprocess.run(
+                [
+                    str(VIBEOS), "analyze",
+                    "--target", str(target),
+                    "--source", str(REPO_ROOT),
+                    "--profile", str(target / "nope.json"),
+                ],
+                cwd=REPO_ROOT, capture_output=True, text=True,
+            )
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            self.assertIn("profile not found", result.stdout)
+
     def test_profile_apply_preserves_locally_customized_generated_files(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp)

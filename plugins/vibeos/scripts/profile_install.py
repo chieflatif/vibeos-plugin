@@ -292,6 +292,21 @@ def check_source_target_safety(source: Path, target: Path) -> None:
             raise InstallError(f"refusing to write through symlink: {candidate}")
 
 
+GENERATED_MARKER_PREFIXES = ("<!-- VIBEOS-GENERATED", "# VIBEOS-GENERATED")
+GENERATED_SURFACE_HEADING_SUFFIX = " — VibeOS Project Surface"
+
+
+def is_generated_file(path: Path) -> bool:
+    if not path.is_file():
+        return False
+    try:
+        with path.open(encoding="utf-8", errors="replace") as handle:
+            first_line = handle.readline()
+    except OSError:
+        return False
+    return first_line.lstrip().startswith(GENERATED_MARKER_PREFIXES)
+
+
 def first_heading(path: Path) -> str | None:
     try:
         for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
@@ -305,14 +320,34 @@ def first_heading(path: Path) -> str | None:
 
 def detect_project_name(target: Path) -> str:
     for name in ["PROJECT.md", "README.md", "AGENTS.md"]:
-        heading = first_heading(target / name)
+        path = target / name
+        if is_generated_file(path):
+            continue
+        heading = first_heading(path)
+        if not heading:
+            continue
+        # Strip only the exact generated-heading form ("<name> — VibeOS Project
+        # Surface") or its degenerate bare variants; anything else without the
+        # separator is a legitimate user title.
+        if heading.endswith(GENERATED_SURFACE_HEADING_SUFFIX):
+            heading = heading[: -len(GENERATED_SURFACE_HEADING_SUFFIX)].strip()
+        elif heading in ("— VibeOS Project Surface", "VibeOS Project Surface"):
+            heading = ""
         if heading:
             return heading
     return title_case_from_slug(target.name)
 
 
 def detect_canon(target: Path) -> list[str]:
-    return [path for path in CANON_CANDIDATES if (target / path).exists()]
+    canon: list[str] = []
+    for path in CANON_CANDIDATES:
+        candidate = target / path
+        if not candidate.exists():
+            continue
+        if candidate.is_file() and is_generated_file(candidate):
+            continue
+        canon.append(path)
+    return canon
 
 
 def detect_validators(target: Path) -> list[dict[str, str]]:
@@ -605,14 +640,20 @@ def render_codex_toml(role: str, meta: dict[str, str], profile: dict[str, Any], 
         f"Profile hash: {profile_hash}. "
         f"Authority: {'read-only review' if read_only else 'workspace implementation'}."
     )
+    # TOML files are UTF-8; render strings without \uXXXX escapes so the
+    # active-surface audit's literal project-name check holds for non-ASCII names.
+    # DEL must stay escaped: JSON leaves 0x7f raw but TOML rejects it.
+    def toml_str(value: str) -> str:
+        return json.dumps(value, ensure_ascii=False).replace("\x7f", "\\u007f")
+
     lines = [
         f"# VIBEOS-GENERATED template_id={template_id} profile_hash={profile_hash} source_hash={meta_hash}",
-        f"name = {json.dumps('vibeos_' + snake(role))}",
-        f"description = {json.dumps(f'{role.replace('-', ' ').title()} for {profile['project_name']}.')}",
-        f"model = {json.dumps(model)}",
-        f"model_reasoning_effort = {json.dumps(effort)}",
-        f"sandbox_mode = {json.dumps(sandbox)}",
-        f"developer_instructions = {json.dumps(instructions)}",
+        f"name = {toml_str('vibeos_' + snake(role))}",
+        f"description = {toml_str(f'{role.replace('-', ' ').title()} for {profile['project_name']}.')}",
+        f"model = {toml_str(model)}",
+        f"model_reasoning_effort = {toml_str(effort)}",
+        f"sandbox_mode = {toml_str(sandbox)}",
+        f"developer_instructions = {toml_str(instructions)}",
         "",
     ]
     return "\n".join(lines)
@@ -804,6 +845,17 @@ def main() -> int:
     avoid = set(profile.get("avoid_surfaces", []))
     failures: list[str] = []
 
+    # TOML/JSON surfaces embed the name string-escaped (quotes, backslashes),
+    # so the mention check must accept the escaped form too.
+    project_forms = [project] if project else []
+    if project:
+        escaped = json.dumps(project, ensure_ascii=False)[1:-1]
+        if escaped != project:
+            project_forms.append(escaped)
+
+    def mentions_project(text: str) -> bool:
+        return any(form in text for form in project_forms)
+
     if not project:
         failures.append("missing project_name in .vibeos/project-profile.json")
 
@@ -817,7 +869,7 @@ def main() -> int:
     for item in instruction_files:
         path = root / item["path"]
         text = path.read_text(encoding="utf-8", errors="replace")
-        if project and project not in text:
+        if project and not mentions_project(text):
             failures.append(f"{item['path']} does not mention target project {project!r}")
         for phrase in FORBIDDEN_GENERIC_PHRASES:
             if phrase in text:
@@ -836,7 +888,7 @@ def main() -> int:
         stem = toml_path.stem
         if ("auditor" in stem or stem in {"plan-auditor", "contract-validator"}) and 'sandbox_mode = "read-only"' not in text:
             failures.append(f"read-only role is not read-only in Codex TOML: {toml_path.relative_to(root)}")
-        if project and project not in text:
+        if project and not mentions_project(text):
             failures.append(f"Codex TOML does not mention target project {project!r}: {toml_path.relative_to(root)}")
 
     hooks = load_json(root / ".codex/hooks.json")
@@ -1379,6 +1431,10 @@ def command_analyze(args: argparse.Namespace) -> int:
     source = resolve_source(args.source)
     target = resolve_target(args.target)
     profile_path = Path(args.profile).expanduser().resolve() if args.profile else None
+    if profile_path and not profile_path.is_file():
+        print(f"[vibeos] FAIL: profile not found: {profile_path}")
+        print("[vibeos] hint: the installer writes the pinned profile to .vibeos/project-profile.json")
+        return 2
     profile = load_profile(profile_path, target, args.mode)
     plan = build_plan(source, target, profile)
     plan_path = Path(args.plan).expanduser().resolve() if args.plan else target / ".vibeos/install-plan.json"

@@ -9,6 +9,22 @@ allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion
 
 Upgrade the VibeOS framework in a project, reconcile configuration, sweep the entire codebase with all gates and auditors, and produce prioritized recommendations for integration and issue correction. This is NOT a baseline operation — everything found is surfaced as actionable.
 
+## Profile-Installed Targets: Different Upgrade Path
+
+**Check first: does `.vibeos/install-lock.json` exist?** If yes, this project was installed with the profile-driven flow and must NOT receive the copy-based upgrade below. Copying `decision-engine/`, `reference/`, or `convergence/` into it plants dormant payload that the generated active-surface audit will fail as un-opted-in. Upgrade instead by re-running the installer from the newer source with the project's pinned profile. `.source` in the install plan is the resolved **plugin root** (the `vibeos` wrapper lives only at the repo root, so invoke the installer script directly); the pinned profile is `.vibeos/project-profile.json` (written by apply), unless the repo keeps its own profile file at the root:
+
+```bash
+SOURCE=$(jq -r '.source // empty' .vibeos/install-plan.json)
+PROFILE=".vibeos/project-profile.json"
+[ -f "vibeos-profile.json" ] && PROFILE="vibeos-profile.json"
+python3 "$SOURCE/scripts/profile_install.py" analyze --target . --source "$SOURCE" --profile "$PROFILE"
+jq '.overwrite_plan' .vibeos/install-plan.json    # review before applying
+python3 "$SOURCE/scripts/profile_install.py" apply --plan .vibeos/install-plan.json
+python3 .vibeos/scripts/vibeos-active-surface-audit.py
+```
+
+Unchanged generated files are replaced; locally customized ones are preserved with new candidates written to `.vibeos/merge-conflicts/` for manual reconciliation. After apply, skip Steps 4–6 below (copy + CLAUDE.md/settings reconciliation — the installer's lock machinery owns those surfaces) and continue at Step 7, with two adjustments for profile-installed repos: resolve decision-engine assets from `$SOURCE/decision-engine/` instead of `.vibeos/decision-engine/`, and treat missing classic-state files (`project-definition.json`, `.vibeos/version.json`, `.vibeos/config.json`) as expected — the state sources here are `.vibeos/project-profile.json` and `.vibeos/install-plan.json`, plus `docs/planning/` if the project has been through `/vibeos:plan`. The copy-based steps and the Prerequisites list in this skill apply only to classic (full-payload) installs.
+
 ## Communication Contract
 
 Follow the full USER-COMMUNICATION-CONTRACT.md (`docs/USER-COMMUNICATION-CONTRACT.md`). Key rules:
@@ -98,6 +114,12 @@ Before modifying anything, create a snapshot for rollback:
    > "Pre-upgrade snapshot saved. If anything goes wrong, I can restore your previous configuration."
 
 ### Step 4: Copy Framework Files
+
+**Guard: classic installs only.** Run this executable check before any copy — if it fails, stop and use the "Profile-Installed Targets" path at the top of this skill (`analyze`/`apply` owns those surfaces there, and copying dormant payload fails the active-surface audit):
+
+```bash
+[ ! -f .vibeos/install-lock.json ] || { echo "[upgrade] BLOCKED: profile-installed target — use the analyze/apply path"; exit 1; }
+```
 
 Copy new framework files while preserving project-specific state:
 

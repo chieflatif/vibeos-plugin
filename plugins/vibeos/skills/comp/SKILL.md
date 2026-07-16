@@ -9,6 +9,16 @@ allowed-tools: Read, Write, Glob, Grep, Bash, AskUserQuestion
 
 Create a compact mission brief for VibOS Comp: fast enough for competitions and MVP validation, but with enterprise-grade foundations from the start.
 
+## Framework Asset Resolution
+
+Steps below read framework assets under `.vibeos/reference/comp/`. Profile-driven installs deliberately do not carry `.vibeos/reference/` (dormant payload). Resolve every such asset in this order:
+
+1. **Project-local** — `.vibeos/<asset>` if it exists (classic full-payload installs).
+2. **Install source** — profile-driven installs record the framework source in `.vibeos/install-plan.json`, and `.source` is the resolved **plugin root**. Resolve `SOURCE=$(jq -r '.source // empty' .vibeos/install-plan.json)`; the asset lives at `$SOURCE/<asset>` (with `$SOURCE/plugins/vibeos/<asset>` as a fallback should a future plan record the repo root).
+3. **Plugin root** — the installed VibeOS plugin's own directory (`${CLAUDE_PLUGIN_ROOT}` when that environment variable is set), which contains `reference/` alongside this skill.
+
+Never copy these assets into a profile-installed target (one with `.vibeos/install-lock.json`): the generated active-surface audit fails on un-opted-in dormant payload. Read them from the resolved location instead.
+
 ## Operating Principle
 
 Cut product scope before cutting engineering foundations. A Comp MVP can be narrow, but it cannot be sloppy about security, observability, tests, delivery infrastructure, dependency intelligence, or evidence.

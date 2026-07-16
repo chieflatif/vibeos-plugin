@@ -32,9 +32,11 @@ is_exempt_by_path() {
 is_exempt_by_marker() {
   local file="$1"
   [ -f "$file" ] || return 1
-  if head -n 10 "$file" 2>/dev/null | grep -qE '(GENERATED|DO NOT EDIT)'; then
-    return 0
-  fi
+  local gen_header
+  gen_header="$(head -n 10 "$file" 2>/dev/null || true)"
+  case "$gen_header" in
+    *GENERATED*|*"DO NOT EDIT"*) return 0 ;;
+  esac
   return 1
 }
 
@@ -42,13 +44,21 @@ has_valid_exception_marker() {
   local file="$1"
   [ -f "$file" ] || return 1
 
+  # Pure-bash matching: grep -q closing the pipe early races printf's write
+  # under `set -euo pipefail` (SIGPIPE → 141 → false negative), which made
+  # valid markers flakily report as HARD BREACH.
   local header ref
   header="$(head -n 10 "$file" 2>/dev/null || true)"
-  if ! printf '%s\n' "$header" | grep -qE 'FILE-SIZE-EXCEPTION'; then
-    return 1
-  fi
+  case "$header" in
+    *FILE-SIZE-EXCEPTION*) ;;
+    *) return 1 ;;
+  esac
 
-  ref="$(printf '%s\n' "$header" | grep -oE '(ADR-[0-9]+|WO-[0-9]+)' | head -n 1 || true)"
+  local marker_re='(ADR-[0-9]+|WO-[0-9]+)'
+  ref=""
+  if [[ "$header" =~ $marker_re ]]; then
+    ref="${BASH_REMATCH[1]}"
+  fi
   if [ -z "$ref" ]; then
     return 1
   fi

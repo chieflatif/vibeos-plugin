@@ -44,7 +44,7 @@ If no subcommand is recognized, show help:
 
 Create a new work order from the WO template.
 
-1. Read `.vibeos/reference/governance/WO-TEMPLATE.md.ref` for the template structure
+1. Read the WO template `reference/governance/WO-TEMPLATE.md.ref` for the structure, resolving it in this order: `.vibeos/reference/governance/WO-TEMPLATE.md.ref` if it exists (classic full-payload installs); otherwise `$SOURCE/reference/governance/WO-TEMPLATE.md.ref` where `SOURCE=$(jq -r '.source // empty' .vibeos/install-plan.json)` (profile-driven installs record the resolved plugin root there); otherwise the installed VibeOS plugin root (`${CLAUDE_PLUGIN_ROOT}` when set). Never copy reference payload into a profile-installed target — the active-surface audit fails on un-opted-in dormant payload.
 2. Read `docs/planning/WO-INDEX.md` to determine the next WO number
 3. Ask the user for:
    - Title (required)
