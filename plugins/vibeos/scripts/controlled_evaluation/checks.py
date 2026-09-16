@@ -7,11 +7,20 @@ import signal
 import stat
 import subprocess
 import sys
+import time
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import configuration  # noqa: E402 - isolated sibling package after path setup
+import cleanup  # noqa: E402 - isolated sibling package after path setup
+
+ACTIVE = None
+TERMINATION_GRACE_SECONDS = 0.5
+
+
+class CheckInterrupted(Exception):
+    """Raised after a controlling signal cleans the active check group."""
 
 
 def tree_inventory(root, *, skip_git=False, keep_directories=False):
@@ -179,30 +188,51 @@ def project_command(config, result_dir):
     ]
 
 
-def execute(command, config, environment):
-    process = subprocess.Popen(
-        command, cwd=config["owner_root"], env=environment,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
-    )
-    timed_out = False
-    try:
-        stdout, stderr = process.communicate(timeout=config["timeout_seconds"])
-    except subprocess.TimeoutExpired:
-        timed_out = True
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        stdout, stderr = process.communicate()
-    else:
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
+def terminate(process):
+    if process is None:
+        return b"", b""
+    return cleanup.terminate_process_group(process, TERMINATION_GRACE_SECONDS)
+
+
+def interrupted(signum, frame):
+    del signum, frame
+    terminate(ACTIVE)
+    raise CheckInterrupted("checks interrupted by controller")
+
+
+def execution_result(command, process, timed_out, stdout, stderr):
     return {
-        "command": command, "exit": process.returncode, "timed_out": timed_out,
-        "stdout": stdout.decode(errors="replace"), "stderr": stderr.decode(errors="replace"),
+        "command": command, "exit": None if process is None else process.returncode,
+        "timed_out": timed_out, "stdout": stdout.decode(errors="replace"),
+        "stderr": stderr.decode(errors="replace"),
     }
+
+
+def execute(command, config, environment, deadline):
+    global ACTIVE
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        return execution_result(command, None, True, b"", b"")
+    previous = {
+        item: signal.signal(item, interrupted) for item in (signal.SIGTERM, signal.SIGINT)
+    }
+    try:
+        ACTIVE = subprocess.Popen(
+            command, cwd=config["owner_root"], env=environment,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
+        )
+        try:
+            stdout, stderr = ACTIVE.communicate(timeout=remaining)
+            timed_out = False
+            cleanup.cleanup_process_group(ACTIVE.pid, TERMINATION_GRACE_SECONDS)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            stdout, stderr = terminate(ACTIVE)
+        return execution_result(command, ACTIVE, timed_out, stdout, stderr)
+    finally:
+        ACTIVE = None
+        for item, handler in previous.items():
+            signal.signal(item, handler)
 
 
 def save(path, value):
@@ -216,6 +246,7 @@ def run(config_path, run_name):
         raise ValueError("invalid run identity")
     package = Path(__file__).resolve().parent
     config = configuration.load(config_path, package)
+    deadline = time.monotonic() + config["timeout_seconds"]
     configuration.bindings(config)
     root = Path(config["owner_root"])
     result_dir = configuration.descendant(root, root / "results/checks" / run_name)
@@ -233,13 +264,13 @@ def run(config_path, run_name):
     if not all(item["ok"] for item in sizes):
         save(result_dir / "checks.json", {"lint": dict(empty, sources=sizes), "pytest": None, "project": None})
         return 1
-    lint = execute(lint_command(config, paths), config, environment)
+    lint = execute(lint_command(config, paths), config, environment, deadline)
     lint["sources"] = sizes
     if lint["exit"] != 0 or lint["timed_out"]:
         save(result_dir / "checks.json", {"lint": lint, "pytest": None, "project": None})
         return 1
-    pytest_result = execute(pytest_command(config, result_dir / "owner-report.xml"), config, environment)
-    project_result = execute(project_command(config, result_dir), config, environment)
+    pytest_result = execute(pytest_command(config, result_dir / "owner-report.xml"), config, environment, deadline)
+    project_result = execute(project_command(config, result_dir), config, environment, deadline)
     save(result_dir / "checks.json", {"lint": lint, "pytest": pytest_result, "project": project_result})
     return 0 if pytest_result["exit"] == 0 and project_result["exit"] == 0 else 1
 
@@ -249,7 +280,7 @@ def main(argv):
         if len(argv) != 2:
             raise ValueError("checks require config and run only")
         return run(*argv)
-    except (OSError, ValueError, TypeError, KeyError, UnicodeError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, TypeError, KeyError, UnicodeError, CheckInterrupted, json.JSONDecodeError) as exc:
         print(json.dumps({"error": str(exc)}, sort_keys=True))
         return 2
 

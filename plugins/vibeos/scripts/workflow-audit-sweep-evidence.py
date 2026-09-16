@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.0"
+FRAMEWORK_VERSION = "2.3.1"
 DEFAULT_WORKFLOW = Path(".claude/workflows/vibeos-audit-sweep")
 DEFAULT_TARGET = "plugins/vibeos/scripts/runtime-capabilities.py"
 REQUIRED_NO_WRITE = [

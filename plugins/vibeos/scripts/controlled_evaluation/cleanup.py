@@ -3,7 +3,10 @@
 import os
 from pathlib import Path
 import re
+import signal
 import stat
+import subprocess
+import time
 
 
 def regular_bytes(path):
@@ -77,6 +80,48 @@ def sync_directory(path):
         os.fsync(descriptor)
     finally:
         os.close(descriptor)
+
+
+def _group_alive(process_group):
+    try:
+        os.killpg(process_group, 0)
+        return True
+    except ProcessLookupError:
+        return False
+
+
+def _signal_group(process_group, signum):
+    try:
+        os.killpg(process_group, signum)
+    except ProcessLookupError:
+        return False
+    return True
+
+
+def cleanup_process_group(process_group, grace_seconds):
+    """Terminate a process group even when its original leader has exited."""
+    deadline = time.monotonic() + grace_seconds
+    _signal_group(process_group, signal.SIGTERM)
+    while _group_alive(process_group) and time.monotonic() < deadline:
+        time.sleep(min(0.05, max(0, deadline - time.monotonic())))
+    if _group_alive(process_group):
+        _signal_group(process_group, signal.SIGKILL)
+
+
+def terminate_process_group(process, grace_seconds):
+    """Stop a launched group and return the leader's captured streams."""
+    deadline = time.monotonic() + grace_seconds
+    _signal_group(process.pid, signal.SIGTERM)
+    try:
+        output = process.communicate(timeout=grace_seconds)
+    except subprocess.TimeoutExpired:
+        output = None
+    remaining = max(0, deadline - time.monotonic())
+    if _group_alive(process.pid) and remaining:
+        time.sleep(remaining)
+    if _group_alive(process.pid):
+        _signal_group(process.pid, signal.SIGKILL)
+    return process.communicate() if output is None else output
 
 
 def remove_aliases(final, run, lock):

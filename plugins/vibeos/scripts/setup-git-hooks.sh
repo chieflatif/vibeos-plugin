@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 SCRIPT_NAME="setup-git-hooks"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -123,8 +123,41 @@ if [[ "$REMOVE" == "true" ]]; then
   exit 0
 fi
 
+# Profile installations require explicit commit-message policy opt-in. Legacy
+# installs enable it only when a real validator exists; never install a no-op.
+COMMIT_MSG_ENABLED=false
+PROFILE="$PROJECT_ROOT/.vibeos/project-profile.json"
+VALIDATOR_PRESENT=false
+if [[ -f "$PROJECT_ROOT/.vibeos/scripts/validate-commit-msg.sh" || -f "$PROJECT_ROOT/scripts/validate-commit-msg.sh" ]]; then
+  VALIDATOR_PRESENT=true
+fi
+if [[ -f "$PROFILE" ]]; then
+  COMMIT_MSG_ENABLED=$(python3 - "$PROFILE" <<'PYEOF'
+import json
+import sys
+with open(sys.argv[1]) as stream:
+    profile = json.load(stream)
+modules = profile.get("active_modules")
+if not isinstance(modules, list):
+    raise SystemExit("Invalid project profile: active_modules must be a list")
+print("true" if "commit-msg-enforcement" in modules else "false")
+PYEOF
+  )
+else
+  COMMIT_MSG_ENABLED="$VALIDATOR_PRESENT"
+fi
+if [[ "$COMMIT_MSG_ENABLED" == true && "$VALIDATOR_PRESENT" != true ]]; then
+  echo "[$SCRIPT_NAME] FAIL: commit-msg-enforcement requires validate-commit-msg.sh; re-analyze and apply the profile."
+  exit 2
+fi
+if [[ "$COMMIT_MSG_ENABLED" != true && -f "$COMMIT_MSG_HOOK" ]] && grep -q "$COMMIT_MSG_MARKER" "$COMMIT_MSG_HOOK"; then
+  echo "[$SCRIPT_NAME] FAIL: Existing VibeOS commit-msg hook conflicts with the profile. Review and remove that hook or enable commit-msg-enforcement."
+  exit 2
+fi
 check_existing_hook "$PRE_COMMIT_HOOK" "$PRE_COMMIT_MARKER" "pre-commit"
-check_existing_hook "$COMMIT_MSG_HOOK" "$COMMIT_MSG_MARKER" "commit-msg"
+if [[ "$COMMIT_MSG_ENABLED" == true ]]; then
+  check_existing_hook "$COMMIT_MSG_HOOK" "$COMMIT_MSG_MARKER" "commit-msg"
+fi
 
 mkdir -p "$HOOKS_DIR"
 
@@ -181,6 +214,7 @@ echo "[pre-commit] Fix the issues above, then try committing again"
 exit 1
 HOOKEOF
 
+if [[ "$COMMIT_MSG_ENABLED" == true ]]; then
 cat > "$COMMIT_MSG_HOOK" <<'HOOKEOF'
 #!/usr/bin/env bash
 # VibeOS commit-msg validator
@@ -198,17 +232,24 @@ elif [[ -f "$PROJECT_DIR/.vibeos/scripts/validate-commit-msg.sh" ]]; then
 fi
 
 if [[ -z "$VALIDATOR" ]]; then
-  exit 0
+  echo "VibeOS commit-msg validator is missing; restore the opted-in module before committing." >&2
+  exit 2
 fi
 
 bash "$VALIDATOR" "$1"
 HOOKEOF
 
-chmod +x "$PRE_COMMIT_HOOK" "$COMMIT_MSG_HOOK"
+chmod +x "$COMMIT_MSG_HOOK"
+fi
+chmod +x "$PRE_COMMIT_HOOK"
 
 echo "[$SCRIPT_NAME] Hooks directory: $HOOKS_DIR"
 echo "[$SCRIPT_NAME] Pre-commit hook installed at $PRE_COMMIT_HOOK"
-echo "[$SCRIPT_NAME] Commit-msg hook installed at $COMMIT_MSG_HOOK"
+if [[ "$COMMIT_MSG_ENABLED" == true ]]; then
+  echo "[$SCRIPT_NAME] Commit-msg hook installed at $COMMIT_MSG_HOOK"
+else
+  echo "[$SCRIPT_NAME] Commit-msg enforcement is not enabled; existing user hooks preserved"
+fi
 if [[ -n "$GATE_RUNNER" ]]; then
   echo "[$SCRIPT_NAME] Gate runner: $GATE_RUNNER"
 else

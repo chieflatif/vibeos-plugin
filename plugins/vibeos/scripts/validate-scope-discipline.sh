@@ -19,7 +19,7 @@
 #   2 — Configuration error
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 GATE_NAME="validate-scope-discipline"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

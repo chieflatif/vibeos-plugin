@@ -3,7 +3,7 @@
 # Hook type: Stop
 # Enforces bounded lane loops from active WO frontmatter.
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 # --- VibeOS project-scope guard (auto-inserted) ------------------------------
 # Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so
@@ -38,7 +38,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.0"
+FRAMEWORK_VERSION = "2.3.1"
 
 
 def iso_now() -> str:

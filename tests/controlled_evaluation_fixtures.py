@@ -208,7 +208,7 @@ raise SystemExit(int(forced) if forced is not None else completed.returncode)
                 "codex": str(self.fake_codex.resolve()),
             },
             "dependencies": [str(self.behavior.resolve())],
-            "timeout_seconds": 2,
+            "timeout_seconds": 3,
             "max_lines": 300,
             "max_complexity": 10,
         }

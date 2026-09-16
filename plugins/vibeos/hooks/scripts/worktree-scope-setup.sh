@@ -3,7 +3,7 @@
 # Hook type: WorktreeCreate
 # Creates the git worktree and copies VibeOS worktree-scope state into it.
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 # --- VibeOS project-scope guard (auto-inserted) ------------------------------
 # Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so

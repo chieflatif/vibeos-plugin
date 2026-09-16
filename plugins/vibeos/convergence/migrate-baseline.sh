@@ -7,7 +7,7 @@ set -euo pipefail
 # "pre-existing-unmigrated" disposition for user review.
 # Exit 0 on success; exit 1 on error.
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 usage() {
   echo "Usage:"

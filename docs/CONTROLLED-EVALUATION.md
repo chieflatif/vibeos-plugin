@@ -15,9 +15,12 @@ running as the same macOS user, and do not authorize deployment or provider acti
 
 Keep the evaluation owner directory separate from the candidate repository.
 The owner directory must be new, and neither directory may contain the other.
-Preparation pins the current complete candidate baseline and the owner-selected
-writable files. A candidate should be a clean, disposable Git checkout of the
-project revision under evaluation.
+Preparation pins the current complete candidate baseline. `writable_files`
+records owner-selected candidate paths for binding and Python lint inventory; it
+does not grant write access. The native evaluator can write only inside the
+current run's result directory. A candidate should be a disposable Git checkout
+of the project revision under evaluation. Dirty or untracked bytes are accepted
+only when preparation includes them in the complete pinned baseline.
 
 Provide two Python files:
 
@@ -74,9 +77,21 @@ Codex and Ruff executables in the same way. Preparation hashes their bytes.
 Replace the example paths and identities with the owner's actual files and checks.
 Identity lists are unique and sorted; writable paths are relative to the candidate.
 Pin dependency files that affect evaluation, including lockfiles and relevant
-configuration. Limits are explicit, with current maximums300 seconds,300 lines
-and complexity10. Tool and dependency paths are local inputs, not credentials.
+configuration. Limits are explicit, with current maximums 300 seconds, 300 lines
+and complexity 10. `timeout_seconds` is one total work budget for the sandboxed
+evaluation and the lint, pytest and adapter phases together. A later phase gets
+only the time remaining; no phase is promised a fresh or full timeout window.
+Bounded termination and reaping after that deadline can extend wall-clock return
+by up to two seconds. Tool and dependency paths are local inputs, not credentials.
 Recreate the specification and its hashes on the other Mac.
+
+This release's largest harness module is 289 lines, so `max_lines` below 289
+makes every evaluation ineligible even though the schema accepts lower positive
+values. Pytest runs isolated with `-I`, plugin autoload disabled, no ancestor
+configuration and no `conftest.py` loading. Owner tests must work within those
+limits. The complete candidate inventory refuses symlinks, special entries and
+empty directories; checkouts that materialize linked `node_modules`, `.venv` or
+similar trees are unsupported without a separate clean candidate checkout.
 
 ```bash
 python3 .vibeos/scripts/controlled-evaluation.py prepare \
@@ -101,9 +116,22 @@ is idempotent; conflicting evidence is refused. Evaluation exit zero and a
 - Actual child exits, including nonzero pytest exits even when XML looks successful.
 - Test report structure, skip/failure/error markers and evidence hashes.
 - Declared file inventory, regular-file types, symlink refusal and protected inputs.
-- Owner-configured readable source-size and Ruff complexity limits.
+- Owner-configured source-size and Ruff complexity limits for the copied owner
+  Python, the six harness modules and declared writable candidate Python files.
 - Single-writer ownership, current-run identity and immutable output publication.
-- Timeout/interruption invalidation and cleanup of the owned process group.
+- One total timeout budget, interruption invalidation and nested process-group
+  cleanup with SIGTERM followed by a bounded SIGKILL fallback.
+
+The result directory has a strict top-level inventory: `owner-report.xml`,
+`checks.json`, `project.json` and `project-evidence/`. The three documents must
+be regular files. `project-evidence/` must be a real directory and its complete
+nested inventory may contain only regular files and directories; symlinks and
+special files are refused. Missing or additional top-level outputs are refused.
+These structural checks do not turn adapter-authored evidence into independent
+acceptance; required identities and exits still have to match the owner profile.
+The native Codex wrapper must also be silent: any stdout or stderr byte from the
+outer sandbox command makes the run ineligible. Individual lint, pytest and
+adapter streams remain captured inside `checks.json` and are validated there.
 
 If the native sandbox is unavailable or its syntax differs, evaluation fails
 clearly. It never falls back to unsandboxed execution. Update runtime evidence
@@ -113,5 +141,8 @@ sessions and global Codex configuration are not changed by this package.
 After an interrupted or failed run, retain its evidence and use a new run ID once
 the cause is resolved. Old success cannot stand for a new candidate or changed
 owner policy. Changing the protected baseline requires a new reviewed preparation.
-Process groups that deliberately escape their session and whole-host compromise
-remain outside the measured interruption boundary.
+The cleanup guarantee covers the Codex group and pytest/adapter descendants that
+remain in the new process group created for their check. A descendant that
+deliberately creates another session, daemonizes through an external supervisor,
+or is controlled by a hostile same-user process can escape this measured
+boundary. Whole-host compromise remains outside the supported isolation model.

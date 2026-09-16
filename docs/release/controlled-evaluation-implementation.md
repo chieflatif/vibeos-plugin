@@ -95,10 +95,14 @@ codex sandbox --sandbox-state-disable-network -P evaluator \
 
 There is no unsandboxed fallback. An unavailable or rejected native profile
 produces an ineligible run with a clear launch error. The controller starts the
-sandbox in a new process session, kills and reaps the process group on timeout,
-completion, SIGTERM, or SIGINT, and records that state. The configured timeout
-gets one second of controller cleanup allowance; each inner check retains the
-declared timeout.
+sandbox in a new process session. `timeout_seconds` is a single total work
+budget, and lint, pytest and the adapter share one monotonic deadline; later
+phases receive only the remaining time. On deadline, SIGTERM or SIGINT, the
+outer controller first sends SIGTERM. The inner runner handles that signal,
+terminates and reaps its active check group, and uses SIGKILL after a 0.5-second
+grace period. The outer controller retains a two-second grace period before its
+own SIGKILL fallback so inner cleanup can finish. Cleanup/reaping time is outside
+the work budget and can extend wall-clock return by up to two seconds.
 
 Evaluation holds a nonblocking single-writer `flock`. It pins inputs before and
 after the run and requires them to be identical. Publication revalidates the
@@ -133,14 +137,33 @@ not attest that a configured `codex` path is an authentic vendor binary; tool
 paths and their pinned bytes are owner-trusted inputs. It also does not establish
 same-user hostile-author isolation or cross-OS support.
 
-Scoped frozen tests:
+The 2026-09-16 Claude audit identified that the original outer hard kill could
+orphan pytest or adapter descendants because each inner check used a new
+session. The regression uses a real blocking adapter and a real grandchild that
+both ignore SIGTERM. Before this patch, deadline and controller-SIGTERM cases
+left both recorded PIDs alive. After the patch, the inner SIGKILL fallback
+removes both, the run remains ineligible, and no admitted evidence is written.
+Direct regressions also prove that normal completion cleans a pipe-closing
+grandchild and timeout cleanup kills a TERM-ignoring grandchild after its leader
+exits immediately.
+
+Scoped tests:
 
 ```text
 python3 -m pytest -q tests/test_controlled_evaluation_prepare.py \
   tests/test_controlled_evaluation_runtime.py \
-  tests/test_controlled_evaluation_evidence.py
-21 passed, 36 subtests passed
+  tests/test_controlled_evaluation_evidence.py \
+  tests/test_controlled_evaluation_cleanup.py
+26 passed, 36 subtests passed
 ```
+
+Supported isolation remains supervised macOS/Codex process-group control. It
+does not claim to contain a descendant that deliberately creates a new session,
+daemonizes through another supervisor, or acts with hostile same-user authority.
+The fail-closed release limits are also explicit: outer Codex stdout or stderr
+makes the run ineligible; pytest uses `-I` with plugin and `conftest` loading
+disabled; candidate symlinks, special entries and empty directories are refused;
+and the current 289-line harness module means `max_lines` below 289 cannot pass.
 
 The archived source candidate tests and this implementation suite are engineering
 evidence only. The release owner separately controls integration, independent

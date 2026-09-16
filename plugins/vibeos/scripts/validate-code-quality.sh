@@ -14,10 +14,10 @@
 # Exit codes:
 #   0 = Quality checks passed
 #   1 = Quality checks failed
-#   2 = Source directory not found or config error
+#   2 = Required source, configuration, or tool unavailable
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 GATE_NAME="validate-code-quality"
 
 usage() {
@@ -94,7 +94,7 @@ fi
 if [[ -z "${SOURCE_DIR:-}" ]]; then
   echo "[$GATE_NAME] WARN: No source directory detected. Set SOURCE_DIR env var."
   echo "[$GATE_NAME] SKIP: Cannot run quality checks without source directory"
-  exit 0
+  exit 2
 fi
 
 if [[ "$SOURCE_DIR" == /* ]]; then
@@ -103,8 +103,8 @@ else
   source_path="$repo_root/$SOURCE_DIR"
 fi
 if [[ ! -d "$source_path" ]]; then
-  echo "[$GATE_NAME] WARN: Source directory not found: $source_path"
-  exit 0
+  echo "[$GATE_NAME] SKIP: Source directory not found: $source_path"
+  exit 2
 fi
 
 echo "Source directory: $SOURCE_DIR"
@@ -122,6 +122,11 @@ run_cmd() {
   "$@"
 }
 
+skip_unavailable() {
+  echo "[$GATE_NAME] SKIP: $1"
+  exit 2
+}
+
 # ============================================================================
 # PYTHON
 # ============================================================================
@@ -131,8 +136,7 @@ if [[ "$LANGUAGE" == "python" ]]; then
     if command -v python >/dev/null 2>&1; then
       python_cmd="python"
     else
-      echo "[$GATE_NAME] SKIP: Python not installed"
-      exit 0
+      skip_unavailable "Python not installed"
     fi
   fi
 
@@ -147,6 +151,10 @@ if [[ "$LANGUAGE" == "python" ]]; then
   echo "=== Python Lint ($SOURCE_DIR/) ==="
 
   if [[ -n "${LINTER:-}" ]]; then
+    linter_command="${LINTER%%[[:space:]]*}"
+    if ! command -v "$linter_command" >/dev/null 2>&1; then
+      skip_unavailable "Required Python linter not available: $linter_command"
+    fi
     run_cmd $LINTER "$source_path"
   elif command -v ruff >/dev/null 2>&1; then
     lint_targets=("$source_path")
@@ -161,8 +169,7 @@ if [[ "$LANGUAGE" == "python" ]]; then
   elif "$python_cmd" -m flake8 --version >/dev/null 2>&1; then
     run_cmd "$python_cmd" -m flake8 "$source_path"
   else
-    echo "[$GATE_NAME] WARN: No Python linter installed (ruff or flake8). Skipping lint."
-    echo "Install with: pip install ruff"
+    skip_unavailable "No Python linter installed (ruff or flake8)"
   fi
 
 # ============================================================================
@@ -175,10 +182,12 @@ elif [[ "$LANGUAGE" == "typescript" || "$LANGUAGE" == "javascript" ]]; then
   if [[ "$LANGUAGE" == "typescript" ]]; then
     current_section="TYPE_CHECK"
     echo "=== TypeScript Type Check ==="
-    if command -v npx >/dev/null 2>&1 && [[ -f "$repo_root/tsconfig.json" ]]; then
-      run_cmd npx tsc --noEmit 2>&1
+    if command -v tsc >/dev/null 2>&1; then
+      run_cmd tsc --noEmit 2>&1
+    elif command -v npx >/dev/null 2>&1 && npx --no-install tsc --version >/dev/null 2>&1; then
+      run_cmd npx --no-install tsc --noEmit 2>&1
     else
-      echo "[$GATE_NAME] WARN: TypeScript compiler not available. Skipping type check."
+      skip_unavailable "TypeScript compiler not available"
     fi
     echo ""
   fi
@@ -187,18 +196,29 @@ elif [[ "$LANGUAGE" == "typescript" || "$LANGUAGE" == "javascript" ]]; then
   echo "=== JavaScript/TypeScript Lint ==="
 
   if [[ -n "${LINTER:-}" ]]; then
+    linter_command="${LINTER%%[[:space:]]*}"
+    if ! command -v "$linter_command" >/dev/null 2>&1; then
+      skip_unavailable "Required JS/TS linter not available: $linter_command"
+    fi
     run_cmd $LINTER
-  elif command -v npx >/dev/null 2>&1; then
-    if [[ -f "$repo_root/.eslintrc.js" ]] || [[ -f "$repo_root/.eslintrc.json" ]] || [[ -f "$repo_root/.eslintrc.yml" ]] || [[ -f "$repo_root/eslint.config.js" ]] || [[ -f "$repo_root/eslint.config.mjs" ]]; then
-      run_cmd npx eslint "$source_path" 2>&1
-    elif [[ -f "$repo_root/biome.json" ]] || [[ -f "$repo_root/biome.jsonc" ]]; then
-      run_cmd npx biome check "$source_path" 2>&1
+  elif [[ -f "$repo_root/.eslintrc.js" ]] || [[ -f "$repo_root/.eslintrc.json" ]] || [[ -f "$repo_root/.eslintrc.yml" ]] || [[ -f "$repo_root/eslint.config.js" ]] || [[ -f "$repo_root/eslint.config.mjs" ]]; then
+    if command -v eslint >/dev/null 2>&1; then
+      run_cmd eslint "$source_path" 2>&1
+    elif command -v npx >/dev/null 2>&1 && npx --no-install eslint --version >/dev/null 2>&1; then
+      run_cmd npx --no-install eslint "$source_path" 2>&1
     else
-      echo "[$GATE_NAME] WARN: No JS/TS linter config found. Skipping lint."
-      echo "Configure eslint or biome for lint checks."
+      skip_unavailable "ESLint not available"
+    fi
+  elif [[ -f "$repo_root/biome.json" ]] || [[ -f "$repo_root/biome.jsonc" ]]; then
+    if command -v biome >/dev/null 2>&1; then
+      run_cmd biome check "$source_path" 2>&1
+    elif command -v npx >/dev/null 2>&1 && npx --no-install biome --version >/dev/null 2>&1; then
+      run_cmd npx --no-install biome check "$source_path" 2>&1
+    else
+      skip_unavailable "Biome not available"
     fi
   else
-    echo "[$GATE_NAME] WARN: npx not available. Skipping lint."
+    skip_unavailable "No JS/TS linter configuration found"
   fi
 
 # ============================================================================
@@ -210,8 +230,7 @@ elif [[ "$LANGUAGE" == "go" ]]; then
   if command -v go >/dev/null 2>&1; then
     run_cmd go build ./...
   else
-    echo "[$GATE_NAME] SKIP: Go not installed"
-    exit 0
+    skip_unavailable "Go not installed"
   fi
 
   current_section="LINT"
@@ -234,8 +253,7 @@ elif [[ "$LANGUAGE" == "rust" ]]; then
   if command -v cargo >/dev/null 2>&1; then
     run_cmd cargo check 2>&1
   else
-    echo "[$GATE_NAME] SKIP: Cargo not installed"
-    exit 0
+    skip_unavailable "Cargo not installed"
   fi
 
   current_section="LINT"
@@ -244,7 +262,7 @@ elif [[ "$LANGUAGE" == "rust" ]]; then
   if cargo clippy --version >/dev/null 2>&1; then
     run_cmd cargo clippy -- -D warnings 2>&1
   else
-    echo "[$GATE_NAME] WARN: clippy not installed. Skipping lint."
+    skip_unavailable "clippy not installed"
   fi
 
 # ============================================================================
@@ -262,8 +280,7 @@ elif [[ "$LANGUAGE" == "java" ]]; then
   elif command -v mvn >/dev/null 2>&1; then
     run_cmd mvn compile 2>&1
   else
-    echo "[$GATE_NAME] SKIP: No Java build tool available"
-    exit 0
+    skip_unavailable "No Java build tool available"
   fi
 
 # ============================================================================
@@ -271,8 +288,7 @@ elif [[ "$LANGUAGE" == "java" ]]; then
 # ============================================================================
 else
   echo "[$GATE_NAME] WARN: Unknown language '$LANGUAGE'. Set LANGUAGE env var."
-  echo "[$GATE_NAME] SKIP: Cannot determine quality checks for unknown language"
-  exit 0
+  skip_unavailable "Cannot determine quality checks for unknown language"
 fi
 
 echo ""

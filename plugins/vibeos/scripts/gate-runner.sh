@@ -37,7 +37,7 @@
 #   3 = Lock held by another runner
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 RUNNER_NAME="gate-runner"
 TIMEOUT_MARKER="__VIBEOS_GATE_TIMEOUT__"
 

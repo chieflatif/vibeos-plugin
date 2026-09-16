@@ -18,7 +18,7 @@ set -euo pipefail
 #   GIT_HISTORY_DEPTH   — Commits to scan for secrets (default: 100)
 #   EXCLUDE_DIRS        — Colon-separated directories to exclude
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 GATE_NAME="validate-auth-boundaries"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

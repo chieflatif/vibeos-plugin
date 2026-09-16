@@ -16,8 +16,8 @@ write_scope:
   - plugins/vibeos/skills/build/SKILL.md
   - plugins/vibeos/skills/wo/SKILL.md
 no_touch:
-  - /Users/latifhorst/latifhorstweb/**
-  - /Users/latifhorst/Joan4U/**
+  - <separate-website-project>/**
+  - <separate-product-project>/**
 required_auditors:
   - correctness-auditor
   - product-drift-auditor

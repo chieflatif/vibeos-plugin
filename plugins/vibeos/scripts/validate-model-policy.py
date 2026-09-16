@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.0"
+FRAMEWORK_VERSION = "2.3.1"
 CUSTOM_POLICY_RE = re.compile(r"^custom-[a-z0-9][a-z0-9-]*$")
 
 

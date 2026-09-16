@@ -1,6 +1,6 @@
 [project]
 name = "vibeos-plugin"
-version = "2.3.0"
+version = "2.3.1"
 description = "VibeOS — a governed development operating layer for AI-assisted engineering (Claude Code plugin)"
 requires-python = ">=3.12"
 

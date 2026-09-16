@@ -1,5 +1,5 @@
 ---
-status: In Progress
+status: Complete
 model_policy: implementation
 ---
 # WO-132 — reusable release amendment
@@ -66,3 +66,30 @@ readback is a separate release receipt; no application acceptance is inferred.
 
 ## Evidence
 Evidence and release readback will be recorded in docs/release/2.3.0.md.
+
+## Claude release audit amendment — 2.3.1
+
+Latif requested an actual Claude audit before passing the release to another
+project. Claude reviewed published c3651b2 and returned PASS_WITH_LIMITS, including
+a P1 documented hook-setup failure. Primary reproduction confirms setup exit 0,
+surface audit exit 1, verify exit 2 and a blocked real Git commit on the default
+profile. The bounded correction retains the 2.3.0 tag and publishes a patch only
+after regression tests, native proof and targeted Claude re-review.
+
+Scope: profile-aware optional commit-message hooks, refusal of destructive legacy
+bootstrap operations on profile installs, honest informational validator metadata,
+nonzero unverified installation status, clear Python prerequisite errors, total
+evaluation deadline/descendant cleanup, and fail-closed missing-tool gates.
+Owner-neutral generated text and precise operating-limit documentation complete
+the audit return. No runtime deployment or project acceptance is authorized.
+
+Author the regressions against 2.3.0 first. Preserve old failure evidence and
+record exact corrections, remaining low-priority constraints, targeted Claude
+verdict, new release identity and clean published-clone replay.
+
+
+Patch qualification complete: targeted actual Claude review closed all six
+material findings; canonical pre-commit9PASS/0FAIL/1optionalSKIP; native installed
+Python/JavaScript evaluation plus real timeout and direct-SIGTERM child cleanup
+passed. The small later parse-format correction passed its focused regressions.
+See docs/release/2.3.1.md; final GitHub readback remains an external receipt.

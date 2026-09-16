@@ -16,7 +16,7 @@
 #   2 = WO file not found or invalid arguments
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 GATE_NAME="validate-work-order"
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then

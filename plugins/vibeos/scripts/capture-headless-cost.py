@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.0"
+FRAMEWORK_VERSION = "2.3.1"
 LABEL = "estimate; reconcile against billing"
 
 

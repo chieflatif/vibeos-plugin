@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.0"
+FRAMEWORK_VERSION = "2.3.1"
 ALLOWED_SCRIPTS = {
     "autonomy-heartbeat.py": {"python", "python3"},
     "autonomy-supervisor.py": {"python", "python3"},

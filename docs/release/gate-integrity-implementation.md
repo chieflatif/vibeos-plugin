@@ -101,4 +101,30 @@ produce their final summary and `PASS`.
 over a two-line limit exits `1` with a complexity failure, and that an empty
 explicit Python source scope exits `2` without `PASS`. A direct scoped run of
 `plugins/vibeos/scripts/controlled_evaluation` with the release thresholds
-reported five warnings and exited `0`.
+reported four warnings and exited `0`.
+
+## Required tool availability
+
+The shipped quality and complexity gates now distinguish an unavailable required
+tool from an optional advisory heuristic. A missing Python linter, TypeScript
+compiler, ESLint or Biome executable, Go/Rust/Java build tool, Rust clippy,
+Python cyclomatic-complexity tool, or Go `gocyclo` emits `SKIP` and exits `2`.
+This preserves a readable unavailable result while ensuring a blocking manifest
+gate cannot report `PASS`.
+
+Python complexity uses `radon` when available. If it is absent, it runs Ruff's
+`C901` check with the configured cyclomatic threshold. If neither tool exists,
+the gate is unavailable rather than treating the AST length and parameter
+checks as a cyclomatic-complexity substitute. Those AST checks remain separate
+structural checks, and Python parse errors now contribute a blocking failure
+instead of being silently ignored.
+
+`tests/test_gate_missing_tools.py` uses isolated PATH fixtures for absent Python
+lint, TypeScript, ESLint, Python complexity, and Go complexity tools. It also
+proves the Ruff fallback does not hide a Python parse error or an unreadable
+nonzero Ruff result. The focused gate suite passed with 42 tests, one
+intentional skip, and four subtests.
+
+The manifest-backed `pre_commit` phase also passed: nine gates passed and the
+declared non-blocking dependency gate returned `SKIP`; no blocking gate was
+unavailable.

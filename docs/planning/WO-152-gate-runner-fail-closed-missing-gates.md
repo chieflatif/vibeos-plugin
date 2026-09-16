@@ -14,8 +14,8 @@ write_scope:
   - .vibeos/scripts/validate-commit-msg.sh
   - tests/test_gate_runner.py
 no_touch:
-  - /Users/latifhorst/latifhorstweb/**
-  - /Users/latifhorst/Joan4U/**
+  - <separate-website-project>/**
+  - <separate-product-project>/**
 required_auditors:
   - correctness-auditor
   - red-team-auditor

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 # ─── VibeOS Bootstrap ────────────────────────────────────────────────────────
 # Installs VibeOS governance framework into a target project's .claude/ and
@@ -77,6 +77,12 @@ canonicalize_paths() {
     # Resolve to absolute paths
     SOURCE_DIR="$(cd "$SOURCE_DIR" && pwd)"
     TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+  if [[ -e "$TARGET_DIR/.vibeos/install-lock.json" || -L "$TARGET_DIR/.vibeos/install-lock.json" ]]; then
+    echo "[vibeos-init] FAIL: Profile-managed installation detected. Legacy bootstrap install, upgrade and uninstall are refused, including --force."
+    echo "[vibeos-init] Use the source ./vibeos analyze, verify and apply commands with the project profile."
+    exit 2
+  fi
 
     # Prevent self-overwrite
     if [ "$SOURCE_DIR" = "$TARGET_DIR" ]; then
@@ -551,7 +557,7 @@ Slash commands (`/discover`, `/build`, etc.) still work and always take preceden
 - Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
-- Version: `FRAMEWORK_VERSION="2.3.0"` or equivalent constant in every script
+- Version: `FRAMEWORK_VERSION="2.3.1"` or equivalent constant in every script
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
 - State files: `.vibeos/session-state.json` (active session), `.claude/quality-gate-manifest.json` (gate registry)
@@ -599,7 +605,7 @@ init_project_config() {
     mkdir -p "$TARGET_DIR/.vibeos"
     cat > "$config_file" << 'CONFIG_EOF'
 {
-  "framework_version": "2.3.0",
+  "framework_version": "2.3.1",
   "autonomy_level": "wo",
   "project_mode": "pending",
   "lifecycle_state": "virgin"

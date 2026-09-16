@@ -27,7 +27,7 @@ set -euo pipefail
 #   EXCLUDE_DIRS        — Colon-separated directories to exclude
 #   EXCLUDE_PATTERNS    — Colon-separated file patterns to exclude
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 GATE_NAME="validate-code-complexity"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
@@ -127,11 +127,16 @@ check_python_complexity() {
     file_count=$(echo "$py_files" | wc -l | tr -d ' ')
     echo "[${GATE_NAME}] INFO: Analyzing $file_count Python files"
 
-    # Try radon for cyclomatic complexity (most accurate)
+    # Require a maintained cyclomatic-complexity tool. The AST analysis below
+    # enforces independent structural limits; it is not a substitute for this.
     if command -v radon >/dev/null 2>&1; then
         echo "[${GATE_NAME}] INFO: Using radon for cyclomatic complexity analysis"
         local radon_output
-        radon_output=$(echo "$py_files" | xargs radon cc -s -n "${WARN_CYCLOMATIC}" 2>/dev/null || true)
+        if ! radon_output=$(echo "$py_files" | xargs radon cc -s -n "${WARN_CYCLOMATIC}" 2>&1); then
+            echo "[${GATE_NAME}] FAIL: radon could not analyze the selected Python source"
+            [ -n "$radon_output" ] && echo "$radon_output"
+            return 1
+        fi
         if [ -n "$radon_output" ]; then
             # Parse radon output: lines like "    F 10:0 function_name - C (12)"
             while IFS= read -r line; do
@@ -154,12 +159,37 @@ check_python_complexity() {
                 esac
             done <<< "$radon_output"
         fi
+    elif command -v ruff >/dev/null 2>&1; then
+        echo "[${GATE_NAME}] INFO: Using ruff C901 for cyclomatic complexity analysis"
+        local ruff_output ruff_status=0
+        ruff_output=$(ruff check --select C901 --config "lint.mccabe.max-complexity = ${MAX_CYCLOMATIC}" "$SOURCE_ROOT" 2>&1) || ruff_status=$?
+        if [ "$ruff_status" -gt 1 ]; then
+            echo "[${GATE_NAME}] FAIL: ruff C901 could not analyze the selected Python source"
+            [ -n "$ruff_output" ] && echo "$ruff_output"
+            return 1
+        fi
+        if [ "$ruff_status" -eq 1 ]; then
+            local ruff_violations=0
+            while IFS= read -r line; do
+                case "$line" in
+                    *C901*)
+                        echo "[${GATE_NAME}] FAIL: $line"
+                        VIOLATIONS=$((VIOLATIONS + 1))
+                        ruff_violations=$((ruff_violations + 1))
+                        ;;
+                esac
+            done <<< "$ruff_output"
+            if [ "$ruff_violations" -eq 0 ]; then
+                echo "[${GATE_NAME}] FAIL: ruff C901 returned no readable complexity result"
+                return 1
+            fi
+        fi
     else
-        echo "[${GATE_NAME}] WARN: radon not installed — skipping cyclomatic complexity (pip install radon)"
-        WARNINGS=$((WARNINGS + 1))
+        echo "[${GATE_NAME}] SKIP: Python cyclomatic complexity tool unavailable (install radon or ruff)"
+        return 2
     fi
 
-    # Function length and parameter count analysis via embedded Python
+    # Secondary structural checks: function length, parameter count, and classes.
     local python_analysis
     python_analysis=$(python3 -c "
 import ast
@@ -177,14 +207,20 @@ warnings = 0
 for fpath in sys.stdin.read().strip().split('\n'):
     if not fpath.strip():
         continue
+    rel = os.path.relpath(fpath, '${SOURCE_ROOT}')
     try:
         with open(fpath, 'r', encoding='utf-8', errors='replace') as f:
             source = f.read()
         tree = ast.parse(source, filename=fpath)
-    except (SyntaxError, ValueError):
+    except SyntaxError as exc:
+        print(f'FAIL:{rel}:{exc.lineno or 0}: parse error: {exc.msg}')
+        violations += 1
+        continue
+    except ValueError as exc:
+        print(f'FAIL:{rel}: parse error: {exc}')
+        violations += 1
         continue
 
-    rel = os.path.relpath(fpath, '${SOURCE_ROOT}')
     lines = source.split('\n')
 
     for node in ast.walk(tree):
@@ -378,7 +414,7 @@ check_go_complexity() {
     file_count=$(echo "$go_files" | wc -l | tr -d ' ')
     echo "[${GATE_NAME}] INFO: Analyzing $file_count Go files"
 
-    # Try gocyclo for cyclomatic complexity
+    # gocyclo is required for the gate's cyclomatic-complexity claim.
     if command -v gocyclo >/dev/null 2>&1; then
         echo "[${GATE_NAME}] INFO: Using gocyclo for cyclomatic complexity"
         local gocyclo_output
@@ -397,8 +433,8 @@ check_go_complexity() {
             done <<< "$gocyclo_output"
         fi
     else
-        echo "[${GATE_NAME}] WARN: gocyclo not installed — skipping cyclomatic complexity (go install github.com/fzipp/gocyclo/cmd/gocyclo@latest)"
-        WARNINGS=$((WARNINGS + 1))
+        echo "[${GATE_NAME}] SKIP: Go cyclomatic complexity tool unavailable (install gocyclo)"
+        return 2
     fi
 
     # Function length via awk

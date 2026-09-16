@@ -48,7 +48,7 @@ from install_recovery import (
 )
 
 
-FRAMEWORK_VERSION = "2.3.0"
+FRAMEWORK_VERSION = "2.3.1"
 
 MODE_MODULES = {
     "minimal": [
@@ -174,6 +174,8 @@ RUNTIME_CORE_SCRIPTS = [
     "validate-no-secrets.sh",
     "secrets-allowlist.json",
 ]
+
+COMMIT_MESSAGE_SCRIPTS = ["validate-commit-msg.sh"]
 
 PRODUCT_ENGINEERING_SCRIPTS = [
     "detect-stubs-placeholders.py",
@@ -515,6 +517,8 @@ def selected_scripts(source: Path, enabled: list[str]) -> list[str]:
         scripts.extend(COMP_SCRIPTS)
     if "autonomy" in enabled:
         scripts.extend(AUTONOMY_SCRIPTS)
+    if "commit-msg-enforcement" in enabled:
+        scripts.extend(COMMIT_MESSAGE_SCRIPTS)
 
     existing = []
     for script in dict.fromkeys(scripts):
@@ -586,7 +590,7 @@ def render_profile_summary(profile: dict[str, Any]) -> str:
             f"Phase audit runtime: {profile['phase_audit_runtime']}",
             "Canon paths:",
             *[f"- {path}" for path in canon],
-            "Primary gates:",
+            "Documented primary checks (informational; not run by installer):",
             *[f"- {gate}" for gate in gates],
         ]
     )
@@ -654,12 +658,14 @@ def render_claude_md(profile: dict[str, Any], profile_hash: str) -> str:
         + f"- Lead runtime: `{profile['lead_runtime']}`\n"
         + f"- Phase audit runtime: `{profile['phase_audit_runtime']}`\n\n"
         + "## Rules\n\n"
-        + "- Preserve protected canon unless Latif explicitly approves a diff.\n"
+        + "- Preserve protected canon unless the project owner explicitly approves a diff.\n"
         + "- Keep evidence, tests, and product outcomes ahead of process format.\n"
         + "- For controlled evaluation, read `.vibeos/controlled-evaluation-guide.md` when present, "
         + "then run `.vibeos/scripts/controlled-evaluation.py --help`; use owner-specified identities "
         + "and never treat `PRE_REVIEW` as acceptance.\n"
-        + "- Run project validators and the VibeOS active-surface audit after install or upgrade.\n"
+        + "- Treat profile validator commands as informational until the project owner "
+        + "configures them as real manifest gates; run the VibeOS active-surface audit "
+        + "after install or upgrade.\n"
     )
 
 
@@ -910,22 +916,20 @@ def render_gate_manifest(
             "env": {},
         },
     ]
-    for validator in validators:
-        gates.append(
-            {
-                "name": f"existing-{validator['name']}",
-                "script": "scripts/vibeos-active-surface-audit.py",
-                "tier": 2,
-                "blocking": False,
-                "phase": "post_install_documented",
-                "env": {"DOCUMENTED_COMMAND": validator["command"]},
-            }
-        )
+    documented_validators = documented_checks(validators)
+    documented_primary_gates = documented_checks(
+        [
+            {"name": "profile-primary-gate", "command": command}
+            for command in profile.get("primary_gates", [])
+        ]
+    )
     manifest = {
         "version": FRAMEWORK_VERSION,
         "project": profile["project_name"],
-        "description": "Profile-generated active gate manifest. Existing project validators are recorded in install-plan post checks.",
+        "description": "Profile-generated manifest. Only rows in gates execute; documented checks are informational and do not establish application acceptance.",
         "gates": gates,
+        "documented_validators": documented_validators,
+        "documented_primary_gates": documented_primary_gates,
         "phases": {
             "pre_commit": {
                 "description": "Fast blocking checks before commit",
@@ -1153,7 +1157,7 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
     profile = plan["profile"]
     profile_hash = plan["profile_hash"]
     enabled = plan["enabled_modules"]
-    validators = plan["existing_validators"]
+    validators = plan["documented_validators"]
     outputs: list[dict[str, Any]] = []
 
     profile_for_target = dict(profile)
@@ -1435,6 +1439,7 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
 def planned_active_gates(
     profile: dict[str, Any], validators: list[dict[str, str]]
 ) -> list[dict[str, Any]]:
+    del profile, validators
     gates = [
         {
             "name": "vibeos-active-surface-audit",
@@ -1449,25 +1454,20 @@ def planned_active_gates(
             "blocking": True,
         },
     ]
-    for gate in profile.get("primary_gates", []):
-        gates.append(
-            {
-                "name": "profile-primary-gate",
-                "phase": "post_install",
-                "command": gate,
-                "blocking": True,
-            }
-        )
-    for validator in validators:
-        gates.append(
-            {
-                "name": validator["name"],
-                "phase": "post_install",
-                "command": validator["command"],
-                "blocking": False,
-            }
-        )
     return gates
+
+
+def documented_checks(checks: list[dict[str, str]]) -> list[dict[str, Any]]:
+    return [
+        {
+            "name": check["name"],
+            "command": check["command"],
+            "status": "informational",
+            "blocking": False,
+            "executed_by_installer": False,
+        }
+        for check in checks
+    ]
 
 
 def build_plan(
@@ -1481,6 +1481,13 @@ def build_plan(
     check_source_target_safety(source, target)
     enabled = modules_for_profile(profile)
     validators = detect_validators(target)
+    documented_validators = documented_checks(validators)
+    documented_primary_gates = documented_checks(
+        [
+            {"name": "profile-primary-gate", "command": command}
+            for command in profile.get("primary_gates", [])
+        ]
+    )
     profile_hash = sha256_text(json_dumps(profile))
     plan: dict[str, Any] = {
         "schema_version": 2,
@@ -1493,7 +1500,9 @@ def build_plan(
         "profile": profile,
         "detected_canon": detect_canon(target),
         "protected_files": profile.get("protected_files", []),
-        "existing_validators": validators,
+        "existing_validators": documented_validators,
+        "documented_validators": documented_validators,
+        "documented_primary_gates": documented_primary_gates,
         "enabled_modules": enabled,
         "skipped_modules": skipped_modules(enabled, profile["mode"]),
         "active_gates": planned_active_gates(profile, validators),
@@ -1768,7 +1777,10 @@ def verify_installed_state(
         actual = file_state(target, rel)
         wanted = {key: expected_row[key] for key in ("path", "kind", "sha256", "mode")}
         if actual != wanted:
-            raise InstallError(f"installed target drift: {rel}")
+            raise InstallError(
+                f"installed target drift: {rel}; if this was a deliberate merge or "
+                "customization, run analyze again and review the fresh plan"
+            )
     audit = subprocess.run(
         ["python3", ".vibeos/scripts/vibeos-active-surface-audit.py"],
         cwd=target,
@@ -2162,6 +2174,14 @@ def command_apply(args: argparse.Namespace) -> int:
                 f"[vibeos] FAIL: post-install check failed: {check['command']} exit={check['exit_code']}"
             )
         return 1
+    if status == "applied-unverified":
+        print(
+            "[vibeos] BLOCKED: post-install checks were skipped; re-run analyze "
+            "against the same source, target, and profile, then verify and apply "
+            "the fresh plan without --skip-post-checks",
+            file=sys.stderr,
+        )
+        return 2
     return 0
 
 

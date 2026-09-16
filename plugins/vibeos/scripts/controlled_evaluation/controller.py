@@ -13,9 +13,11 @@ sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import admission  # noqa: E402 - isolated sibling package after path setup
+import cleanup  # noqa: E402 - isolated sibling package after path setup
 import configuration  # noqa: E402 - isolated sibling package after path setup
 
 ACTIVE = None
+TERMINATION_GRACE_SECONDS = 2
 
 
 def bindings(config):
@@ -121,18 +123,7 @@ def replace_json(path, value):
 def terminate(process):
     if process is None:
         return b"", b""
-    try:
-        os.killpg(process.pid, signal.SIGKILL)
-    except ProcessLookupError:
-        pass
-    try:
-        return process.communicate(timeout=3)
-    except subprocess.TimeoutExpired:
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-        return process.communicate()
+    return cleanup.terminate_process_group(process, TERMINATION_GRACE_SECONDS)
 
 
 def interrupted(signum, frame):
@@ -167,10 +158,7 @@ def launch(command, root, timeout):
             result["timed_out"] = True
             stdout, stderr = terminate(ACTIVE)
         else:
-            try:
-                os.killpg(ACTIVE.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
+            cleanup.cleanup_process_group(ACTIVE.pid, TERMINATION_GRACE_SECONDS)
         result.update(
             exit=ACTIVE.returncode, stdout=stdout.decode(errors="replace"),
             stderr=stderr.decode(errors="replace"), reaped=ACTIVE.poll() is not None,
@@ -213,7 +201,7 @@ def evaluate(config, run):
     before = configuration.bindings(config)
     command = configuration.evaluation_command(config, run)
     started = time.monotonic()
-    launched = launch(command, root, config["timeout_seconds"] + 1)
+    launched = launch(command, root, config["timeout_seconds"])
     launched["duration_seconds"] = time.monotonic() - started
     report_hash = checks_hash = project_hash = result_files = None
     try:

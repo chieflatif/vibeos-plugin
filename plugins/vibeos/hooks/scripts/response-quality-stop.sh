@@ -8,7 +8,7 @@
 # Framework version: 2.2.0
 # Note: No set -euo pipefail — hook reads stdin and uses || fallbacks
 # intentionally. This is per hook convention for VibeOS hooks.
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 # --- VibeOS project-scope guard (auto-inserted) ------------------------------
 # Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so

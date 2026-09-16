@@ -31,7 +31,7 @@
 
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 # ---- Defaults ----
 AUDIT_TYPE="manual_audit"

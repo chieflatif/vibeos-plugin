@@ -18,7 +18,7 @@ set -euo pipefail
 #   REQUIRE_TRANSACTIONS  — Require transaction usage (default: true)
 #   EXCLUDE_DIRS          — Colon-separated directories to exclude
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 GATE_NAME="validate-data-integrity"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

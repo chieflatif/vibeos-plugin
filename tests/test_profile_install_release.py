@@ -442,6 +442,190 @@ class ProfileInstallReleaseTests(unittest.TestCase):
             result = self.run_cli("verify", "--plan", str(plan_path), check=False)
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
             self.assertIn("installed target drift", result.stderr)
+            self.assertIn("run analyze again", result.stderr)
+
+    def test_detected_validators_are_documented_and_never_run_by_install(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target, "Application Acceptance Boundary")
+            sentinel = target / "validator-ran.txt"
+            (target / "tools/validate_all.py").write_text(
+                "from pathlib import Path\n"
+                "Path('validator-ran.txt').write_text('ran')\n"
+                "raise SystemExit(19)\n",
+                encoding="utf-8",
+            )
+
+            plan_path = self.analyze(target)
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            documented = plan["documented_validators"]
+            self.assertIn(
+                {
+                    "name": "validate-all",
+                    "command": "python3 tools/validate_all.py",
+                    "status": "informational",
+                    "blocking": False,
+                    "executed_by_installer": False,
+                },
+                documented,
+            )
+            self.assertFalse(
+                any(gate["name"].startswith("existing-") for gate in plan["active_gates"])
+            )
+
+            applied = self.run_cli("apply", "--plan", str(plan_path))
+            self.assertIn("PASS", applied.stdout)
+            self.assertFalse(sentinel.exists())
+            manifest = json.loads(
+                (target / ".claude/quality-gate-manifest.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(manifest["documented_validators"], documented)
+            self.assertNotIn("post_install_documented", manifest["phases"])
+            self.assertFalse(
+                any(gate["name"].startswith("existing-") for gate in manifest["gates"])
+            )
+            self.assertNotIn("DOCUMENTED_COMMAND", json.dumps(manifest))
+
+            phase = subprocess.run(
+                [
+                    "bash",
+                    ".vibeos/scripts/gate-runner.sh",
+                    "post_install_documented",
+                    "--project-dir",
+                    ".",
+                ],
+                cwd=target,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertNotEqual(phase.returncode, 0, phase.stdout + phase.stderr)
+            self.assertNotIn("existing-validate-all", phase.stdout + phase.stderr)
+
+    def test_primary_gates_are_documented_nonblocking_and_never_run_by_install(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target, "Documented Primary Gate")
+            sentinel = target / "primary-gate-ran.txt"
+            (target / "required_project_check.py").write_text(
+                "from pathlib import Path\n"
+                "Path('primary-gate-ran.txt').write_text('ran')\n"
+                "raise SystemExit(23)\n",
+                encoding="utf-8",
+            )
+            profile = target / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "project_name": "Documented Primary Gate",
+                        "mode": "product-engineering",
+                        "primary_gates": ["python3 required_project_check.py"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            plan_path = self.analyze(target, profile)
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            expected = [
+                {
+                    "name": "profile-primary-gate",
+                    "command": "python3 required_project_check.py",
+                    "status": "informational",
+                    "blocking": False,
+                    "executed_by_installer": False,
+                }
+            ]
+            self.assertEqual(plan["documented_primary_gates"], expected)
+            self.assertFalse(
+                any(
+                    gate.get("command") == "python3 required_project_check.py"
+                    for gate in plan["active_gates"]
+                )
+            )
+
+            self.run_cli("apply", "--plan", str(plan_path))
+            self.assertFalse(sentinel.exists())
+            claude_surface = (target / ".claude/CLAUDE.md").read_text(
+                encoding="utf-8"
+            )
+            self.assertIn(
+                "Documented primary checks (informational; not run by installer)",
+                claude_surface,
+            )
+            self.assertNotIn("Latif", claude_surface)
+            manifest = json.loads(
+                (target / ".claude/quality-gate-manifest.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(manifest["documented_primary_gates"], expected)
+            self.assertFalse(
+                any(
+                    gate.get("command") == "python3 required_project_check.py"
+                    for gate in manifest["gates"]
+                )
+            )
+
+    def test_skip_post_checks_is_nonzero_and_requires_a_fresh_analysis(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target, "Unverified Apply")
+            plan_path = self.analyze(target)
+
+            applied = self.run_cli(
+                "apply",
+                "--plan",
+                str(plan_path),
+                "--skip-post-checks",
+                check=False,
+            )
+            self.assertEqual(applied.returncode, 2, applied.stdout + applied.stderr)
+            self.assertIn("APPLIED-UNVERIFIED", applied.stdout)
+            self.assertIn("re-run analyze", applied.stderr)
+            self.assertIn("without --skip-post-checks", applied.stderr)
+            lock = json.loads(
+                (target / ".vibeos/install-lock.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(lock["transaction_status"], "applied-unverified")
+
+            stale_verify = self.run_cli(
+                "verify", "--plan", str(plan_path), check=False
+            )
+            self.assertEqual(
+                stale_verify.returncode, 2, stale_verify.stdout + stale_verify.stderr
+            )
+            fresh_plan = self.analyze(target)
+            self.run_cli("verify", "--plan", str(fresh_plan))
+            self.run_cli("apply", "--plan", str(fresh_plan))
+
+    def test_commit_message_enforcement_installs_its_validator(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target, "Commit Message Opt In")
+            profile = target / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "project_name": "Commit Message Opt In",
+                        "mode": "product-engineering",
+                        "enabled_modules": ["commit-msg-enforcement"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            plan_path = self.analyze(target, profile)
+            plan = json.loads(plan_path.read_text(encoding="utf-8"))
+            self.assertIn(
+                ".vibeos/scripts/validate-commit-msg.sh",
+                {row["path"] for row in plan["analyzed_outputs"]},
+            )
+            self.run_cli("apply", "--plan", str(plan_path))
+            self.assertTrue(
+                (target / ".vibeos/scripts/validate-commit-msg.sh").is_file()
+            )
 
     def test_forged_complete_lock_cannot_verify_an_unapplied_plan(self):
         with tempfile.TemporaryDirectory() as tmp:

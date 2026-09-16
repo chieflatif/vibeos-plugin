@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$SCRIPT_DIR/plugins/vibeos/skills" ]; then
@@ -55,6 +55,12 @@ done
 canonicalize_paths() {
   SOURCE_DIR="$(cd "$SOURCE_DIR" && pwd)"
   TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+  if [[ -e "$TARGET_DIR/.vibeos/install-lock.json" || -L "$TARGET_DIR/.vibeos/install-lock.json" ]]; then
+    echo "[vibeos-init-codex] FAIL: Profile-managed installation detected. Legacy bootstrap install, upgrade and uninstall are refused, including --force."
+    echo "[vibeos-init-codex] Use the source ./vibeos analyze, verify and apply commands with the project profile."
+    exit 2
+  fi
 
   if [ "$SOURCE_DIR" = "$TARGET_DIR" ]; then
     echo "[vibeos-init-codex] FAIL: Source and target are the same directory."

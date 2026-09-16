@@ -2,7 +2,7 @@
 # FILE-SIZE-EXCEPTION: WO-148 — optional macOS workstation package checker/installer is intentionally self-contained so fresh clones can dry-run before auxiliary package files exist.
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 TOOL_NAME="workstation-package"
 
 MODE="${WORKSTATION_PACKAGE_MODE:-check}"

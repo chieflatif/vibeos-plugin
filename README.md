@@ -1,10 +1,10 @@
 # VibeOS — Autonomous Development Engine
 
-> **2.3.0 — reusable engineering controls.**
+> **2.3.1 — reusable engineering controls.**
 > The profile installer now carries the reusable evidence-control package.
 > See [installation and customization](docs/INSTALLATION.md),
 > [controlled evaluation](docs/CONTROLLED-EVALUATION.md) and
-> [release evidence](docs/release/2.3.0.md).
+> [release evidence](docs/release/2.3.1.md).
 
 
 > **v2.2.0 — Evidence Recall Upgrade (2026-04-24)**

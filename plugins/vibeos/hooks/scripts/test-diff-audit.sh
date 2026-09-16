@@ -6,7 +6,7 @@
 # Note: No set -euo pipefail — hook reads stdin via cat and uses || fallbacks
 # that would trigger errexit. This is intentional per hook convention.
 
-FRAMEWORK_VERSION="2.3.0"
+FRAMEWORK_VERSION="2.3.1"
 
 # --- VibeOS project-scope guard (auto-inserted) ------------------------------
 # Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so
