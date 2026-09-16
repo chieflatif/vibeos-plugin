@@ -7,7 +7,7 @@ set -euo pipefail
 # and custom gates. Supports rollback via pre-upgrade snapshot.
 # Exit 0 = success, 1 = error
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 
 usage() {
   echo "Usage:"

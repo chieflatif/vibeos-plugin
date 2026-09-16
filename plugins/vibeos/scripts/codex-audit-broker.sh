@@ -26,7 +26,7 @@
 
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"

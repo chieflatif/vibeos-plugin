@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # VibeOS Codex Hook — Secret Scan
 # Scans supported Codex edit payloads for obvious hardcoded secrets.
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 
 INPUT=$(cat)
 CONTENT=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // .tool_input.content // .tool_input.new_string // empty' 2>/dev/null || echo "")

@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.2.0"
+FRAMEWORK_VERSION = "2.3.0"
 LOOP_HISTORY = ".vibeos/autonomy/loop-history.jsonl"
 RUNTIME_HISTORY = ".vibeos/autonomy/runtime-adapter-history.jsonl"
 FAILURE_REPORT = ".vibeos/autonomy/failure-report.json"

@@ -7,13 +7,12 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.2.0"
+FRAMEWORK_VERSION = "2.3.0"
 DEFAULT_WORKFLOW = Path(".claude/workflows/vibeos-audit-sweep")
 DEFAULT_TARGET = "plugins/vibeos/scripts/runtime-capabilities.py"
 REQUIRED_NO_WRITE = [

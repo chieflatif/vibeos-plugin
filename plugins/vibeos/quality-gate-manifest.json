@@ -1,16 +1,16 @@
 {
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Declarative gate manifest — catalogs every script with tier, blocking, phase, and env configuration. The gate-runner reads this to determine which gates to execute per phase.",
   "gates": [
     {"script": "scripts/validate-no-secrets.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"SCAN_PATTERNS": "azure_connection_strings,sas_tokens,aws_keys,api_tokens,jwts,private_keys"}},
     {"script": "scripts/validate-security-patterns.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"STRICT_MODE": "true"}},
     {"script": "scripts/detect-stubs-placeholders.py", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LANGUAGE": "python"}},
     {"script": "scripts/validate-file-size.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
-    {"script": "scripts/validate-code-quality.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LINTER": "ruff check"}},
+    {"script": "scripts/validate-code-quality.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LINTER": "ruff check", "LANGUAGE": "python", "SOURCE_DIR": "$PROJECT_ROOT/plugins/vibeos/scripts"}},
     {"script": "scripts/validate-tests-required.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {}},
     {"script": "scripts/validate-tests-pass.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"TEST_CMD": "cd \"$(git rev-parse --show-toplevel)\" && python3 -m pytest tests"}},
-    {"script": "scripts/validate-code-complexity.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"ONLY_CHANGED_FILES": "true", "MAX_FUNCTION_LINES": "55", "WARN_FUNCTION_LINES": "40", "MAX_PARAMS": "6", "MAX_NESTING_DEPTH": "4", "EXCLUDE_DIRS": "plugins/vibeos/scripts .vibeos/scripts"}},
-    {"script": "scripts/validate-dependency-versions.sh", "tier": 2, "blocking": true, "phase": "pre_commit", "env": {"ONLY_WHEN_DEP_FILES_CHANGE": "true"}},
+    {"script": "scripts/validate-code-complexity.sh", "tier": 1, "blocking": true, "phase": "pre_commit", "env": {"LANGUAGE": "python", "SOURCE_DIR": "plugins/vibeos/scripts/controlled_evaluation", "MAX_FUNCTION_LINES": "55", "WARN_FUNCTION_LINES": "40", "MAX_PARAMS": "6"}},
+    {"script": "scripts/validate-dependency-versions.sh", "tier": 2, "blocking": true, "phase": "pre_commit", "env": {"ONLY_WHEN_DEP_FILES_CHANGE": "true", "LANGUAGE": "python", "PACKAGE_FILE": "$PROJECT_ROOT/pyproject.toml", "ONLINE_LOOKUP": "false"}},
     {"script": "scripts/validate-dependencies.sh", "tier": 2, "blocking": false, "phase": "pre_commit", "env": {"ONLY_WHEN_DEP_FILES_CHANGE": "true"}},
 
     {"script": "scripts/validate-comp-ai-failure-modes.py", "tier": 1, "blocking": true, "phase": "comp_gauntlet", "env": {"THRESHOLD": "design_partner_mvp"}},

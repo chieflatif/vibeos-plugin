@@ -187,7 +187,9 @@ class MissingScriptTests(unittest.TestCase):
 
     TIERS = {
         "0": {"label": "critical", "blocking": True},
+        "1": {"label": "important", "blocking": True},
         "2": {"label": "advisory", "blocking": False},
+        "3": {"label": "informational", "blocking": False},
     }
 
     def _manifest(self, tmpdir, gates):
@@ -233,8 +235,8 @@ class MissingScriptTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("SKIP", result.stdout)
 
-    def test_marker_skip_still_skips_for_all_tiers(self):
-        for tier in (0, 2):
+    def test_marker_skip_fails_blocking_tiers_and_skips_advisory_tiers(self):
+        for tier, blocking in ((0, True), (1, True), (2, False), (3, False)):
             with self.subTest(tier=tier), tempfile.TemporaryDirectory() as tmp:
                 scripts = Path(tmp) / "framework/scripts"
                 scripts.mkdir(parents=True)
@@ -246,11 +248,16 @@ class MissingScriptTests(unittest.TestCase):
                     [{"script": "scripts/skips.sh", "tier": tier, "phase": "pre_commit", "env": {}}],
                 )
                 result = self._run_phase(tmp, manifest)
-                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
                 self.assertIn("SKIP", result.stdout)
-                self.assertNotIn("FAIL", result.stdout)
+                if blocking:
+                    self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                    self.assertIn("SKIP [BLOCKING]", result.stdout)
+                    self.assertIn("Result: FAIL", result.stdout)
+                else:
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    self.assertNotIn("FAIL", result.stdout)
 
-    def test_marker_skip_with_large_output_still_skips(self):
+    def test_marker_skip_with_large_output_fails_blocking_gate(self):
         # WO-152: the SKIP-marker match must not race SIGPIPE on large output
         # (misclassified marker-skips as PASS before the pure-bash match).
         with tempfile.TemporaryDirectory() as tmp:
@@ -269,9 +276,11 @@ class MissingScriptTests(unittest.TestCase):
                 [{"script": "scripts/noisy-skip.sh", "tier": 0, "phase": "pre_commit", "env": {}}],
             )
             result = self._run_phase(tmp, manifest)
-            self.assertEqual(result.returncode, 0, result.stdout[:2000] + result.stderr[:2000])
+            self.assertEqual(result.returncode, 1, result.stdout[:2000] + result.stderr[:2000])
             self.assertIn("Skipped: 1", result.stdout)
+            self.assertIn("Failed: 1", result.stdout)
             self.assertIn("Passed: 0", result.stdout)
+            self.assertIn("Result: FAIL", result.stdout)
 
     def test_large_gate_output_does_not_abort_run(self):
         # WO-152 finding 5: header extraction must survive gate output larger

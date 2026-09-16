@@ -37,8 +37,9 @@
 #   3 = Lock held by another runner
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 RUNNER_NAME="gate-runner"
+TIMEOUT_MARKER="__VIBEOS_GATE_TIMEOUT__"
 
 # ─── Usage ───────────────────────────────────────────────────────
 usage() {
@@ -404,6 +405,48 @@ else:
 PYEOF
 }
 
+# ─── Phase Result Policy ─────────────────────────────────────────
+# A phase is required unless its manifest entry explicitly disables it.  This
+# keeps legacy phase declarations working while making a zero-check success
+# impossible for an enabled phase.  Disabled phases are an intentional,
+# non-passing policy result rather than evidence that checks ran.
+get_phase_result_policy() {
+  python3 - "$MANIFEST_PATH" "$PHASE" <<'PYEOF'
+import json
+import sys
+
+with open(sys.argv[1]) as f:
+    manifest = json.load(f)
+
+phase = manifest.get("phases", {}).get(sys.argv[2])
+if isinstance(phase, dict) and phase.get("enabled") is False:
+    print("disabled")
+else:
+    print("required")
+PYEOF
+}
+
+emit_disabled_phase_result() {
+  if [[ "$JSON_OUTPUT" == "true" ]]; then
+    cat <<JSONEOF
+{"phase":"$PHASE","gates":[],"summary":{"total":0,"passed":0,"failed":0,"skipped":1,"baselined":0,"timed_out":0,"blocking_failures":0,"result":"SKIP"}}
+JSONEOF
+  else
+    log "SKIP: Phase explicitly disabled by manifest policy: $PHASE"
+  fi
+}
+
+emit_empty_required_phase_result() {
+  if [[ "$JSON_OUTPUT" == "true" ]]; then
+    cat <<JSONEOF
+{"phase":"$PHASE","gates":[],"summary":{"total":0,"passed":0,"failed":1,"skipped":0,"baselined":0,"timed_out":0,"blocking_failures":1,"result":"FAIL"}}
+JSONEOF
+  else
+    log "FAIL: no gates configured for required phase: $PHASE"
+    log "Result: FAIL (required phase produced no gate results)"
+  fi
+}
+
 # ─── Run Single Gate ─────────────────────────────────────────────
 run_single_gate() {
   local script="$1"
@@ -428,6 +471,7 @@ run_single_gate() {
 
   # Build environment export commands from gate config
   local env_exports=""
+  local gate_declares_project_root="false"
   if [[ "$env_json" != "{}" && "$env_json" != "null" && -n "$env_json" ]]; then
     env_exports=$(python3 -c "
 import json, sys
@@ -445,6 +489,10 @@ for k, v in env.items():
     # Export as env var
     print(f'export {k}={v!r}')
 " "$env_json" "$WO_NUMBER" "$EVIDENCE_DIR" "$PROJECT_ROOT" 2>/dev/null || echo "")
+    gate_declares_project_root=$(python3 -c "
+import json, sys
+print('true' if 'PROJECT_ROOT' in json.loads(sys.argv[1]) else 'false')
+" "$env_json" 2>/dev/null || echo "false")
   fi
 
   # Determine runner command
@@ -455,7 +503,9 @@ for k, v in env.items():
     runner="bash"
   fi
 
-  # Run with timeout (portable: gtimeout on macOS, timeout on Linux)
+  # Run through the bundled helper so configured timeouts work on macOS and
+  # Linux alike. The helper owns a new process group and terminates descendants
+  # before returning the conventional timeout status (124).
   local output exit_code start_time end_time duration
   start_time=$(date +%s)
 
@@ -464,21 +514,22 @@ for k, v in env.items():
   if [[ -n "$env_exports" ]]; then
     full_cmd="$env_exports"$'\n'
   fi
+  if [[ "$gate_declares_project_root" != "true" ]]; then
+    local project_root_q
+    printf -v project_root_q '%q' "$PROJECT_ROOT"
+    full_cmd+="export PROJECT_ROOT=$project_root_q"$'\n'
+  fi
   full_cmd+="\"$runner\" \"$script_path\""
 
-  if command -v gtimeout >/dev/null 2>&1; then
-    output=$(gtimeout "$timeout" bash -c "$full_cmd" 2>&1) && exit_code=0 || exit_code=$?
-  elif command -v timeout >/dev/null 2>&1; then
-    output=$(timeout "$timeout" bash -c "$full_cmd" 2>&1) && exit_code=0 || exit_code=$?
-  else
-    output=$(bash -c "$full_cmd" 2>&1) && exit_code=0 || exit_code=$?
-  fi
+  output=$(python3 "$SCRIPT_DIR/gate_timeout.py" "$timeout" -- bash -c "$full_cmd" 2>&1) && exit_code=0 || exit_code=$?
 
   end_time=$(date +%s)
   duration=$((end_time - start_time))
 
-  # Timeout detection (exit code 124 from GNU timeout)
-  if [[ $exit_code -eq 124 ]]; then
+  # The bundled helper returns 124 for its own deadline and writes an exact
+  # marker. A gate may also naturally return 124, which is a normal gate
+  # failure and must not be recast as a timeout.
+  if [[ $exit_code -eq 124 && "$output" == *"$TIMEOUT_MARKER"* ]]; then
     echo "TIMEOUT|$gate_name|timeout_${timeout}s|$duration"
     return 0
   fi
@@ -509,6 +560,12 @@ fi
 
 acquire_lock
 
+phase_result_policy=$(get_phase_result_policy)
+if [[ "$phase_result_policy" == "disabled" ]]; then
+  emit_disabled_phase_result
+  exit 0
+fi
+
 if [[ "$JSON_OUTPUT" != "true" ]]; then
   log "Quality Gate Runner v$FRAMEWORK_VERSION"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -529,12 +586,8 @@ fi
 gate_count=$(echo "$gates_json" | python3 -c "import json,sys; print(len(json.load(sys.stdin)))")
 
 if [[ "$gate_count" -eq 0 ]]; then
-  if [[ "$JSON_OUTPUT" == "true" ]]; then
-    echo '{"phase":"'"$PHASE"'","gates":[],"summary":{"total":0,"passed":0,"failed":0,"skipped":0,"result":"PASS"}}'
-  else
-    log "No gates configured for phase: $PHASE"
-  fi
-  exit 0
+  emit_empty_required_phase_result
+  exit 1
 fi
 
 if [[ "$JSON_OUTPUT" != "true" ]]; then
@@ -572,6 +625,7 @@ while IFS= read -r gate_line; do
   gate_name=$(echo "$gate_line" | python3 -c "import json,sys; g=json.load(sys.stdin); print(g.get('name', g.get('script','unknown')))")
   gate_script=$(echo "$gate_line" | python3 -c "import json,sys; g=json.load(sys.stdin); print(g.get('script',''))")
   gate_tier=$(echo "$gate_line" | python3 -c "import json,sys; g=json.load(sys.stdin); print(g.get('tier', 1))")
+  gate_blocking_override=$(echo "$gate_line" | python3 -c "import json,sys; g=json.load(sys.stdin); v=g.get('blocking', None); print('' if v is None else ('true' if (v is True or str(v).strip().lower() not in ('false','no','0','')) else 'false'))")
   gate_env=$(echo "$gate_line" | python3 -c "import json,sys; g=json.load(sys.stdin); print(json.dumps(g.get('env', {})))")
   gate_timeout_override=$(echo "$gate_line" | python3 -c "import json,sys; g=json.load(sys.stdin); print(g.get('timeout', 0))")
 
@@ -586,6 +640,9 @@ while IFS= read -r gate_line; do
   tier_info=$(get_tier_info "$gate_tier")
   tier_blocking=$(echo "$tier_info" | cut -d'|' -f1)
   tier_label=$(echo "$tier_info" | cut -d'|' -f2)
+  if [[ -n "$gate_blocking_override" ]]; then
+    tier_blocking="$gate_blocking_override"
+  fi
 
   if [[ "$JSON_OUTPUT" != "true" ]]; then
     echo -n "  [$gate_name] ($tier_label) ... "
@@ -628,6 +685,24 @@ while IFS= read -r gate_line; do
           if [[ "$JSON_OUTPUT" != "true" ]]; then
             echo ""
             log "ABORT: Blocking gate failed. Use --continue-on-failure to run remaining gates."
+          fi
+          break
+        fi
+      elif [[ "$tier_blocking" == "true" || "$tier_blocking" == "True" ]]; then
+        # A required check that declares itself unavailable has not supplied
+        # evidence.  Keep SKIP visible, but fail the phase rather than turning
+        # an unexecuted blocking check into a green result.
+        skipped=$((skipped + 1))
+        failed=$((failed + 1))
+        blocking_failures=$((blocking_failures + 1))
+        gate_result="skip"
+        if [[ "$JSON_OUTPUT" != "true" ]]; then
+          echo "SKIP [BLOCKING] (required check did not run)"
+        fi
+        if [[ "$CONTINUE_ON_FAILURE" != "true" ]]; then
+          if [[ "$JSON_OUTPUT" != "true" ]]; then
+            echo ""
+            log "ABORT: Blocking gate skipped. Use --continue-on-failure to run remaining gates."
           fi
           break
         fi

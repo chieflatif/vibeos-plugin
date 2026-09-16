@@ -15,6 +15,8 @@ set -euo pipefail
 #
 # Environment:
 #   PROJECT_ROOT        — Project root directory (default: pwd)
+#   SOURCE_DIR          — Optional source scope, relative to PROJECT_ROOT or absolute
+#   LANGUAGE            — Optional language override
 #   MAX_CYCLOMATIC      — Max cyclomatic complexity per function (default: 15)
 #   WARN_CYCLOMATIC     — Warn threshold for cyclomatic complexity (default: 10)
 #   MAX_FUNCTION_LINES  — Max lines per function (default: 80)
@@ -25,7 +27,7 @@ set -euo pipefail
 #   EXCLUDE_DIRS        — Colon-separated directories to exclude
 #   EXCLUDE_PATTERNS    — Colon-separated file patterns to exclude
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 GATE_NAME="validate-code-complexity"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
@@ -38,6 +40,21 @@ MAX_CLASS_METHODS="${MAX_CLASS_METHODS:-15}"
 MAX_CLASS_LINES="${MAX_CLASS_LINES:-400}"
 EXCLUDE_DIRS="${EXCLUDE_DIRS:-}"
 EXCLUDE_PATTERNS="${EXCLUDE_PATTERNS:-}"
+SOURCE_DIR="${SOURCE_DIR:-}"
+LANGUAGE="${LANGUAGE:-}"
+
+SOURCE_ROOT="$PROJECT_ROOT"
+if [ -n "$SOURCE_DIR" ]; then
+    if [[ "$SOURCE_DIR" == /* ]]; then
+        SOURCE_ROOT="$SOURCE_DIR"
+    else
+        SOURCE_ROOT="$PROJECT_ROOT/$SOURCE_DIR"
+    fi
+fi
+if [ ! -d "$SOURCE_ROOT" ]; then
+    echo "[${GATE_NAME}] ERROR: Source directory not found: $SOURCE_ROOT"
+    exit 2
+fi
 
 VIOLATIONS=0
 WARNINGS=0
@@ -61,6 +78,18 @@ build_find_excludes() {
 }
 
 FIND_EXCLUDES=$(build_find_excludes)
+
+record_analysis_output() {
+    local output="$1"
+    local failed warned
+    [ -z "$output" ] && return 0
+
+    printf '%s\n' "$output"
+    failed=$(printf '%s\n' "$output" | awk -v gate="$GATE_NAME" '$0 ~ "^\\[" gate "\\] FAIL:" { count++ } END { print count + 0 }')
+    warned=$(printf '%s\n' "$output" | awk -v gate="$GATE_NAME" '$0 ~ "^\\[" gate "\\] WARN:" { count++ } END { print count + 0 }')
+    VIOLATIONS=$((VIOLATIONS + failed))
+    WARNINGS=$((WARNINGS + warned))
+}
 
 # Detect project language
 detect_language() {
@@ -88,10 +117,10 @@ detect_language() {
 # -------------------------------------------------------------------
 check_python_complexity() {
     local py_files
-    py_files=$(eval "find \"$PROJECT_ROOT\" $FIND_EXCLUDES -name '*.py' -print" 2>/dev/null || true)
+    py_files=$(eval "find \"$SOURCE_ROOT\" $FIND_EXCLUDES -name '*.py' -print" 2>/dev/null || true)
     if [ -z "$py_files" ]; then
-        echo "[${GATE_NAME}] SKIP: No Python files found"
-        return 0
+        echo "[${GATE_NAME}] ERROR: No Python files found in source scope: $SOURCE_ROOT"
+        return 2
     fi
 
     local file_count
@@ -105,7 +134,7 @@ check_python_complexity() {
         radon_output=$(echo "$py_files" | xargs radon cc -s -n "${WARN_CYCLOMATIC}" 2>/dev/null || true)
         if [ -n "$radon_output" ]; then
             # Parse radon output: lines like "    F 10:0 function_name - C (12)"
-            echo "$radon_output" | while IFS= read -r line; do
+            while IFS= read -r line; do
                 # File header lines don't start with spaces
                 case "$line" in
                     "    "*)
@@ -123,7 +152,7 @@ check_python_complexity() {
                         fi
                         ;;
                 esac
-            done
+            done <<< "$radon_output"
         fi
     else
         echo "[${GATE_NAME}] WARN: radon not installed — skipping cyclomatic complexity (pip install radon)"
@@ -131,7 +160,8 @@ check_python_complexity() {
     fi
 
     # Function length and parameter count analysis via embedded Python
-    python3 -c "
+    local python_analysis
+    python_analysis=$(python3 -c "
 import ast
 import sys
 import os
@@ -154,7 +184,7 @@ for fpath in sys.stdin.read().strip().split('\n'):
     except (SyntaxError, ValueError):
         continue
 
-    rel = os.path.relpath(fpath, '${PROJECT_ROOT}')
+    rel = os.path.relpath(fpath, '${SOURCE_ROOT}')
     lines = source.split('\n')
 
     for node in ast.walk(tree):
@@ -199,15 +229,14 @@ for fpath in sys.stdin.read().strip().split('\n'):
                 violations += 1
 
 print(f'SUMMARY:violations={violations},warnings={warnings}')
-" <<< "$py_files" | while IFS= read -r line; do
+" <<< "$py_files")
+    while IFS= read -r line; do
         case "$line" in
             FAIL:*)
                 echo "[${GATE_NAME}] FAIL: ${line#FAIL:}"
-                VIOLATIONS=$((VIOLATIONS + 1))
                 ;;
             WARN:*)
                 echo "[${GATE_NAME}] WARN: ${line#WARN:}"
-                WARNINGS=$((WARNINGS + 1))
                 ;;
             SUMMARY:*)
                 # Parse summary for accurate counts
@@ -218,7 +247,7 @@ print(f'SUMMARY:violations={violations},warnings={warnings}')
                 WARNINGS=$((WARNINGS + ${w:-0}))
                 ;;
         esac
-    done
+    done <<< "$python_analysis"
 }
 
 # -------------------------------------------------------------------
@@ -233,10 +262,10 @@ check_js_complexity() {
     fi
 
     local js_files
-    js_files=$(eval "find \"$PROJECT_ROOT\" $FIND_EXCLUDES \( $extensions \) -print" 2>/dev/null || true)
+    js_files=$(eval "find \"$SOURCE_ROOT\" $FIND_EXCLUDES \( $extensions \) -print" 2>/dev/null || true)
     if [ -z "$js_files" ]; then
-        echo "[${GATE_NAME}] SKIP: No JS/TS files found"
-        return 0
+        echo "[${GATE_NAME}] ERROR: No JS/TS files found in source scope: $SOURCE_ROOT"
+        return 2
     fi
 
     local file_count
@@ -244,13 +273,14 @@ check_js_complexity() {
     echo "[${GATE_NAME}] INFO: Analyzing $file_count JS/TS files"
 
     # Function length heuristic: count lines between function/method declarations
-    echo "$js_files" | while IFS= read -r fpath; do
+    while IFS= read -r fpath; do
         [ -z "$fpath" ] && continue
         local rel
         rel=$(python3 -c "import os; print(os.path.relpath('$fpath', '${PROJECT_ROOT}'))" 2>/dev/null || echo "$fpath")
 
         # Use awk to detect function boundaries and count lines
-        awk -v max_lines="$MAX_FUNCTION_LINES" -v warn_lines="$WARN_FUNCTION_LINES" \
+        local function_info
+        function_info=$(awk -v max_lines="$MAX_FUNCTION_LINES" -v warn_lines="$WARN_FUNCTION_LINES" \
             -v max_params="$MAX_PARAMS" -v rel="$rel" -v gate="$GATE_NAME" '
         /^[[:space:]]*(export[[:space:]]+)?(async[[:space:]]+)?function[[:space:]]+[a-zA-Z_]/ ||
         /^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*[[:space:]]*\(/ ||
@@ -290,7 +320,8 @@ check_js_complexity() {
                 }
             }
         }
-        ' "$fpath"
+        ' "$fpath")
+        record_analysis_output "$function_info"
 
         # God class detection: count class methods
         local class_info
@@ -327,9 +358,9 @@ check_js_complexity() {
             }
         }' "$fpath" 2>/dev/null || true)
         if [ -n "$class_info" ]; then
-            echo "$class_info"
+            record_analysis_output "$class_info"
         fi
-    done
+    done <<< "$js_files"
 }
 
 # -------------------------------------------------------------------
@@ -337,10 +368,10 @@ check_js_complexity() {
 # -------------------------------------------------------------------
 check_go_complexity() {
     local go_files
-    go_files=$(eval "find \"$PROJECT_ROOT\" $FIND_EXCLUDES -name '*.go' -print" 2>/dev/null || true)
+    go_files=$(eval "find \"$SOURCE_ROOT\" $FIND_EXCLUDES -name '*.go' -print" 2>/dev/null || true)
     if [ -z "$go_files" ]; then
-        echo "[${GATE_NAME}] SKIP: No Go files found"
-        return 0
+        echo "[${GATE_NAME}] ERROR: No Go files found in source scope: $SOURCE_ROOT"
+        return 2
     fi
 
     local file_count
@@ -351,9 +382,9 @@ check_go_complexity() {
     if command -v gocyclo >/dev/null 2>&1; then
         echo "[${GATE_NAME}] INFO: Using gocyclo for cyclomatic complexity"
         local gocyclo_output
-        gocyclo_output=$(gocyclo -over "$WARN_CYCLOMATIC" "$PROJECT_ROOT" 2>/dev/null || true)
+        gocyclo_output=$(gocyclo -over "$WARN_CYCLOMATIC" "$SOURCE_ROOT" 2>/dev/null || true)
         if [ -n "$gocyclo_output" ]; then
-            echo "$gocyclo_output" | while IFS= read -r line; do
+            while IFS= read -r line; do
                 local score
                 score=$(echo "$line" | awk '{print $1}')
                 if [ -n "$score" ] && [ "$score" -gt "$MAX_CYCLOMATIC" ] 2>/dev/null; then
@@ -363,7 +394,7 @@ check_go_complexity() {
                     echo "[${GATE_NAME}] WARN: $line — complexity $score exceeds warn threshold $WARN_CYCLOMATIC"
                     WARNINGS=$((WARNINGS + 1))
                 fi
-            done
+            done <<< "$gocyclo_output"
         fi
     else
         echo "[${GATE_NAME}] WARN: gocyclo not installed — skipping cyclomatic complexity (go install github.com/fzipp/gocyclo/cmd/gocyclo@latest)"
@@ -371,12 +402,13 @@ check_go_complexity() {
     fi
 
     # Function length via awk
-    echo "$go_files" | while IFS= read -r fpath; do
+    while IFS= read -r fpath; do
         [ -z "$fpath" ] && continue
         local rel
         rel=$(python3 -c "import os; print(os.path.relpath('$fpath', '${PROJECT_ROOT}'))" 2>/dev/null || echo "$fpath")
 
-        awk -v max_lines="$MAX_FUNCTION_LINES" -v warn_lines="$WARN_FUNCTION_LINES" \
+        local function_info
+        function_info=$(awk -v max_lines="$MAX_FUNCTION_LINES" -v warn_lines="$WARN_FUNCTION_LINES" \
             -v max_params="$MAX_PARAMS" -v rel="$rel" -v gate="$GATE_NAME" '
         /^func[[:space:]]/ {
             if (func_name != "" && func_start > 0) {
@@ -411,8 +443,9 @@ check_go_complexity() {
                 }
             }
         }
-        ' "$fpath"
-    done
+        ' "$fpath")
+        record_analysis_output "$function_info"
+    done <<< "$go_files"
 }
 
 # -------------------------------------------------------------------
@@ -429,10 +462,10 @@ check_generic_complexity() {
     esac
 
     local src_files
-    src_files=$(eval "find \"$PROJECT_ROOT\" $FIND_EXCLUDES \( $extensions \) -print" 2>/dev/null || true)
+    src_files=$(eval "find \"$SOURCE_ROOT\" $FIND_EXCLUDES \( $extensions \) -print" 2>/dev/null || true)
     if [ -z "$src_files" ]; then
-        echo "[${GATE_NAME}] SKIP: No source files found for $lang"
-        return 0
+        echo "[${GATE_NAME}] ERROR: No source files found for $lang in source scope: $SOURCE_ROOT"
+        return 2
     fi
 
     local file_count
@@ -440,7 +473,7 @@ check_generic_complexity() {
     echo "[${GATE_NAME}] INFO: Analyzing $file_count $lang files (generic heuristic)"
 
     # Simple line-counting heuristic for function length
-    echo "$src_files" | while IFS= read -r fpath; do
+    while IFS= read -r fpath; do
         [ -z "$fpath" ] && continue
         local total_lines
         total_lines=$(wc -l < "$fpath" | tr -d ' ')
@@ -449,10 +482,9 @@ check_generic_complexity() {
         if [ "$total_lines" -gt 500 ]; then
             local rel
             rel=$(python3 -c "import os; print(os.path.relpath('$fpath', '${PROJECT_ROOT}'))" 2>/dev/null || echo "$fpath")
-            echo "[${GATE_NAME}] WARN: $rel is $total_lines lines — potential god object, manual review recommended"
-            WARNINGS=$((WARNINGS + 1))
+            record_analysis_output "[${GATE_NAME}] WARN: $rel is $total_lines lines — potential god object, manual review recommended"
         fi
-    done
+    done <<< "$src_files"
 }
 
 # -------------------------------------------------------------------
@@ -467,7 +499,7 @@ check_dead_code() {
             # Check for unused imports via Python AST
             if command -v ruff >/dev/null 2>&1; then
                 local unused
-                unused=$(ruff check --select F401 --no-fix "$PROJECT_ROOT" 2>/dev/null | grep -c "F401" || true)
+                unused=$(ruff check --select F401 --no-fix "$SOURCE_ROOT" 2>/dev/null | grep -c "F401" || true)
                 unused="${unused:-0}"
                 if [ "$unused" -gt 0 ]; then
                     echo "[${GATE_NAME}] WARN: $unused unused imports detected (ruff F401)"
@@ -479,7 +511,7 @@ check_dead_code() {
             # Check for eslint unused vars
             if command -v eslint >/dev/null 2>&1; then
                 local unused
-                unused=$(cd "$PROJECT_ROOT" && eslint --rule '{"no-unused-vars": "warn"}' --format json . 2>/dev/null | python3 -c "
+                unused=$(cd "$SOURCE_ROOT" && eslint --rule '{"no-unused-vars": "warn"}' --format json . 2>/dev/null | python3 -c "
 import json, sys
 try:
     data = json.load(sys.stdin)
@@ -511,9 +543,9 @@ except: print(0)
 
     # Count large blocks of commented-out code (3+ consecutive comment lines that look like code)
     local src_files
-    src_files=$(eval "find \"$PROJECT_ROOT\" $FIND_EXCLUDES -name '$src_extensions' -print" 2>/dev/null || true)
+    src_files=$(eval "find \"$SOURCE_ROOT\" $FIND_EXCLUDES -name '$src_extensions' -print" 2>/dev/null || true)
     if [ -n "$src_files" ]; then
-        commented_blocks=$(echo "$src_files" | xargs grep -l '^\s*#.*=\|^\s*//.*=\|^\s*#.*def \|^\s*//.*function\|^\s*#.*class \|^\s*//.*class ' 2>/dev/null | wc -l | tr -d ' ')
+        commented_blocks=$( (echo "$src_files" | xargs grep -l '^\s*#.*=\|^\s*//.*=\|^\s*#.*def \|^\s*//.*function\|^\s*#.*class \|^\s*//.*class ' 2>/dev/null | wc -l | tr -d ' ') || true)
         commented_blocks="${commented_blocks:-0}"
         if [ "$commented_blocks" -gt 5 ]; then
             echo "[${GATE_NAME}] WARN: $commented_blocks files contain commented-out code blocks"
@@ -530,7 +562,7 @@ main() {
     echo "[${GATE_NAME}] INFO: Thresholds — cyclomatic: warn=$WARN_CYCLOMATIC fail=$MAX_CYCLOMATIC, function-lines: warn=$WARN_FUNCTION_LINES fail=$MAX_FUNCTION_LINES, params: $MAX_PARAMS, class-methods: $MAX_CLASS_METHODS, class-lines: $MAX_CLASS_LINES"
 
     local lang
-    lang=$(detect_language)
+    lang="${LANGUAGE:-$(detect_language)}"
     echo "[${GATE_NAME}] INFO: Detected language: $lang"
 
     case "$lang" in

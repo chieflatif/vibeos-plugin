@@ -63,7 +63,7 @@ class HookManifestSyncTests(unittest.TestCase):
 
 class StatusReconciliationTests(unittest.TestCase):
     def test_no_plan_index_mismatches(self):
-        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(REPO)}
+        env = {**os.environ, "CLAUDE_PROJECT_DIR": str(REPO), "VIBEOS_FORCE_HOOKS": "1"}
         result = subprocess.run(
             ["bash", str(PREREQ)],
             input="{}", capture_output=True, text=True, cwd=str(REPO), env=env,

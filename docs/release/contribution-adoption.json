@@ -1,0 +1,51 @@
+{
+  "schema": "vibeos.contribution-adoption.v1",
+  "contribution": "reusable-codex-engineering-controls-2026-09-13",
+  "source_archive_sha256": "27a59b50c1d677ee76e5f60940dc4616ad7033bb8ac7862e2add86042912be6d",
+  "source_files": {
+    "harness-adaptation/admission.py": "607c552c44809cfe3ae85555e6dccd63b335e81099970c5aab6b04535f602c8d",
+    "harness-adaptation/checks.py": "af7e8cf808baca3a21fa2de93811601df6e6b5aa9910d9bc988dc4cef78d34ba",
+    "harness-adaptation/cleanup.py": "4d3ddc4a6c79c6bbdfcd4bfbab1e55008df810a37f9cbc21b2d2e44b873f9b47",
+    "harness-adaptation/configuration.py": "49fc21db39bc3ba7e9562915ed9b5f300fe06948eab25d46416d0fd164aa7f25",
+    "harness-adaptation/controller.py": "70f1274e444a31b6b8a33a107faaef15e0ad8c6047ec4aa60c502a29027acffd",
+    "harness-adaptation/publication.py": "9fa4dce500f6cbc800bbae10a060fcba0a207b71b8879b9a6da5353ebacf0fee"
+  },
+  "source_scope": "supervised offline project engineering; contribution is not an installer",
+  "target": "plugins/vibeos/scripts/controlled_evaluation",
+  "adoption_status": "implemented-and-independently-reviewed",
+  "release_version": "2.3.0",
+  "preserved_capabilities": [
+    "discovery",
+    "planning",
+    "product anchors",
+    "research and dependency intelligence",
+    "test-first implementation",
+    "independent review",
+    "security checks",
+    "evidence recall",
+    "ratchets",
+    "scoped collaboration",
+    "model policy",
+    "checkpoints",
+    "autonomy and recovery",
+    "profile installation"
+  ],
+  "excluded_defaults": [
+    "product-specific test identities",
+    "product/runtime source",
+    "customer policies",
+    "fixed owner/candidate paths",
+    "host-specific dependency hashes",
+    "concrete acceptance owner"
+  ],
+  "license": "Existing repository LICENSE retained; no new external package dependency",
+  "target_files": {
+    "plugins/vibeos/scripts/controlled_evaluation/admission.py": "25ec2ed73a8bc546d31470798222c90c7bf3227318d20216850750fe53f8af5f",
+    "plugins/vibeos/scripts/controlled_evaluation/checks.py": "c66eef9f173eccc3b04866879df6608ac1e068f53ebd0637ab1f5e84f46fe48c",
+    "plugins/vibeos/scripts/controlled_evaluation/cleanup.py": "88609fe87c01ab3dcfc467cdc8608680392a4723e1333eb2d64a87ef659edd58",
+    "plugins/vibeos/scripts/controlled_evaluation/configuration.py": "862687e462a5763b5c894ac8ac1f40978f98f057b2003e6eae4cab779a755be5",
+    "plugins/vibeos/scripts/controlled_evaluation/controller.py": "87cf28a23a4d6308699c6d50099c5e1a746d7a40fc4176442e20ac95127ecd30",
+    "plugins/vibeos/scripts/controlled_evaluation/publication.py": "56a5ef66b129b8b390a9811c3beff67a59329c3178f212a23cb26726df3d12f9"
+  },
+  "entrypoint_sha256": "b1c2363a1583a4cab02fda0ddd3fe3c3a4d6badb3b0a7f1d5fd1a3bb994a7e75"
+}

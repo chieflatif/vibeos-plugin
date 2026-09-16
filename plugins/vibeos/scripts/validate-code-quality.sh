@@ -17,7 +17,7 @@
 #   2 = Source directory not found or config error
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 GATE_NAME="validate-code-quality"
 
 usage() {
@@ -42,7 +42,16 @@ echo "[$GATE_NAME] Code Quality Validation"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd "$script_dir/.." && pwd)"
+framework_root="$(cd "$script_dir/.." && pwd)"
+if [[ -n "${PROJECT_ROOT:-}" ]]; then
+  if [[ ! -d "$PROJECT_ROOT" ]]; then
+    echo "[$GATE_NAME] FAIL: PROJECT_ROOT is not a directory: $PROJECT_ROOT"
+    exit 2
+  fi
+  repo_root="$(cd "$PROJECT_ROOT" && pwd -P)"
+else
+  repo_root="$framework_root"
+fi
 
 # Auto-detect language if not set
 detect_language() {
@@ -75,6 +84,11 @@ if [[ -z "${SOURCE_DIR:-}" ]]; then
       break
     fi
   done
+  # Framework scripts are source only when the selected root is an actual
+  # VibeOS plugin root. They must not be inferred for an arbitrary project.
+  if [[ -z "${SOURCE_DIR:-}" && -f "$repo_root/.claude-plugin/plugin.json" && -d "$repo_root/scripts" ]]; then
+    SOURCE_DIR="scripts"
+  fi
 fi
 
 if [[ -z "${SOURCE_DIR:-}" ]]; then
@@ -83,7 +97,11 @@ if [[ -z "${SOURCE_DIR:-}" ]]; then
   exit 0
 fi
 
-source_path="$repo_root/$SOURCE_DIR"
+if [[ "$SOURCE_DIR" == /* ]]; then
+  source_path="$SOURCE_DIR"
+else
+  source_path="$repo_root/$SOURCE_DIR"
+fi
 if [[ ! -d "$source_path" ]]; then
   echo "[$GATE_NAME] WARN: Source directory not found: $source_path"
   exit 0

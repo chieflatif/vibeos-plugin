@@ -3,7 +3,7 @@
 # Hook type: ConfigChange
 # Blocks silent model/effort downgrades for active non-downgrade policy tiers.
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 
 # --- VibeOS project-scope guard (auto-inserted) ------------------------------
 # Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so

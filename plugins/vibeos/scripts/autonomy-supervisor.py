@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.2.0"
+FRAMEWORK_VERSION = "2.3.0"
 TERMINAL_STATUSES = {"complete", "paused", "blocked"}
 DEFAULT_POLICY = {
     "max_duration_hours": 48,

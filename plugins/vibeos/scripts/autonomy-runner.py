@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.2.0"
+FRAMEWORK_VERSION = "2.3.0"
 ALLOWED_SCRIPTS = {
     "autonomy-heartbeat.py": {"python", "python3"},
     "autonomy-supervisor.py": {"python", "python3"},
@@ -161,6 +161,7 @@ def execute_item(item: dict[str, Any], root: Path, timeout_seconds: int) -> None
         completed = subprocess.run(
             item["argv"],
             cwd=root,
+            env=dict(os.environ, PROJECT_ROOT=str(root)),
             capture_output=True,
             text=True,
             timeout=timeout_seconds,

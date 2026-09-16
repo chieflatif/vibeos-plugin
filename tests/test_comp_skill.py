@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import unittest
 from pathlib import Path
@@ -63,6 +64,7 @@ class CompSkillTests(unittest.TestCase):
             ),
             capture_output=True,
             text=True,
+            env={**os.environ, "VIBEOS_FORCE_HOOKS": "1"},
         )
 
         self.assertEqual(result.returncode, 0)

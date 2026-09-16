@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # VibeOS Codex Hook — Governance Guard
 # Blocks prompts that ask Codex to bypass gates, tests, audits, hooks, or evidence.
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 
 INPUT=$(cat)
 PROMPT=$(printf '%s' "$INPUT" | jq -r '.prompt // empty' 2>/dev/null || echo "")

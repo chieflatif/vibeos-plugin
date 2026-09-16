@@ -1,5 +1,12 @@
 # VibeOS — Autonomous Development Engine
 
+> **2.3.0 — reusable engineering controls.**
+> The profile installer now carries the reusable evidence-control package.
+> See [installation and customization](docs/INSTALLATION.md),
+> [controlled evaluation](docs/CONTROLLED-EVALUATION.md) and
+> [release evidence](docs/release/2.3.0.md).
+
+
 > **v2.2.0 — Evidence Recall Upgrade (2026-04-24)**
 >
 > This update adds a local, source-cited evidence recall utility. VibeOS can now build a compact index of work orders, audits, gate manifests, skills, session state, baselines, and checkpoints, then return bounded excerpts with citations instead of rereading large context bundles. It uses a generated `.vibeos/cache/` file, has no network dependency, and does not add any external memory service.
@@ -111,60 +118,29 @@ tools. It is optional and does not copy secrets or account sessions.
 Authentication remains manual: `gh auth login`, `az login`, `claude`, and
 `codex`.
 
-### The recommended way: project-level bootstrap
+### Recommended: a pinned project-profile installation
 
-```bash
-# Clone VibeOS
-git clone https://github.com/chieflatif/vibeos-plugin.git
+Use the [installation guide](docs/INSTALLATION.md) to clone a reviewed release,
+analyze the target project, inspect the plan, verify it and apply it. Generated
+framework files and project-owned rules have separate provenance. Upgrades preserve
+customized files and produce merge candidates instead of overwriting them.
 
-# Go to your project
-cd your-project
+The supported release proof targets macOS with Codex. Python 3.12+, Bash 3.2+,
+Git and jq are required. The controlled evaluator additionally requires configured
+Codex, Python/pytest and Ruff tools; it never installs or authenticates them for you.
+Claude/Cursor instruction surfaces remain available; their host runtimes must be
+verified locally before making enforcement claims.
 
-# Install
-bash /path/to/vibeos-plugin/vibeos-init.sh
-```
+### Existing bootstrap and marketplace users
 
-Or with a one-liner if you don't want to clone first:
+`vibeos-init.sh` and `vibeos-init-codex.sh` remain compatibility entrypoints.
+For project customization and upgrade recovery, use the profile installer guide.
+Avoid mixing legacy wholesale runtime replacement with a customized profile install.
 
-```bash
-bash <(curl -s https://raw.githubusercontent.com/chieflatif/vibeos-plugin/main/vibeos-init.sh)
-```
-
-This installs VibeOS into your project's `.claude/` and `.vibeos/` directories. Skills, agents, hooks, and gate scripts are all wired up and ready immediately — no restart required.
-
-### Why bootstrap instead of plugin install?
-
-VibeOS is a skills-based plugin. Claude Code's `plugin install` command works reliably for MCP-based plugins (those that run a background server process), but as of early 2026 there is [an open bug](https://github.com/anthropics/claude-code/issues/10568) where skills-based plugins silently fail on marketplace install — the command exits with no error but the skills are never registered.
-
-The project-level bootstrap sidesteps this entirely. Claude Code has always discovered skills and agents placed directly in a project's `.claude/skills/` and `.claude/agents/` directories, so that is what the bootstrap does. The result is the same end state you would get from a working plugin install, without the flaky intermediate step.
-
-We maintain a [custom marketplace catalog](https://github.com/chieflatif/vibeos-plugin/blob/main/.claude-plugin/marketplace.json) so that the standard `plugin marketplace add` and `plugin install` flow is available. If Anthropic fixes the skills registration bug, users who prefer the plugin install path can switch to it with no changes to their projects. Until then, the bootstrap is the reliable path.
-
-### Codex (Experimental)
-
-Codex support is available but capability-dependent. Current Codex versions can support subagents, hooks, skills, worktrees, plugins, and app workflows, but VibeOS must detect what is actually available in the local runtime before choosing an orchestration strategy. Codex still does not get Claude Code hook parity, so VibeOS keeps explicit gates and Git commit-boundary hooks as the cross-runtime enforcement baseline.
-
-```bash
-bash /path/to/vibeos-plugin/vibeos-init-codex.sh
-```
-
-This installs `AGENTS.md`, repo-scoped `.agents/skills/`, Codex-native `.codex/agents/*.toml`, compatible `.codex/hooks.json`, legacy role contracts, and the shared `.vibeos/` runtime alongside any existing `.claude/` setup.
-
-**What Codex gets:** Structured build instructions, quality gate scripts, runtime capability detection, decision engine, reference materials, Codex-native agent definitions, hooks where supported, and legacy role contracts for fallback.
-
-**What Codex does not get by default:** Claude-equivalent hook parity, full intent routing, test file protection, or complete automatic write-time enforcement. The Codex install includes lightweight governance, secret-scan, and worktree hooks where the local runtime supports them. Run `.vibeos/scripts/detect-runtime-capabilities.sh` in installed projects before claiming Codex subagent, hook, worktree, or automation support.
-
-### Upgrade
-
-```bash
-# Bootstrap (Claude/Cursor):
-bash /path/to/vibeos-plugin/vibeos-init.sh --upgrade
-
-# Bootstrap (Codex):
-bash /path/to/vibeos-plugin/vibeos-init-codex.sh --upgrade
-```
-
-Or inside an active Claude Code session, say: *"Upgrade VibeOS"* and provide the path to the updated framework.
+The Claude marketplace catalog remains available. Current Claude documentation
+supports skills, agents and hooks in plugins, but a successful marketplace install
+alone does not establish project binding or native Codex enforcement. Verify exact
+source and installed paths; do not use version text alone as proof of currency.
 
 ### Uninstall
 

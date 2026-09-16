@@ -17,7 +17,7 @@ set -euo pipefail
 #   REQUIRE_COST_CONTROLS — Require cost monitoring (default: false)
 #   EXCLUDE_DIRS      — Colon-separated directories to exclude
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 GATE_NAME="validate-ai-integration"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

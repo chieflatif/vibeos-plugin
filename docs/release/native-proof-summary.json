@@ -1,0 +1,82 @@
+{
+  "schema": "vibeos.release-native-proof.v1",
+  "release": "2.3.0",
+  "environment": {
+    "os": "macOS",
+    "codex": "0.147.0",
+    "python": "3.14.6",
+    "ruff": "0.15.0",
+    "node": "24.3.0"
+  },
+  "native_codex": true,
+  "provider_calls": false,
+  "driver": "tests/native_controlled_smoke.py",
+  "driver_sha256": "a8716e638f52c55afdc97cdce349de27a58cabe628e06666cecde8346477729b",
+  "raw_proof_sha256": "e1c33ecb60d5f1ad4e5c4d24d75efa6d2cff8c3286ebb6dde8ae29a0cf13ad8c",
+  "projects": [
+    {
+      "language": "python",
+      "passed": true,
+      "fresh_install_step_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "evaluation_and_publication_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "candidate_unchanged": true,
+      "owner_test_names": [
+        "test_calculation",
+        "test_candidate_write_denied",
+        "test_owner_write_denied"
+      ],
+      "project_cases": [
+        "calculation",
+        "invalid-input"
+      ],
+      "lint_exit": 0,
+      "pytest_exit": 0,
+      "adapter_exit": 0,
+      "native_launch_exit": 0,
+      "record_sha256": "051060a502b933cfaf6eb7a793ba8577ff6a4d57f4e1c5acdd83286b99071eb3",
+      "publication_status": "PRE_REVIEW"
+    },
+    {
+      "language": "javascript",
+      "passed": true,
+      "fresh_install_step_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "evaluation_and_publication_exits": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "candidate_unchanged": true,
+      "owner_test_names": [
+        "test_calculation",
+        "test_candidate_write_denied",
+        "test_owner_write_denied"
+      ],
+      "project_cases": [
+        "calculation",
+        "invalid-input"
+      ],
+      "lint_exit": 0,
+      "pytest_exit": 0,
+      "adapter_exit": 0,
+      "native_launch_exit": 0,
+      "record_sha256": "7fe6a1958de4f28d993851faec3f898335d4179f4fe589b02c03f81c1b08b47a",
+      "publication_status": "PRE_REVIEW"
+    }
+  ]
+}

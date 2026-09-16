@@ -1,8 +1,10 @@
 import json
+import os
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -230,7 +232,9 @@ class LongRunAutonomyTests(unittest.TestCase):
             plan_path.parent.mkdir(parents=True)
             plan_path.write_text(json.dumps(plan), encoding="utf-8")
 
-            runner = self.run_runner(root, "--execute")
+            with patch.dict(os.environ, {"PROJECT_ROOT": str(root / "wrong-project")}):
+                runner = self.run_runner(root, "--execute")
+            self.assertFalse((root / "wrong-project").exists())
             heartbeats = list((root / ".vibeos/autonomy/heartbeats").glob("*.json"))
 
         self.assertEqual(runner.returncode, 0, runner.stdout + runner.stderr)
@@ -969,7 +973,9 @@ class LongRunAutonomyTests(unittest.TestCase):
             result = self.run_heartbeat(root, "--heartbeat-interval-minutes", "10")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-            loop = self.run_loop(root, "--now", "2026-04-29T00:10:00Z", "--execute")
+            with patch.dict(os.environ, {"PROJECT_ROOT": str(root / "wrong-project")}):
+                loop = self.run_loop(root, "--now", "2026-04-29T00:10:00Z", "--execute")
+            self.assertFalse((root / "wrong-project").exists())
             heartbeats = list((root / ".vibeos/autonomy/heartbeats").glob("*.json"))
 
         self.assertEqual(loop.returncode, 0, loop.stdout + loop.stderr)

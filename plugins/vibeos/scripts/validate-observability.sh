@@ -19,7 +19,7 @@ set -euo pipefail
 #   REQUIRE_HEALTH   — Require health endpoint (default: true for production)
 #   EXCLUDE_DIRS     — Colon-separated directories to exclude
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 GATE_NAME="validate-observability"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

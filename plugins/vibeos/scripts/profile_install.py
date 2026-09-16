@@ -10,15 +10,45 @@ import hashlib
 import json
 import os
 import re
-import shutil
+import signal
 import stat
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
+from install_integrity import (
+    analysis_input_binding,
+    IntegrityError,
+    atomic_write,
+    contained_path,
+    file_state,
+    output_inventory,
+    plan_payload_hash,
+    profile_binding,
+    safe_relative,
+    sha256_file,
+    sha256_json,
+    source_binding,
+    target_binding,
+    verify_profile_binding,
+    verify_analysis_input_binding,
+    verify_source_binding,
+    verify_target_binding,
+)
+from install_recovery import (
+    RecoveryError,
+    begin_transaction,
+    complete_transaction,
+    mark_recovery_required,
+    project_lock,
+    record_expected_state,
+    recover_transaction,
+    require_no_active_transaction,
+)
 
-FRAMEWORK_VERSION = "2.2.0"
+
+FRAMEWORK_VERSION = "2.3.0"
 
 MODE_MODULES = {
     "minimal": [
@@ -119,10 +149,27 @@ CANON_CANDIDATES = [
     "work-orders",
 ]
 
+TARGET_ANALYSIS_INPUTS = sorted(
+    set(
+        CANON_CANDIDATES
+        + [
+            "PROJECT.md",
+            "README.md",
+            "AGENTS.md",
+            "tools/validate_all.py",
+            "harness/run.py",
+            "pytest.ini",
+            "tests",
+            "package.json",
+        ]
+    )
+)
+
 RUNTIME_CORE_SCRIPTS = [
     "detect-runtime-capabilities.sh",
     "runtime-capabilities.py",
     "gate-runner.sh",
+    "gate_timeout.py",
     "setup-git-hooks.sh",
     "validate-no-secrets.sh",
     "secrets-allowlist.json",
@@ -233,7 +280,12 @@ class InstallError(RuntimeError):
 
 
 def utc_now() -> str:
-    return dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        dt.datetime.now(dt.UTC)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def sha256_text(text: str) -> str:
@@ -254,7 +306,10 @@ def clean_slug(value: str) -> str:
 
 
 def title_case_from_slug(value: str) -> str:
-    return " ".join(part.capitalize() for part in re.split(r"[-_\s]+", value) if part) or "Project"
+    return (
+        " ".join(part.capitalize() for part in re.split(r"[-_\s]+", value) if part)
+        or "Project"
+    )
 
 
 def snake(value: str) -> str:
@@ -266,7 +321,10 @@ def relative_path(path: Path, root: Path) -> str:
 
 
 def resolve_source(source_arg: str) -> Path:
-    source = Path(source_arg).expanduser().resolve()
+    candidate = Path(source_arg).expanduser().absolute()
+    if candidate.is_symlink():
+        raise InstallError(f"source may not be a symlink: {candidate}")
+    source = candidate.resolve()
     if (source / "plugins/vibeos/scripts").is_dir():
         return (source / "plugins/vibeos").resolve()
     if (source / "scripts").is_dir() and (source / "agents").is_dir():
@@ -275,7 +333,10 @@ def resolve_source(source_arg: str) -> Path:
 
 
 def resolve_target(target_arg: str) -> Path:
-    target = Path(target_arg).expanduser().resolve()
+    candidate = Path(target_arg).expanduser().absolute()
+    if candidate.is_symlink():
+        raise InstallError(f"target may not be a symlink: {candidate}")
+    target = candidate.resolve()
     if not target.is_dir():
         raise InstallError(f"target directory does not exist: {target}")
     return target
@@ -284,8 +345,12 @@ def resolve_target(target_arg: str) -> Path:
 def check_source_target_safety(source: Path, target: Path) -> None:
     if source == target:
         raise InstallError("source and target are the same directory")
+    if source in target.parents or target in source.parents:
+        raise InstallError("source and target must be nonnested canonical directories")
     if (target / "plugins/vibeos").exists() and (target / "vibeos-init.sh").exists():
-        raise InstallError("target appears to be the VibeOS source repo; refusing to install into source")
+        raise InstallError(
+            "target appears to be the VibeOS source repo; refusing to install into source"
+        )
     for child in [".vibeos", ".codex", ".agents", ".claude"]:
         candidate = target / child
         if candidate.is_symlink():
@@ -353,9 +418,13 @@ def detect_canon(target: Path) -> list[str]:
 def detect_validators(target: Path) -> list[dict[str, str]]:
     validators: list[dict[str, str]] = []
     if (target / "tools/validate_all.py").is_file():
-        validators.append({"name": "validate-all", "command": "python3 tools/validate_all.py"})
+        validators.append(
+            {"name": "validate-all", "command": "python3 tools/validate_all.py"}
+        )
     if (target / "harness/run.py").is_file():
-        validators.append({"name": "harness-all", "command": "python3 harness/run.py --stage all"})
+        validators.append(
+            {"name": "harness-all", "command": "python3 harness/run.py --stage all"}
+        )
     if (target / "pytest.ini").is_file() or (target / "tests").is_dir():
         validators.append({"name": "pytest", "command": "python3 -m pytest"})
     if (target / "package.json").is_file():
@@ -374,7 +443,9 @@ def load_profile(profile_path: Path | None, target: Path, mode: str) -> dict[str
     project_slug = profile.get("project_slug") or clean_slug(project_name)
     canon_paths = profile.get("canon_paths") or detect_canon(target)
     protected_files = profile.get("protected_files") or canon_paths
-    avoid_surfaces = list(dict.fromkeys(profile.get("avoid_surfaces", []) + DEFAULT_AVOID_SURFACES))
+    avoid_surfaces = list(
+        dict.fromkeys(profile.get("avoid_surfaces", []) + DEFAULT_AVOID_SURFACES)
+    )
     profile_mode = profile.get("mode") or mode
     if profile_mode not in MODE_MODULES:
         raise InstallError(f"unknown install mode: {profile_mode}")
@@ -383,14 +454,18 @@ def load_profile(profile_path: Path | None, target: Path, mode: str) -> dict[str
         "schema_version": 1,
         "project_name": project_name,
         "project_slug": project_slug,
-        "project_type": profile.get("project_type", "project-native software repository"),
+        "project_type": profile.get(
+            "project_type", "project-native software repository"
+        ),
         "mode": profile_mode,
         "canon_paths": canon_paths,
         "protected_files": protected_files,
         "avoid_surfaces": avoid_surfaces,
         "lead_runtime": profile.get("lead_runtime", "codex"),
         "phase_audit_runtime": profile.get("phase_audit_runtime", "claude"),
-        "governance_level": profile.get("governance_level", "product-risk-proportional"),
+        "governance_level": profile.get(
+            "governance_level", "product-risk-proportional"
+        ),
         "domain_gates": profile.get("domain_gates", []),
         "enabled_modules": profile.get("enabled_modules", []),
         "disabled_modules": profile.get("disabled_modules", []),
@@ -411,7 +486,13 @@ def modules_for_profile(profile: dict[str, Any]) -> list[str]:
 def skipped_modules(enabled: list[str], mode: str) -> list[str]:
     skipped = [module for module in ALL_OPTIONAL_MODULES if module not in enabled]
     if "full-payload" not in enabled:
-        skipped.extend(["dormant-reference-payload", "dormant-decision-engine", "dormant-convergence"])
+        skipped.extend(
+            [
+                "dormant-reference-payload",
+                "dormant-decision-engine",
+                "dormant-convergence",
+            ]
+        )
     if mode != "full":
         skipped.append("full")
     return list(dict.fromkeys(skipped))
@@ -484,12 +565,19 @@ def role_read_only(role: str, meta: dict[str, str]) -> bool:
         return True
     tools = meta.get("tools", "")
     disallowed = meta.get("disallowedTools", "")
-    return "Write" not in tools and "Edit" not in tools or "Write" in disallowed or "Edit" in disallowed
+    return (
+        "Write" not in tools
+        and "Edit" not in tools
+        or "Write" in disallowed
+        or "Edit" in disallowed
+    )
 
 
 def render_profile_summary(profile: dict[str, Any]) -> str:
     canon = profile.get("canon_paths") or ["No canon paths detected yet"]
-    gates = profile.get("primary_gates") or ["Use detected validators from the install plan"]
+    gates = profile.get("primary_gates") or [
+        "Use detected validators from the install plan"
+    ]
     return "\n".join(
         [
             f"Project: {profile['project_name']}",
@@ -537,6 +625,11 @@ def render_agents_md(profile: dict[str, Any], profile_hash: str) -> str:
         + "- Do not replace project-specific validators with generic paperwork.\n"
         + "- Codex TOML agents are active runtime contracts and must stay profile-specific.\n"
         + "- Auditor roles are read-only unless the project profile explicitly says otherwise.\n\n"
+        + "## Controlled Evaluation\n\n"
+        + "Read `.vibeos/controlled-evaluation-guide.md` when present and run "
+        + "`.vibeos/scripts/controlled-evaluation.py --help` before configuring an evaluation. "
+        + "Use project-owner specified required test/check identities and a protected evaluation profile. "
+        + "Never invent coverage, and never treat `PRE_REVIEW` publication as acceptance.\n\n"
         + "## Skills\n\n"
         + skill_list
         + "\n\n"
@@ -563,6 +656,9 @@ def render_claude_md(profile: dict[str, Any], profile_hash: str) -> str:
         + "## Rules\n\n"
         + "- Preserve protected canon unless Latif explicitly approves a diff.\n"
         + "- Keep evidence, tests, and product outcomes ahead of process format.\n"
+        + "- For controlled evaluation, read `.vibeos/controlled-evaluation-guide.md` when present, "
+        + "then run `.vibeos/scripts/controlled-evaluation.py --help`; use owner-specified identities "
+        + "and never treat `PRE_REVIEW` as acceptance.\n"
         + "- Run project validators and the VibeOS active-surface audit after install or upgrade.\n"
     )
 
@@ -587,11 +683,17 @@ def render_skill(skill: str, profile: dict[str, Any], profile_hash: str) -> str:
         + "- Start from the project canon and existing validators.\n"
         + "- Keep outputs project-specific and evidence-backed.\n"
         + "- Do not introduce generic governance work unless it protects this project.\n"
+        + "- Before an engineering completion claim that uses controlled evaluation, run "
+        + "`.vibeos/scripts/controlled-evaluation.py --help`, use project-owner specified required "
+        + "test/check identities and the protected evaluation profile, never invent coverage, and "
+        + "never treat `PRE_REVIEW` as acceptance.\n"
         + "- Report partial verification honestly.\n"
     )
 
 
-def render_role_contract(role: str, meta: dict[str, str], profile: dict[str, Any], profile_hash: str) -> str:
+def render_role_contract(
+    role: str, meta: dict[str, str], profile: dict[str, Any], profile_hash: str
+) -> str:
     template_id = f"role.{role}.v1"
     meta_hash = sha256_text(json_dumps(meta))
     summary = render_profile_summary(profile)
@@ -619,7 +721,9 @@ def render_role_contract(role: str, meta: dict[str, str], profile: dict[str, Any
     )
 
 
-def render_codex_toml(role: str, meta: dict[str, str], profile: dict[str, Any], profile_hash: str) -> str:
+def render_codex_toml(
+    role: str, meta: dict[str, str], profile: dict[str, Any], profile_hash: str
+) -> str:
     template_id = f"codex.toml.{role}.v1"
     meta_hash = sha256_text(json_dumps(meta))
     read_only = role_read_only(role, meta)
@@ -640,6 +744,7 @@ def render_codex_toml(role: str, meta: dict[str, str], profile: dict[str, Any], 
         f"Profile hash: {profile_hash}. "
         f"Authority: {'read-only review' if read_only else 'workspace implementation'}."
     )
+
     # TOML files are UTF-8; render strings without \uXXXX escapes so the
     # active-surface audit's literal project-name check holds for non-ASCII names.
     # DEL must stay escaped: JSON leaves 0x7f raw but TOML rejects it.
@@ -649,7 +754,7 @@ def render_codex_toml(role: str, meta: dict[str, str], profile: dict[str, Any], 
     lines = [
         f"# VIBEOS-GENERATED template_id={template_id} profile_hash={profile_hash} source_hash={meta_hash}",
         f"name = {toml_str('vibeos_' + snake(role))}",
-        f"description = {toml_str(f'{role.replace('-', ' ').title()} for {profile['project_name']}.')}",
+        f"description = {toml_str(f'{role.replace("-", " ").title()} for {profile["project_name"]}.')}",
         f"model = {toml_str(model)}",
         f"model_reasoning_effort = {toml_str(effort)}",
         f"sandbox_mode = {toml_str(sandbox)}",
@@ -737,8 +842,16 @@ def render_claude_settings(profile: dict[str, Any], enabled: list[str]) -> str:
             {
                 "matcher": "Edit|Write",
                 "hooks": [
-                    {"type": "command", "command": "./.claude/hooks/secrets-scan.sh", "timeout": 10},
-                    {"type": "command", "command": "./.claude/hooks/frozen-files.sh", "timeout": 5},
+                    {
+                        "type": "command",
+                        "command": "./.claude/hooks/secrets-scan.sh",
+                        "timeout": 10,
+                    },
+                    {
+                        "type": "command",
+                        "command": "./.claude/hooks/frozen-files.sh",
+                        "timeout": 5,
+                    },
                 ],
             }
         ],
@@ -747,7 +860,11 @@ def render_claude_settings(profile: dict[str, Any], enabled: list[str]) -> str:
         hooks["UserPromptSubmit"] = [
             {
                 "hooks": [
-                    {"type": "command", "command": "./.claude/hooks/intent-router.sh", "timeout": 10}
+                    {
+                        "type": "command",
+                        "command": "./.claude/hooks/intent-router.sh",
+                        "timeout": 10,
+                    }
                 ]
             }
         ]
@@ -755,7 +872,11 @@ def render_claude_settings(profile: dict[str, Any], enabled: list[str]) -> str:
         hooks["UserPromptSubmit"] = [
             {
                 "hooks": [
-                    {"type": "command", "command": "./.claude/hooks/governance-guard.sh", "timeout": 10}
+                    {
+                        "type": "command",
+                        "command": "./.claude/hooks/governance-guard.sh",
+                        "timeout": 10,
+                    }
                 ]
             }
         ]
@@ -768,7 +889,9 @@ def render_claude_settings(profile: dict[str, Any], enabled: list[str]) -> str:
     )
 
 
-def render_gate_manifest(profile: dict[str, Any], validators: list[dict[str, str]]) -> str:
+def render_gate_manifest(
+    profile: dict[str, Any], validators: list[dict[str, str]]
+) -> str:
     gates = [
         {
             "name": "vibeos-active-surface-audit",
@@ -804,8 +927,14 @@ def render_gate_manifest(profile: dict[str, Any], validators: list[dict[str, str
         "description": "Profile-generated active gate manifest. Existing project validators are recorded in install-plan post checks.",
         "gates": gates,
         "phases": {
-            "pre_commit": {"description": "Fast blocking checks before commit", "enabled": True},
-            "full_audit": {"description": "Comprehensive active-surface audit", "enabled": True},
+            "pre_commit": {
+                "description": "Fast blocking checks before commit",
+                "enabled": True,
+            },
+            "full_audit": {
+                "description": "Comprehensive active-surface audit",
+                "enabled": True,
+            },
         },
     }
     return json_dumps(manifest)
@@ -949,12 +1078,19 @@ def output(
 
 
 def read_source_agent(source: Path, role: str) -> tuple[dict[str, str], str]:
-    text = (source / "agents" / f"{role}.md").read_text(encoding="utf-8", errors="replace")
+    path = contained_path(source, f"agents/{role}.md", "source agent")
+    text = path.read_text(encoding="utf-8", errors="replace")
     return parse_frontmatter(text)
 
 
-def add_tree_outputs(outputs: list[dict[str, Any]], source_dir: Path, target_prefix: str) -> None:
+def add_tree_outputs(
+    outputs: list[dict[str, Any]], source_dir: Path, target_prefix: str
+) -> None:
+    if source_dir.is_symlink():
+        raise InstallError(f"source tree may not be a symlink: {source_dir}")
     for path in sorted(source_dir.rglob("*")):
+        if path.is_symlink():
+            raise InstallError(f"source tree may not contain symlinks: {path}")
         if not path.is_file() or "__pycache__" in path.parts:
             continue
         rel = path.relative_to(source_dir).as_posix()
@@ -968,6 +1104,49 @@ def add_tree_outputs(outputs: list[dict[str, Any]], source_dir: Path, target_pre
                 executable=os.access(path, os.X_OK) or path.suffix in {".sh", ".py"},
             )
         )
+
+
+def add_python_package_outputs(
+    outputs: list[dict[str, Any]], source_dir: Path, target_prefix: str
+) -> None:
+    if source_dir.is_symlink():
+        raise InstallError(
+            f"controlled evaluation package may not be a symlink: {source_dir}"
+        )
+    for path in sorted(source_dir.rglob("*.py")):
+        if path.is_symlink():
+            raise InstallError(
+                f"controlled evaluation package may not contain symlinks: {path}"
+            )
+        if not path.is_file() or "__pycache__" in path.parts:
+            continue
+        rel = path.relative_to(source_dir).as_posix()
+        payload = path.read_bytes()
+        outputs.append(
+            output(
+                f"{target_prefix}/{rel}",
+                payload,
+                f"copy.{target_prefix}.{rel}",
+                source_hash=sha256_bytes(payload),
+                executable=os.access(path, os.X_OK),
+            )
+        )
+
+
+def controlled_evaluation_guide(source: Path, repo: Path) -> Path | None:
+    candidates = [
+        contained_path(
+            source,
+            "docs/CONTROLLED-EVALUATION.md",
+            "controlled evaluation guide",
+        ),
+        contained_path(
+            repo,
+            "docs/CONTROLLED-EVALUATION.md",
+            "controlled evaluation guide",
+        ),
+    ]
+    return next((path for path in candidates if path.is_file()), None)
 
 
 def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
@@ -989,7 +1168,7 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
     )
 
     for script in selected_scripts(source, enabled):
-        src = source / "scripts" / script
+        src = contained_path(source, f"scripts/{script}", "source script")
         payload = src.read_bytes()
         outputs.append(
             output(
@@ -1000,6 +1179,41 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
                 executable=script.endswith((".sh", ".py")),
             )
         )
+
+    evaluation_entrypoint = contained_path(
+        source, "scripts/controlled-evaluation.py", "controlled evaluation entrypoint"
+    )
+    evaluation_package = source / "scripts" / "controlled_evaluation"
+    if evaluation_entrypoint.is_file() and evaluation_package.is_dir():
+        payload = evaluation_entrypoint.read_bytes()
+        outputs.append(
+            output(
+                ".vibeos/scripts/controlled-evaluation.py",
+                payload,
+                "copy.script.controlled-evaluation.py",
+                source_hash=sha256_bytes(payload),
+                executable=True,
+            )
+        )
+        add_python_package_outputs(
+            outputs,
+            evaluation_package,
+            ".vibeos/scripts/controlled_evaluation",
+        )
+        guide = controlled_evaluation_guide(
+            source, Path(plan["source_binding"]["repo"])
+        )
+        if guide is not None:
+            guide_payload = guide.read_bytes()
+            outputs.append(
+                output(
+                    ".vibeos/controlled-evaluation-guide.md",
+                    guide_payload,
+                    "copy.docs.CONTROLLED-EVALUATION",
+                    source_hash=sha256_bytes(guide_payload),
+                    instruction_surface=False,
+                )
+            )
 
     audit_script = render_active_surface_audit()
     outputs.append(
@@ -1016,7 +1230,9 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
             source_dir = source / folder
             if source_dir.is_dir():
                 add_tree_outputs(outputs, source_dir, f".vibeos/{folder}")
-        docs_source = source / "docs" / "USER-COMMUNICATION-CONTRACT.md"
+        docs_source = contained_path(
+            source, "docs/USER-COMMUNICATION-CONTRACT.md", "source documentation"
+        )
         if docs_source.is_file():
             payload = docs_source.read_bytes()
             outputs.append(
@@ -1076,8 +1292,11 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
         )
     )
 
-    codex_hook_dir = source / "reference" / "codex" / "hooks"
-    secret_hook = codex_hook_dir / "secret-scan-codex.sh"
+    secret_hook = contained_path(
+        source,
+        "reference/codex/hooks/secret-scan-codex.sh",
+        "Codex hook source",
+    )
     if secret_hook.is_file():
         payload = secret_hook.read_bytes()
         outputs.append(
@@ -1090,7 +1309,11 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
             )
         )
     if "generic-governance-prompt-scan" in enabled:
-        governance_hook = codex_hook_dir / "governance-guard-codex.sh"
+        governance_hook = contained_path(
+            source,
+            "reference/codex/hooks/governance-guard-codex.sh",
+            "Codex hook source",
+        )
         if governance_hook.is_file():
             payload = governance_hook.read_bytes()
             outputs.append(
@@ -1103,9 +1326,8 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
                 )
             )
 
-    claude_hook_dir = source / "hooks" / "scripts"
     for hook in ["secrets-scan.sh", "frozen-files.sh"]:
-        src = claude_hook_dir / hook
+        src = contained_path(source, f"hooks/scripts/{hook}", "Claude hook source")
         if src.is_file():
             payload = src.read_bytes()
             outputs.append(
@@ -1118,7 +1340,9 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
                 )
             )
     if "generic-prompt-routing" in enabled:
-        src = claude_hook_dir / "intent-router.sh"
+        src = contained_path(
+            source, "hooks/scripts/intent-router.sh", "Claude hook source"
+        )
         if src.is_file():
             payload = src.read_bytes()
             outputs.append(
@@ -1131,7 +1355,9 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
                 )
             )
     if "generic-governance-prompt-scan" in enabled:
-        src = claude_hook_dir / "governance-guard.sh"
+        src = contained_path(
+            source, "hooks/scripts/governance-guard.sh", "Claude hook source"
+        )
         if src.is_file():
             payload = src.read_bytes()
             outputs.append(
@@ -1206,7 +1432,9 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
     return outputs
 
 
-def planned_active_gates(profile: dict[str, Any], validators: list[dict[str, str]]) -> list[dict[str, Any]]:
+def planned_active_gates(
+    profile: dict[str, Any], validators: list[dict[str, str]]
+) -> list[dict[str, Any]]:
     gates = [
         {
             "name": "vibeos-active-surface-audit",
@@ -1222,19 +1450,40 @@ def planned_active_gates(profile: dict[str, Any], validators: list[dict[str, str
         },
     ]
     for gate in profile.get("primary_gates", []):
-        gates.append({"name": "profile-primary-gate", "phase": "post_install", "command": gate, "blocking": True})
+        gates.append(
+            {
+                "name": "profile-primary-gate",
+                "phase": "post_install",
+                "command": gate,
+                "blocking": True,
+            }
+        )
     for validator in validators:
-        gates.append({"name": validator["name"], "phase": "post_install", "command": validator["command"], "blocking": False})
+        gates.append(
+            {
+                "name": validator["name"],
+                "phase": "post_install",
+                "command": validator["command"],
+                "blocking": False,
+            }
+        )
     return gates
 
 
-def build_plan(source: Path, target: Path, profile: dict[str, Any]) -> dict[str, Any]:
+def build_plan(
+    source: Path,
+    target: Path,
+    profile: dict[str, Any],
+    *,
+    profile_path: Path | None = None,
+    plan_path: Path | None = None,
+) -> dict[str, Any]:
     check_source_target_safety(source, target)
     enabled = modules_for_profile(profile)
     validators = detect_validators(target)
     profile_hash = sha256_text(json_dumps(profile))
     plan: dict[str, Any] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "framework_version": FRAMEWORK_VERSION,
         "generated_at": utc_now(),
         "source": str(source),
@@ -1253,35 +1502,68 @@ def build_plan(source: Path, target: Path, profile: dict[str, Any]) -> dict[str,
             "python3 .vibeos/scripts/vibeos-active-surface-audit.py",
             "bash .vibeos/scripts/detect-runtime-capabilities.sh --project-dir .",
         ],
+        "source_binding": source_binding(source, FRAMEWORK_VERSION),
+        "profile_binding": profile_binding(profile_path, profile_hash),
+        "target_analysis_binding": analysis_input_binding(
+            target, TARGET_ANALYSIS_INPUTS
+        ),
+        "plan_path": str(plan_path.resolve()) if plan_path else None,
     }
     outputs = build_outputs(plan, source)
+    inventory = output_inventory(outputs)
+    plan["analyzed_outputs"] = inventory
+    plan["analyzed_outputs_hash"] = sha256_json(inventory)
+    plan["source_generated_inventory_sha256"] = sha256_json(
+        {
+            "relevant_source_files_sha256": plan["source_binding"][
+                "relevant_files_sha256"
+            ],
+            "analyzed_outputs_hash": plan["analyzed_outputs_hash"],
+        }
+    )
     active_surfaces = [item["path"] for item in outputs]
     active_surfaces.append(".vibeos/install-lock.json")
     plan["active_surfaces"] = sorted(active_surfaces)
     plan["overwrite_plan"] = build_overwrite_plan(target, outputs)
+    candidate_paths = [
+        row["candidate"]
+        for row in plan["overwrite_plan"]
+        if isinstance(row.get("candidate"), str)
+    ]
+    bound_paths = [item["path"] for item in outputs]
+    bound_paths.extend(candidate_paths)
+    bound_paths.append(".vibeos/install-lock.json")
+    plan["target_binding"] = target_binding(target, bound_paths)
+    plan["plan_payload_hash"] = plan_payload_hash(plan)
     return plan
 
 
 def load_existing_lock(target: Path) -> dict[str, Any]:
-    lock_path = target / ".vibeos/install-lock.json"
+    lock_path = contained_path(target, ".vibeos/install-lock.json", "install lock")
     if lock_path.is_file():
         try:
-            return json.loads(lock_path.read_text(encoding="utf-8"))
+            payload = json.loads(lock_path.read_text(encoding="utf-8"))
+            return payload if isinstance(payload, dict) else {}
         except json.JSONDecodeError:
             return {}
     return {}
 
 
 def existing_file_meta(lock: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return {item["path"]: item for item in lock.get("generated_files", []) if "path" in item}
+    return {
+        item["path"]: item for item in lock.get("generated_files", []) if "path" in item
+    }
 
 
-def build_overwrite_plan(target: Path, outputs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def build_overwrite_plan(
+    target: Path, outputs: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
     lock = load_existing_lock(target)
     previous = existing_file_meta(lock)
     result: list[dict[str, Any]] = []
     for item in outputs:
-        path = target / item["path"]
+        path = contained_path(target, item["path"], "install output")
+        candidate: str | None = None
         if not path.exists():
             action = "create"
             reason = "file does not exist"
@@ -1289,125 +1571,483 @@ def build_overwrite_plan(target: Path, outputs: list[dict[str, Any]]) -> list[di
             old = previous.get(item["path"])
             current_hash = sha256_bytes(path.read_bytes())
             if current_hash == item["content_hash"]:
-                action = "keep-current"
-                reason = "generated content is already current"
+                expected_mode = 0o755 if item.get("executable") else 0o644
+                if stat.S_IMODE(path.stat().st_mode) != expected_mode:
+                    action = "repair-file-mode"
+                    reason = "generated content matches but file mode drifted"
+                else:
+                    action = "keep-current"
+                    reason = "generated content is already current"
             elif old and current_hash == old.get("content_hash"):
                 action = "replace-generated"
                 reason = "previous generated file has no local changes"
             elif old:
                 action = "three-way-merge-required"
-                reason = "local customization detected; write candidate without overwriting"
+                reason = (
+                    "local customization detected; write candidate without overwriting"
+                )
+                candidate = conflict_relative_path(target, item)
             else:
                 action = "preserve-existing"
                 reason = "unmanaged target file exists"
-        result.append({"path": item["path"], "action": action, "reason": reason})
+                candidate = conflict_relative_path(target, item)
+        row = {"path": item["path"], "action": action, "reason": reason}
+        if candidate:
+            row["candidate"] = candidate
+        result.append(row)
     return result
 
 
 def write_plan(plan: dict[str, Any], plan_path: Path) -> None:
-    plan_path.parent.mkdir(parents=True, exist_ok=True)
-    plan_path.write_text(json_dumps(plan), encoding="utf-8")
+    atomic_write(plan_path, json_dumps(plan).encode("utf-8"), 0o644)
 
 
 def read_plan(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_text(encoding="utf-8"))
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise InstallError("install plan must be a JSON object")
+    return payload
 
 
 def write_output(target: Path, item: dict[str, Any]) -> None:
-    path = target / item["path"]
-    path.parent.mkdir(parents=True, exist_ok=True)
+    path = contained_path(target, item["path"], "install output")
     content = item["content"]
-    if isinstance(content, bytes):
-        path.write_bytes(content)
-    else:
-        path.write_text(content, encoding="utf-8")
-    if item.get("executable"):
-        current = path.stat().st_mode
-        path.chmod(current | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    payload = content if isinstance(content, bytes) else content.encode("utf-8")
+    mode = 0o755 if item.get("executable") else 0o644
+    atomic_write(path, payload, mode)
 
 
 def conflict_path(target: Path, rel_path: str) -> Path:
     safe = rel_path.replace("/", "__")
-    return target / ".vibeos" / "merge-conflicts" / f"{safe}.generated"
+    return contained_path(
+        target,
+        f".vibeos/merge-conflicts/{safe}.generated",
+        "merge candidate",
+    )
 
 
-def apply_plan(plan: dict[str, Any], *, skip_post_checks: bool = False) -> dict[str, Any]:
-    source = Path(plan["source"]).resolve()
-    target = Path(plan["target"]).resolve()
-    check_source_target_safety(source, target)
-    outputs = build_outputs(plan, source)
-    old_lock = load_existing_lock(target)
-    previous = existing_file_meta(old_lock)
-    applied: list[dict[str, Any]] = []
-    conflicts: list[dict[str, str]] = []
+def conflict_relative_path(target: Path, item: dict[str, Any]) -> str:
+    base = relative_path(conflict_path(target, item["path"]), target)
+    path = contained_path(target, base, "merge candidate")
+    if not path.exists() or (
+        path.is_file() and sha256_file(path) == item["content_hash"]
+    ):
+        return base
+    alternative = f"{base}.{item['content_hash'][:12]}"
+    alternative_path = contained_path(target, alternative, "merge candidate")
+    if not alternative_path.exists() or (
+        alternative_path.is_file()
+        and sha256_file(alternative_path) == item["content_hash"]
+    ):
+        return alternative
+    raise InstallError(
+        f"merge candidate paths are occupied; preserve them and choose a fresh plan: {base}"
+    )
 
-    for item in outputs:
-        path = target / item["path"]
-        action = "created"
-        if path.exists():
-            current_hash = sha256_bytes(path.read_bytes())
-            old = previous.get(item["path"])
-            if current_hash == item["content_hash"]:
-                action = "unchanged"
-            elif old and current_hash == old.get("content_hash"):
-                write_output(target, item)
-                action = "replaced-generated"
-            elif old:
-                candidate = conflict_path(target, item["path"])
-                candidate.parent.mkdir(parents=True, exist_ok=True)
-                content = item["content"]
-                if isinstance(content, bytes):
-                    candidate.write_bytes(content)
-                else:
-                    candidate.write_text(content, encoding="utf-8")
-                conflicts.append({"path": item["path"], "candidate": relative_path(candidate, target)})
-                action = "preserved-local-customization"
-            else:
-                candidate = conflict_path(target, item["path"])
-                candidate.parent.mkdir(parents=True, exist_ok=True)
-                content = item["content"]
-                if isinstance(content, bytes):
-                    candidate.write_bytes(content)
-                else:
-                    candidate.write_text(content, encoding="utf-8")
-                conflicts.append({"path": item["path"], "candidate": relative_path(candidate, target)})
-                action = "preserved-unmanaged-existing"
+
+def expected_conflicts(plan: dict[str, Any]) -> list[dict[str, str]]:
+    return [
+        {"path": row["path"], "candidate": row["candidate"]}
+        for row in plan.get("overwrite_plan", [])
+        if row.get("action") in {"three-way-merge-required", "preserve-existing"}
+    ]
+
+
+def expected_installed_state(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    outputs = {
+        row["path"]: row
+        for row in plan.get("analyzed_outputs", [])
+        if isinstance(row, dict) and isinstance(row.get("path"), str)
+    }
+    overwrite_rows = plan.get("overwrite_plan")
+    if not isinstance(overwrite_rows, list):
+        raise InstallError("install plan overwrite inventory is invalid")
+    overwrite = {
+        row["path"]: row
+        for row in overwrite_rows
+        if isinstance(row, dict) and isinstance(row.get("path"), str)
+    }
+    if len(outputs) != len(plan.get("analyzed_outputs", [])) or set(outputs) != set(
+        overwrite
+    ):
+        raise InstallError("install plan output and overwrite inventories differ")
+    baseline = {
+        row["path"]: row
+        for row in plan.get("target_binding", [])
+        if isinstance(row, dict) and isinstance(row.get("path"), str)
+    }
+    expected: dict[str, dict[str, Any]] = {}
+    action_names = {
+        "create": "created",
+        "replace-generated": "replaced-generated",
+        "repair-file-mode": "repaired-file-mode",
+        "keep-current": "unchanged",
+        "three-way-merge-required": "preserved-local-customization",
+        "preserve-existing": "preserved-unmanaged-existing",
+    }
+    for rel, output_row in sorted(outputs.items()):
+        overwrite_row = overwrite[rel]
+        action = overwrite_row.get("action")
+        if action not in action_names:
+            raise InstallError(f"install plan has unknown overwrite action: {rel}={action}")
+        if action in {"three-way-merge-required", "preserve-existing"}:
+            state = baseline.get(rel)
+            if not isinstance(state, dict) or state.get("kind") != "file":
+                raise InstallError(f"preserved output lacks a file baseline: {rel}")
+            expected[rel] = dict(state, action=action_names[action])
+            candidate = overwrite_row.get("candidate")
+            safe_relative(candidate, "merge candidate")
+            expected[candidate] = {
+                "path": candidate,
+                "kind": "file",
+                "sha256": output_row["content_hash"],
+                "mode": 0o755 if output_row.get("executable") else 0o644,
+                "action": "merge-candidate",
+            }
         else:
-            write_output(target, item)
-        applied.append({"path": item["path"], "action": action})
+            expected[rel] = {
+                "path": rel,
+                "kind": "file",
+                "sha256": output_row["content_hash"],
+                "mode": 0o755 if output_row.get("executable") else 0o644,
+                "action": action_names[action],
+            }
+    return expected
 
-    lock = {
-        "schema_version": 1,
+
+def verify_installed_state(
+    target: Path, plan: dict[str, Any], lock: dict[str, Any]
+) -> None:
+    status = lock.get("transaction_status")
+    if status != "complete":
+        raise InstallError(f"installed transaction is not complete: {status}")
+    required_bindings = {
+        "schema_version": 2,
+        "framework_version": FRAMEWORK_VERSION,
+        "source": plan["source"],
+        "target": plan["target"],
+        "mode": plan["mode"],
+        "profile_hash": plan["profile_hash"],
+        "source_binding": plan["source_binding"],
+        "profile_binding": plan["profile_binding"],
+        "plan_path": plan["plan_path"],
+        "plan_payload_hash": plan["plan_payload_hash"],
+        "analyzed_outputs_hash": plan["analyzed_outputs_hash"],
+        "source_generated_inventory_sha256": plan[
+            "source_generated_inventory_sha256"
+        ],
+        "generated_files": plan["analyzed_outputs"],
+        "conflicts": expected_conflicts(plan),
+    }
+    for field, expected_value in required_bindings.items():
+        if lock.get(field) != expected_value:
+            raise InstallError(f"install lock binding mismatch: {field}")
+    checks = lock.get("post_install_checks")
+    if not isinstance(checks, list) or not checks or any(
+        not isinstance(check, dict) or check.get("exit_code") != 0 for check in checks
+    ):
+        raise InstallError("install lock lacks passing post-install checks")
+
+    expected = expected_installed_state(plan)
+    rows = lock.get("installed_state")
+    if not isinstance(rows, list):
+        raise InstallError("install lock is missing installed state")
+    actual_rows: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        if (
+            not isinstance(row, dict)
+            or set(row) != {"path", "kind", "sha256", "mode", "action"}
+            or not isinstance(row.get("path"), str)
+            or row["path"] in actual_rows
+        ):
+            raise InstallError("install lock has malformed installed state")
+        actual_rows[row["path"]] = row
+    if actual_rows != expected:
+        raise InstallError("install lock installed-state inventory mismatch")
+    for rel, expected_row in expected.items():
+        actual = file_state(target, rel)
+        wanted = {key: expected_row[key] for key in ("path", "kind", "sha256", "mode")}
+        if actual != wanted:
+            raise InstallError(f"installed target drift: {rel}")
+    audit = subprocess.run(
+        ["python3", ".vibeos/scripts/vibeos-active-surface-audit.py"],
+        cwd=target,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if audit.returncode:
+        detail = audit.stdout.strip() or audit.stderr.strip() or "no diagnostic output"
+        raise InstallError(f"installed post-check verification failed: {detail}")
+
+
+def observed_installed_state(
+    target: Path, plan: dict[str, Any]
+) -> list[dict[str, Any]]:
+    expected = expected_installed_state(plan)
+    rows: list[dict[str, Any]] = []
+    for rel, expected_row in sorted(expected.items()):
+        state = file_state(target, rel)
+        wanted = {
+            key: expected_row[key] for key in ("path", "kind", "sha256", "mode")
+        }
+        if state != wanted:
+            raise InstallError(f"applied output differs from pinned plan: {rel}")
+        state["action"] = expected_row["action"]
+        rows.append(state)
+    return rows
+
+
+def build_install_lock(
+    plan: dict[str, Any],
+    plan_path: Path,
+    status: str,
+    checks: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return {
+        "schema_version": 2,
+        "transaction_status": status,
         "framework_version": FRAMEWORK_VERSION,
         "generated_at": utc_now(),
         "source": plan["source"],
         "target": plan["target"],
         "mode": plan["mode"],
         "profile_hash": plan["profile_hash"],
-        "generated_files": [
-            {
-                key: item[key]
-                for key in [
-                    "path",
-                    "template_id",
-                    "source_hash",
-                    "content_hash",
-                    "instruction_surface",
-                    "executable",
-                ]
-            }
-            for item in outputs
+        "source_binding": plan["source_binding"],
+        "profile_binding": plan["profile_binding"],
+        "plan_path": str(plan_path),
+        "plan_payload_hash": plan["plan_payload_hash"],
+        "analyzed_outputs_hash": plan["analyzed_outputs_hash"],
+        "source_generated_inventory_sha256": plan[
+            "source_generated_inventory_sha256"
         ],
-        "conflicts": conflicts,
+        "installed_state": observed_installed_state(Path(plan["target"]), plan),
+        "generated_files": plan["analyzed_outputs"],
+        "conflicts": expected_conflicts(plan),
+        "post_install_checks": checks,
     }
-    lock_path = target / ".vibeos/install-lock.json"
-    lock_path.parent.mkdir(parents=True, exist_ok=True)
-    lock_path.write_text(json_dumps(lock), encoding="utf-8")
 
+
+def write_transaction_lock(
+    target: Path, lock: dict[str, Any], *, allow_previous: bool = False
+) -> None:
+    lock_path = contained_path(target, ".vibeos/install-lock.json", "install lock")
+    lock_payload = json_dumps(lock).encode("utf-8")
+    record_expected_state(
+        target,
+        ".vibeos/install-lock.json",
+        {
+            "path": ".vibeos/install-lock.json",
+            "kind": "file",
+            "sha256": sha256_bytes(lock_payload),
+            "mode": 0o644,
+        },
+        allow_previous=allow_previous,
+    )
+    if (
+        allow_previous
+        and os.environ.get("VIBEOS_INSTALL_TEST_INTERRUPT_BEFORE_COMPLETE_LOCK")
+    ):
+        os.kill(os.getpid(), signal.SIGTERM)
+    atomic_write(lock_path, lock_payload, 0o644)
+
+
+def verify_plan(plan: dict[str, Any], plan_path: Path) -> dict[str, Any]:
+    if plan_path.is_symlink() or not plan_path.is_file():
+        raise InstallError(
+            f"install plan must be a regular non-symlink file: {plan_path}"
+        )
+    if read_plan(plan_path) != plan:
+        raise InstallError("install plan changed while acquiring transaction lock")
+    if plan.get("schema_version") != 2:
+        raise InstallError("install plan schema drift; run analyze again")
+    recorded_hash = plan.get("plan_payload_hash")
+    if not isinstance(recorded_hash, str) or plan_payload_hash(plan) != recorded_hash:
+        raise InstallError("install plan payload hash mismatch")
+    if plan.get("framework_version") != FRAMEWORK_VERSION:
+        raise InstallError("framework version drift; run analyze again")
+    recorded_plan_path = plan.get("plan_path")
+    if recorded_plan_path and Path(recorded_plan_path) != plan_path:
+        raise InstallError("install plan path drift")
+
+    source = Path(plan["source"]).resolve()
+    target = Path(plan["target"]).resolve()
+    check_source_target_safety(source, target)
+    require_no_active_transaction(target)
+    if str(source) != plan.get("source") or str(target) != plan.get("target"):
+        raise InstallError("canonical source or target path drift")
+    profile = plan.get("profile")
+    if not isinstance(profile, dict):
+        raise InstallError("install plan profile is invalid")
+    profile_hash = sha256_text(json_dumps(profile))
+    if profile_hash != plan.get("profile_hash"):
+        raise InstallError("embedded profile hash mismatch")
+    verify_profile_binding(plan.get("profile_binding"), profile_hash)
+    verify_source_binding(source, FRAMEWORK_VERSION, plan.get("source_binding"))
+    if modules_for_profile(profile) != plan.get("enabled_modules"):
+        raise InstallError("profile module expansion drift")
+
+    analyzed = plan.get("analyzed_outputs")
+    if not isinstance(analyzed, list):
+        raise InstallError("analyzed output inventory is missing")
+    for row in analyzed:
+        if not isinstance(row, dict):
+            raise InstallError("analyzed output inventory is malformed")
+        safe_relative(row.get("path"), "analyzed output path")
+    outputs = build_outputs(plan, source)
+    inventory = output_inventory(outputs)
+    if inventory != analyzed or sha256_json(inventory) != plan.get(
+        "analyzed_outputs_hash"
+    ):
+        raise InstallError("analyzed output drift after analyze")
+    combined_inventory = sha256_json(
+        {
+            "relevant_source_files_sha256": plan["source_binding"][
+                "relevant_files_sha256"
+            ],
+            "analyzed_outputs_hash": plan["analyzed_outputs_hash"],
+        }
+    )
+    if combined_inventory != plan.get("source_generated_inventory_sha256"):
+        raise InstallError("source/generated inventory binding mismatch")
+    expected_active = sorted(
+        [item["path"] for item in outputs] + [".vibeos/install-lock.json"]
+    )
+    if expected_active != plan.get("active_surfaces"):
+        raise InstallError("active output inventory drift")
+
+    lock = load_existing_lock(target)
+    if lock.get("plan_payload_hash") == recorded_hash:
+        verify_installed_state(target, plan, lock)
+        return {"state": "installed", "plan_payload_hash": recorded_hash}
+
+    verify_analysis_input_binding(target, plan.get("target_analysis_binding"))
+    verify_target_binding(target, plan.get("target_binding"))
+    if build_overwrite_plan(target, outputs) != plan.get("overwrite_plan"):
+        raise InstallError("target overwrite baseline drift after analyze")
+    return {"state": "planned", "plan_payload_hash": recorded_hash}
+
+
+def _candidate_output(item: dict[str, Any], candidate: str) -> dict[str, Any]:
+    result = dict(item)
+    result["path"] = candidate
+    return result
+
+
+def apply_plan(
+    plan: dict[str, Any],
+    *,
+    plan_path: Path,
+    skip_post_checks: bool = False,
+) -> dict[str, Any]:
+    target = Path(plan["target"]).resolve()
+    with project_lock(target, exclusive=True):
+        return _apply_plan_locked(
+            plan,
+            plan_path=plan_path,
+            skip_post_checks=skip_post_checks,
+        )
+
+
+def _apply_plan_locked(
+    plan: dict[str, Any],
+    *,
+    plan_path: Path,
+    skip_post_checks: bool = False,
+) -> dict[str, Any]:
+    verification = verify_plan(plan, plan_path)
+    if verification["state"] == "installed":
+        return {
+            "applied": [],
+            "conflicts": plan.get("conflicts", []),
+            "post_install_checks": [],
+            "transaction_status": "complete",
+            "already_installed": True,
+        }
+    source = Path(plan["source"])
+    target = Path(plan["target"])
+    outputs = build_outputs(plan, source)
+    overwrite_by_path = {row["path"]: row for row in plan["overwrite_plan"]}
+    mutations: list[dict[str, Any]] = [
+        {"path": ".vibeos/install-lock.json", "after": None}
+    ]
+    for item in outputs:
+        row = overwrite_by_path[item["path"]]
+        if row["action"] in {"create", "replace-generated", "repair-file-mode"}:
+            mutations.append(
+                {
+                    "path": item["path"],
+                    "after": {
+                        "path": item["path"],
+                        "kind": "file",
+                        "sha256": item["content_hash"],
+                        "mode": 0o755 if item.get("executable") else 0o644,
+                    },
+                }
+            )
+        elif row["action"] in {"three-way-merge-required", "preserve-existing"}:
+            mutations.append(
+                {
+                    "path": row["candidate"],
+                    "after": {
+                        "path": row["candidate"],
+                        "kind": "file",
+                        "sha256": item["content_hash"],
+                        "mode": 0o755 if item.get("executable") else 0o644,
+                    },
+                }
+            )
+    begin_transaction(target, plan_path, plan["plan_payload_hash"], mutations)
+
+    applied: list[dict[str, Any]] = []
+    conflicts: list[dict[str, str]] = []
     checks: list[dict[str, Any]] = []
-    if not skip_post_checks:
-        audit = target / ".vibeos/scripts/vibeos-active-surface-audit.py"
-        if audit.is_file():
+    written = 0
+    try:
+        for item in outputs:
+            row = overwrite_by_path[item["path"]]
+            planned_action = row["action"]
+            action = {
+                "create": "created",
+                "replace-generated": "replaced-generated",
+                "repair-file-mode": "repaired-file-mode",
+                "keep-current": "unchanged",
+            }.get(planned_action, planned_action)
+            if planned_action in {
+                "create",
+                "replace-generated",
+                "repair-file-mode",
+            }:
+                write_output(target, item)
+                written += 1
+            elif planned_action in {"three-way-merge-required", "preserve-existing"}:
+                candidate = row["candidate"]
+                candidate_item = _candidate_output(item, candidate)
+                write_output(target, candidate_item)
+                written += 1
+                action = (
+                    "preserved-local-customization"
+                    if planned_action == "three-way-merge-required"
+                    else "preserved-unmanaged-existing"
+                )
+                conflicts.append({"path": item["path"], "candidate": candidate})
+            applied.append({"path": item["path"], "action": action})
+            interrupt_after = os.environ.get("VIBEOS_INSTALL_TEST_INTERRUPT_AFTER")
+            if interrupt_after and written >= int(interrupt_after):
+                os.kill(os.getpid(), signal.SIGTERM)
+
+        if conflicts != expected_conflicts(plan):
+            raise InstallError("applied merge-candidate inventory differs from pinned plan")
+        transaction_status = "applied-unverified" if skip_post_checks else "verifying"
+        provisional_lock = build_install_lock(
+            plan,
+            plan_path,
+            transaction_status,
+            checks,
+        )
+        write_transaction_lock(target, provisional_lock)
+
+        if not skip_post_checks:
             result = subprocess.run(
                 ["python3", ".vibeos/scripts/vibeos-active-surface-audit.py"],
                 cwd=target,
@@ -1423,59 +2063,189 @@ def apply_plan(plan: dict[str, Any], *, skip_post_checks: bool = False) -> dict[
                     "stderr": result.stderr,
                 }
             )
-
-    return {"applied": applied, "conflicts": conflicts, "post_install_checks": checks}
+            if result.returncode:
+                detail = (
+                    result.stdout.strip()
+                    or result.stderr.strip()
+                    or "no diagnostic output"
+                )
+                raise InstallError(
+                    "post-install check failed; run recover with the same plan before retrying: "
+                    + detail
+                )
+            transaction_status = "complete"
+            complete_lock = build_install_lock(
+                plan,
+                plan_path,
+                transaction_status,
+                checks,
+            )
+            write_transaction_lock(target, complete_lock, allow_previous=True)
+        complete_transaction(target)
+        return {
+            "applied": applied,
+            "conflicts": conflicts,
+            "post_install_checks": checks,
+            "transaction_status": transaction_status,
+            "already_installed": False,
+        }
+    except Exception as exc:
+        mark_recovery_required(target, str(exc))
+        raise
 
 
 def command_analyze(args: argparse.Namespace) -> int:
     source = resolve_source(args.source)
     target = resolve_target(args.target)
-    profile_path = Path(args.profile).expanduser().resolve() if args.profile else None
+    profile_candidate = (
+        Path(args.profile).expanduser().absolute() if args.profile else None
+    )
+    if profile_candidate and profile_candidate.is_symlink():
+        raise InstallError(f"profile may not be a symlink: {profile_candidate}")
+    profile_path = profile_candidate.resolve() if profile_candidate else None
     if profile_path and not profile_path.is_file():
         print(f"[vibeos] FAIL: profile not found: {profile_path}")
-        print("[vibeos] hint: the installer writes the pinned profile to .vibeos/project-profile.json")
+        print(
+            "[vibeos] hint: the installer writes the pinned profile to .vibeos/project-profile.json"
+        )
         return 2
-    profile = load_profile(profile_path, target, args.mode)
-    plan = build_plan(source, target, profile)
-    plan_path = Path(args.plan).expanduser().resolve() if args.plan else target / ".vibeos/install-plan.json"
-    write_plan(plan, plan_path)
+    plan_path = (
+        Path(args.plan).expanduser().resolve()
+        if args.plan
+        else target / ".vibeos/install-plan.json"
+    )
+    with project_lock(target, exclusive=True):
+        require_no_active_transaction(target)
+        profile = load_profile(profile_path, target, args.mode)
+        plan = build_plan(
+            source,
+            target,
+            profile,
+            profile_path=profile_path,
+            plan_path=plan_path,
+        )
+        write_plan(plan, plan_path)
     print(f"[vibeos] PASS: install plan written: {plan_path}")
-    print(f"[vibeos] mode={plan['mode']} enabled_modules={len(plan['enabled_modules'])} active_surfaces={len(plan['active_surfaces'])}")
+    print(
+        f"[vibeos] mode={plan['mode']} enabled_modules={len(plan['enabled_modules'])} active_surfaces={len(plan['active_surfaces'])}"
+    )
     return 0
 
 
 def command_apply(args: argparse.Namespace) -> int:
-    plan = read_plan(Path(args.plan).expanduser().resolve())
-    result = apply_plan(plan, skip_post_checks=args.skip_post_checks)
+    plan_candidate = Path(args.plan).expanduser().absolute()
+    if plan_candidate.is_symlink():
+        raise InstallError(f"install plan may not be a symlink: {plan_candidate}")
+    plan_path = plan_candidate.resolve()
+    plan = read_plan(plan_path)
+    result = apply_plan(
+        plan, plan_path=plan_path, skip_post_checks=args.skip_post_checks
+    )
     conflicts = result["conflicts"]
-    print(f"[vibeos] PASS: applied profile-driven install plan to {plan['target']}")
+    if result["already_installed"]:
+        print(f"[vibeos] PASS: install already complete and verified: {plan['target']}")
+        return 0
+    status = result["transaction_status"]
+    marker = "PASS" if status == "complete" else "APPLIED-UNVERIFIED"
+    print(f"[vibeos] {marker}: applied profile-driven install plan to {plan['target']}")
     print(f"[vibeos] files={len(result['applied'])} conflicts={len(conflicts)}")
     for conflict in conflicts:
-        print(f"[vibeos] MERGE: preserved {conflict['path']} candidate={conflict['candidate']}")
-    failed_checks = [check for check in result["post_install_checks"] if check.get("exit_code")]
+        print(
+            f"[vibeos] MERGE: preserved {conflict['path']} candidate={conflict['candidate']}"
+        )
+    failed_checks = [
+        check for check in result["post_install_checks"] if check.get("exit_code")
+    ]
     if failed_checks:
         for check in failed_checks:
-            print(f"[vibeos] FAIL: post-install check failed: {check['command']} exit={check['exit_code']}")
+            print(
+                f"[vibeos] FAIL: post-install check failed: {check['command']} exit={check['exit_code']}"
+            )
         return 1
     return 0
 
 
+def command_verify(args: argparse.Namespace) -> int:
+    plan_candidate = Path(args.plan).expanduser().absolute()
+    if plan_candidate.is_symlink():
+        raise InstallError(f"install plan may not be a symlink: {plan_candidate}")
+    plan_path = plan_candidate.resolve()
+    plan = read_plan(plan_path)
+    target = Path(plan["target"]).resolve()
+    with project_lock(target, exclusive=False):
+        result = verify_plan(plan, plan_path)
+    print(f"[vibeos] PASS: install transaction verified: {result['state']}")
+    print(f"[vibeos] plan_payload_hash={result['plan_payload_hash']}")
+    return 0
+
+
+def command_recover(args: argparse.Namespace) -> int:
+    plan_candidate = Path(args.plan).expanduser().absolute()
+    if plan_candidate.is_symlink():
+        raise InstallError(f"install plan may not be a symlink: {plan_candidate}")
+    plan_path = plan_candidate.resolve()
+    plan = read_plan(plan_path)
+    recorded_hash = plan.get("plan_payload_hash")
+    if not isinstance(recorded_hash, str) or plan_payload_hash(plan) != recorded_hash:
+        raise InstallError("install plan payload hash mismatch")
+    target = Path(plan["target"]).resolve()
+    with project_lock(target, exclusive=True):
+        if read_plan(plan_path) != plan:
+            raise InstallError("install plan changed while acquiring transaction lock")
+        restored = recover_transaction(target, plan_path, recorded_hash)
+        verify_target_binding(target, plan.get("target_binding"))
+    print(f"[vibeos] PASS: interrupted install rollback verified: {target}")
+    print(
+        f"[vibeos] restored_paths={len(restored)}; run verify, then apply or re-analyze"
+    )
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="vibeos", description="Profile-driven VibeOS installer")
+    parser = argparse.ArgumentParser(
+        prog="vibeos", description="Profile-driven VibeOS installer"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     analyze = sub.add_parser("analyze", help="write a profile-driven install plan")
     analyze.add_argument("--target", required=True, help="target project directory")
-    analyze.add_argument("--source", required=True, help="VibeOS source repo or plugins/vibeos directory")
+    analyze.add_argument(
+        "--source", required=True, help="VibeOS source repo or plugins/vibeos directory"
+    )
     analyze.add_argument("--profile", help="project profile JSON")
-    analyze.add_argument("--mode", default="product-engineering", choices=sorted(MODE_MODULES), help="install mode")
-    analyze.add_argument("--plan", help="output plan path; default target/.vibeos/install-plan.json")
+    analyze.add_argument(
+        "--mode",
+        default="product-engineering",
+        choices=sorted(MODE_MODULES),
+        help="install mode",
+    )
+    analyze.add_argument(
+        "--plan", help="output plan path; default target/.vibeos/install-plan.json"
+    )
     analyze.set_defaults(func=command_analyze)
 
     apply = sub.add_parser("apply", help="apply a previously generated install plan")
     apply.add_argument("--plan", required=True, help="install plan path")
-    apply.add_argument("--skip-post-checks", action="store_true", help="write files without running generated post checks")
+    apply.add_argument(
+        "--skip-post-checks",
+        action="store_true",
+        help="write files without running generated post checks",
+    )
     apply.set_defaults(func=command_apply)
+
+    verify = sub.add_parser(
+        "verify", help="verify pinned plan or completed install without writing"
+    )
+    verify.add_argument("--plan", required=True, help="install plan path")
+    verify.set_defaults(func=command_verify)
+
+    recover = sub.add_parser(
+        "recover", help="roll back an interrupted apply transaction"
+    )
+    recover.add_argument(
+        "--plan", required=True, help="the exact plan used by interrupted apply"
+    )
+    recover.set_defaults(func=command_recover)
 
     return parser
 
@@ -1485,7 +2255,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return args.func(args)
-    except InstallError as exc:
+    except (
+        InstallError,
+        IntegrityError,
+        RecoveryError,
+        OSError,
+        json.JSONDecodeError,
+        KeyError,
+    ) as exc:
         print(f"[vibeos] FAIL: {exc}", file=sys.stderr)
         return 2
 

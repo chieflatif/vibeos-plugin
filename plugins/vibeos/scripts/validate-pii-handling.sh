@@ -16,7 +16,7 @@
 #   2 = Configuration error
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 GATE_NAME="validate-pii-handling"
 
 usage() {

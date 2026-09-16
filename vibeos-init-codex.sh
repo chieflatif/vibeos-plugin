@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.2.0"
+FRAMEWORK_VERSION="2.3.0"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -d "$SCRIPT_DIR/plugins/vibeos/skills" ]; then
@@ -275,7 +275,11 @@ copy_runtime() {
   rm -rf "$TARGET_DIR/.vibeos/reference"
   rm -rf "$TARGET_DIR/.vibeos/convergence"
 
-  cp -R "$SOURCE_DIR/scripts" "$TARGET_DIR/.vibeos/scripts"
+  python3 - "$SOURCE_DIR/scripts" "$TARGET_DIR/.vibeos/scripts" <<'PYEOF'
+import shutil
+import sys
+shutil.copytree(sys.argv[1], sys.argv[2], ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+PYEOF
   cp -R "$SOURCE_DIR/decision-engine" "$TARGET_DIR/.vibeos/decision-engine"
   cp -R "$SOURCE_DIR/reference" "$TARGET_DIR/.vibeos/reference"
   cp -R "$SOURCE_DIR/convergence" "$TARGET_DIR/.vibeos/convergence"

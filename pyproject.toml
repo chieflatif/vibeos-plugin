@@ -1,8 +1,8 @@
 [project]
 name = "vibeos-plugin"
-version = "2.2.0"
+version = "2.3.0"
 description = "VibeOS — a governed development operating layer for AI-assisted engineering (Claude Code plugin)"
-requires-python = ">=3.7"
+requires-python = ">=3.12"
 
 # Test collection is governed by pytest.ini (testpaths = tests), which takes
 # precedence over any [tool.pytest.ini_options] here. This marker also lets the

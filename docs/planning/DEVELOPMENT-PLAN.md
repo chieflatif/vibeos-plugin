@@ -1,5 +1,13 @@
 # VibeOS Plugin — Development Plan
 
+## Approved reusable release amendment — September 16, 2026
+
+The [bounded release contract](REUSABLE-HARNESS-RELEASE-AMENDMENT-2026-09-16.md)
+and [WO-132 amendment](WO-132-reusable-release-amendment.md) integrate reusable
+engineering controls and a pinned macOS/Codex install route. This does not
+complete unrelated vNext work or adopt project-specific extension defaults.
+
+
 ## Vision
 
 Transform Claude Code from a reactive coding assistant into an autonomous, self-governing development engine. A user describes what they want to build, the plugin guides them through product discovery and planning, then autonomously builds the project with continuous multi-layered audits ensuring zero technical debt.

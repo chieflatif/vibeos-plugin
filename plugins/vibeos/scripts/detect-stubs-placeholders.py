@@ -36,7 +36,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
-FRAMEWORK_VERSION = "2.2.0"
+FRAMEWORK_VERSION = "2.3.0"
 
 # ============================================================================
 # CONFIGURATION
@@ -442,7 +442,7 @@ def _rust_todo_unimplemented(file_path: str, line: str, lines: list[str], idx: i
 # ============================================================================
 
 # Format: (name, severity, pattern, description, extensions, skip_tests, validator)
-from typing import Optional, Tuple, Set, Callable
+from typing import Optional, Tuple, Set  # noqa: E402 - rule-specific type aliases
 RuleType = Tuple[str, Severity, "re.Pattern[str]", str, Optional[Set[str]], bool, Optional[object]]
 
 # Universal rules (all languages)
@@ -686,13 +686,7 @@ def _check_empty_file(file_path: Path, project_root: Path, lines: list[str]) -> 
     suffix = file_path.suffix
 
     # R2: Empty file detection — a file with 0 non-blank lines is suspicious
-    non_blank = [l for l in lines if l.strip()]
-    # Also filter lines that are only comments or docstrings
-    code_lines = [l for l in non_blank
-                  if not l.strip().startswith("#")
-                  and not l.strip().startswith("//")
-                  and not l.strip().startswith("/*")
-                  and not l.strip().startswith("*")]
+    non_blank = [line for line in lines if line.strip()]
 
     if suffix == ".py" and len(non_blank) == 0 and file_path.parent != project_root:
         findings.append(Finding(
