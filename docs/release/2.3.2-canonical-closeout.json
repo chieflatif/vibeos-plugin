@@ -3,8 +3,8 @@
   "classification": "product-source",
   "remote": "origin",
   "default_branch": "main",
-  "accepted_commit": "fee0e6964973b266a3d57ea63c7d4f5b3503961c",
-  "accepted_tree": "8db54732e55e7693fe76f83faf7333dafce6b026",
+  "accepted_commit": "2121a79cb17b0dc8bc3614057e17e9d5592250ed",
+  "accepted_tree": "2b8d10122a1cb4ee962fa4717fe59541f355c309",
   "front_door_paths": [
     "README.md",
     "AGENTS.md",
