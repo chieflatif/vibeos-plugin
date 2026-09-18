@@ -16,7 +16,7 @@ from typing import Any
 from autonomy_lease import AutonomyLease, LeaseConflict, conflict_path, conflict_report
 
 
-FRAMEWORK_VERSION = "2.3.1"
+FRAMEWORK_VERSION = "2.3.2"
 OUTPUT_LIMIT = 12000
 
 

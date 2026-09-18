@@ -7,7 +7,7 @@ set -euo pipefail
 # and custom gates. Supports rollback via pre-upgrade snapshot.
 # Exit 0 = success, 1 = error
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 
 usage() {
   echo "Usage:"
@@ -105,6 +105,7 @@ V21_NEW_SKILLS=(
 
 V22_NEW_GATE_SCRIPTS=(
   "evidence-recall.py"
+  "validate-canonical-closeout.py"
   "autonomy-heartbeat.py"
   "autonomy-loop.py"
   "autonomy-runner.py"

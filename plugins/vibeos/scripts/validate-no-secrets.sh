@@ -14,7 +14,7 @@
 #   2 = Configuration error
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 GATE_NAME="validate-no-secrets"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Allowlist of intentionally-exempt path+pattern+value entries (e.g. fixture fakes).

@@ -41,6 +41,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-150 | Profile Install Name/TOML/Canon Integrity | 41 | Complete | frontmatter |
 | WO-151 | Profile-Installed Target Support in Plugin Skills | 41 | Complete | frontmatter |
 | WO-152 | Gate-Runner Fail-Closed on Missing Blocking Gates | 41 | Complete | frontmatter |
+| WO-153 | Canonical Acceptance Closeout | 41 | Complete | frontmatter |
 | WO-127 | Auditor-artifact + waiver-expiry + executed-vs-declared gates | 42 | Planned | master-plan |
 | WO-128 | Product-direction lint + hygiene policy + doc budget | 42 | Planned | master-plan |
 | WO-129 | Framework-ownership manifest | 43 | Planned | master-plan |

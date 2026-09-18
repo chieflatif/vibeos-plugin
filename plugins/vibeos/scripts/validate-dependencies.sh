@@ -16,7 +16,7 @@
 #   2 = Audit tool not available (skip)
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 GATE_NAME="validate-dependencies"
 
 usage() {

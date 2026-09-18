@@ -17,7 +17,7 @@
 #   2 = Required source, configuration, or tool unavailable
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 GATE_NAME="validate-code-quality"
 
 usage() {

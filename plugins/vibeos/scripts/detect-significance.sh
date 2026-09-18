@@ -25,7 +25,7 @@
 
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

@@ -26,7 +26,7 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import List
 
-FRAMEWORK_VERSION = "2.3.1"
+FRAMEWORK_VERSION = "2.3.2"
 GATE_NAME = "detect-testing-antipatterns"
 
 

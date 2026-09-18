@@ -14,7 +14,7 @@
 #   2 = No evidence directory found (skip)
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 GATE_NAME="validate-evidence-bundle"
 
 usage() {

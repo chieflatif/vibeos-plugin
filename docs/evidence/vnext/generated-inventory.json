@@ -108,6 +108,7 @@
         "plugins/vibeos/hooks/scripts/gate-result-capture.sh",
         "plugins/vibeos/hooks/scripts/governance-guard.sh",
         "plugins/vibeos/hooks/scripts/intent-router.sh",
+        "plugins/vibeos/hooks/scripts/is-vibeos-project.sh",
         "plugins/vibeos/hooks/scripts/lane-loop-stop.sh",
         "plugins/vibeos/hooks/scripts/limit-warning-capture.sh",
         "plugins/vibeos/hooks/scripts/model-policy-guard.sh",
@@ -124,7 +125,7 @@
         "plugins/vibeos/hooks/scripts/worktree-scope-guard.sh",
         "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh"
       ],
-      "value": 20
+      "value": 21
     },
     {
       "claim": "Configured and documented hooks",
@@ -172,6 +173,7 @@
         "plugins/vibeos/scripts/comp-plan.py",
         "plugins/vibeos/scripts/comp-red-team.py",
         "plugins/vibeos/scripts/comp-scorecard.py",
+        "plugins/vibeos/scripts/controlled-evaluation.py",
         "plugins/vibeos/scripts/detect-runtime-capabilities.sh",
         "plugins/vibeos/scripts/detect-significance.sh",
         "plugins/vibeos/scripts/detect-stubs-placeholders.py",
@@ -181,12 +183,17 @@
         "plugins/vibeos/scripts/enforce-architecture.sh",
         "plugins/vibeos/scripts/evidence-recall.py",
         "plugins/vibeos/scripts/gate-runner.sh",
+        "plugins/vibeos/scripts/gate_timeout.py",
         "plugins/vibeos/scripts/generate-inventory.py",
         "plugins/vibeos/scripts/health-check.sh",
+        "plugins/vibeos/scripts/install_directories.py",
+        "plugins/vibeos/scripts/install_integrity.py",
+        "plugins/vibeos/scripts/install_recovery.py",
         "plugins/vibeos/scripts/lane-readiness.py",
         "plugins/vibeos/scripts/limit-aware-scheduler.py",
         "plugins/vibeos/scripts/night-loop.sh",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
+        "plugins/vibeos/scripts/profile_install.py",
         "plugins/vibeos/scripts/register-audit-report.sh",
         "plugins/vibeos/scripts/register-session-audit-report.sh",
         "plugins/vibeos/scripts/runtime-capabilities.py",
@@ -201,6 +208,7 @@
         "plugins/vibeos/scripts/validate-audit-completeness.sh",
         "plugins/vibeos/scripts/validate-audit-visibility.sh",
         "plugins/vibeos/scripts/validate-auth-boundaries.sh",
+        "plugins/vibeos/scripts/validate-canonical-closeout.py",
         "plugins/vibeos/scripts/validate-code-complexity.sh",
         "plugins/vibeos/scripts/validate-code-quality.sh",
         "plugins/vibeos/scripts/validate-commit-msg.sh",
@@ -250,7 +258,7 @@
         "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py",
         "plugins/vibeos/scripts/workstation-package.sh"
       ],
-      "value": 103
+      "value": 110
     },
     {
       "claim": "Decision engine files",
@@ -429,6 +437,9 @@
         "tests/test_agent_team_pilot_execution.py",
         "tests/test_agent_team_pilot_plan.py",
         "tests/test_ai_failure_modes.py",
+        "tests/test_canonical_closeout.py",
+        "tests/test_code_complexity_required.py",
+        "tests/test_code_quality_project_root.py",
         "tests/test_codex_bootstrap.py",
         "tests/test_comp_blueprint.py",
         "tests/test_comp_dossier.py",
@@ -437,12 +448,19 @@
         "tests/test_comp_red_team.py",
         "tests/test_comp_scorecard.py",
         "tests/test_comp_skill.py",
+        "tests/test_controlled_evaluation_cleanup.py",
+        "tests/test_controlled_evaluation_evidence.py",
+        "tests/test_controlled_evaluation_prepare.py",
+        "tests/test_controlled_evaluation_runtime.py",
         "tests/test_delivery_infrastructure.py",
         "tests/test_dependency_intelligence.py",
         "tests/test_evidence_recall.py",
         "tests/test_flow_integrity.py",
         "tests/test_gate_floor.py",
+        "tests/test_gate_missing_tools.py",
+        "tests/test_gate_required_results.py",
         "tests/test_gate_runner.py",
+        "tests/test_gate_timeout.py",
         "tests/test_generate_inventory.py",
         "tests/test_hook_lifecycle.py",
         "tests/test_lane_loop_stop.py",
@@ -453,6 +471,9 @@
         "tests/test_model_policy_guard.py",
         "tests/test_night_loop.py",
         "tests/test_no_secrets_allowlist.py",
+        "tests/test_profile_install.py",
+        "tests/test_profile_install_release.py",
+        "tests/test_release_handoff.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
         "tests/test_system_invariants.py",
@@ -463,7 +484,7 @@
         "tests/test_workflow_audit_sweep.py",
         "tests/test_workflow_governance.py"
       ],
-      "value": 36
+      "value": 49
     },
     {
       "claim": "Work order documents",
@@ -605,9 +626,13 @@
         "docs/planning/WO-146-tests-pass-recursion-guard.md",
         "docs/planning/WO-147-plugin-install-integrity-remediation.md",
         "docs/planning/WO-148-new-machine-bootstrap-package.md",
-        "docs/planning/WO-149-current-machine-compatible-upgrade.md"
+        "docs/planning/WO-149-current-machine-compatible-upgrade.md",
+        "docs/planning/WO-150-profile-install-name-integrity.md",
+        "docs/planning/WO-151-profile-target-skill-support.md",
+        "docs/planning/WO-152-gate-runner-fail-closed-missing-gates.md",
+        "docs/planning/WO-153-canonical-acceptance-closeout.md"
       ],
-      "value": 135
+      "value": 139
     },
     {
       "claim": "Quality gate manifest entries",
@@ -652,8 +677,8 @@
       "value": false
     }
   ],
-  "framework_version": "2.2.0",
-  "generated_at": "2026-06-17T06:27:04Z",
+  "framework_version": "2.3.2",
+  "generated_at": "2026-09-18T20:45:36Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -778,7 +803,7 @@
       "claim_label": "Quality gate manifest entries",
       "gate_entries": 58,
       "manifest_path": "plugins/vibeos/quality-gate-manifest.json",
-      "manifest_version": "2.2.0",
+      "manifest_version": "2.3.2",
       "missing_gate_scripts": [],
       "phase_counts": {
         "comp_gauntlet": 12,
@@ -794,13 +819,14 @@
     },
     "hook_scripts": {
       "claim_label": "Hook scripts",
-      "count": 20,
+      "count": 21,
       "paths": [
         "plugins/vibeos/hooks/scripts/file-budget.sh",
         "plugins/vibeos/hooks/scripts/frozen-files.sh",
         "plugins/vibeos/hooks/scripts/gate-result-capture.sh",
         "plugins/vibeos/hooks/scripts/governance-guard.sh",
         "plugins/vibeos/hooks/scripts/intent-router.sh",
+        "plugins/vibeos/hooks/scripts/is-vibeos-project.sh",
         "plugins/vibeos/hooks/scripts/lane-loop-stop.sh",
         "plugins/vibeos/hooks/scripts/limit-warning-capture.sh",
         "plugins/vibeos/hooks/scripts/model-policy-guard.sh",
@@ -975,7 +1001,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 103,
+      "count": 110,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -1003,6 +1029,7 @@
         "plugins/vibeos/scripts/comp-plan.py",
         "plugins/vibeos/scripts/comp-red-team.py",
         "plugins/vibeos/scripts/comp-scorecard.py",
+        "plugins/vibeos/scripts/controlled-evaluation.py",
         "plugins/vibeos/scripts/detect-runtime-capabilities.sh",
         "plugins/vibeos/scripts/detect-significance.sh",
         "plugins/vibeos/scripts/detect-stubs-placeholders.py",
@@ -1012,12 +1039,17 @@
         "plugins/vibeos/scripts/enforce-architecture.sh",
         "plugins/vibeos/scripts/evidence-recall.py",
         "plugins/vibeos/scripts/gate-runner.sh",
+        "plugins/vibeos/scripts/gate_timeout.py",
         "plugins/vibeos/scripts/generate-inventory.py",
         "plugins/vibeos/scripts/health-check.sh",
+        "plugins/vibeos/scripts/install_directories.py",
+        "plugins/vibeos/scripts/install_integrity.py",
+        "plugins/vibeos/scripts/install_recovery.py",
         "plugins/vibeos/scripts/lane-readiness.py",
         "plugins/vibeos/scripts/limit-aware-scheduler.py",
         "plugins/vibeos/scripts/night-loop.sh",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
+        "plugins/vibeos/scripts/profile_install.py",
         "plugins/vibeos/scripts/register-audit-report.sh",
         "plugins/vibeos/scripts/register-session-audit-report.sh",
         "plugins/vibeos/scripts/runtime-capabilities.py",
@@ -1032,6 +1064,7 @@
         "plugins/vibeos/scripts/validate-audit-completeness.sh",
         "plugins/vibeos/scripts/validate-audit-visibility.sh",
         "plugins/vibeos/scripts/validate-auth-boundaries.sh",
+        "plugins/vibeos/scripts/validate-canonical-closeout.py",
         "plugins/vibeos/scripts/validate-code-complexity.sh",
         "plugins/vibeos/scripts/validate-code-quality.sh",
         "plugins/vibeos/scripts/validate-commit-msg.sh",
@@ -1081,16 +1114,19 @@
         "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py",
         "plugins/vibeos/scripts/workstation-package.sh"
       ],
-      "python_count": 37,
+      "python_count": 44,
       "shell_count": 64
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 36,
+      "count": 49,
       "paths": [
         "tests/test_agent_team_pilot_execution.py",
         "tests/test_agent_team_pilot_plan.py",
         "tests/test_ai_failure_modes.py",
+        "tests/test_canonical_closeout.py",
+        "tests/test_code_complexity_required.py",
+        "tests/test_code_quality_project_root.py",
         "tests/test_codex_bootstrap.py",
         "tests/test_comp_blueprint.py",
         "tests/test_comp_dossier.py",
@@ -1099,12 +1135,19 @@
         "tests/test_comp_red_team.py",
         "tests/test_comp_scorecard.py",
         "tests/test_comp_skill.py",
+        "tests/test_controlled_evaluation_cleanup.py",
+        "tests/test_controlled_evaluation_evidence.py",
+        "tests/test_controlled_evaluation_prepare.py",
+        "tests/test_controlled_evaluation_runtime.py",
         "tests/test_delivery_infrastructure.py",
         "tests/test_dependency_intelligence.py",
         "tests/test_evidence_recall.py",
         "tests/test_flow_integrity.py",
         "tests/test_gate_floor.py",
+        "tests/test_gate_missing_tools.py",
+        "tests/test_gate_required_results.py",
         "tests/test_gate_runner.py",
+        "tests/test_gate_timeout.py",
         "tests/test_generate_inventory.py",
         "tests/test_hook_lifecycle.py",
         "tests/test_lane_loop_stop.py",
@@ -1115,6 +1158,9 @@
         "tests/test_model_policy_guard.py",
         "tests/test_night_loop.py",
         "tests/test_no_secrets_allowlist.py",
+        "tests/test_profile_install.py",
+        "tests/test_profile_install_release.py",
+        "tests/test_release_handoff.py",
         "tests/test_runtime_capabilities.py",
         "tests/test_status_reconciliation.py",
         "tests/test_system_invariants.py",
@@ -1128,7 +1174,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 135,
+      "count": 139,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1264,7 +1310,11 @@
         "docs/planning/WO-146-tests-pass-recursion-guard.md",
         "docs/planning/WO-147-plugin-install-integrity-remediation.md",
         "docs/planning/WO-148-new-machine-bootstrap-package.md",
-        "docs/planning/WO-149-current-machine-compatible-upgrade.md"
+        "docs/planning/WO-149-current-machine-compatible-upgrade.md",
+        "docs/planning/WO-150-profile-install-name-integrity.md",
+        "docs/planning/WO-151-profile-target-skill-support.md",
+        "docs/planning/WO-152-gate-runner-fail-closed-missing-gates.md",
+        "docs/planning/WO-153-canonical-acceptance-closeout.md"
       ]
     }
   },
@@ -1276,24 +1326,15 @@
     "plugin": {
       "name": "vibeos",
       "path": "plugins/vibeos/.claude-plugin/plugin.json",
-      "version": "2.2.0"
+      "version": "2.3.1"
     },
     "runtime_capabilities": {
-      "generated_at": "2026-06-17T06:25:10+00:00",
+      "generated_at": null,
       "path": ".vibeos/runtime-capabilities.json",
-      "strategy": {
-        "orchestration_mode": "claude-subagents",
-        "reasons": [
-          "Claude Code subagents are available locally.",
-          "Runtime hooks are available on at least one surface, but Git hooks remain the cross-runtime enforcement fallback."
-        ],
-        "recommended_primary": "claude",
-        "requires_explicit_gates": true,
-        "requires_git_hooks": true
-      }
+      "strategy": {}
     }
   },
-  "project_dir": "/Users/latifhorst/cursor projects/vibeos-plugin",
+  "project_dir": "/private/tmp/vibeos-accepted-main-closure-20260918",
   "public_limitations": [
     "Do not claim Codex hook parity with Claude Code.",
     "Do not claim full automatic write-time enforcement across runtimes.",

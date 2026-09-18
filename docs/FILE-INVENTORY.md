@@ -86,6 +86,7 @@ All files the plugin creates in your project, organized by when they appear.
 | `.vibeos/autonomy/smoke-report.json` | Disposable autonomy smoke-test report |
 | `.vibeos/autonomy/supervisor-state.json` | Latest long-run supervisor decision summary |
 | `.vibeos/runtime-capabilities.json` | Generated local matrix of Codex, Claude, hook, agent, and orchestration capabilities |
+| `.vibeos/canonical-closeout.json` | Decision-owner acceptance binding used to prove product-source promotion or exact evidence-only custody on the remote default branch |
 | `.vibeos/cache/evidence-recall-index.json` | Generated local index for source-cited evidence recall |
 | `.vibeos/reference/comp/*` | VibOS Comp mission, foundation, flow, invariant, dependency intelligence, delivery infrastructure, scorecard, and evidence references |
 | `.vibeos/baselines/midstream-baseline.json` | Updated after convergence cycles |
