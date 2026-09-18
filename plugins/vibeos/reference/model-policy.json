@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "framework_version": "2.3.1",
+  "framework_version": "2.3.2",
   "description": "Provider-neutral VibeOS model and effort policy. Tiers resolve at runtime; this file intentionally avoids hardcoded current model IDs.",
   "effort_levels": ["low", "medium", "high", "xhigh", "max"],
   "tiers": {

@@ -48,7 +48,7 @@ from install_recovery import (
 )
 
 
-FRAMEWORK_VERSION = "2.3.1"
+FRAMEWORK_VERSION = "2.3.2"
 
 MODE_MODULES = {
     "minimal": [
@@ -170,6 +170,7 @@ RUNTIME_CORE_SCRIPTS = [
     "runtime-capabilities.py",
     "gate-runner.sh",
     "gate_timeout.py",
+    "validate-canonical-closeout.py",
     "setup-git-hooks.sh",
     "validate-no-secrets.sh",
     "secrets-allowlist.json",

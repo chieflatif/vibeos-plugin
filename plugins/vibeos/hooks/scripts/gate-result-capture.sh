@@ -3,7 +3,7 @@
 # Hook type: PostToolUse (matcher: Bash)
 # Captures gate/test Bash command outcomes after tool execution.
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 
 # --- VibeOS project-scope guard (auto-inserted) ------------------------------
 # Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so

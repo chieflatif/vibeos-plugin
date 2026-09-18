@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "classification": "product-source",
+  "remote": "origin",
+  "default_branch": "main",
+  "accepted_commit": "2121a79cb17b0dc8bc3614057e17e9d5592250ed",
+  "accepted_tree": "2b8d10122a1cb4ee962fa4717fe59541f355c309",
+  "front_door_paths": [
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/release/2.3.2.md"
+  ]
+}

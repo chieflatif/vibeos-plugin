@@ -9,7 +9,7 @@ set -euo pipefail
 # Supports one-way ratcheting: baseline can only decrease, never increase.
 # Exit 0 with JSON result on stdout; exit 1 on error.
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 
 usage() {
   echo "Usage:"

@@ -3,7 +3,7 @@
 ## Approved reusable release amendment — September 16, 2026
 
 The [bounded release contract](REUSABLE-HARNESS-RELEASE-AMENDMENT-2026-09-16.md)
-and [WO-132 amendment](WO-132-reusable-release-amendment.md) integrate reusable
+and [release amendment](REUSABLE-RELEASE-AMENDMENT-2026-09-16.md) integrate reusable
 engineering controls and a pinned macOS/Codex install route. This does not
 complete unrelated vNext work or adopt project-specific extension defaults.
 

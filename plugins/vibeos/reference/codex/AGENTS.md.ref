@@ -143,6 +143,22 @@ This means Codex handles all phases sequentially in one context window. There is
 
 The practical enforcement stack in Codex is: repo contract (`AGENTS.md`), explicit gate runs (`.vibeos/scripts/gate-runner.sh`), and Git `pre-commit` / `commit-msg` hooks for commit-boundary blocking.
 
+## Canonical Acceptance Closeout
+
+Implementation completion, review, acceptance and canonical adoption are
+different states. When an accepted result changes reusable product source, keep
+the milestone at `Awaiting Canonical Promotion` until the exact accepted commit
+is reachable from the protected remote default branch and this fresh-clone check
+passes:
+
+```bash
+python3 .vibeos/scripts/validate-canonical-closeout.py --project-dir .
+```
+
+The required `.vibeos/canonical-closeout.json` classifies the result as
+`product-source` or `evidence-only`. The latter must name a digest-bound artifact
+on the remote default branch and never silently promotes archived source.
+
 When `.vibeos/runtime-capabilities.json` says Codex multi-agent support is available and the project has Codex-native agent definitions, use those capabilities according to their local contracts. If not, fall back to the role-contract workflow above.
 
 ## Side-By-Side Compatibility

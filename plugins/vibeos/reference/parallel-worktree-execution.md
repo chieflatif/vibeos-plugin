@@ -113,6 +113,12 @@ Do not start dependent WOs until this WO's PR is merged and `main` is updated.
 3. **After each merge**, all remaining open worktrees rebase: `git fetch origin && git rebase origin/main`
 4. **Conflict hotspots** — router files, settings, conftest.py, shared base models. Call these out explicitly in the WO's Parallel Execution Contract. Whoever merges last resolves the conflict.
 5. **Never cross-merge** between `feat/*` branches. The scope guard enforces this but the rule exists regardless.
+6. **Close accepted state on the remote default branch.** A merged PR is not by
+   itself acceptance, and acceptance in a worktree is not adoption. After the
+   decision owner accepts a product-source candidate, bind its commit/tree in
+   `.vibeos/canonical-closeout.json`, merge through the protected default branch,
+   and run `validate-canonical-closeout.py` from a current checkout. Keep
+   evidence-only results explicitly classified and digest-bound.
 
 ---
 

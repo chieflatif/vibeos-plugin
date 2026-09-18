@@ -17,7 +17,7 @@ set -euo pipefail
 #   REQUIRE_CIRCUIT_BREAKERS — Require circuit breaker pattern (default: false)
 #   EXCLUDE_DIRS      — Colon-separated directories to exclude
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 GATE_NAME="validate-resilience-patterns"
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"

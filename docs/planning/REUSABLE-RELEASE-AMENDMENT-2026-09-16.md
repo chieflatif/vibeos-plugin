@@ -1,8 +1,8 @@
----
-status: Complete
-model_policy: implementation
----
-# WO-132 — reusable release amendment
+# Reusable release amendment — September 16, 2026
+
+Historical note: this record was originally mislabelled `WO-132`, colliding
+with the planned vNext Apply + Preserve + Rollback Engine. It is a release
+amendment, not that work order; the content below remains historical evidence.
 
 ## Objective
 Deliver the approved reusable VibeOS changes through the existing generic profile

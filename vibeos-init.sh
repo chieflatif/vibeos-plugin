@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.1"
+FRAMEWORK_VERSION="2.3.2"
 
 # ─── VibeOS Bootstrap ────────────────────────────────────────────────────────
 # Installs VibeOS governance framework into a target project's .claude/ and
@@ -557,7 +557,7 @@ Slash commands (`/discover`, `/build`, etc.) still work and always take preceden
 - Shell scripts: `#!/usr/bin/env bash`, `set -euo pipefail` (exception: hook scripts that read stdin omit pipefail)
 - Exit codes: 0 = pass, 1 = fail, 2 = skip/block
 - Logging: `echo "[COMPONENT] PASS|FAIL|WARN|SKIP: message"`
-- Version: `FRAMEWORK_VERSION="2.3.1"` or equivalent constant in every script
+- Version: `FRAMEWORK_VERSION="2.3.2"` or equivalent constant in every script
 - Skills: SKILL.md with YAML frontmatter in skill directories
 - Agents: .md files with YAML frontmatter in agents/
 - State files: `.vibeos/session-state.json` (active session), `.claude/quality-gate-manifest.json` (gate registry)
@@ -605,7 +605,7 @@ init_project_config() {
     mkdir -p "$TARGET_DIR/.vibeos"
     cat > "$config_file" << 'CONFIG_EOF'
 {
-  "framework_version": "2.3.1",
+  "framework_version": "2.3.2",
   "autonomy_level": "wo",
   "project_mode": "pending",
   "lifecycle_state": "virgin"

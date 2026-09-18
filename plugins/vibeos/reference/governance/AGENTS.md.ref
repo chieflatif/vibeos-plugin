@@ -22,6 +22,9 @@ Surface-specific files such as `CLAUDE.md`, `.claude/CLAUDE.md`, `AGENTS.md` for
 8. Session-scoped git discipline applies. No bulk staging, no silent dirty-state commits.
 9. Audit discipline applies. Mechanical gates alone are not sufficient.
 10. Author/auditor role separation applies for high-risk work.
+11. Acceptance and canonical adoption are separate. Accepted product source must
+    reach the protected remote default branch and pass fresh-clone closeout;
+    evidence-only acceptance must bind an exact artifact and digest there.
 
 ## Canonical Read Order
 
@@ -53,6 +56,9 @@ At minimum, keep these aligned:
 - Run the relevant gate phase before commit.
 - Dispatch the required reasoning audits before closing work.
 - Do not self-waive findings.
+- Do not call a product baseline current, adopted, released, or shareable from a
+  temporary worktree, archive, local-only commit, or topic branch. Keep the
+  milestone in `Awaiting Canonical Promotion` until canonical closeout passes.
 
 ## Runtime Layering
 

@@ -694,6 +694,11 @@ After all agents succeed:
    - relevant tests passing
    - relevant blocking gates and audits resolved
    - repo left in a resumable, unambiguous state
+   - when this WO establishes an accepted reusable product baseline, canonical
+     adoption is proved separately from implementation acceptance: the exact
+     accepted commit/tree is bound in `.vibeos/canonical-closeout.json`, reaches
+     the protected remote default branch, and passes the fresh-clone
+     `validate-canonical-closeout.py` check
 2. If any item above is still false, do **not** mark the WO `Complete`. Use the most accurate partial state instead:
    - `Implemented Locally`
    - `Awaiting Gate Cleanup`
@@ -701,6 +706,7 @@ After all agents succeed:
    - `Dev-Mode Complete`
    - `Awaiting Checkpoint`
    - `Awaiting Evidence`
+   - `Awaiting Canonical Promotion`
 3. Mark WO status as `Complete` in the WO file only when the truthfulness check passes (if doc-writer didn't already)
 4. Update WO-INDEX.md and DEVELOPMENT-PLAN.md to match the truthful final state and add the completion date only when the WO is actually `Complete`
 5. Clean up `.vibeos/current-agent.txt`

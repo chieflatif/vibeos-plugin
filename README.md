@@ -1,10 +1,13 @@
 # VibeOS — Autonomous Development Engine
 
-> **2.3.1 — reusable engineering controls.**
-> The profile installer now carries the reusable evidence-control package.
+> **2.3.2 — canonical acceptance closeout.**
+> Accepted product source can no longer be treated as adopted while it exists
+> only in a temporary worktree, archive or topic branch. The new closeout
+> validator proves the exact acceptance binding from a fresh clone of the remote
+> default branch and keeps evidence-only acceptance explicitly separate.
 > See [installation and customization](docs/INSTALLATION.md),
 > [controlled evaluation](docs/CONTROLLED-EVALUATION.md) and
-> [release evidence](docs/release/2.3.1.md).
+> [release evidence](docs/release/2.3.2.md).
 
 
 > **v2.2.0 — Evidence Recall Upgrade (2026-04-24)**

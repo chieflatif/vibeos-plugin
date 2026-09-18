@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.1"
+FRAMEWORK_VERSION = "2.3.2"
 FAILURE_REPORT = ".vibeos/autonomy/failure-report.json"
 RECOVERY_PLAN = ".vibeos/autonomy/recovery-plan.json"
 

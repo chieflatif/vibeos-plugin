@@ -1,5 +1,5 @@
 {
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "Declarative gate manifest — catalogs every script with tier, blocking, phase, and env configuration. The gate-runner reads this to determine which gates to execute per phase.",
   "gates": [
     {"script": "scripts/validate-no-secrets.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"SCAN_PATTERNS": "azure_connection_strings,sas_tokens,aws_keys,api_tokens,jwts,private_keys"}},
@@ -69,6 +69,7 @@
   ],
   "utility_scripts": [
     {"script": "scripts/gate-runner.sh", "purpose": "Orchestrates gate execution by phase"},
+    {"script": "scripts/validate-canonical-closeout.py", "purpose": "Proves accepted source or evidence is recoverable from the remote default branch through a fresh clone"},
     {"script": "scripts/session-commit.sh", "purpose": "Stages named files, validates, and commits with an agent trailer"},
     {"script": "scripts/dispatch-audit.sh", "purpose": "Creates and aggregates audit dispatch packages"},
     {"script": "scripts/audit-ratchet.sh", "purpose": "Prevents phase finding counts from growing silently"},
