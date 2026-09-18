@@ -6,6 +6,7 @@ phase: 41
 phase_name: Agent-Team Pilot
 wo_class: harness
 write_scope:
+  - docs/release/2.3.2-canonical-closeout.json
   - docs/planning/WO-153-canonical-acceptance-closeout.md
   - docs/planning/WO-INDEX.md
   - docs/planning/DEVELOPMENT-PLAN.md
