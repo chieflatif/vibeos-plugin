@@ -166,6 +166,7 @@
         "plugins/vibeos/scripts/autonomy_lease.py",
         "plugins/vibeos/scripts/capture-headless-cost.py",
         "plugins/vibeos/scripts/check-lane-readiness.sh",
+        "plugins/vibeos/scripts/claude-companion-audit.py",
         "plugins/vibeos/scripts/codex-audit-adapter.sh",
         "plugins/vibeos/scripts/codex-audit-broker.sh",
         "plugins/vibeos/scripts/comp-dossier.py",
@@ -191,6 +192,7 @@
         "plugins/vibeos/scripts/install_recovery.py",
         "plugins/vibeos/scripts/lane-readiness.py",
         "plugins/vibeos/scripts/limit-aware-scheduler.py",
+        "plugins/vibeos/scripts/local-engineering-intake.py",
         "plugins/vibeos/scripts/night-loop.sh",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
         "plugins/vibeos/scripts/profile_install.py",
@@ -258,7 +260,7 @@
         "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py",
         "plugins/vibeos/scripts/workstation-package.sh"
       ],
-      "value": 110
+      "value": 112
     },
     {
       "claim": "Decision engine files",
@@ -438,6 +440,7 @@
         "tests/test_agent_team_pilot_plan.py",
         "tests/test_ai_failure_modes.py",
         "tests/test_canonical_closeout.py",
+        "tests/test_claude_companion_audit.py",
         "tests/test_code_complexity_required.py",
         "tests/test_code_quality_project_root.py",
         "tests/test_codex_bootstrap.py",
@@ -466,6 +469,7 @@
         "tests/test_lane_loop_stop.py",
         "tests/test_lane_packet_schema.py",
         "tests/test_lane_readiness.py",
+        "tests/test_local_engineering_intake.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_model_policy.py",
         "tests/test_model_policy_guard.py",
@@ -484,7 +488,7 @@
         "tests/test_workflow_audit_sweep.py",
         "tests/test_workflow_governance.py"
       ],
-      "value": 49
+      "value": 51
     },
     {
       "claim": "Work order documents",
@@ -630,9 +634,11 @@
         "docs/planning/WO-150-profile-install-name-integrity.md",
         "docs/planning/WO-151-profile-target-skill-support.md",
         "docs/planning/WO-152-gate-runner-fail-closed-missing-gates.md",
-        "docs/planning/WO-153-canonical-acceptance-closeout.md"
+        "docs/planning/WO-153-canonical-acceptance-closeout.md",
+        "docs/planning/WO-156-local-engineering-intake-triage.md",
+        "docs/planning/WO-157-claude-companion-audit-verification.md"
       ],
-      "value": 139
+      "value": 141
     },
     {
       "claim": "Quality gate manifest entries",
@@ -677,8 +683,8 @@
       "value": false
     }
   ],
-  "framework_version": "2.3.2",
-  "generated_at": "2026-09-18T20:45:36Z",
+  "framework_version": "2.4.0",
+  "generated_at": "2026-09-20T23:33:26Z",
   "git": {
     "current_branch_expected": "main",
     "public_tag_status": "not_selected"
@@ -803,7 +809,7 @@
       "claim_label": "Quality gate manifest entries",
       "gate_entries": 58,
       "manifest_path": "plugins/vibeos/quality-gate-manifest.json",
-      "manifest_version": "2.3.2",
+      "manifest_version": "2.4.0",
       "missing_gate_scripts": [],
       "phase_counts": {
         "comp_gauntlet": 12,
@@ -1001,7 +1007,7 @@
     },
     "scripts": {
       "claim_label": "Shared runtime scripts",
-      "count": 110,
+      "count": 112,
       "paths": [
         "plugins/vibeos/scripts/activate-session.sh",
         "plugins/vibeos/scripts/architecture-rules.example.json",
@@ -1022,6 +1028,7 @@
         "plugins/vibeos/scripts/autonomy_lease.py",
         "plugins/vibeos/scripts/capture-headless-cost.py",
         "plugins/vibeos/scripts/check-lane-readiness.sh",
+        "plugins/vibeos/scripts/claude-companion-audit.py",
         "plugins/vibeos/scripts/codex-audit-adapter.sh",
         "plugins/vibeos/scripts/codex-audit-broker.sh",
         "plugins/vibeos/scripts/comp-dossier.py",
@@ -1047,6 +1054,7 @@
         "plugins/vibeos/scripts/install_recovery.py",
         "plugins/vibeos/scripts/lane-readiness.py",
         "plugins/vibeos/scripts/limit-aware-scheduler.py",
+        "plugins/vibeos/scripts/local-engineering-intake.py",
         "plugins/vibeos/scripts/night-loop.sh",
         "plugins/vibeos/scripts/plugin-upgrade.sh",
         "plugins/vibeos/scripts/profile_install.py",
@@ -1114,17 +1122,18 @@
         "plugins/vibeos/scripts/workflow-audit-sweep-evidence.py",
         "plugins/vibeos/scripts/workstation-package.sh"
       ],
-      "python_count": 44,
+      "python_count": 46,
       "shell_count": 64
     },
     "tests": {
       "claim_label": "Python test modules",
-      "count": 49,
+      "count": 51,
       "paths": [
         "tests/test_agent_team_pilot_execution.py",
         "tests/test_agent_team_pilot_plan.py",
         "tests/test_ai_failure_modes.py",
         "tests/test_canonical_closeout.py",
+        "tests/test_claude_companion_audit.py",
         "tests/test_code_complexity_required.py",
         "tests/test_code_quality_project_root.py",
         "tests/test_codex_bootstrap.py",
@@ -1153,6 +1162,7 @@
         "tests/test_lane_loop_stop.py",
         "tests/test_lane_packet_schema.py",
         "tests/test_lane_readiness.py",
+        "tests/test_local_engineering_intake.py",
         "tests/test_long_run_autonomy.py",
         "tests/test_model_policy.py",
         "tests/test_model_policy_guard.py",
@@ -1174,7 +1184,7 @@
     },
     "work_orders": {
       "claim_label": "Work order documents",
-      "count": 139,
+      "count": 141,
       "paths": [
         "docs/planning/WO-000-technical-spike.md",
         "docs/planning/WO-001-repo-setup.md",
@@ -1314,7 +1324,9 @@
         "docs/planning/WO-150-profile-install-name-integrity.md",
         "docs/planning/WO-151-profile-target-skill-support.md",
         "docs/planning/WO-152-gate-runner-fail-closed-missing-gates.md",
-        "docs/planning/WO-153-canonical-acceptance-closeout.md"
+        "docs/planning/WO-153-canonical-acceptance-closeout.md",
+        "docs/planning/WO-156-local-engineering-intake-triage.md",
+        "docs/planning/WO-157-claude-companion-audit-verification.md"
       ]
     }
   },
@@ -1326,7 +1338,7 @@
     "plugin": {
       "name": "vibeos",
       "path": "plugins/vibeos/.claude-plugin/plugin.json",
-      "version": "2.3.1"
+      "version": "2.4.0"
     },
     "runtime_capabilities": {
       "generated_at": null,
@@ -1334,7 +1346,7 @@
       "strategy": {}
     }
   },
-  "project_dir": "/private/tmp/vibeos-accepted-main-closure-20260918",
+  "project_dir": "/private/tmp/vibeos-local-engineering-intake",
   "public_limitations": [
     "Do not claim Codex hook parity with Claude Code.",
     "Do not claim full automatic write-time enforcement across runtimes.",

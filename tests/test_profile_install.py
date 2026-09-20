@@ -177,6 +177,83 @@ class ProfileInstallTests(unittest.TestCase):
                 (target / ".agents/skills/vibeos-local-intake/SKILL.md").exists()
             )
 
+    def test_claude_companion_audit_is_default_off(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target)
+            plan = self.analyze(target)
+            self.assertIn("claude-companion-audit", plan["skipped_modules"])
+            self.assertNotIn("claude-companion-audit", plan["enabled_modules"])
+            self.apply(target)
+            self.assertFalse(
+                (target / ".vibeos/scripts/claude-companion-audit.py").exists()
+            )
+            self.assertFalse(
+                (
+                    target
+                    / ".agents/skills/vibeos-claude-companion-audit/SKILL.md"
+                ).exists()
+            )
+
+    def test_claude_companion_audit_opt_in_installs_enforced_surfaces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target)
+            profile = target / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "project_name": "Companion Audit Fixture",
+                        "mode": "product-engineering",
+                        "phase_audit_runtime": "claude",
+                        "enabled_modules": ["claude-companion-audit"],
+                        "claude_companion_audit": {"enabled": True},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            plan = self.analyze(target, profile=profile)
+            self.assertIn("claude-companion-audit", plan["enabled_modules"])
+            self.assertEqual(
+                plan["profile"]["claude_companion_audit"]["model"],
+                "claude-fable-5-1",
+            )
+            self.assertTrue(
+                any(
+                    gate["name"] == "claude-companion-audit-closure"
+                    and gate["blocking"]
+                    for gate in plan["active_gates"]
+                )
+            )
+            self.apply(target)
+            self.assertTrue(
+                (target / ".vibeos/scripts/claude-companion-audit.py").is_file()
+            )
+            self.assertTrue(
+                (target / ".vibeos/scripts/validate-independent-audit.sh").is_file()
+            )
+            for root in [".agents", ".codex", ".claude"]:
+                skill = (
+                    target
+                    / root
+                    / "skills/vibeos-claude-companion-audit/SKILL.md"
+                )
+                self.assertTrue(skill.is_file())
+                self.assertIn(
+                    "Do not run another broad audit",
+                    skill.read_text(encoding="utf-8"),
+                )
+            manifest = json.loads(
+                (target / ".claude/quality-gate-manifest.json").read_text()
+            )
+            closure = next(
+                gate
+                for gate in manifest["gates"]
+                if gate["name"] == "claude-companion-audit-closure"
+            )
+            self.assertEqual(closure["phase"], "wo_exit")
+            self.assertTrue(closure["blocking"])
+
     def test_local_engineering_intake_opt_in_installs_all_skill_surfaces(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp)

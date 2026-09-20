@@ -18,7 +18,7 @@ installer copies login sessions, credentials, global settings or private project
 ## Clone an exact release
 
 ```bash
-git clone --branch v2.3.1 --single-branch https://github.com/chieflatif/vibeos-plugin.git
+git clone --branch v2.4.0 --single-branch https://github.com/chieflatif/vibeos-plugin.git
 cd vibeos-plugin
 git rev-parse HEAD
 ```
@@ -102,6 +102,13 @@ Use [controlled evaluation](CONTROLLED-EVALUATION.md) to bind engineering result
 to protected specifications and exact required checks. Pick agent models from the
 models available on that Mac; use smaller models for bounded work and independent
 review for consequential changes.
+
+For Codex-led projects that require a separate Claude audit, explicitly enable the
+disabled-by-default `claude-companion-audit` module and set
+`phase_audit_runtime` to `claude`. The project must have an authenticated first-party
+Claude Code CLI available to the backend process. VibeOS does not install or copy that
+login. The module runs one frozen full audit and then targeted verification of the
+original findings; see [Claude companion audit](CLAUDE-COMPANION-AUDIT.md).
 
 ## Upgrade and recover
 

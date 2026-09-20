@@ -19,7 +19,7 @@
 #   2 = configuration error
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.2"
+FRAMEWORK_VERSION="2.4.0"
 GATE_NAME="validate-independent-audit"
 
 usage() {
@@ -146,9 +146,11 @@ fi
 
 SESSION_AUDIT_KIND=""
 SESSION_AUDIT_WO=""
+COMPANION_RECEIPT=""
 if [[ -f "$SESSION_STATE_FILE" ]] && command -v jq >/dev/null 2>&1; then
   SESSION_AUDIT_KIND="$(jq -r '.last_audit_report_type // empty' "$SESSION_STATE_FILE" 2>/dev/null || echo "")"
   SESSION_AUDIT_WO="$(jq -r '.last_audit_work_order // empty' "$SESSION_STATE_FILE" 2>/dev/null || echo "")"
+  COMPANION_RECEIPT="$(jq -r '.last_claude_companion_receipt // empty' "$SESSION_STATE_FILE" 2>/dev/null || echo "")"
 fi
 
 if [[ -n "$SESSION_AUDIT_KIND" && "$SESSION_AUDIT_KIND" != "post-implementation" ]]; then
@@ -159,6 +161,37 @@ fi
 if [[ -n "$SESSION_AUDIT_WO" && "$SESSION_AUDIT_WO" != "$ACTIVE_WO" ]]; then
   echo "[$GATE_NAME] FAIL: Registered audit targets '$SESSION_AUDIT_WO' but active WO is '$ACTIVE_WO'"
   exit 1
+fi
+
+COMPANION_REQUIRED="false"
+if [[ -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]] && command -v jq >/dev/null 2>&1; then
+  COMPANION_REQUIRED="$(jq -r '
+    if ((.active_modules // []) | index("claude-companion-audit")) != null
+       and (.phase_audit_runtime // "") == "claude"
+    then "true" else "false" end
+  ' "$PROJECT_ROOT/.vibeos/project-profile.json" 2>/dev/null || echo "false")"
+fi
+
+if [[ "$COMPANION_REQUIRED" == "true" ]]; then
+  if [[ -z "$COMPANION_RECEIPT" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion audit is enabled but no receipt is registered"
+    exit 1
+  fi
+  if [[ "$COMPANION_RECEIPT" != /* ]]; then
+    COMPANION_RECEIPT="$PROJECT_ROOT/$COMPANION_RECEIPT"
+  fi
+  COMPANION_VALIDATOR="$PROJECT_ROOT/.vibeos/scripts/claude-companion-audit.py"
+  if [[ ! -f "$COMPANION_VALIDATOR" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion validator is missing: $COMPANION_VALIDATOR"
+    exit 2
+  fi
+  if ! python3 "$COMPANION_VALIDATOR" validate \
+    --project-dir "$PROJECT_ROOT" \
+    --receipt "${COMPANION_RECEIPT#$PROJECT_ROOT/}" \
+    --work-order "$ACTIVE_WO"; then
+    echo "[$GATE_NAME] FAIL: Claude companion receipt is absent, stale, unresolved, or has unproved provenance"
+    exit 1
+  fi
 fi
 
 AUDIT_CONTENT="$(cat "$AUDIT_REPORT")"

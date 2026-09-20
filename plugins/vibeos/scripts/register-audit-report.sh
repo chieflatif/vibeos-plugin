@@ -20,7 +20,7 @@
 #   2 = configuration error (missing report path or file not found)
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.2"
+FRAMEWORK_VERSION="2.4.0"
 GATE_NAME="register-audit-report"
 
 if [[ $# -lt 1 ]]; then

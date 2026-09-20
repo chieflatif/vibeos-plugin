@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.2"
+FRAMEWORK_VERSION = "2.4.0"
 STATE_DIR = ".vibeos/autonomy/limit-aware"
 STATE_FILE = "limit-aware-scheduler.json"
 EVENTS_FILE = "limit-events.jsonl"

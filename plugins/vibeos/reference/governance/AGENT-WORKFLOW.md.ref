@@ -55,7 +55,10 @@ Anchor artifacts include the things the receiver should trust:
 - failing test output
 - file lists
 
-The receiving agent's output is reviewed through a fresh audit round, not silently edited into a different result.
+The receiving agent's first output is reviewed through a fresh audit round, not silently
+edited into a different result. Corrections to named findings receive a targeted
+cross-identity verification against that frozen audit. They do not trigger another
+full round unless the acceptance contract or reviewed scope materially changed.
 
 ## Degraded Mode
 

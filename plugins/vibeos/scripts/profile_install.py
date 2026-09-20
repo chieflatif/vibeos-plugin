@@ -50,7 +50,7 @@ from install_recovery import (
 )
 
 
-FRAMEWORK_VERSION = "2.3.2"
+FRAMEWORK_VERSION = "2.4.0"
 
 MODE_MODULES = {
     "minimal": [
@@ -112,6 +112,7 @@ MODE_MODULES = {
 }
 
 ALL_OPTIONAL_MODULES = [
+    "claude-companion-audit",
     "local-engineering-intake",
     "generic-prompt-routing",
     "generic-governance-prompt-scan",
@@ -139,6 +140,16 @@ LOCAL_INTAKE_DEFAULTS = {
     "reasoning_effort": "low",
     "temperature": 1.0,
     "allowed_task_types": LOCAL_INTAKE_TASK_TYPES,
+}
+
+CLAUDE_COMPANION_AUDIT_DEFAULTS = {
+    "enabled": True,
+    "model": "claude-fable-5-1",
+    "provider": "firstParty",
+    "max_budget_usd": 20.0,
+    "max_turns": 20,
+    "timeout_seconds": 2700,
+    "max_prompt_bytes": 240000,
 }
 
 DORMANT_PAYLOAD = [
@@ -218,6 +229,11 @@ PRODUCT_ENGINEERING_SCRIPTS = [
 
 LOCAL_ENGINEERING_INTAKE_SCRIPTS = ["local-engineering-intake.py"]
 
+CLAUDE_COMPANION_AUDIT_SCRIPTS = [
+    "claude-companion-audit.py",
+    "validate-independent-audit.sh",
+]
+
 EVIDENCE_SCRIPTS = [
     "evidence-recall.py",
     "validate-evidence-bundle.sh",
@@ -275,6 +291,7 @@ PRODUCT_SKILLS = [
 OPTIONAL_SKILLS = {
     "comp": ["vibeos-comp"],
     "autonomy": ["vibeos-autonomous"],
+    "claude-companion-audit": ["vibeos-claude-companion-audit"],
     "local-engineering-intake": ["vibeos-local-intake"],
 }
 
@@ -577,6 +594,64 @@ def normalize_local_intake_config(profile: dict[str, Any]) -> dict[str, Any] | N
     return config
 
 
+def normalize_claude_companion_audit_config(
+    profile: dict[str, Any],
+) -> dict[str, Any] | None:
+    enabled_modules = profile.get("enabled_modules", [])
+    disabled_modules = profile.get("disabled_modules", [])
+    selected = "claude-companion-audit" in enabled_modules
+    if selected and "claude-companion-audit" in disabled_modules:
+        raise InstallError(
+            "claude-companion-audit cannot be both enabled and disabled"
+        )
+    raw = profile.get("claude_companion_audit")
+    if not selected:
+        if isinstance(raw, dict) and raw.get("enabled") is True:
+            raise InstallError(
+                "claude_companion_audit.enabled requires "
+                "claude-companion-audit in enabled_modules"
+            )
+        return None
+    if profile.get("phase_audit_runtime", "claude") != "claude":
+        raise InstallError(
+            "claude-companion-audit requires phase_audit_runtime=claude"
+        )
+    if not isinstance(raw, dict) or raw.get("enabled") is not True:
+        raise InstallError(
+            "the claude-companion-audit module requires "
+            "claude_companion_audit.enabled=true"
+        )
+    unknown = sorted(set(raw) - set(CLAUDE_COMPANION_AUDIT_DEFAULTS))
+    if unknown:
+        raise InstallError(
+            "unknown claude_companion_audit field(s): " + ", ".join(unknown)
+        )
+    config = {**CLAUDE_COMPANION_AUDIT_DEFAULTS, **raw}
+    if config["model"] != "claude-fable-5-1":
+        raise InstallError(
+            "claude_companion_audit.model must be claude-fable-5-1"
+        )
+    if config["provider"] != "firstParty":
+        raise InstallError(
+            "claude_companion_audit.provider must be firstParty"
+        )
+    numeric_bounds = {
+        "max_budget_usd": (1, 25),
+        "max_turns": (1, 30),
+        "timeout_seconds": (30, 3600),
+        "max_prompt_bytes": (50000, 500000),
+    }
+    for name, (minimum, maximum) in numeric_bounds.items():
+        value = config[name]
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise InstallError(f"claude_companion_audit.{name} is invalid")
+        if name != "max_budget_usd" and not isinstance(value, int):
+            raise InstallError(f"claude_companion_audit.{name} must be an integer")
+        if not minimum <= value <= maximum:
+            raise InstallError(f"claude_companion_audit.{name} is invalid")
+    return config
+
+
 def load_profile(profile_path: Path | None, target: Path, mode: str) -> dict[str, Any]:
     profile: dict[str, Any]
     if profile_path:
@@ -619,6 +694,9 @@ def load_profile(profile_path: Path | None, target: Path, mode: str) -> dict[str
     local_intake = normalize_local_intake_config(profile)
     if local_intake is not None:
         normalized["local_engineering_intake"] = local_intake
+    claude_audit = normalize_claude_companion_audit_config(profile)
+    if claude_audit is not None:
+        normalized["claude_companion_audit"] = claude_audit
     return normalized
 
 
@@ -647,6 +725,12 @@ def skipped_modules(enabled: list[str], mode: str) -> list[str]:
 
 
 def selected_scripts(source: Path, enabled: list[str]) -> list[str]:
+    if "claude-companion-audit" in enabled:
+        for script in CLAUDE_COMPANION_AUDIT_SCRIPTS:
+            if not (source / "scripts" / script).is_file():
+                raise InstallError(
+                    f"claude-companion-audit source script is missing: {script}"
+                )
     if "local-engineering-intake" in enabled:
         for script in LOCAL_ENGINEERING_INTAKE_SCRIPTS:
             if not (source / "scripts" / script).is_file():
@@ -673,6 +757,8 @@ def selected_scripts(source: Path, enabled: list[str]) -> list[str]:
         scripts.extend(COMMIT_MESSAGE_SCRIPTS)
     if "local-engineering-intake" in enabled:
         scripts.extend(LOCAL_ENGINEERING_INTAKE_SCRIPTS)
+    if "claude-companion-audit" in enabled:
+        scripts.extend(CLAUDE_COMPANION_AUDIT_SCRIPTS)
 
     existing = []
     for script in dict.fromkeys(scripts):
@@ -851,9 +937,37 @@ def render_local_intake_skill(profile: dict[str, Any], profile_hash: str) -> str
     )
 
 
+def render_claude_companion_audit_skill(
+    profile: dict[str, Any], profile_hash: str
+) -> str:
+    skill = "vibeos-claude-companion-audit"
+    template_id = f"skill.{skill}.v1"
+    source_hash = sha256_text(template_id)
+    return (
+        "---\n"
+        + f"name: {skill}\n"
+        + "description: Run one frozen independent Claude audit for a completed engineering unit, then verify only its named corrections unless the acceptance contract or review scope changes.\n"
+        + "---\n\n"
+        + generated_header(template_id, profile_hash, source_hash)
+        + f"# Claude Companion Audit — {profile['project_name']}\n\n"
+        + "Use this skill only when `.vibeos/project-profile.json` activates "
+        + "`claude-companion-audit`. It is the cross-identity review lane for "
+        + "Codex-authored material work; deterministic gates remain separate.\n\n"
+        + "## Required sequence\n\n"
+        + "1. Freeze the completed candidate in Git and create a committed scope manifest naming the work order, acceptance-contract files, exact review paths, evidence paths, and an empty `finding_ids` list.\n"
+        + "2. Run `python3 .vibeos/scripts/claude-companion-audit.py full ...` once. Preserve its JSON receipt and Markdown report.\n"
+        + "3. If it finds issues, fix them without changing the acceptance contract. Create a correction manifest naming every original finding ID and only the correction paths/evidence.\n"
+        + "4. Run `python3 .vibeos/scripts/claude-companion-audit.py verification ... --parent-receipt <full receipt>`. Do not run another broad audit merely because corrections were made.\n"
+        + "5. Run `bash .vibeos/scripts/validate-independent-audit.sh <work-order> <report>` before closure.\n\n"
+        + "A changed acceptance contract, correction outside the original review scope, or a new material blocker requires a new full audit. The CLI pins `claude-fable-5-1`, first-party provider provenance, restricted tool-free execution, structured output, bounded spend/turns, and no session persistence. If authentication or exact provenance cannot be proved, closure stays blocked.\n"
+    )
+
+
 def render_skill(skill: str, profile: dict[str, Any], profile_hash: str) -> str:
     if skill == "vibeos-local-intake":
         return render_local_intake_skill(profile, profile_hash)
+    if skill == "vibeos-claude-companion-audit":
+        return render_claude_companion_audit_skill(profile, profile_hash)
     template_id = f"skill.{skill}.v1"
     source_hash = sha256_text(template_id)
     summary = render_profile_summary(profile)
@@ -1100,6 +1214,18 @@ def render_gate_manifest(
             "env": {},
         },
     ]
+    companion_enabled = "claude-companion-audit" in modules_for_profile(profile)
+    if companion_enabled:
+        gates.append(
+            {
+                "name": "claude-companion-audit-closure",
+                "script": "scripts/validate-independent-audit.sh",
+                "tier": 1,
+                "blocking": True,
+                "phase": "wo_exit",
+                "env": {},
+            }
+        )
     documented_validators = documented_checks(validators)
     documented_primary_gates = documented_checks(
         [
@@ -1123,6 +1249,16 @@ def render_gate_manifest(
                 "description": "Comprehensive active-surface audit",
                 "enabled": True,
             },
+            **(
+                {
+                    "wo_exit": {
+                        "description": "Work-order closeout including the exact Claude companion receipt",
+                        "enabled": True,
+                    }
+                }
+                if companion_enabled
+                else {}
+            ),
         },
     }
     return json_dumps(manifest)
@@ -1623,7 +1759,7 @@ def build_outputs(plan: dict[str, Any], source: Path) -> list[dict[str, Any]]:
 def planned_active_gates(
     profile: dict[str, Any], validators: list[dict[str, str]]
 ) -> list[dict[str, Any]]:
-    del profile, validators
+    del validators
     gates = [
         {
             "name": "vibeos-active-surface-audit",
@@ -1638,6 +1774,15 @@ def planned_active_gates(
             "blocking": True,
         },
     ]
+    if "claude-companion-audit" in modules_for_profile(profile):
+        gates.append(
+            {
+                "name": "claude-companion-audit-closure",
+                "phase": "wo_exit",
+                "command": "bash .vibeos/scripts/validate-independent-audit.sh",
+                "blocking": True,
+            }
+        )
     return gates
 
 

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.2"
+FRAMEWORK_VERSION = "2.4.0"
 TIMEOUT_SECONDS = 10
 
 # Claude Code capability version thresholds (dotted-int tuples).

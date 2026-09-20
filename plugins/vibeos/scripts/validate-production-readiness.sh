@@ -14,7 +14,7 @@
 # Exit codes: 0 = pass/skip, 1 = fail, 2 = skip (prototype or missing config)
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.2"
+FRAMEWORK_VERSION="2.4.0"
 GATE_NAME="validate-production-readiness"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

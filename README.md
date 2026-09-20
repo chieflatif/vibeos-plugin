@@ -1,5 +1,13 @@
 # VibeOS — Autonomous Development Engine
 
+> **2.4.0 — provider-proven companion audit efficiency.**
+> Codex-led projects can opt into one frozen first-party Claude audit and then
+> verify only the named corrections. Exact contract, commit, scope, diff,
+> provider/model and drift receipts now block false closeout without repeatedly
+> paying for a broad audit. See
+> [Claude companion audit](docs/CLAUDE-COMPANION-AUDIT.md) and
+> [release evidence](docs/release/2.4.0.md).
+
 > **2.3.2 — canonical acceptance closeout.**
 > Accepted product source can no longer be treated as adopted while it exists
 > only in a temporary worktree, archive or topic branch. The new closeout
@@ -84,6 +92,7 @@ Examples:
 - **Session Audits** — Reviews the current or most recent build session end-to-end so you can close out autonomous work with confidence
 - **Evidence Recall** — Builds a local source-cited index so status, build, audit, and planning work can find the right prior evidence with less context
 - **Optional Local Intake** — Routes opted-in, low-consequence engineering logs and receipts through a loopback local model behind closed-schema and evidence validation, while the parent keeps every decision and effect
+- **Optional Claude Companion Audit** — Runs one provider-proven full Claude audit for a frozen Codex-authored work unit, then checks only the named fixes unless the acceptance contract or scope changes
 - **Anti-Drift Anchors** — Keeps the build tied to the product promise, engineering standards, and current evidence instead of slowly drifting off course
 - **Prompt Engineering Standards** — Routes prompt and agent-instruction changes through a dedicated prompt-engineering path using the embedded Prompt Engineering Bible
 - **Progress Guidance** — Tells you what is happening, what is done, and what should happen next
@@ -145,6 +154,11 @@ Profile-installed projects may also opt into the disabled-by-default local engin
 intake lane. It handles bounded CI, test, lint, build, dependency, static-analysis, and
 release-receipt triage only; it is not a coding or audit worker. See
 [Local Engineering Intake and Triage](docs/LOCAL-ENGINEERING-INTAKE.md).
+
+Consequential Codex-authored work may opt into the separate Claude companion audit
+module. It pins first-party `claude-fable-5-1`, binds review to exact Git and
+acceptance-contract bytes, and replaces repeated broad audits with targeted correction
+verification. See [Claude Companion Audit](docs/CLAUDE-COMPANION-AUDIT.md).
 
 The Claude marketplace catalog remains available. Current Claude documentation
 supports skills, agents and hooks in plugins, but a successful marketplace install

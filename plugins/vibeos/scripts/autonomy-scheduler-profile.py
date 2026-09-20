@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.3.2"
+FRAMEWORK_VERSION = "2.4.0"
 SUPPORTED_PROFILES = {"shell", "cron", "launchd", "github-actions"}
 
 

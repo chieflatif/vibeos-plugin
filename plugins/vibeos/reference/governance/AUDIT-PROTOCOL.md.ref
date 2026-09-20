@@ -98,6 +98,13 @@ Waivers:
 7. Resolve blocking findings or record signed waivers
 8. At phase exit, run `bash scripts/audit-ratchet.sh <phase-id> --save-baseline`
 
+When a full audit reports findings, freeze that audit and keep its finding IDs.
+After corrections, recheck those findings, the correction diff, immediate affected
+behavior, and new deterministic evidence. Do not pay for another broad audit merely
+because fixes were made. A changed acceptance contract, correction outside the
+original review scope, or new material blocker invalidates the frozen baseline and
+requires a new full audit.
+
 ## Findings Format
 
 Each findings file should follow this shape:
