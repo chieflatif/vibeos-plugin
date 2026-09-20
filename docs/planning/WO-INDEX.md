@@ -61,6 +61,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-144 | Enterprise internal-marketplace mode | 46 | Planned | master-plan |
 | WO-148 | Optional Workstation Package Harness | 47 | Complete | frontmatter |
 | WO-149 | Current Machine Compatible Toolchain Upgrade | 47 | Draft | frontmatter |
+| WO-156 | Opt-In Local Engineering Intake and Triage | 48 | Complete | frontmatter |
 <!-- VIBEOS-GENERATED-END: wo-frontmatter-index -->
 
 ## Backlog

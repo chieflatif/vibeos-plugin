@@ -1,0 +1,43 @@
+{
+  "attempts": 2,
+  "authority": "advisory_intake_only",
+  "duration_ms": 9539,
+  "fallback_owner": "parent_runtime",
+  "model": "gpt-oss-120b",
+  "reason_code": null,
+  "result": {
+    "category": "test",
+    "errors": [
+      {
+        "evidence_quote": "E assert 3 == 4",
+        "message": "Assertion failed: expected 4 but got 3",
+        "source_location": "tests/test_math.py::test_add"
+      }
+    ],
+    "evidence": [
+      {
+        "quote": "FAILED tests/test_math.py::test_add",
+        "significance": "Identifies which test failed"
+      },
+      {
+        "quote": "E assert 3 == 4",
+        "significance": "Shows the assertion mismatch causing failure"
+      }
+    ],
+    "next_action": "Investigate the failing test and fix the code or test expectations.",
+    "requires_escalation": false,
+    "retryable": false,
+    "schema_version": 1,
+    "summary": "Test failure in test_math.py: test_add expected 4 but got 3.",
+    "target": "tests/test_math.py::test_add",
+    "task_type": "test-failure-triage",
+    "uncertainty": "low"
+  },
+  "schema_version": 1,
+  "status": "accepted",
+  "task_type": "test-failure-triage",
+  "usage": {
+    "completion_tokens": 385,
+    "prompt_tokens": 1351
+  }
+}

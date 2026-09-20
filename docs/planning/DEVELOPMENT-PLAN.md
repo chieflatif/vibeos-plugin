@@ -656,6 +656,23 @@ Note: WO-numbering is allocation order, not execution order (WO-139 executes in 
 
 ---
 
+## Phase 48: Local Model Task Routing
+
+**Goal:** Reduce frontier-model token use on high-volume, low-consequence engineering
+intake without lowering the authority or evidence bar for implementation and acceptance.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-156 | Opt-In Local Engineering Intake and Triage | Profile installer; matched local-model evidence | Complete |
+
+The local lane is disabled by default. It may classify only bounded engineering
+artifacts behind deterministic input/output validation. The parent runtime retains all
+planning, implementation, audit, acceptance, Git, deployment, and external-effect
+authority, and any invalid or unavailable local result returns to the parent after one
+retry.
+
+---
+
 ## Contingency Plans
 
 If Phase 0 spike or Phase 1 post-audit reveals failed assumptions:

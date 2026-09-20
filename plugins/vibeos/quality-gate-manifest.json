@@ -94,6 +94,7 @@
     {"script": "scripts/detect-runtime-capabilities.sh", "purpose": "Detects local Codex/Claude runtime capabilities and orchestration limits"},
     {"script": "scripts/runtime-capabilities.py", "purpose": "Testable parser and JSON writer for runtime capability detection"},
     {"script": "scripts/workstation-package.sh", "purpose": "Optional macOS workstation package checker, installer dry-run, and post-install verifier"},
+    {"script": "scripts/local-engineering-intake.py", "purpose": "Runs disabled-by-default, loopback-only structured engineering intake with closed-schema evidence validation and bounded fallback"},
     {"script": "scripts/comp-plan.py", "purpose": "Generates VibOS Comp execution plans and worktree scope manifests from MISSION.md"},
     {"script": "scripts/comp-integration-check.py", "purpose": "Checks VibOS Comp work package evidence before integrated gauntlet execution"},
     {"script": "scripts/comp-scorecard.py", "purpose": "Generates VibOS Comp SCORECARD.md with normalized dimension pass/warn/fail results"},
