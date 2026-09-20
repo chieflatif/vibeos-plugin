@@ -54,6 +54,19 @@ plan.
 Minimal and product-engineering modes do not copy `.vibeos/reference`,
 `.vibeos/decision-engine`, or `.vibeos/convergence`.
 
+## Optional Local Engineering Intake
+
+`local-engineering-intake` is an additive profile module and is not included by any
+mode automatically. An opted-in profile must also set
+`local_engineering_intake.enabled` to `true`; mismatched configuration fails analysis.
+
+The module installs one loopback-only, stdlib CLI plus a narrowly triggered skill for
+each supported runtime surface. The CLI accepts bounded artifacts on standard input,
+requests closed JSON from an OpenAI-compatible local endpoint, validates exact evidence
+quotes, retries once, and emits either `accepted` or `fallback_required`. It has no
+file-input, shell, Git, deployment, approval, or automatic cloud-fallback path. See
+`docs/LOCAL-ENGINEERING-INTAKE.md` for the profile contract and operator flow.
+
 ## Upgrade Safety
 
 Generated files are tracked in `.vibeos/install-lock.json` with template IDs,

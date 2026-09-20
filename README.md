@@ -83,6 +83,7 @@ Examples:
 - **Quality Checks** — Runs automated checks and audits so problems get caught early
 - **Session Audits** — Reviews the current or most recent build session end-to-end so you can close out autonomous work with confidence
 - **Evidence Recall** — Builds a local source-cited index so status, build, audit, and planning work can find the right prior evidence with less context
+- **Optional Local Intake** — Routes opted-in, low-consequence engineering logs and receipts through a loopback local model behind closed-schema and evidence validation, while the parent keeps every decision and effect
 - **Anti-Drift Anchors** — Keeps the build tied to the product promise, engineering standards, and current evidence instead of slowly drifting off course
 - **Prompt Engineering Standards** — Routes prompt and agent-instruction changes through a dedicated prompt-engineering path using the embedded Prompt Engineering Bible
 - **Progress Guidance** — Tells you what is happening, what is done, and what should happen next
@@ -139,6 +140,11 @@ verified locally before making enforcement claims.
 `vibeos-init.sh` and `vibeos-init-codex.sh` remain compatibility entrypoints.
 For project customization and upgrade recovery, use the profile installer guide.
 Avoid mixing legacy wholesale runtime replacement with a customized profile install.
+
+Profile-installed projects may also opt into the disabled-by-default local engineering
+intake lane. It handles bounded CI, test, lint, build, dependency, static-analysis, and
+release-receipt triage only; it is not a coding or audit worker. See
+[Local Engineering Intake and Triage](docs/LOCAL-ENGINEERING-INTAKE.md).
 
 The Claude marketplace catalog remains available. Current Claude documentation
 supports skills, agents and hooks in plugins, but a successful marketplace install

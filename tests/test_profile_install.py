@@ -162,6 +162,115 @@ class ProfileInstallTests(unittest.TestCase):
             codex_hooks = json.loads((target / ".codex/hooks.json").read_text(encoding="utf-8"))
             self.assertIn("UserPromptSubmit", codex_hooks["hooks"])
 
+    def test_local_engineering_intake_is_default_off(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target)
+            plan = self.analyze(target)
+            self.assertIn("local-engineering-intake", plan["skipped_modules"])
+            self.assertNotIn("local-engineering-intake", plan["enabled_modules"])
+            self.apply(target)
+            self.assertFalse(
+                (target / ".vibeos/scripts/local-engineering-intake.py").exists()
+            )
+            self.assertFalse(
+                (target / ".agents/skills/vibeos-local-intake/SKILL.md").exists()
+            )
+
+    def test_local_engineering_intake_opt_in_installs_all_skill_surfaces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            self.make_target(target)
+            profile = target / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "project_name": "IIN Impact Report Factory",
+                        "mode": "product-engineering",
+                        "enabled_modules": ["local-engineering-intake"],
+                        "local_engineering_intake": {"enabled": True},
+                    }
+                ),
+                encoding="utf-8",
+            )
+            plan = self.analyze(target, profile=profile)
+            self.assertIn("local-engineering-intake", plan["enabled_modules"])
+            config = plan["profile"]["local_engineering_intake"]
+            self.assertEqual(config["base_url"], "http://127.0.0.1:1234/v1")
+            self.assertEqual(config["model"], "gpt-oss-120b")
+            self.apply(target)
+            self.assertTrue(
+                (target / ".vibeos/scripts/local-engineering-intake.py").is_file()
+            )
+            for root in [".agents", ".codex", ".claude"]:
+                skill = target / root / "skills/vibeos-local-intake/SKILL.md"
+                self.assertTrue(skill.is_file())
+                text = skill.read_text(encoding="utf-8")
+                self.assertTrue(text.startswith("---\n"))
+                self.assertIn("advisory", text)
+                self.assertIn("fallback_required", text)
+            installed_profile = json.loads(
+                (target / ".vibeos/project-profile.json").read_text(encoding="utf-8")
+            )
+            self.assertTrue(installed_profile["local_engineering_intake"]["enabled"])
+
+    def test_local_engineering_intake_rejects_mismatched_or_remote_profile(self):
+        cases = [
+            {
+                "enabled_modules": ["local-engineering-intake"],
+                "local_engineering_intake": {"enabled": False},
+            },
+            {
+                "enabled_modules": [],
+                "local_engineering_intake": {"enabled": True},
+            },
+            {
+                "enabled_modules": ["local-engineering-intake"],
+                "local_engineering_intake": {
+                    "enabled": True,
+                    "base_url": "https://models.example.com/v1",
+                },
+            },
+            {
+                "enabled_modules": ["local-engineering-intake"],
+                "disabled_modules": ["local-engineering-intake"],
+                "local_engineering_intake": {"enabled": True},
+            },
+            {
+                "enabled_modules": ["local-engineering-intake"],
+                "local_engineering_intake": {
+                    "enabled": True,
+                    "base_url": "http://127.0.0.1:not-a-port/v1",
+                },
+            },
+        ]
+        for case in cases:
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as tmp:
+                target = Path(tmp)
+                self.make_target(target)
+                profile = target / "profile.json"
+                profile.write_text(json.dumps(case), encoding="utf-8")
+                result = subprocess.run(
+                    [
+                        str(VIBEOS),
+                        "analyze",
+                        "--target",
+                        str(target),
+                        "--source",
+                        str(REPO_ROOT),
+                        "--profile",
+                        str(profile),
+                    ],
+                    cwd=REPO_ROOT,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+                self.assertRegex(
+                    result.stdout + result.stderr,
+                    r"local[-_]engineering[-_]intake",
+                )
+
     def test_analyze_ignores_generated_agents_md_for_name_and_canon(self):
         # WO-150 AC-1/AC-4: a repo whose only heading source is a prior install's
         # generated AGENTS.md must fall back to the directory-name default and

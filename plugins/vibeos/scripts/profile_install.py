@@ -7,6 +7,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import hashlib
+import ipaddress
 import json
 import os
 import re
@@ -14,6 +15,7 @@ import signal
 import stat
 import subprocess
 import sys
+import urllib.parse
 from pathlib import Path
 from typing import Any
 
@@ -110,11 +112,34 @@ MODE_MODULES = {
 }
 
 ALL_OPTIONAL_MODULES = [
+    "local-engineering-intake",
     "generic-prompt-routing",
     "generic-governance-prompt-scan",
     "commit-msg-enforcement",
     "full-payload",
 ]
+
+LOCAL_INTAKE_TASK_TYPES = [
+    "build-log-triage",
+    "ci-log-triage",
+    "dependency-finding-triage",
+    "lint-finding-triage",
+    "release-receipt-triage",
+    "static-analysis-triage",
+    "test-failure-triage",
+]
+
+LOCAL_INTAKE_DEFAULTS = {
+    "enabled": True,
+    "base_url": "http://127.0.0.1:1234/v1",
+    "model": "gpt-oss-120b",
+    "timeout_seconds": 120,
+    "max_input_chars": 60000,
+    "max_output_tokens": 4096,
+    "reasoning_effort": "low",
+    "temperature": 1.0,
+    "allowed_task_types": LOCAL_INTAKE_TASK_TYPES,
+}
 
 DORMANT_PAYLOAD = [
     ".vibeos/reference",
@@ -191,6 +216,8 @@ PRODUCT_ENGINEERING_SCRIPTS = [
     "validate-dependencies.sh",
 ]
 
+LOCAL_ENGINEERING_INTAKE_SCRIPTS = ["local-engineering-intake.py"]
+
 EVIDENCE_SCRIPTS = [
     "evidence-recall.py",
     "validate-evidence-bundle.sh",
@@ -248,6 +275,7 @@ PRODUCT_SKILLS = [
 OPTIONAL_SKILLS = {
     "comp": ["vibeos-comp"],
     "autonomy": ["vibeos-autonomous"],
+    "local-engineering-intake": ["vibeos-local-intake"],
 }
 
 MINIMAL_ROLES = [
@@ -435,6 +463,120 @@ def detect_validators(target: Path) -> list[dict[str, str]]:
     return validators
 
 
+def normalize_local_intake_config(profile: dict[str, Any]) -> dict[str, Any] | None:
+    enabled_modules = profile.get("enabled_modules", [])
+    disabled_modules = profile.get("disabled_modules", [])
+    if not isinstance(enabled_modules, list) or any(
+        not isinstance(module, str) for module in enabled_modules
+    ):
+        raise InstallError("enabled_modules must be a list of strings")
+    if not isinstance(disabled_modules, list) or any(
+        not isinstance(module, str) for module in disabled_modules
+    ):
+        raise InstallError("disabled_modules must be a list of strings")
+    selected = "local-engineering-intake" in enabled_modules
+    if selected and "local-engineering-intake" in disabled_modules:
+        raise InstallError(
+            "local-engineering-intake cannot be both enabled and disabled"
+        )
+    raw = profile.get("local_engineering_intake")
+    if not selected:
+        if isinstance(raw, dict) and raw.get("enabled") is True:
+            raise InstallError(
+                "local_engineering_intake.enabled requires "
+                "local-engineering-intake in enabled_modules"
+            )
+        return None
+    if not isinstance(raw, dict) or raw.get("enabled") is not True:
+        raise InstallError(
+            "the local-engineering-intake module requires "
+            "local_engineering_intake.enabled=true"
+        )
+    unknown = sorted(set(raw) - set(LOCAL_INTAKE_DEFAULTS))
+    if unknown:
+        raise InstallError(
+            "unknown local_engineering_intake field(s): " + ", ".join(unknown)
+        )
+    config = {**LOCAL_INTAKE_DEFAULTS, **raw}
+    base_url = config["base_url"]
+    if not isinstance(base_url, str) or not base_url or len(base_url) > 300:
+        raise InstallError("local_engineering_intake.base_url is invalid")
+    try:
+        parsed = urllib.parse.urlsplit(base_url)
+        hostname = parsed.hostname
+    except ValueError as exc:
+        raise InstallError("local_engineering_intake.base_url is invalid") from exc
+    try:
+        parsed.port
+    except ValueError as exc:
+        raise InstallError("local_engineering_intake.base_url port is invalid") from exc
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not hostname
+        or parsed.username
+        or parsed.password
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise InstallError(
+            "local_engineering_intake.base_url must be a plain loopback HTTP(S) URL"
+        )
+    try:
+        loopback = (
+            hostname == "localhost"
+            or ipaddress.ip_address(hostname).is_loopback
+        )
+    except ValueError:
+        loopback = False
+    if not loopback:
+        raise InstallError(
+            "local_engineering_intake.base_url must use localhost or a loopback IP"
+        )
+    model = config["model"]
+    if not isinstance(model, str) or not model.strip() or len(model) > 200:
+        raise InstallError("local_engineering_intake.model is invalid")
+    integer_bounds = {
+        "timeout_seconds": (1, 300),
+        "max_input_chars": (1000, 200000),
+        "max_output_tokens": (256, 8192),
+    }
+    for name, (minimum, maximum) in integer_bounds.items():
+        value = config[name]
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, int)
+            or not minimum <= value <= maximum
+        ):
+            raise InstallError(f"local_engineering_intake.{name} is invalid")
+    temperature = config["temperature"]
+    if (
+        isinstance(temperature, bool)
+        or not isinstance(temperature, (int, float))
+        or not 0 <= temperature <= 2
+    ):
+        raise InstallError("local_engineering_intake.temperature is invalid")
+    if config["reasoning_effort"] not in {"none", "low", "medium", "high"}:
+        raise InstallError("local_engineering_intake.reasoning_effort is invalid")
+    task_types = config["allowed_task_types"]
+    if (
+        not isinstance(task_types, list)
+        or not task_types
+        or any(
+            not isinstance(task_type, str) or task_type not in LOCAL_INTAKE_TASK_TYPES
+            for task_type in task_types
+        )
+        or len(set(task_types)) != len(task_types)
+    ):
+        raise InstallError(
+            "local_engineering_intake.allowed_task_types must be a unique "
+            "non-empty subset of the supported task types"
+        )
+    config["base_url"] = base_url.rstrip("/")
+    config["model"] = model.strip()
+    config["allowed_task_types"] = list(task_types)
+    return config
+
+
 def load_profile(profile_path: Path | None, target: Path, mode: str) -> dict[str, Any]:
     profile: dict[str, Any]
     if profile_path:
@@ -474,6 +616,9 @@ def load_profile(profile_path: Path | None, target: Path, mode: str) -> dict[str
         "disabled_modules": profile.get("disabled_modules", []),
         "primary_gates": profile.get("primary_gates", []),
     }
+    local_intake = normalize_local_intake_config(profile)
+    if local_intake is not None:
+        normalized["local_engineering_intake"] = local_intake
     return normalized
 
 
@@ -502,6 +647,12 @@ def skipped_modules(enabled: list[str], mode: str) -> list[str]:
 
 
 def selected_scripts(source: Path, enabled: list[str]) -> list[str]:
+    if "local-engineering-intake" in enabled:
+        for script in LOCAL_ENGINEERING_INTAKE_SCRIPTS:
+            if not (source / "scripts" / script).is_file():
+                raise InstallError(
+                    f"local-engineering-intake source script is missing: {script}"
+                )
     if "full-payload" in enabled:
         return sorted(
             path.name
@@ -520,6 +671,8 @@ def selected_scripts(source: Path, enabled: list[str]) -> list[str]:
         scripts.extend(AUTONOMY_SCRIPTS)
     if "commit-msg-enforcement" in enabled:
         scripts.extend(COMMIT_MESSAGE_SCRIPTS)
+    if "local-engineering-intake" in enabled:
+        scripts.extend(LOCAL_ENGINEERING_INTAKE_SCRIPTS)
 
     existing = []
     for script in dict.fromkeys(scripts):
@@ -670,7 +823,37 @@ def render_claude_md(profile: dict[str, Any], profile_hash: str) -> str:
     )
 
 
+def render_local_intake_skill(profile: dict[str, Any], profile_hash: str) -> str:
+    skill = "vibeos-local-intake"
+    template_id = f"skill.{skill}.v1"
+    source_hash = sha256_text(template_id)
+    return (
+        "---\n"
+        + f"name: {skill}\n"
+        + "description: Triage bounded CI, test, lint, build, dependency, static-analysis, or release artifacts with the opted-in local model; never use for planning, implementation, acceptance, security decisions, or external actions.\n"
+        + "---\n\n"
+        + generated_header(template_id, profile_hash, source_hash)
+        + f"# Local Engineering Intake — {profile['project_name']}\n\n"
+        + "Use this skill only when `.vibeos/project-profile.json` activates "
+        + "`local-engineering-intake` and the assignment is one of its allowed task types. "
+        + "Prefer an existing deterministic parser when it can answer the question exactly.\n\n"
+        + "## Boundary\n\n"
+        + "- The local worker classifies and extracts evidence from a supplied artifact. It does not plan, write or edit code, author tests, audit, accept work, use Git, deploy, or take an external action.\n"
+        + "- Treat every accepted result as advisory. Check its evidence quotes against the supplied artifact before using its recommendation.\n"
+        + "- Do not send secrets, private client material, or an artifact outside the current task's authority. The endpoint is loopback-only, but task privacy rules still apply.\n"
+        + "- Do not manually extend its retry loop. `fallback_required` returns the assignment to the current parent runtime, which decides the next route.\n\n"
+        + "## Use\n\n"
+        + "1. Run `python3 .vibeos/scripts/local-engineering-intake.py probe --project-dir .`. Stop using this lane unless the receipt status is `ready`.\n"
+        + "2. Send one JSON request on stdin with `schema_version`, `task_type`, `objective`, `artifact`, and scalar `context` fields. Run `python3 .vibeos/scripts/local-engineering-intake.py run --project-dir .`.\n"
+        + "3. Use a result only when the receipt status is `accepted`, the task type still matches, and its exact evidence quotes support the classification. Otherwise continue in the parent runtime.\n\n"
+        + "Inspect the closed result contract with `python3 .vibeos/scripts/local-engineering-intake.py schema`. "
+        + "The CLI makes at most two local attempts and never calls a cloud fallback itself.\n"
+    )
+
+
 def render_skill(skill: str, profile: dict[str, Any], profile_hash: str) -> str:
+    if skill == "vibeos-local-intake":
+        return render_local_intake_skill(profile, profile_hash)
     template_id = f"skill.{skill}.v1"
     source_hash = sha256_text(template_id)
     summary = render_profile_summary(profile)
