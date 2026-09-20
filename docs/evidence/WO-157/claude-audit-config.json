@@ -5,5 +5,5 @@
   "max_budget_usd": 20.0,
   "max_turns": 20,
   "timeout_seconds": 2700,
-  "max_prompt_bytes": 240000
+  "max_prompt_bytes": 320000
 }

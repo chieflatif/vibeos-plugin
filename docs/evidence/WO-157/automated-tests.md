@@ -51,3 +51,8 @@ was used only for the repository's in-process loopback fixtures.
 The fake Claude CLI proves exact command flags, schema handling, full-to-targeted
 verification, provider mismatch refusal and drift invalidation. It does not prove a
 provider call. The release remains held until a real first-party Fable receipt exists.
+
+The first live invocation stopped before a provider call because the roughly 290 KB
+release packet exceeded its 240 KB project ceiling. The committed audit configuration
+raises that one ceiling to 320 KB, within the CLI's enforced 500 KB maximum; model,
+provider, spend, turn and time limits are unchanged.
