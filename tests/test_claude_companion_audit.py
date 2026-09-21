@@ -950,11 +950,12 @@ else:
                 report.parent.mkdir(parents=True)
                 report.write_text("## Auditor Summary\n\nSecurity and correctness reviewed.\n")
                 manifest = project / ".claude/quality-gate-manifest.json"
-                manifest.parent.mkdir(parents=True)
-                write_json(
-                    manifest,
-                    {"gates": [{"name": "claude-companion-audit-closure"}]},
-                )
+                if case == "inactive":
+                    manifest.parent.mkdir(parents=True)
+                    write_json(
+                        manifest,
+                        {"gates": [{"name": "claude-companion-audit-closure"}]},
+                    )
                 profile = {
                     "active_modules": [] if case == "inactive" else ["claude-companion-audit"],
                     "phase_audit_runtime": "claude",
@@ -978,8 +979,36 @@ else:
                     env=env,
                 )
                 self.assertNotEqual(result.returncode, 0)
-                expected = "active module" if case == "inactive" else "jq is required"
+                expected = (
+                    "active module"
+                    if case == "inactive"
+                    else "no receipt is registered"
+                )
                 self.assertIn(expected, result.stdout + result.stderr)
+
+    def test_close_gate_rejects_an_invalid_profile_without_manifest(self):
+        gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            project = Path(temporary)
+            (project / "docs/planning").mkdir(parents=True)
+            work_order = project / "docs/planning/WO-157-fixture.md"
+            work_order.write_text("# WO-157\n")
+            report = project / ".vibeos/audit-reports/WO-157.md"
+            report.parent.mkdir(parents=True)
+            report.write_text(
+                "## Auditor Summary\n\nSecurity and correctness reviewed for WO-157.\n"
+            )
+            profile = project / ".vibeos/project-profile.json"
+            profile.parent.mkdir(parents=True, exist_ok=True)
+            profile.write_text("{not-json\n")
+            env = dict(os.environ, PROJECT_ROOT=str(project))
+            result = run(
+                ["/bin/bash", str(gate_script), str(work_order), str(report)],
+                project,
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("project-profile.json is invalid", result.stdout + result.stderr)
 
     def test_claude_proof_hook_protects_companion_receipts(self):
         with tempfile.TemporaryDirectory() as temporary:

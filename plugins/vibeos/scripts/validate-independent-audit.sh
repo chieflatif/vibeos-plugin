@@ -192,29 +192,45 @@ PY
 fi
 
 if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
-  if ! command -v jq >/dev/null 2>&1; then
-    echo "[$GATE_NAME] FAIL: jq is required to validate the enabled Claude companion audit"
-    exit 2
-  fi
   if [[ ! -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]]; then
     echo "[$GATE_NAME] FAIL: Claude companion gate is configured but project-profile.json is missing"
     exit 1
   fi
 fi
 
-if [[ -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]] && command -v jq >/dev/null 2>&1; then
-  MODULE_ACTIVE="$(jq -er '
-    if ((.active_modules // []) | index("claude-companion-audit")) != null
-    then "true" else "false" end
-  ' "$PROJECT_ROOT/.vibeos/project-profile.json" 2>/dev/null || echo "invalid")"
-  if [[ "$MODULE_ACTIVE" == "true" ]]; then
-    PHASE_RUNTIME="$(jq -r '.phase_audit_runtime // empty' "$PROJECT_ROOT/.vibeos/project-profile.json")"
-    if [[ "$PHASE_RUNTIME" != "claude" ]]; then
-      echo "[$GATE_NAME] FAIL: Active Claude companion audit requires phase_audit_runtime=claude"
-      exit 1
-    fi
-    COMPANION_REQUIRED="true"
+COMPANION_PROFILE="$PROJECT_ROOT/.vibeos/project-profile.json"
+if [[ -f "$COMPANION_PROFILE" ]]; then
+  if ! MODULE_STATE="$(python3 - "$COMPANION_PROFILE" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        profile = json.load(handle)
+    modules = profile.get("active_modules", [])
+    if not isinstance(modules, list) or any(
+        not isinstance(module, str) for module in modules
+    ):
+        raise TypeError("active_modules must be a list of strings")
+except (OSError, TypeError, ValueError):
+    raise SystemExit(2)
+
+if "claude-companion-audit" not in modules:
+    print("inactive")
+elif profile.get("phase_audit_runtime") != "claude":
+    print("runtime-mismatch")
+else:
+    print("active")
+PY
+  )"; then
+    echo "[$GATE_NAME] FAIL: project-profile.json is invalid"
+    exit 2
   fi
+  if [[ "$MODULE_STATE" == "runtime-mismatch" ]]; then
+    echo "[$GATE_NAME] FAIL: Active Claude companion audit requires phase_audit_runtime=claude"
+    exit 1
+  fi
+  [[ "$MODULE_STATE" == "active" ]] && COMPANION_REQUIRED="true"
 fi
 
 if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
