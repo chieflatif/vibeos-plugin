@@ -47,6 +47,6 @@ inside the original reviewed paths and addresses those finding IDs only.
 
 Verification evidence before the targeted provider check:
 
-- Final focused release slice after correction round 2: 72 tests and 32 subtests passed.
-- Final full repository suite after correction round 2: 379 tests and 78 subtests passed.
+- Final focused release slice after correction round 2: 73 tests and 32 subtests passed.
+- Final full repository suite after correction round 2: 380 tests and 78 subtests passed.
 - Ruff, Bash syntax, JSON parsing and whitespace checks passed.

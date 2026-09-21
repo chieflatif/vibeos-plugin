@@ -926,17 +926,35 @@ def run_audit(args: argparse.Namespace) -> int:
         materials = [*contract_materials, *evidence]
         prompt = packet_for_verification(work_order_number.group(1), scope, parent, correction_diff, materials, candidate)
         schema = verification_schema(scope["finding_ids"])
+        default_branch_ref = parent["binding"].get(
+            "default_branch_ref", config["default_branch_ref"]
+        )
+        if default_branch_ref != config["default_branch_ref"]:
+            raise AuditError("parent_receipt_default_branch_ref_mismatch")
+        default_branch_commit = resolve_commit(
+            project, default_branch_ref, "default_branch_ref"
+        )
+        recorded_default_commit = parent["binding"].get("default_branch_commit")
+        if recorded_default_commit and recorded_default_commit != default_branch_commit:
+            raise AuditError("parent_receipt_default_branch_commit_drift")
+        merge_base = str(run_git(project, "merge-base", candidate, default_branch_commit)).strip()
+        audited_base_commit = parent["binding"].get(
+            "audited_base_commit", parent["binding"]["base_commit"]
+        )
+        recorded_merge_base = parent["binding"].get("merge_base")
+        if merge_base != audited_base_commit or (
+            recorded_merge_base and recorded_merge_base != merge_base
+        ):
+            raise AuditError("parent_receipt_merge_base_mismatch")
         binding_extra = {
             "parent_receipt_path": str(parent_path.relative_to(project)),
             "parent_receipt_sha256": parent_sha,
             "parent_audit_id": parent["audit_id"],
             "work_order_write_scope": write_scope,
-            "default_branch_ref": parent["binding"]["default_branch_ref"],
-            "default_branch_commit": parent["binding"]["default_branch_commit"],
-            "merge_base": parent["binding"]["merge_base"],
-            "audited_base_commit": parent["binding"].get(
-                "audited_base_commit", parent["binding"]["base_commit"]
-            ),
+            "default_branch_ref": default_branch_ref,
+            "default_branch_commit": default_branch_commit,
+            "merge_base": merge_base,
+            "audited_base_commit": audited_base_commit,
         }
     if not correction_diff.strip():
         raise AuditError("audit_diff_is_empty")

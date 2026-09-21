@@ -17,6 +17,9 @@ The follow-up correction makes the default branch part of committed project auth
 - Receipt validation now hashes and revalidates the committed config, resolves the
   recorded remote ref again, and recomputes the candidate merge base. Config drift,
   remote-ref drift or a merge-base mismatch invalidates closure.
+- Original full-audit receipts created before these binding fields existed are upgraded
+  only by deriving the ref from current committed configuration and proving that the
+  recomputed merge base equals the original receipt's audited base commit.
 - Tests prove that a local `HEAD~1` authority is refused and that moving the recorded
   remote ref after an otherwise passing audit invalidates the receipt.
 - The Claude CLI minimum-version check now runs before the paid provider call.
@@ -24,5 +27,5 @@ The follow-up correction makes the default branch part of committed project auth
 This round changes only the remaining finding's immediate code, configuration,
 documentation and tests. It does not reopen unrelated audited areas.
 
-Verification evidence: the final focused slice passed 72 tests and 32 subtests; the
-complete repository suite passed 379 tests and 78 subtests.
+Verification evidence: the final focused slice passed 73 tests and 32 subtests; the
+complete repository suite passed 380 tests and 78 subtests.

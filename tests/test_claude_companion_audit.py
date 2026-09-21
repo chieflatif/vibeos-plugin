@@ -667,6 +667,29 @@ else:
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_verification_upgrades_legacy_full_receipt_base_binding(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            fake = self.fake_claude(project, self.full_result())
+            self.assertEqual(self.invoke_full(project, base, fake).returncode, 3)
+            parent_path = project / ".vibeos/audit-reports/WO-157-full.json"
+            parent = json.loads(parent_path.read_text())
+            for key in (
+                "default_branch_ref", "default_branch_commit", "merge_base",
+                "audited_base_commit",
+            ):
+                parent["binding"].pop(key, None)
+            parent_path.write_text(json.dumps(parent, indent=2) + "\n")
+            self.apply_fix(project)
+            fake = self.fake_claude(project, self.verification_result())
+            result = self.invoke_verification(project, fake)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            receipt = json.loads(
+                (project / ".vibeos/audit-reports/WO-157-verification.json").read_text()
+            )
+            self.assertEqual(receipt["binding"]["default_branch_ref"], "origin/main")
+            self.assertEqual(receipt["binding"]["audited_base_commit"], base)
+
     def test_receipt_result_must_match_stored_provider_payload(self):
         with tempfile.TemporaryDirectory() as temporary:
             project, base, _candidate = self.fixture(Path(temporary))
