@@ -29,11 +29,11 @@ DEFAULT_MODEL = "claude-fable-5-1"
 DEFAULT_PROVIDER = "firstParty"
 MIN_CLAUDE_CLI_VERSION = (2, 1, 277)
 REQUIRED_CLAUDE_FLAGS = (
+    "--bare",
     "--disable-slash-commands",
     "--effort",
     "--json-schema",
     "--max-budget-usd",
-    "--max-turns",
     "--mcp-config",
     "--no-chrome",
     "--no-session-persistence",
@@ -770,7 +770,28 @@ def claude_help_digest(binary: Path, timeout: int) -> str:
     missing = [flag for flag in REQUIRED_CLAUDE_FLAGS if flag not in help_text]
     if missing:
         raise AuditError(f"claude_required_flags_missing:{missing}")
-    return sha256_bytes(help_text.encode())
+    with tempfile.TemporaryDirectory(prefix="vibeos-claude-flag-probe-") as temporary:
+        probe_env = child_environment()
+        probe_env["CLAUDE_CONFIG_DIR"] = temporary
+        try:
+            probe = subprocess.run(
+                [
+                    str(binary), "--bare", "--print", "--max-turns", "1",
+                    "VibeOS flag support probe",
+                ],
+                capture_output=True, text=True, env=probe_env,
+                timeout=min(timeout, 30), check=False,
+            )
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            raise AuditError("claude_max_turns_probe_unavailable") from exc
+    probe_text = probe.stdout + "\n" + probe.stderr
+    if "unknown option" in probe_text.lower():
+        raise AuditError("claude_max_turns_flag_unsupported")
+    if probe.returncode == 0 or not re.search(
+        r"not logged in|login|authentication|api key", probe_text, re.IGNORECASE
+    ):
+        raise AuditError("claude_max_turns_probe_inconclusive")
+    return sha256_bytes((help_text + "\n" + probe_text).encode())
 
 
 def invoke_claude(

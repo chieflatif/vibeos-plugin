@@ -18,7 +18,7 @@ not change the acceptance contract or expand the original review roots.
 | F-007 | Git review snapshots hash raw blobs without the 160 KB packet-material ceiling; a tracked 170 KB binary is audited and revalidated. |
 | F-008 | Git path discovery uses NUL-delimited output consistently; a non-ASCII tracked filename is audited and revalidated. |
 | F-009 | The committed audit configuration bytes are included in both full and correction packets. |
-| F-010 | The real CLI help output is checked for every pinned flag before provider invocation and its digest is recorded. A missing-flag fixture fails before the provider call. |
+| F-010 | The real CLI help output is checked for every advertised pinned flag before provider invocation and its digest is recorded. Because Claude Code 2.1.277 accepts but does not advertise `--max-turns`, an isolated credential-free parser probe verifies that flag reaches the expected authentication stop; missing-help and unsupported-hidden-flag fixtures both fail before a provider call. |
 | F-011 | The redundant `--base-ref` option was removed. Full audits compute the merge base from committed `default_branch_ref`; docs and tests use that contract. |
 | F-012 | Authentication documentation now states the exact accepted `claude.ai` account-store path and the deliberate rejection of API-key/OAuth environment credentials. |
 | F-013 | Auditor execution is restricted to project setting sources from an empty temporary directory, excluding user settings, hooks, plugins, and repository instructions while retaining the account store. |

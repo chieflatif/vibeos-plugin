@@ -27,7 +27,10 @@ The provider call is pinned to `claude-fable-5-1` through the first-party Claude
 CLI. It runs in safe, restricted, tool-free mode with no MCP servers, no permission
 prompts, no browser, no session persistence, project-only setting sources, a maximum
 budget and a turn ceiling. Before any paid call, the wrapper checks the installed
-CLI version and confirms every pinned flag appears in that CLI's help output.
+CLI version and confirms every advertised pinned flag appears in that CLI's help
+output. Claude Code 2.1.277 accepts but does not advertise `--max-turns`, so the
+wrapper also runs an isolated, credential-free parser probe for that flag and requires
+the expected authentication stop before continuing.
 The model receives the frozen packet over standard input, so source is not exposed in
 the process argument list; it cannot read or change the repository.
 

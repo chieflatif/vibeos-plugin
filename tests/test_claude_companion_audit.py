@@ -37,7 +37,7 @@ class CompanionAuditTests(unittest.TestCase):
         self, project: Path, structured, *, provider="firstParty",
         canonical_model="claude-fable-5-1", authenticated=True,
         reject_unknown_flags=False, version="2.1.277 (Claude Code fixture)",
-        omit_help_flag=None,
+        omit_help_flag=None, reject_max_turns_probe=False,
     ) -> Path:  # noqa: ANN001
         fake = project.parent / "fake-claude"
         args_out = project.parent / "fake-claude-args.json"
@@ -55,14 +55,17 @@ class CompanionAuditTests(unittest.TestCase):
             },
         }
         supported_flags = sorted([
-            "--print", "--safe-mode", "--restricted", "--tools",
+            "--bare", "--print", "--safe-mode", "--restricted", "--tools",
             "--disable-slash-commands", "--no-chrome", "--no-session-persistence",
             "--setting-sources", "--strict-mcp-config", "--mcp-config",
             "--permission-mode", "--permission-prompts", "--model", "--effort",
             "--max-budget-usd", "--max-turns", "--output-format", "--json-schema",
             "-p",
         ])
-        help_flags = [flag for flag in supported_flags if flag != omit_help_flag]
+        help_flags = [
+            flag for flag in supported_flags
+            if flag not in {omit_help_flag, "--max-turns"}
+        ]
         source = f"""#!/usr/bin/env python3
 import json
 import sys
@@ -72,6 +75,12 @@ elif sys.argv[1:] == ["--version"]:
     print({version!r})
 elif sys.argv[1:] == ["--help"]:
     print("\\n".join({help_flags!r}))
+elif sys.argv[1:] == ["--bare", "--print", "--max-turns", "1", "VibeOS flag support probe"]:
+    if {reject_max_turns_probe!r}:
+        print("error: unknown option '--max-turns'", file=sys.stderr)
+    else:
+        print("Not logged in - Please run /login")
+    raise SystemExit(1)
 else:
     known = {supported_flags!r}
     if {reject_unknown_flags!r} and any(arg.startswith("-") and arg not in known for arg in sys.argv[1:]):
@@ -398,6 +407,17 @@ else:
             result = self.invoke_full(project, base, fake)
             self.assertEqual(result.returncode, 2)
             self.assertIn("claude_required_flags_missing", result.stderr)
+            self.assertFalse((project.parent / "fake-claude-args.json").exists())
+
+    def test_unsupported_hidden_max_turns_flag_fails_before_provider_call(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            fake = self.fake_claude(
+                project, self.full_result(), reject_max_turns_probe=True
+            )
+            result = self.invoke_full(project, base, fake)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("claude_max_turns_flag_unsupported", result.stderr)
             self.assertFalse((project.parent / "fake-claude-args.json").exists())
 
     def test_full_cli_rejects_a_late_base_ref_override(self):
