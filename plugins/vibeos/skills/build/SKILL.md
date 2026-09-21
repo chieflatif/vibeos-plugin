@@ -614,12 +614,11 @@ For each fix cycle iteration:
    ```
 5. Act on convergence decision:
    - **CONVERGED:** proceed to Step 9
-   - **CONTINUE:** if the acceptance contract and original review scope are
-     unchanged, verify the named findings and correction diff only; do not
-     repeat the broad audit. Run a new full audit only when the contract
-     changed, the correction escaped the original scope, or verification
-     exposed a new material blocker. Then loop back using the remaining
-     finding statuses.
+   - **CONTINUE:** when `claude-companion-audit` is active, follow its receipt:
+     verify the named findings and correction diff, and start a new full audit
+     only for its documented invalidation conditions. Without that module,
+     continue the existing configured audit/convergence loop. Then loop back
+     using the remaining finding statuses.
    - **STUCK or MAX_ITER:** escalate to user
 6. Update `PREV_HASH=$CURR_HASH` and store previous finding counts
 
@@ -634,7 +633,7 @@ For each fix cycle iteration:
 > 1. **Try a different approach** — I'll use a different strategy and run the audit again.
 >    - Pros: best chance of clearing the findings without leaving risk behind
 >    - Cons: uses more time and may still not resolve everything
->    - Technical note: this starts another fix-and-targeted-verification cycle unless the acceptance contract or review scope changed
+>    - Technical note: with `claude-companion-audit` active this starts another targeted-verification cycle; otherwise it uses the project's existing audit loop
 > 2. **Accept these findings** — Keep moving and track these issues as known risks.
 >    - Pros: preserves momentum on the current work order
 >    - Cons: [If security]: [specific security risk] remains in the code. [If architecture]: [specific maintenance risk] remains and may resurface later. [If product drift]: the work may move away from the intended experience until corrected

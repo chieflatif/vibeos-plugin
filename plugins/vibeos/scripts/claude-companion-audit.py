@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 import uuid
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -27,6 +28,23 @@ SCHEMA_VERSION = 1
 DEFAULT_MODEL = "claude-fable-5-1"
 DEFAULT_PROVIDER = "firstParty"
 MIN_CLAUDE_CLI_VERSION = (2, 1, 277)
+REQUIRED_CLAUDE_FLAGS = (
+    "--disable-slash-commands",
+    "--effort",
+    "--json-schema",
+    "--max-budget-usd",
+    "--max-turns",
+    "--mcp-config",
+    "--no-chrome",
+    "--no-session-persistence",
+    "--permission-mode",
+    "--permission-prompts",
+    "--restricted",
+    "--safe-mode",
+    "--setting-sources",
+    "--strict-mcp-config",
+    "--tools",
+)
 BLOCKING_SEVERITIES = {"critical", "high", "medium"}
 CONFIG_KEYS = {
     "enabled",
@@ -67,6 +85,51 @@ MAX_DIFF_BYTES = 300_000
 
 class AuditError(RuntimeError):
     """The audit packet, provider result, or closure proof is invalid."""
+
+
+@dataclass(frozen=True)
+class AuditInputs:
+    project: Path
+    mode: str
+    candidate: str
+    scope: dict[str, Any]
+    scope_rel: str
+    scope_sha: str
+    config: dict[str, Any]
+    config_rel: str
+    config_sha: str
+    config_raw: bytes
+    work_order: str
+    work_order_path: str
+    work_order_raw: bytes
+    write_scope: list[str]
+    contract: list[dict[str, str]]
+    contract_sha: str
+    contract_materials: list[tuple[str, bytes]]
+    evidence: list[tuple[str, bytes]]
+
+
+@dataclass(frozen=True)
+class PreparedAudit:
+    base: str
+    changed_paths: list[str]
+    review_snapshot: dict[str, Any]
+    correction_diff: str
+    prompt: str
+    schema: dict[str, Any]
+    binding_extra: dict[str, Any]
+    parent: dict[str, Any] | None
+
+
+@dataclass(frozen=True)
+class ProviderRun:
+    binary: Path
+    cli_version: str
+    cli_help_sha256: str
+    payload: dict[str, Any]
+    result: dict[str, Any]
+    auth: dict[str, Any]
+    model_usage: dict[str, Any]
 
 
 def utc_now() -> str:
@@ -199,7 +262,11 @@ def run_git(project: Path, *args: str, binary: bool = False) -> bytes | str:
 
 
 def resolve_commit(project: Path, ref: str, label: str) -> str:
-    value = str(run_git(project, "rev-parse", "--verify", f"{ref}^{{commit}}")).strip()
+    if not isinstance(ref, str) or not ref or ref.startswith("-") or "\x00" in ref:
+        raise AuditError(f"{label}_invalid")
+    value = str(
+        run_git(project, "rev-parse", "--verify", "--end-of-options", f"{ref}^{{commit}}")
+    ).strip()
     if not re.fullmatch(r"[0-9a-f]{40}", value):
         raise AuditError(f"{label}_not_commit")
     return value
@@ -301,8 +368,16 @@ def parse_work_order_write_scope(raw: bytes) -> list[str]:
 
 
 def changed_paths(project: Path, base: str, candidate: str) -> list[str]:
-    text = str(run_git(project, "diff", "--name-only", "--no-renames", base, candidate, "--"))
-    return [line for line in text.splitlines() if line]
+    raw = run_git(
+        project, "diff", "--name-only", "-z", "--no-renames", base, candidate, "--",
+        binary=True,
+    )
+    assert isinstance(raw, bytes)
+    return [
+        item.decode("utf-8", errors="surrogateescape")
+        for item in raw.split(b"\0")
+        if item
+    ]
 
 
 def material_changed_paths(project: Path, base: str, candidate: str) -> list[str]:
@@ -338,14 +413,22 @@ def git_snapshot(project: Path, commit: str, roots: list[str]) -> dict[str, Any]
     files: dict[str, str] = {}
     absent: list[str] = []
     for root in roots:
-        listed = str(run_git(project, "ls-tree", "-r", "--name-only", commit, "--", root))
-        names = [line for line in listed.splitlines() if line]
+        listed = run_git(
+            project, "ls-tree", "-r", "-z", "--name-only", commit, "--", root,
+            binary=True,
+        )
+        assert isinstance(listed, bytes)
+        names = [
+            item.decode("utf-8", errors="surrogateescape")
+            for item in listed.split(b"\0")
+            if item
+        ]
         if not names:
             absent.append(root)
         for name in names:
-            raw = git_file_or_none(project, commit, name)
-            if raw is not None:
-                files[name] = sha256_bytes(raw)
+            raw = run_git(project, "show", f"{commit}:{name}", binary=True)
+            assert isinstance(raw, bytes)
+            files[name] = sha256_bytes(raw)
     return {"roots": roots, "files": dict(sorted(files.items())), "absent": sorted(absent)}
 
 
@@ -673,6 +756,23 @@ def claude_version(binary: Path, timeout: int) -> str:
     return value
 
 
+def claude_help_digest(binary: Path, timeout: int) -> str:
+    try:
+        result = subprocess.run(
+            [str(binary), "--help"], capture_output=True, text=True,
+            env=child_environment(), timeout=min(timeout, 30), check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise AuditError("claude_help_unavailable") from exc
+    help_text = result.stdout + "\n" + result.stderr
+    if result.returncode != 0 or not help_text.strip():
+        raise AuditError("claude_help_unavailable")
+    missing = [flag for flag in REQUIRED_CLAUDE_FLAGS if flag not in help_text]
+    if missing:
+        raise AuditError(f"claude_required_flags_missing:{missing}")
+    return sha256_bytes(help_text.encode())
+
+
 def invoke_claude(
     binary: Path, config: dict[str, Any], prompt: str, schema: dict[str, Any]
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
@@ -682,6 +782,7 @@ def invoke_claude(
     command = [
         str(binary), "--print", "--safe-mode", "--restricted", "--tools", "",
         "--disable-slash-commands", "--no-chrome", "--no-session-persistence",
+        "--setting-sources", "project",
         "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
         "--permission-mode", "default", "--permission-prompts", "none",
         "--model", config["model"], "--effort", "high",
@@ -843,9 +944,13 @@ def validate_parent(parent: dict[str, Any], expected_wo: str) -> None:
     result = parent.get("result")
     if not isinstance(binding, dict) or not isinstance(result, dict):
         raise AuditError("parent_receipt_nested_structure_invalid")
-    if not isinstance(binding.get("candidate_commit"), str) or not isinstance(
-        binding.get("review_paths"), list
-    ):
+    required_binding = {
+        "audited_base_commit", "base_commit", "candidate_commit",
+        "default_branch_commit", "default_branch_ref", "merge_base", "review_paths",
+    }
+    if not required_binding.issubset(binding) or not isinstance(
+        binding.get("candidate_commit"), str
+    ) or not isinstance(binding.get("review_paths"), list):
         raise AuditError("parent_receipt_binding_invalid")
     if not isinstance(result.get("findings"), list):
         raise AuditError("parent_receipt_findings_invalid")
@@ -853,185 +958,278 @@ def validate_parent(parent: dict[str, Any], expected_wo: str) -> None:
         raise AuditError("parent_receipt_auditor_provenance_invalid")
 
 
-def run_audit(args: argparse.Namespace) -> int:
-    project = Path(args.project_dir).resolve()
-    assert_clean(project)
-    candidate = resolve_commit(project, args.candidate_ref, "candidate_ref")
-    scope, scope_rel, scope_sha = load_scope(project, candidate, args.scope_manifest, args.mode)
-    work_order_path = relative_path(args.work_order, "work_order")
-    work_order_number = re.match(r"^(WO-[0-9]+)", Path(work_order_path).name)
-    if not work_order_number or work_order_number.group(1) != scope["work_order"]:
-        raise AuditError("work_order_does_not_match_scope_manifest")
-    if bool(args.config) != bool(args.allow_unprofiled_project):
-        raise AuditError("explicit_config_requires_allow_unprofiled_project")
-    config, config_rel, config_sha = load_config(project, args.config)
-    work_order_raw = git_file(project, candidate, work_order_path)
-    write_scope = parse_work_order_write_scope(work_order_raw)
-    contract, contract_sha = file_bindings(project, candidate, scope["acceptance_contract"])
-    contract_materials = [
-        (path, git_file(project, candidate, path)) for path in scope["acceptance_contract"]
+def validate_stored_provider_integrity(
+    project: Path, receipt: dict[str, Any], label: str
+) -> None:
+    auditor = receipt.get("auditor")
+    artifacts = receipt.get("artifacts")
+    result = receipt.get("result")
+    if not isinstance(auditor, dict) or not isinstance(artifacts, dict) or not isinstance(result, dict):
+        raise AuditError(f"{label}_provider_binding_invalid")
+    if auditor.get("auth_method") != "claude.ai":
+        raise AuditError(f"{label}_auth_provenance_invalid")
+    for path_key, hash_key in (
+        ("provider_response_path", "provider_response_sha256"),
+        ("report_path", "report_sha256"),
+    ):
+        artifact = project_path(project, artifacts.get(path_key), path_key)
+        if not artifact.is_file() or sha256_bytes(artifact.read_bytes()) != artifacts.get(hash_key):
+            raise AuditError(f"{label}_artifact_drift:{artifacts.get(path_key)}")
+    provider_path = project_path(
+        project, artifacts["provider_response_path"], "provider_response_path"
+    )
+    provider_payload = load_object(provider_path, f"{label}_provider_response")
+    stored_result, provider_usage = provider_output(
+        provider_payload, auditor.get("requested_model"), auditor.get("requested_provider")
+    )
+    if stored_result != result:
+        raise AuditError(f"{label}_result_does_not_match_provider_payload")
+    if auditor.get("observed_model") != provider_usage.get("canonicalModel"):
+        raise AuditError(f"{label}_observed_model_does_not_match_provider_payload")
+    if auditor.get("observed_provider") != provider_usage.get("provider"):
+        raise AuditError(f"{label}_observed_provider_does_not_match_provider_payload")
+    mode = receipt.get("mode")
+    if mode not in {"full", "verification"} or receipt.get("closure") != receipt_closure(mode, result):
+        raise AuditError(f"{label}_closure_does_not_match_result")
+
+
+def prepare_full_audit(inputs: AuditInputs, parent_receipt: str | None) -> PreparedAudit:
+    if parent_receipt:
+        raise AuditError("full_audit_does_not_accept_parent_receipt")
+    default_ref = inputs.config["default_branch_ref"]
+    default_commit = resolve_commit(inputs.project, default_ref, "default_branch_ref")
+    base = merge_base(inputs.project, inputs.candidate, default_commit)
+    changed = material_changed_paths(inputs.project, base, inputs.candidate)
+    outside_write_scope = [
+        path for path in changed
+        if not declared_path_matches(path, inputs.write_scope)
     ]
-    evidence = [(path, git_file(project, candidate, path)) for path in scope["evidence_paths"]]
-    parent_path: Path | None = None
-    parent: dict[str, Any] | None = None
-    parent_sha: str | None = None
-    if args.mode == "full":
-        if args.parent_receipt:
-            raise AuditError("full_audit_does_not_accept_parent_receipt")
-        base = resolve_commit(project, args.base_ref, "base_ref")
-        default_branch_ref = config["default_branch_ref"]
-        default_branch_commit = resolve_commit(project, default_branch_ref, "default_branch_ref")
-        audited_merge_base = merge_base(project, candidate, default_branch_commit)
-        if base != audited_merge_base:
-            raise AuditError("base_ref_must_equal_default_branch_merge_base")
-        all_changed = material_changed_paths(project, base, candidate)
-        outside_write_scope = [
-            path for path in all_changed if not declared_path_matches(path, write_scope)
-        ]
-        if outside_write_scope:
-            raise AuditError(f"changed_paths_outside_work_order_write_scope:{outside_write_scope}")
-        allowed = scope["review_paths"] + scope["evidence_paths"] + scope["acceptance_contract"] + [work_order_path, scope_rel, config_rel]
-        outside = [path for path in all_changed if not path_matches(path, allowed)]
-        if outside:
-            raise AuditError(f"full_audit_scope_omits_changed_paths:{outside}")
-        administrative = scope["evidence_paths"] + scope["acceptance_contract"] + [work_order_path, scope_rel, config_rel]
-        unreviewed = [
-            path for path in all_changed
-            if not path_matches(path, scope["review_paths"])
-            and not path_matches(path, administrative)
-        ]
-        if unreviewed:
-            raise AuditError(f"work_order_changes_missing_from_review_scope:{unreviewed}")
-        review_snapshot = git_snapshot(project, candidate, scope["review_paths"])
-        correction_diff = diff_text(project, base, candidate, scope["review_paths"] + scope["acceptance_contract"])
-        materials = [(work_order_path, work_order_raw), *contract_materials, *evidence]
-        prompt = packet_for_full(work_order_number.group(1), scope, contract, correction_diff, materials, candidate)
-        schema = full_schema()
-        binding_extra: dict[str, Any] = {
-            "default_branch_ref": default_branch_ref,
-            "default_branch_commit": default_branch_commit,
-            "merge_base": audited_merge_base,
+    if outside_write_scope:
+        raise AuditError(
+            f"changed_paths_outside_work_order_write_scope:{outside_write_scope}"
+        )
+    administrative = [
+        *inputs.scope["evidence_paths"], *inputs.scope["acceptance_contract"],
+        inputs.work_order_path, inputs.scope_rel, inputs.config_rel,
+    ]
+    allowed = [*inputs.scope["review_paths"], *administrative]
+    outside = [path for path in changed if not path_matches(path, allowed)]
+    if outside:
+        raise AuditError(f"full_audit_scope_omits_changed_paths:{outside}")
+    unreviewed = [
+        path for path in changed
+        if not path_matches(path, inputs.scope["review_paths"])
+        and not path_matches(path, administrative)
+    ]
+    if unreviewed:
+        raise AuditError(f"work_order_changes_missing_from_review_scope:{unreviewed}")
+    snapshot = git_snapshot(inputs.project, inputs.candidate, inputs.scope["review_paths"])
+    diff = diff_text(
+        inputs.project, base, inputs.candidate,
+        inputs.scope["review_paths"] + inputs.scope["acceptance_contract"],
+    )
+    materials = [
+        (inputs.work_order_path, inputs.work_order_raw),
+        (inputs.config_rel, inputs.config_raw),
+        *inputs.contract_materials,
+        *inputs.evidence,
+    ]
+    return PreparedAudit(
+        base=base,
+        changed_paths=changed,
+        review_snapshot=snapshot,
+        correction_diff=diff,
+        prompt=packet_for_full(
+            inputs.work_order, inputs.scope, inputs.contract, diff, materials,
+            inputs.candidate,
+        ),
+        schema=full_schema(),
+        binding_extra={
+            "default_branch_ref": default_ref,
+            "default_branch_commit": default_commit,
+            "merge_base": base,
             "audited_base_commit": base,
-            "work_order_write_scope": write_scope,
-        }
-    else:
-        if not args.parent_receipt:
-            raise AuditError("verification_requires_parent_receipt")
-        parent_path = project_path(project, args.parent_receipt, "parent_receipt")
-        parent_raw = parent_path.read_bytes()
-        parent_sha = sha256_bytes(parent_raw)
-        parent = load_object(parent_path, "parent_receipt")
-        validate_parent(parent, work_order_number.group(1))
-        base = parent["binding"]["candidate_commit"]
-        original_ids = [item["id"] for item in parent["result"]["findings"]]
-        if sorted(scope["finding_ids"]) != sorted(original_ids):
-            raise AuditError("verification_scope_must_cover_every_original_finding")
-        parent_roots = parent["binding"]["review_paths"]
-        if any(not path_matches(path, parent_roots) for path in scope["review_paths"]):
-            raise AuditError("verification_scope_expands_beyond_original_review")
-        if contract_sha != parent["binding"]["acceptance_contract_sha256"]:
-            raise AuditError("acceptance_contract_changed_full_audit_required")
-        all_changed = material_changed_paths(project, base, candidate)
-        allowed = scope["review_paths"] + scope["evidence_paths"] + [work_order_path, scope_rel, config_rel]
-        outside = [
-            path for path in all_changed
-            if not path_matches(path, allowed)
-            and not is_same_work_order_scope_manifest(
-                project, candidate, path, scope_rel, work_order_number.group(1)
-            )
-        ]
-        if outside:
-            raise AuditError(f"correction_scope_expanded_full_audit_required:{outside}")
-        review_snapshot = git_snapshot(project, candidate, parent_roots)
-        correction_diff = diff_text(project, base, candidate, scope["review_paths"])
-        materials = [*contract_materials, *evidence]
-        prompt = packet_for_verification(work_order_number.group(1), scope, parent, correction_diff, materials, candidate)
-        schema = verification_schema(scope["finding_ids"])
-        default_branch_ref = parent["binding"].get(
-            "default_branch_ref", config["default_branch_ref"]
+            "work_order_write_scope": inputs.write_scope,
+        },
+        parent=None,
+    )
+
+
+def prepare_verification(inputs: AuditInputs, parent_arg: str | None) -> PreparedAudit:
+    if not parent_arg:
+        raise AuditError("verification_requires_parent_receipt")
+    parent_path = project_path(inputs.project, parent_arg, "parent_receipt")
+    parent_raw = parent_path.read_bytes()
+    parent = load_object(parent_path, "parent_receipt")
+    validate_parent(parent, inputs.work_order)
+    validate_stored_provider_integrity(inputs.project, parent, "parent_receipt")
+    base = parent["binding"]["candidate_commit"]
+    original_ids = [item["id"] for item in parent["result"]["findings"]]
+    if sorted(inputs.scope["finding_ids"]) != sorted(original_ids):
+        raise AuditError("verification_scope_must_cover_every_original_finding")
+    parent_roots = parent["binding"]["review_paths"]
+    if any(
+        not path_matches(path, parent_roots)
+        for path in inputs.scope["review_paths"]
+    ):
+        raise AuditError("verification_scope_expands_beyond_original_review")
+    if inputs.contract_sha != parent["binding"]["acceptance_contract_sha256"]:
+        raise AuditError("acceptance_contract_changed_full_audit_required")
+    changed = material_changed_paths(inputs.project, base, inputs.candidate)
+    allowed = [
+        *inputs.scope["review_paths"], *inputs.scope["evidence_paths"],
+        inputs.work_order_path, inputs.scope_rel, inputs.config_rel,
+    ]
+    outside = [
+        path for path in changed
+        if not path_matches(path, allowed)
+        and not is_same_work_order_scope_manifest(
+            inputs.project, inputs.candidate, path, inputs.scope_rel,
+            inputs.work_order,
         )
-        if default_branch_ref != config["default_branch_ref"]:
-            raise AuditError("parent_receipt_default_branch_ref_mismatch")
-        default_branch_commit = resolve_commit(
-            project, default_branch_ref, "default_branch_ref"
-        )
-        current_merge_base = merge_base(project, candidate, default_branch_commit)
-        audited_base_commit = parent["binding"].get(
-            "audited_base_commit", parent["binding"]["base_commit"]
-        )
-        if not is_ancestor(project, audited_base_commit, current_merge_base):
-            raise AuditError("parent_receipt_merge_base_mismatch")
-        binding_extra = {
-            "parent_receipt_path": str(parent_path.relative_to(project)),
-            "parent_receipt_sha256": parent_sha,
+    ]
+    if outside:
+        raise AuditError(f"correction_scope_expanded_full_audit_required:{outside}")
+    snapshot = git_snapshot(inputs.project, inputs.candidate, parent_roots)
+    diff = diff_text(
+        inputs.project, base, inputs.candidate, inputs.scope["review_paths"]
+    )
+    materials = [
+        (inputs.config_rel, inputs.config_raw),
+        *inputs.contract_materials,
+        *inputs.evidence,
+    ]
+    default_ref = parent["binding"]["default_branch_ref"]
+    if default_ref != inputs.config["default_branch_ref"]:
+        raise AuditError("parent_receipt_default_branch_ref_mismatch")
+    default_commit = resolve_commit(inputs.project, default_ref, "default_branch_ref")
+    current_base = merge_base(inputs.project, inputs.candidate, default_commit)
+    audited_base = parent["binding"]["audited_base_commit"]
+    if not is_ancestor(inputs.project, audited_base, current_base):
+        raise AuditError("parent_receipt_merge_base_mismatch")
+    return PreparedAudit(
+        base=base,
+        changed_paths=changed,
+        review_snapshot=snapshot,
+        correction_diff=diff,
+        prompt=packet_for_verification(
+            inputs.work_order, inputs.scope, parent, diff, materials,
+            inputs.candidate,
+        ),
+        schema=verification_schema(inputs.scope["finding_ids"]),
+        binding_extra={
+            "parent_receipt_path": str(parent_path.relative_to(inputs.project)),
+            "parent_receipt_sha256": sha256_bytes(parent_raw),
             "parent_audit_id": parent["audit_id"],
-            "work_order_write_scope": write_scope,
-            "default_branch_ref": default_branch_ref,
-            "default_branch_commit": default_branch_commit,
-            "merge_base": current_merge_base,
-            "audited_base_commit": audited_base_commit,
-        }
-    if not correction_diff.strip():
+            "work_order_write_scope": inputs.write_scope,
+            "default_branch_ref": default_ref,
+            "default_branch_commit": default_commit,
+            "merge_base": current_base,
+            "audited_base_commit": audited_base,
+        },
+        parent=parent,
+    )
+
+
+def run_provider(
+    inputs: AuditInputs, prepared: PreparedAudit, claude_bin: str | None
+) -> ProviderRun:
+    if not prepared.correction_diff.strip():
         raise AuditError("audit_diff_is_empty")
-    binary = resolve_claude_binary(args.claude_bin)
-    cli_version_value = claude_version(binary, config["timeout_seconds"])
-    payload, structured, auth, model_usage = invoke_claude(binary, config, prompt, schema)
-    result = validate_result(args.mode, structured, scope["finding_ids"])
-    raw_provider = canonical_json(payload)
-    usage_evidence = {
-        key: model_usage[key]
+    binary = resolve_claude_binary(claude_bin)
+    timeout = inputs.config["timeout_seconds"]
+    version = claude_version(binary, timeout)
+    help_sha = claude_help_digest(binary, timeout)
+    payload, structured, auth, usage = invoke_claude(
+        binary, inputs.config, prepared.prompt, prepared.schema
+    )
+    result = validate_result(
+        inputs.mode, structured, inputs.scope["finding_ids"]
+    )
+    return ProviderRun(binary, version, help_sha, payload, result, auth, usage)
+
+
+def build_receipt(
+    inputs: AuditInputs, prepared: PreparedAudit, provider: ProviderRun,
+    unprofiled_override: bool,
+) -> dict[str, Any]:
+    parent_evidence = (
+        prepared.parent["binding"].get("evidence", [])
+        if prepared.parent else []
+    )
+    evidence_by_path = {row["path"]: row for row in parent_evidence}
+    evidence_by_path.update({
+        path: {"path": path, "sha256": sha256_bytes(raw)}
+        for path, raw in inputs.evidence
+    })
+    usage = {
+        key: provider.model_usage[key]
         for key in (
             "inputTokens", "outputTokens", "cacheReadInputTokens",
-            "cacheCreationInputTokens", "costUSD", "contextWindow", "maxOutputTokens",
+            "cacheCreationInputTokens", "costUSD", "contextWindow",
+            "maxOutputTokens",
         )
-        if key in model_usage and isinstance(model_usage[key], (int, float))
-        and not isinstance(model_usage[key], bool)
+        if key in provider.model_usage
+        and isinstance(provider.model_usage[key], (int, float))
+        and not isinstance(provider.model_usage[key], bool)
     }
-    receipt: dict[str, Any] = {
+    review_paths = (
+        prepared.parent["binding"]["review_paths"]
+        if prepared.parent else inputs.scope["review_paths"]
+    )
+    return {
         "schema_version": SCHEMA_VERSION,
         "receipt_type": RECEIPT_TYPE,
         "framework_version": FRAMEWORK_VERSION,
         "audit_id": f"claude-audit-{uuid.uuid4()}",
-        "mode": args.mode,
-        "work_order": work_order_number.group(1),
+        "mode": inputs.mode,
+        "work_order": inputs.work_order,
         "created_at": utc_now(),
         "binding": {
-            "base_commit": base,
-            "candidate_commit": candidate,
-            "candidate_tree": str(run_git(project, "rev-parse", f"{candidate}^{{tree}}")).strip(),
-            "scope_manifest_path": scope_rel,
-            "scope_manifest_sha256": scope_sha,
-            "work_order_path": work_order_path,
-            "work_order_sha256": sha256_bytes(work_order_raw),
-            "acceptance_contract": contract,
-            "acceptance_contract_sha256": contract_sha,
-            "review_paths": parent["binding"]["review_paths"] if parent else scope["review_paths"],
-            "review_snapshot_sha256": snapshot_digest(review_snapshot),
-            "changed_paths": all_changed,
-            "diff_sha256": sha256_bytes(correction_diff.encode()),
-            "evidence": [{"path": path, "sha256": sha256_bytes(raw)} for path, raw in evidence],
-            "prompt_sha256": sha256_bytes(prompt.encode()),
-            "config_path": config_rel,
-            "config_sha256": config_sha,
-            "unprofiled_project_override": bool(args.allow_unprofiled_project),
-            **binding_extra,
+            "base_commit": prepared.base,
+            "candidate_commit": inputs.candidate,
+            "candidate_tree": str(run_git(
+                inputs.project, "rev-parse", f"{inputs.candidate}^{{tree}}"
+            )).strip(),
+            "scope_manifest_path": inputs.scope_rel,
+            "scope_manifest_sha256": inputs.scope_sha,
+            "work_order_path": inputs.work_order_path,
+            "work_order_sha256": sha256_bytes(inputs.work_order_raw),
+            "acceptance_contract": inputs.contract,
+            "acceptance_contract_sha256": inputs.contract_sha,
+            "review_paths": review_paths,
+            "review_snapshot_sha256": snapshot_digest(prepared.review_snapshot),
+            "changed_paths": prepared.changed_paths,
+            "diff_sha256": sha256_bytes(prepared.correction_diff.encode()),
+            "evidence": [evidence_by_path[path] for path in sorted(evidence_by_path)],
+            "prompt_sha256": sha256_bytes(prepared.prompt.encode()),
+            "config_path": inputs.config_rel,
+            "config_sha256": inputs.config_sha,
+            "unprofiled_project_override": unprofiled_override,
+            **prepared.binding_extra,
         },
         "auditor": {
-            "requested_model": config["model"],
-            "observed_model": model_usage["canonicalModel"],
-            "requested_provider": config["provider"],
-            "observed_provider": model_usage["provider"],
-            "auth_method": auth.get("authMethod"),
-            "cli_path": str(binary),
-            "cli_entrypoint_sha256": sha256_bytes(binary.read_bytes()),
-            "cli_version": cli_version_value,
-            "provider_usage": usage_evidence,
+            "requested_model": inputs.config["model"],
+            "observed_model": provider.model_usage["canonicalModel"],
+            "requested_provider": inputs.config["provider"],
+            "observed_provider": provider.model_usage["provider"],
+            "auth_method": provider.auth.get("authMethod"),
+            "cli_path": str(provider.binary),
+            "cli_entrypoint_sha256": sha256_bytes(provider.binary.read_bytes()),
+            "cli_version": provider.cli_version,
+            "cli_help_sha256": provider.cli_help_sha256,
+            "provider_usage": usage,
         },
-        "result": result,
-        "closure": receipt_closure(args.mode, result),
+        "result": provider.result,
+        "closure": receipt_closure(inputs.mode, provider.result),
         "artifacts": {},
     }
-    out = project_path(project, args.out, "receipt_out")
+
+
+def persist_receipt(
+    project: Path, out_arg: str, receipt: dict[str, Any], payload: dict[str, Any]
+) -> int:
+    out = project_path(project, out_arg, "receipt_out")
     expected_root = (project / ".vibeos/audit-reports").resolve()
     try:
         out.relative_to(expected_root)
@@ -1039,6 +1237,7 @@ def run_audit(args: argparse.Namespace) -> int:
         raise AuditError("receipt_out_must_be_under_.vibeos/audit-reports") from exc
     if out.suffix != ".json":
         raise AuditError("receipt_out_must_end_in_json")
+    raw_provider = canonical_json(payload)
     raw_path = out.with_name(out.stem + ".provider.json")
     report_path = out.with_suffix(".md")
     receipt["artifacts"] = {
@@ -1052,12 +1251,66 @@ def run_audit(args: argparse.Namespace) -> int:
     write_atomic(report_path, report)
     write_atomic(out, json.dumps(receipt, indent=2, sort_keys=True).encode() + b"\n")
     update_session_state(project, out, report_path, receipt)
-    print(json.dumps({"status": receipt["closure"]["status"], "receipt": str(out.relative_to(project)), "report": str(report_path.relative_to(project)), "next_required": receipt["closure"]["next_required"]}, sort_keys=True))
+    print(json.dumps({
+        "status": receipt["closure"]["status"],
+        "receipt": str(out.relative_to(project)),
+        "report": str(report_path.relative_to(project)),
+        "next_required": receipt["closure"]["next_required"],
+    }, sort_keys=True))
     return 0 if receipt["closure"]["status"] == "pass" else 3
 
 
-def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None) -> dict[str, Any]:
-    receipt = load_object(receipt_path, "receipt")
+def run_audit(args: argparse.Namespace) -> int:
+    project = Path(args.project_dir).resolve()
+    assert_clean(project)
+    candidate = resolve_commit(project, args.candidate_ref, "candidate_ref")
+    scope, scope_rel, scope_sha = load_scope(
+        project, candidate, args.scope_manifest, args.mode
+    )
+    work_order_path = relative_path(args.work_order, "work_order")
+    match = re.match(r"^(WO-[0-9]+)", Path(work_order_path).name)
+    if not match or match.group(1) != scope["work_order"]:
+        raise AuditError("work_order_does_not_match_scope_manifest")
+    if bool(args.config) != bool(args.allow_unprofiled_project):
+        raise AuditError("explicit_config_requires_allow_unprofiled_project")
+    config, config_rel, config_sha = load_config(project, args.config)
+    work_order_raw = git_file(project, candidate, work_order_path)
+    contract, contract_sha = file_bindings(
+        project, candidate, scope["acceptance_contract"]
+    )
+    inputs = AuditInputs(
+        project=project, mode=args.mode, candidate=candidate, scope=scope,
+        scope_rel=scope_rel, scope_sha=scope_sha, config=config,
+        config_rel=config_rel, config_sha=config_sha,
+        config_raw=git_file(project, candidate, config_rel),
+        work_order=match.group(1), work_order_path=work_order_path,
+        work_order_raw=work_order_raw,
+        write_scope=parse_work_order_write_scope(work_order_raw),
+        contract=contract, contract_sha=contract_sha,
+        contract_materials=[
+            (path, git_file(project, candidate, path))
+            for path in scope["acceptance_contract"]
+        ],
+        evidence=[
+            (path, git_file(project, candidate, path))
+            for path in scope["evidence_paths"]
+        ],
+    )
+    prepared = (
+        prepare_full_audit(inputs, args.parent_receipt)
+        if args.mode == "full"
+        else prepare_verification(inputs, args.parent_receipt)
+    )
+    provider = run_provider(inputs, prepared, args.claude_bin)
+    receipt = build_receipt(
+        inputs, prepared, provider, bool(args.allow_unprofiled_project)
+    )
+    return persist_receipt(project, args.out, receipt, provider.payload)
+
+
+def validate_receipt_identity(
+    receipt: dict[str, Any], expected_wo: str | None
+) -> None:
     ensure_exact_keys(receipt, RECEIPT_KEYS, "receipt")
     if receipt["schema_version"] != SCHEMA_VERSION or receipt["receipt_type"] != RECEIPT_TYPE:
         raise AuditError("receipt_identity_invalid")
@@ -1070,25 +1323,9 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
         raise AuditError("receipt_provider_provenance_invalid")
     if auditor.get("auth_method") != "claude.ai":
         raise AuditError("receipt_auth_provenance_invalid")
-    artifacts = receipt["artifacts"]
-    for path_key, hash_key in (("provider_response_path", "provider_response_sha256"), ("report_path", "report_sha256")):
-        artifact = project_path(project, artifacts[path_key], path_key)
-        if not artifact.is_file() or sha256_bytes(artifact.read_bytes()) != artifacts[hash_key]:
-            raise AuditError(f"receipt_artifact_drift:{artifacts[path_key]}")
-    provider_path = project_path(
-        project, artifacts["provider_response_path"], "provider_response_path"
-    )
-    provider_payload = load_object(provider_path, "provider_response")
-    provider_result, provider_usage = provider_output(
-        provider_payload, auditor["requested_model"], auditor["requested_provider"]
-    )
-    if provider_result != receipt["result"]:
-        raise AuditError("receipt_result_does_not_match_provider_payload")
-    if auditor["observed_model"] != provider_usage.get("canonicalModel"):
-        raise AuditError("receipt_observed_model_does_not_match_provider_payload")
-    if auditor["observed_provider"] != provider_usage.get("provider"):
-        raise AuditError("receipt_observed_provider_does_not_match_provider_payload")
-    binding = receipt["binding"]
+
+
+def validate_branch_binding(project: Path, binding: dict[str, Any]) -> str:
     config_path = project_path(project, binding["config_path"], "config_path")
     if not config_path.is_file() or sha256_bytes(config_path.read_bytes()) != binding["config_sha256"]:
         raise AuditError("audit_config_drift_after_audit")
@@ -1116,14 +1353,55 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
     current_merge_base = merge_base(project, candidate_commit, default_branch_commit)
     if not is_ancestor(project, audited_base_commit, current_merge_base):
         raise AuditError("receipt_current_default_branch_lost_audited_base")
+    return candidate_commit
+
+
+def validate_bound_materials(project: Path, binding: dict[str, Any]) -> None:
     scope = project_path(project, binding["scope_manifest_path"], "scope_manifest_path")
     if not scope.is_file() or sha256_bytes(scope.read_bytes()) != binding["scope_manifest_sha256"]:
         raise AuditError("scope_manifest_drift_after_audit")
     if current_file_bindings(project, binding["acceptance_contract"]) != binding["acceptance_contract_sha256"]:
         raise AuditError("acceptance_contract_drift_after_audit")
+    for row in binding.get("evidence", []):
+        evidence_path = project_path(project, row.get("path"), "evidence_path")
+        if not evidence_path.is_file() or sha256_bytes(evidence_path.read_bytes()) != row.get("sha256"):
+            raise AuditError(f"audit_evidence_drift_after_audit:{row.get('path')}")
     roots = binding["review_paths"]
     if snapshot_digest(current_snapshot(project, roots)) != binding["review_snapshot_sha256"]:
         raise AuditError("audited_review_scope_drift_after_audit")
+
+
+def validate_post_audit_scope(
+    project: Path, receipt: dict[str, Any], candidate_commit: str
+) -> None:
+    binding = receipt["binding"]
+    head_commit = resolve_commit(project, "HEAD", "head_commit")
+    if not is_ancestor(project, candidate_commit, head_commit):
+        raise AuditError("current_head_does_not_descend_from_audited_candidate")
+    administrative = [
+        *[row["path"] for row in binding.get("evidence", [])],
+        *[row["path"] for row in binding["acceptance_contract"]],
+        binding["work_order_path"],
+        binding["scope_manifest_path"],
+        binding["config_path"],
+    ]
+    current_changed = material_changed_paths(
+        project, binding["audited_base_commit"], head_commit
+    )
+    roots = binding["review_paths"]
+    outside = [
+        path for path in current_changed
+        if not path_matches(path, roots + administrative)
+        and not is_same_work_order_scope_manifest(
+            project, head_commit, path, binding["scope_manifest_path"], receipt["work_order"]
+        )
+    ]
+    if outside:
+        raise AuditError(f"post_audit_changes_outside_review_scope:{outside}")
+
+
+def validate_receipt_mode(project: Path, receipt: dict[str, Any]) -> None:
+    binding = receipt["binding"]
     closure = receipt["closure"]
     if receipt["mode"] == "full":
         validate_result("full", receipt["result"], [])
@@ -1133,6 +1411,7 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
             raise AuditError("parent_receipt_drift")
         parent = load_object(parent_path, "parent_receipt")
         validate_parent(parent, receipt["work_order"])
+        validate_stored_provider_integrity(project, parent, "parent_receipt")
         ids = [item["id"] for item in parent["result"]["findings"]]
         validate_result("verification", receipt["result"], ids)
         if binding["acceptance_contract_sha256"] != parent["binding"]["acceptance_contract_sha256"]:
@@ -1143,6 +1422,19 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
         raise AuditError("receipt_closure_does_not_match_result")
     if closure.get("status") != "pass" or closure.get("next_required") != "none":
         raise AuditError(f"receipt_not_closed:{closure.get('next_required')}")
+
+
+def validate_receipt(
+    project: Path, receipt_path: Path, expected_wo: str | None
+) -> dict[str, Any]:
+    receipt = load_object(receipt_path, "receipt")
+    validate_receipt_identity(receipt, expected_wo)
+    validate_stored_provider_integrity(project, receipt, "receipt")
+    binding = receipt["binding"]
+    candidate_commit = validate_branch_binding(project, binding)
+    validate_bound_materials(project, binding)
+    validate_post_audit_scope(project, receipt, candidate_commit)
+    validate_receipt_mode(project, receipt)
     return receipt
 
 
@@ -1165,7 +1457,6 @@ def parser() -> argparse.ArgumentParser:
         item.add_argument("--work-order", required=True)
         item.add_argument("--scope-manifest", required=True)
         item.add_argument("--candidate-ref", default="HEAD")
-        item.add_argument("--base-ref", required=mode == "full")
         item.add_argument("--parent-receipt", required=mode == "verification")
         item.add_argument("--config")
         item.add_argument("--allow-unprofiled-project", action="store_true")

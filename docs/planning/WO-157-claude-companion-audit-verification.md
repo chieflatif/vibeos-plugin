@@ -41,7 +41,7 @@ budget_posture:
 
 ## Objective
 
-Add an opt-in, provider-proven cross-identity review lane for Codex-authored
+Add an opt-in, provider-bound cross-identity review lane for Codex-authored
 engineering work. Run one full Claude audit against a frozen work order, scope and
 candidate; after fixes, check the original finding IDs and correction diff only.
 

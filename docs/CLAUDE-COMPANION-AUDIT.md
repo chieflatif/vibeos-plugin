@@ -25,7 +25,9 @@ findings and closure state.
 
 The provider call is pinned to `claude-fable-5-1` through the first-party Claude Code
 CLI. It runs in safe, restricted, tool-free mode with no MCP servers, no permission
-prompts, no browser, no session persistence, a maximum budget and a turn ceiling.
+prompts, no browser, no session persistence, project-only setting sources, a maximum
+budget and a turn ceiling. Before any paid call, the wrapper checks the installed
+CLI version and confirms every pinned flag appears in that CLI's help output.
 The model receives the frozen packet over standard input, so source is not exposed in
 the process argument list; it cannot read or change the repository.
 
@@ -96,7 +98,6 @@ python3 .vibeos/scripts/claude-companion-audit.py full \
   --project-dir . \
   --work-order docs/planning/WO-157-example.md \
   --scope-manifest docs/evidence/WO-157/full-scope.json \
-  --base-ref origin/main \
   --candidate-ref HEAD \
   --out .vibeos/audit-reports/WO-157-full.json
 ```
@@ -143,10 +144,19 @@ the same work-order evidence directory; they remain targeted to the original fin
 ## Authentication boundary
 
 The process must be able to prove a logged-in first-party Claude account through
-`claude auth status`. If a sandbox cannot access that login, run the bounded CLI from
-an authenticated backend process or provide the supported unattended Claude
-authentication outside the repository. Never place credentials in a profile, scope
-manifest, work order or audit packet.
+`claude auth status`. The accepted path is `authMethod=claude.ai` and
+`apiProvider=firstParty`, using the normal account store under `HOME` or a credential
+store selected by `CLAUDE_CONFIG_DIR`. API-key and OAuth-token environment variables
+are deliberately removed and do not satisfy this lane. If a sandbox cannot see the
+Claude account store, run the bounded CLI from an authenticated backend process with
+the correct `CLAUDE_CONFIG_DIR`. Never place credentials in a profile, scope manifest,
+work order or audit packet.
+
+The auditor runs from an empty temporary directory with `--setting-sources project`.
+That keeps user-level settings, hooks and plugins out of the run while retaining access
+to the first-party account store. The effective CLI help digest and selected entrypoint
+digest are retained as integrity evidence; they are not a hostile same-user trust
+boundary.
 
 The CLI reference used for this implementation is Anthropic's current Claude Code
 command-line documentation: <https://code.claude.com/docs/en/cli-usage>. The exact

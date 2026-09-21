@@ -98,12 +98,12 @@ Waivers:
 7. Resolve blocking findings or record signed waivers
 8. At phase exit, run `bash scripts/audit-ratchet.sh <phase-id> --save-baseline`
 
-When a full audit reports findings, freeze that audit and keep its finding IDs.
-After corrections, recheck those findings, the correction diff, immediate affected
-behavior, and new deterministic evidence. Do not pay for another broad audit merely
-because fixes were made. A changed acceptance contract, correction outside the
-original review scope, or new material blocker invalidates the frozen baseline and
-requires a new full audit.
+When the installed project profile activates `claude-companion-audit`, freeze its full
+receipt and keep its finding IDs. After corrections, use the companion verification
+command for those findings, the correction diff, immediate affected behavior, and new
+deterministic evidence. A changed acceptance contract, correction outside the original
+scope, or new material blocker requires a new full audit. Projects without that module
+continue to use their existing audit/convergence protocol.
 
 ## Findings Format
 

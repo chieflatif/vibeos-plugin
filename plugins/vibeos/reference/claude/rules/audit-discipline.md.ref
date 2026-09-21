@@ -11,9 +11,10 @@ No work order or phase closes without the audits required by `docs/planning/AUDI
 4. Resolve blocking findings or record signed waivers
 5. At phase exit, ratchet against the prior baseline
 
-After a full audit finds issues, verify only those named findings and their fixes while
-the acceptance contract and review scope remain unchanged. Repeat the full audit only
-when that frozen baseline is invalidated or a targeted check finds a new material blocker.
+When `.vibeos/project-profile.json` activates `claude-companion-audit`, its frozen
+receipt controls the correction loop: verify only named findings and their fixes while
+the acceptance contract and review scope remain unchanged. Otherwise, keep using the
+project's existing audit/convergence loop; do not claim targeted receipt verification.
 
 ## Rule
 

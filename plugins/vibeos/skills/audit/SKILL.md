@@ -255,8 +255,7 @@ When `$ARGUMENTS` specifies a single auditor:
 - If an agent returns no findings: record "clean" for that auditor
 - If all agents fail: report the failure and suggest checking `project-definition.json`
 - Never fabricate findings — only report what agents actually found
-- Treat a completed full audit as a frozen baseline. After its findings are fixed,
-  verify the named findings, correction diff, immediate dependencies, and new gate
-  evidence only. Do not repeat the full audit unless the acceptance contract changed,
-  the fix escaped the original review scope, or targeted verification found a new
-  material blocker.
+- When the project profile activates `claude-companion-audit`, treat its completed
+  full receipt as the frozen baseline. Use that module's verification command for the
+  named findings and correction evidence only. Without the active module, retain the
+  existing audit and convergence behavior; do not improvise a targeted receipt.

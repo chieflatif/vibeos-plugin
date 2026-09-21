@@ -18,9 +18,8 @@ The follow-up correction makes the default branch part of committed project auth
   the recorded and current remote histories both retain the audited base. Config drift,
   unrelated history or a historical merge-base mismatch invalidates closure; normal
   remote advancement does not.
-- Original full-audit receipts created before these binding fields existed are upgraded
-  only by deriving the ref from current committed configuration and proving that the
-  recomputed merge base equals the original receipt's audited base commit.
+- A full receipt missing any of these binding fields is rejected. There is no legacy
+  schema-1 upgrade path because this is the first published companion-audit format.
 - Tests prove that a local `HEAD~1` authority is refused, a safe remote advance remains
   valid, and an unrelated remote history invalidates the receipt.
 - The Claude CLI minimum-version check now runs before the paid provider call.
@@ -28,5 +27,4 @@ The follow-up correction makes the default branch part of committed project auth
 This round changes only the remaining finding's immediate code, configuration,
 documentation and tests. It does not reopen unrelated audited areas.
 
-Verification evidence: the final focused slice passed 73 tests and 32 subtests; the
-complete repository suite passed 380 tests and 78 subtests.
+Verification evidence is recorded with its tested commit in `automated-tests.md`.

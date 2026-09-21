@@ -1,9 +1,10 @@
 # VibeOS — Autonomous Development Engine
 
-> **2.4.0 — provider-proven companion audit efficiency.**
+> **2.4.0 — provider-bound companion audit efficiency.**
 > Codex-led projects can opt into one frozen first-party Claude audit and then
 > verify only the named corrections. Exact contract, commit, scope, diff,
-> provider/model and drift receipts now block false closeout without repeatedly
+> provider/model and drift receipts now provide checkable integrity evidence at
+> closeout without repeatedly
 > paying for a broad audit. See
 > [Claude companion audit](docs/CLAUDE-COMPANION-AUDIT.md) and
 > [release evidence](docs/release/2.4.0.md).
@@ -92,7 +93,7 @@ Examples:
 - **Session Audits** — Reviews the current or most recent build session end-to-end so you can close out autonomous work with confidence
 - **Evidence Recall** — Builds a local source-cited index so status, build, audit, and planning work can find the right prior evidence with less context
 - **Optional Local Intake** — Routes opted-in, low-consequence engineering logs and receipts through a loopback local model behind closed-schema and evidence validation, while the parent keeps every decision and effect
-- **Optional Claude Companion Audit** — Runs one provider-proven full Claude audit for a frozen Codex-authored work unit, then checks only the named fixes unless the acceptance contract or scope changes
+- **Optional Claude Companion Audit** — Runs one provider-reported full Claude audit for a frozen Codex-authored work unit, then checks only the named fixes unless the acceptance contract or scope changes
 - **Anti-Drift Anchors** — Keeps the build tied to the product promise, engineering standards, and current evidence instead of slowly drifting off course
 - **Prompt Engineering Standards** — Routes prompt and agent-instruction changes through a dedicated prompt-engineering path using the embedded Prompt Engineering Bible
 - **Progress Guidance** — Tells you what is happening, what is done, and what should happen next

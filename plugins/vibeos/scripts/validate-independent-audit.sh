@@ -166,18 +166,32 @@ fi
 COMPANION_REQUIRED="false"
 COMPANION_GATE_CONFIGURED="false"
 COMPANION_GATE_MANIFEST="$PROJECT_ROOT/.claude/quality-gate-manifest.json"
-if [[ -f "$COMPANION_GATE_MANIFEST" ]] \
-  && grep -q '"claude-companion-audit-closure"' "$COMPANION_GATE_MANIFEST"; then
-  COMPANION_GATE_CONFIGURED="true"
+if [[ -f "$COMPANION_GATE_MANIFEST" ]]; then
+  if ! COMPANION_GATE_CONFIGURED="$(python3 - "$COMPANION_GATE_MANIFEST" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    gates = manifest.get("gates", [])
+    configured = any(
+        isinstance(gate, dict)
+        and gate.get("name") == "claude-companion-audit-closure"
+        and gate.get("enabled", True) is not False
+        for gate in gates
+    )
+except (OSError, TypeError, ValueError):
+    raise SystemExit(2)
+print("true" if configured else "false")
+PY
+  )"; then
+    echo "[$GATE_NAME] FAIL: quality-gate-manifest.json is invalid"
+    exit 2
+  fi
 fi
 
-PROFILE_MENTIONS_COMPANION="false"
-if [[ -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]] \
-  && grep -q '"claude-companion-audit"' "$PROJECT_ROOT/.vibeos/project-profile.json"; then
-  PROFILE_MENTIONS_COMPANION="true"
-fi
-
-if [[ "$COMPANION_GATE_CONFIGURED" == "true" || "$PROFILE_MENTIONS_COMPANION" == "true" ]]; then
+if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
   if ! command -v jq >/dev/null 2>&1; then
     echo "[$GATE_NAME] FAIL: jq is required to validate the enabled Claude companion audit"
     exit 2
@@ -186,11 +200,24 @@ if [[ "$COMPANION_GATE_CONFIGURED" == "true" || "$PROFILE_MENTIONS_COMPANION" ==
     echo "[$GATE_NAME] FAIL: Claude companion gate is configured but project-profile.json is missing"
     exit 1
   fi
-  COMPANION_REQUIRED="$(jq -er '
+fi
+
+if [[ -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]] && command -v jq >/dev/null 2>&1; then
+  MODULE_ACTIVE="$(jq -er '
     if ((.active_modules // []) | index("claude-companion-audit")) != null
-       and (.phase_audit_runtime // "") == "claude"
     then "true" else "false" end
   ' "$PROJECT_ROOT/.vibeos/project-profile.json" 2>/dev/null || echo "invalid")"
+  if [[ "$MODULE_ACTIVE" == "true" ]]; then
+    PHASE_RUNTIME="$(jq -r '.phase_audit_runtime // empty' "$PROJECT_ROOT/.vibeos/project-profile.json")"
+    if [[ "$PHASE_RUNTIME" != "claude" ]]; then
+      echo "[$GATE_NAME] FAIL: Active Claude companion audit requires phase_audit_runtime=claude"
+      exit 1
+    fi
+    COMPANION_REQUIRED="true"
+  fi
+fi
+
+if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
   if [[ "$COMPANION_REQUIRED" != "true" ]]; then
     echo "[$GATE_NAME] FAIL: Claude companion gate requires an active module and phase_audit_runtime=claude"
     exit 1

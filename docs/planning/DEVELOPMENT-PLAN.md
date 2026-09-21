@@ -675,7 +675,7 @@ retry.
 
 ## Phase 49: Cross-Identity Audit Efficiency
 
-**Goal:** Make Claude companion review real, provider-proven and cheaper to operate by
+**Goal:** Make Claude companion review real, provider-bound and cheaper to operate by
 running one frozen full audit followed by correction-only verification.
 
 | WO | Title | Dependencies | Status |
