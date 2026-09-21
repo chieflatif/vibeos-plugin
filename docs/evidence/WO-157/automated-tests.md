@@ -1,8 +1,8 @@
 # WO-157 automated verification
 
-- Evidence recorded: 2026-09-21T02:07:30Z
-- Tested implementation commit: `63ff698995df6b6f0e550aef45825b3f4914b941`
-- Tested tree: `102eaa7d1548b7a6c512457ed1adff986f428e67`
+- Evidence recorded: 2026-09-21T02:52:34Z
+- Tested implementation commit: `e0710e034e745b16f8eb363309c8b1237b501302`
+- Tested tree: `cbf2d8ff6a04fc5fe56c2aa1839b91e0f4f48d5a`
 
 The later evidence-only commit may add this record, the targeted scope manifest and
 release-gate wording; it does not alter executable implementation bytes.
@@ -18,7 +18,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q \
   tests/test_canonical_closeout.py
 ```
 
-Result: **79 tests and 32 subtests passed in 51.12 seconds**.
+Result: **85 tests and 39 subtests passed in 71.15 seconds**.
 
 This covers the companion CLI, provider/receipt refusal paths, full-to-targeted
 verification, profile installation, release handoff, canonical closeout, enabled and
@@ -30,7 +30,7 @@ disabled close-gate behavior, large files, Unicode paths, and post-audit drift.
 PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q tests
 ```
 
-Result: **389 tests and 78 subtests passed in 243.33 seconds**.
+Result: **395 tests and 85 subtests passed in 274.67 seconds**.
 
 The run used permission only for the repository's in-process loopback HTTP fixtures;
 no product service was contacted.
@@ -43,21 +43,19 @@ no product service was contacted.
 - All repository JSON parsed successfully.
 - Generated inventory matched source after excluding its volatile `generated_at` field.
 - `git diff --check` passed.
-- The first configured pre-commit run reached the wrapper's default 120-second ceiling
-  while rerunning the already-green suite; it reported a timeout, not a test failure.
-  The documented `--timeout 300` override then passed 9 gates, failed 0, and skipped
-  the existing non-blocking dependency gate (10 total). Its test gate passed in 120
+- A sandboxed full run reported the seven expected loopback-fixture permission
+  failures and also exposed a real file-size breach after the close-gate hardening.
+  The gate was reduced to the permitted 300-line ceiling without an exemption. The
+  exact full suite then passed with localhost-only fixture permission.
+- The documented `--timeout 300` pre-commit run passed 9 gates, failed 0, and skipped
+  the existing non-blocking dependency gate (10 total). Its test gate passed in 135
   seconds.
 
 ## Live review boundary
 
-The targeted first-party receipt `claude-audit-909ed4d9-ba46-4776-bef7-0b63ef3e7bd2`
-closed all 17 findings from the preceding full audit and exposed one new medium blocker:
-profile activation could fail open when `jq` and the generated gate entry were absent.
-The implementation commit above fixes that new blocker and retains the complete review
-diff with three unchanged context lines. Under the frozen audit rule, a new material
-blocker requires one fresh full audit before release.
-
-The final full packet is approximately 345 KB after adding the correction history.
-Its committed prompt ceiling is therefore 400 KB, still below the CLI's enforced
-500 KB maximum; model, provider, spend, turn and time limits are unchanged.
+The fresh first-party full receipt
+`claude-audit-96e0e5ee-a663-4b2d-9a07-70be5112a0b0` reviewed candidate `40574d6`
+and returned 12 findings. Commit `e0710e0` corrects those named findings; the next and
+only provider step is targeted verification against that parent receipt. The final
+candidate machine-checks that all changes after this tested implementation commit are
+administrative evidence only.
