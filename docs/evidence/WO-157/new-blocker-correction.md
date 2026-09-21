@@ -21,3 +21,7 @@ The correction retains the security property without freezing the remote ref:
 Because this was a new material blocker rather than an original finding correction,
 the next provider step is a new full audit of the corrected candidate, as required by
 the companion-audit state machine.
+
+The accumulated release diff is rendered with eight context lines so every changed
+path and all correction evidence fit beneath the existing 300 KB diff and 320 KB
+prompt ceilings; no path is removed from the final audit scope.
