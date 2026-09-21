@@ -238,6 +238,10 @@ class ProfileInstallTests(unittest.TestCase):
                 installed_profile["claude_companion_audit"]["model"],
                 "claude-fable-5-1",
             )
+            self.assertEqual(
+                installed_profile["claude_companion_audit"]["default_branch_ref"],
+                "origin/main",
+            )
             self.assertTrue(
                 (target / ".vibeos/scripts/claude-companion-audit.py").is_file()
             )

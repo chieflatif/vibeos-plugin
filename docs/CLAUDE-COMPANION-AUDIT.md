@@ -54,7 +54,8 @@ Add the module explicitly to the project profile:
     "max_budget_usd": 20,
     "max_turns": 20,
     "timeout_seconds": 2700,
-    "max_prompt_bytes": 240000
+    "max_prompt_bytes": 240000,
+    "default_branch_ref": "origin/main"
   }
 }
 ```
@@ -96,7 +97,6 @@ python3 .vibeos/scripts/claude-companion-audit.py full \
   --work-order docs/planning/WO-157-example.md \
   --scope-manifest docs/evidence/WO-157/full-scope.json \
   --base-ref origin/main \
-  --default-branch-ref origin/main \
   --candidate-ref HEAD \
   --out .vibeos/audit-reports/WO-157-full.json
 ```
@@ -122,10 +122,12 @@ bash .vibeos/scripts/validate-independent-audit.sh \
   .vibeos/audit-reports/WO-157-verification.md
 ```
 
-The full-audit base must equal the candidate's merge base with the named default
-branch, and every changed path must be declared by the work order and covered by the
-review or its explicit administrative evidence. This prevents a late, artificially
-narrow base from hiding earlier implementation commits.
+The full-audit base must equal the candidate's merge base with the committed
+`default_branch_ref` from the project profile. Only `origin/*` remote refs are accepted,
+and receipt validation recomputes the recorded ref, commit and merge base. Every changed
+path must also be declared by the work order and covered by the review or its explicit
+administrative evidence. This prevents a late, artificially narrow CLI base from
+hiding earlier implementation commits.
 
 Installed projects read authorization and limits from `.vibeos/project-profile.json`.
 The plugin repository's own release audit may instead pass a committed `--config`

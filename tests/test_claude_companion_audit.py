@@ -112,6 +112,7 @@ else:
             "max_turns": 5,
             "timeout_seconds": 60,
             "max_prompt_bytes": 100000,
+            "default_branch_ref": "origin/main",
         }
         write_json(project / "docs/evidence/WO-157/claude-config.json", config)
         scope = {
@@ -363,6 +364,39 @@ else:
             self.assertEqual(result.returncode, 2)
             self.assertIn("base_ref_must_equal_default_branch_merge_base", result.stderr)
             self.assertFalse((project.parent / "fake-claude-args.json").exists())
+
+    def test_default_branch_authority_rejects_local_ref_and_detects_remote_drift(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            config_path = project / "docs/evidence/WO-157/claude-config.json"
+            config = json.loads(config_path.read_text())
+            config["default_branch_ref"] = "HEAD~1"
+            write_json(config_path, config)
+            self.commit(project, "invalid default branch authority")
+            fake = self.fake_claude(project, self.full_result())
+            result = self.invoke_full(project, base, fake)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("default_branch_ref_must_be_origin_remote_ref", result.stderr)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, candidate = self.fixture(Path(temporary))
+            clean_result = {
+                **self.full_result(),
+                "verdict": "pass",
+                "findings": [],
+            }
+            fake = self.fake_claude(project, clean_result)
+            self.assertEqual(self.invoke_full(project, base, fake).returncode, 0)
+            self.git(project, "update-ref", "refs/remotes/origin/main", candidate)
+            validated = run(
+                [
+                    "python3", str(SCRIPT), "validate", "--project-dir", str(project),
+                    "--receipt", ".vibeos/audit-reports/WO-157-full.json",
+                ],
+                project,
+            )
+            self.assertEqual(validated.returncode, 2)
+            self.assertIn("default_branch_commit_drift_after_audit", validated.stderr)
 
     def test_full_audit_rejects_change_outside_work_order_write_scope(self):
         with tempfile.TemporaryDirectory() as temporary:

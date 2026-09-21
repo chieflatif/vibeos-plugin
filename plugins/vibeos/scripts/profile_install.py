@@ -150,6 +150,7 @@ CLAUDE_COMPANION_AUDIT_DEFAULTS = {
     "max_turns": 20,
     "timeout_seconds": 2700,
     "max_prompt_bytes": 240000,
+    "default_branch_ref": "origin/main",
 }
 
 DORMANT_PAYLOAD = [
@@ -634,6 +635,16 @@ def normalize_claude_companion_audit_config(
     if config["provider"] != "firstParty":
         raise InstallError(
             "claude_companion_audit.provider must be firstParty"
+        )
+    if (
+        not isinstance(config["default_branch_ref"], str)
+        or not re.fullmatch(
+            r"origin/[A-Za-z0-9][A-Za-z0-9._/-]*", config["default_branch_ref"]
+        )
+        or ".." in Path(config["default_branch_ref"]).parts
+    ):
+        raise InstallError(
+            "claude_companion_audit.default_branch_ref must be an origin/* remote ref"
         )
     numeric_bounds = {
         "max_budget_usd": (1, 25),

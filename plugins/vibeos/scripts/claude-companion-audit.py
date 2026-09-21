@@ -36,6 +36,7 @@ CONFIG_KEYS = {
     "max_turns",
     "timeout_seconds",
     "max_prompt_bytes",
+    "default_branch_ref",
 }
 SCOPE_KEYS = {
     "schema_version",
@@ -147,6 +148,7 @@ def validate_config(raw: dict[str, Any]) -> dict[str, Any]:
     turns = raw["max_turns"]
     timeout = raw["timeout_seconds"]
     prompt_bytes = raw["max_prompt_bytes"]
+    default_branch_ref = raw["default_branch_ref"]
     if isinstance(budget, bool) or not isinstance(budget, (int, float)) or not 1 <= float(budget) <= 25:
         raise AuditError("max_budget_usd_invalid")
     if isinstance(turns, bool) or not isinstance(turns, int) or not 1 <= turns <= 30:
@@ -155,6 +157,12 @@ def validate_config(raw: dict[str, Any]) -> dict[str, Any]:
         raise AuditError("timeout_seconds_invalid")
     if isinstance(prompt_bytes, bool) or not isinstance(prompt_bytes, int) or not 50_000 <= prompt_bytes <= 500_000:
         raise AuditError("max_prompt_bytes_invalid")
+    if (
+        not isinstance(default_branch_ref, str)
+        or not re.fullmatch(r"origin/[A-Za-z0-9][A-Za-z0-9._/-]*", default_branch_ref)
+        or ".." in PurePosixPath(default_branch_ref).parts
+    ):
+        raise AuditError("default_branch_ref_must_be_origin_remote_ref")
     return raw
 
 
@@ -850,9 +858,8 @@ def run_audit(args: argparse.Namespace) -> int:
         if args.parent_receipt:
             raise AuditError("full_audit_does_not_accept_parent_receipt")
         base = resolve_commit(project, args.base_ref, "base_ref")
-        default_branch_commit = resolve_commit(
-            project, args.default_branch_ref, "default_branch_ref"
-        )
+        default_branch_ref = config["default_branch_ref"]
+        default_branch_commit = resolve_commit(project, default_branch_ref, "default_branch_ref")
         merge_base = str(run_git(project, "merge-base", candidate, default_branch_commit)).strip()
         if base != merge_base:
             raise AuditError("base_ref_must_equal_default_branch_merge_base")
@@ -880,9 +887,10 @@ def run_audit(args: argparse.Namespace) -> int:
         prompt = packet_for_full(work_order_number.group(1), scope, contract, correction_diff, materials, candidate)
         schema = full_schema()
         binding_extra: dict[str, Any] = {
-            "default_branch_ref": args.default_branch_ref,
+            "default_branch_ref": default_branch_ref,
             "default_branch_commit": default_branch_commit,
             "merge_base": merge_base,
+            "audited_base_commit": base,
             "work_order_write_scope": write_scope,
         }
     else:
@@ -923,10 +931,17 @@ def run_audit(args: argparse.Namespace) -> int:
             "parent_receipt_sha256": parent_sha,
             "parent_audit_id": parent["audit_id"],
             "work_order_write_scope": write_scope,
+            "default_branch_ref": parent["binding"]["default_branch_ref"],
+            "default_branch_commit": parent["binding"]["default_branch_commit"],
+            "merge_base": parent["binding"]["merge_base"],
+            "audited_base_commit": parent["binding"].get(
+                "audited_base_commit", parent["binding"]["base_commit"]
+            ),
         }
     if not correction_diff.strip():
         raise AuditError("audit_diff_is_empty")
     binary = resolve_claude_binary(args.claude_bin)
+    cli_version_value = claude_version(binary, config["timeout_seconds"])
     payload, structured, auth, model_usage = invoke_claude(binary, config, prompt, schema)
     result = validate_result(args.mode, structured, scope["finding_ids"])
     raw_provider = canonical_json(payload)
@@ -976,7 +991,7 @@ def run_audit(args: argparse.Namespace) -> int:
             "auth_method": auth.get("authMethod"),
             "cli_path": str(binary),
             "cli_entrypoint_sha256": sha256_bytes(binary.read_bytes()),
-            "cli_version": claude_version(binary, config["timeout_seconds"]),
+            "cli_version": cli_version_value,
             "provider_usage": usage_evidence,
         },
         "result": result,
@@ -1041,6 +1056,27 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
     if auditor["observed_provider"] != provider_usage.get("provider"):
         raise AuditError("receipt_observed_provider_does_not_match_provider_payload")
     binding = receipt["binding"]
+    config_path = project_path(project, binding["config_path"], "config_path")
+    if not config_path.is_file() or sha256_bytes(config_path.read_bytes()) != binding["config_sha256"]:
+        raise AuditError("audit_config_drift_after_audit")
+    config_payload = load_object(config_path, "audit_config")
+    current_config = validate_config(
+        config_payload.get("claude_companion_audit", config_payload)
+    )
+    if binding.get("default_branch_ref") != current_config["default_branch_ref"]:
+        raise AuditError("receipt_default_branch_ref_mismatch")
+    default_branch_commit = resolve_commit(
+        project, current_config["default_branch_ref"], "default_branch_ref"
+    )
+    if default_branch_commit != binding.get("default_branch_commit"):
+        raise AuditError("default_branch_commit_drift_after_audit")
+    candidate_commit = resolve_commit(project, binding["candidate_commit"], "candidate_commit")
+    merge_base = str(run_git(project, "merge-base", candidate_commit, default_branch_commit)).strip()
+    if (
+        merge_base != binding.get("merge_base")
+        or merge_base != binding.get("audited_base_commit")
+    ):
+        raise AuditError("receipt_merge_base_mismatch")
     scope = project_path(project, binding["scope_manifest_path"], "scope_manifest_path")
     if not scope.is_file() or sha256_bytes(scope.read_bytes()) != binding["scope_manifest_sha256"]:
         raise AuditError("scope_manifest_drift_after_audit")
@@ -1091,8 +1127,6 @@ def parser() -> argparse.ArgumentParser:
         item.add_argument("--scope-manifest", required=True)
         item.add_argument("--candidate-ref", default="HEAD")
         item.add_argument("--base-ref", required=mode == "full")
-        if mode == "full":
-            item.add_argument("--default-branch-ref", default="origin/main")
         item.add_argument("--parent-receipt", required=mode == "verification")
         item.add_argument("--config")
         item.add_argument("--allow-unprofiled-project", action="store_true")
