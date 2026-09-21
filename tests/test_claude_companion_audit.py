@@ -38,11 +38,14 @@ class CompanionAuditTests(unittest.TestCase):
         canonical_model="claude-fable-5-1", authenticated=True,
         reject_unknown_flags=False, version="2.1.277 (Claude Code fixture)",
         omit_help_flag=None, reject_max_turns_probe=False,
+        advertise_max_turns=False, subtype="success",
+        omit_structured_output=False, extra_model_usage=False,
     ) -> Path:  # noqa: ANN001
         fake = project.parent / "fake-claude"
         args_out = project.parent / "fake-claude-args.json"
         payload = {
             "is_error": False,
+            "subtype": subtype,
             "structured_output": structured,
             "modelUsage": {
                 "claude-fable-5-1": {
@@ -54,6 +57,15 @@ class CompanionAuditTests(unittest.TestCase):
                 }
             },
         }
+        if omit_structured_output:
+            payload.pop("structured_output")
+            payload["result"] = json.dumps(structured)
+        if extra_model_usage:
+            payload["modelUsage"]["claude-unrequested"] = {
+                "canonicalModel": "claude-unrequested",
+                "provider": provider,
+                "outputTokens": 1,
+            }
         supported_flags = sorted([
             "--bare", "--print", "--safe-mode", "--restricted", "--tools",
             "--disable-slash-commands", "--no-chrome", "--no-session-persistence",
@@ -64,7 +76,8 @@ class CompanionAuditTests(unittest.TestCase):
         ])
         help_flags = [
             flag for flag in supported_flags
-            if flag not in {omit_help_flag, "--max-turns"}
+            if flag != omit_help_flag
+            and (advertise_max_turns or flag != "--max-turns")
         ]
         source = f"""#!/usr/bin/env python3
 import json
@@ -123,8 +136,6 @@ else:
         contract = project / "docs/evidence/WO-157/acceptance-contract.md"
         contract.parent.mkdir(parents=True)
         contract.write_text("# Acceptance contract\n\nThe answer must return 42.\n", encoding="utf-8")
-        evidence = project / "docs/evidence/WO-157/tests.txt"
-        evidence.write_text("1 failed: expected 42, received 41\n", encoding="utf-8")
         config = {
             "enabled": True,
             "model": "claude-fable-5-1",
@@ -141,12 +152,72 @@ else:
             "work_order": "WO-157",
             "acceptance_contract": ["docs/evidence/WO-157/acceptance-contract.md"],
             "review_paths": ["src/app.py", "tests/test_app.py"],
-            "evidence_paths": ["docs/evidence/WO-157/tests.txt"],
+            "evidence_paths": ["docs/evidence/WO-157/automated-tests.md"],
             "finding_ids": [],
         }
         write_json(project / "docs/evidence/WO-157/full-scope.json", scope)
-        candidate = self.commit(project, "candidate")
+        tested = self.commit(project, "candidate implementation")
+        tested_tree = self.git(project, "rev-parse", f"{tested}^{{tree}}")
+        evidence = project / "docs/evidence/WO-157/automated-tests.md"
+        evidence.write_text(
+            "# Automated tests\n\n"
+            f"- Tested implementation commit: `{tested}`\n"
+            f"- Tested tree: `{tested_tree}`\n\n"
+            "1 failed: expected 42, received 41\n",
+            encoding="utf-8",
+        )
+        candidate = self.commit(project, "bind candidate test evidence")
         return project, base, candidate
+
+    def bind_current_implementation(
+        self, project: Path, implementation_message: str
+    ) -> str:
+        tested = self.commit(project, implementation_message)
+        tested_tree = self.git(project, "rev-parse", f"{tested}^{{tree}}")
+        evidence = project / "docs/evidence/WO-157/automated-tests.md"
+        evidence.write_text(
+            "# Automated tests\n\n"
+            f"- Tested implementation commit: `{tested}`\n"
+            f"- Tested tree: `{tested_tree}`\n\n"
+            "Focused fixture checks completed.\n",
+            encoding="utf-8",
+        )
+        return self.commit(project, "bind refreshed test evidence")
+
+    def enable_companion_gate_fixture(self, project: Path) -> str:
+        installed_scripts = project / ".vibeos/scripts"
+        installed_scripts.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(SCRIPT, installed_scripts / SCRIPT.name)
+        write_json(
+            project / ".vibeos/project-profile.json",
+            {
+                "active_modules": ["claude-companion-audit"],
+                "phase_audit_runtime": "claude",
+            },
+        )
+        write_json(
+            project / ".claude/quality-gate-manifest.json",
+            {"gates": [{"name": "claude-companion-audit-closure"}]},
+        )
+        work_order = project / "docs/planning/WO-157-fixture.md"
+        work_order.write_text(
+            work_order.read_text().replace(
+                "  - src/**\n",
+                "  - src/**\n  - .vibeos/**\n"
+                "  - .claude/quality-gate-manifest.json\n",
+            )
+        )
+        scope_path = project / "docs/evidence/WO-157/full-scope.json"
+        scope = json.loads(scope_path.read_text())
+        scope["review_paths"].extend(
+            [
+                ".vibeos/scripts/claude-companion-audit.py",
+                ".vibeos/project-profile.json",
+                ".claude/quality-gate-manifest.json",
+            ]
+        )
+        write_json(scope_path, scope)
+        return self.bind_current_implementation(project, "install companion gate fixture")
 
     def full_result(self):
         return {
@@ -200,19 +271,25 @@ else:
 
     def apply_fix(self, project: Path) -> str:
         (project / "src/app.py").write_text("def answer():\n    return 42\n", encoding="utf-8")
-        (project / "docs/evidence/WO-157/tests-fixed.txt").write_text(
-            "1 passed\n", encoding="utf-8"
+        tested = self.commit(project, "fix F-001 implementation")
+        tested_tree = self.git(project, "rev-parse", f"{tested}^{{tree}}")
+        (project / "docs/evidence/WO-157/tests-fixed.md").write_text(
+            "# Corrected tests\n\n"
+            f"- Tested implementation commit: `{tested}`\n"
+            f"- Tested tree: `{tested_tree}`\n\n"
+            "1 passed\n",
+            encoding="utf-8",
         )
         scope = {
             "schema_version": 1,
             "work_order": "WO-157",
             "acceptance_contract": ["docs/evidence/WO-157/acceptance-contract.md"],
             "review_paths": ["src/app.py", "tests/test_app.py"],
-            "evidence_paths": ["docs/evidence/WO-157/tests-fixed.txt"],
+            "evidence_paths": ["docs/evidence/WO-157/tests-fixed.md"],
             "finding_ids": ["F-001"],
         }
         write_json(project / "docs/evidence/WO-157/verify-scope.json", scope)
-        return self.commit(project, "fix F-001")
+        return self.commit(project, "bind F-001 test evidence")
 
     def invoke_verification(
         self, project: Path, fake: Path, *,
@@ -244,6 +321,7 @@ else:
     def test_full_audit_then_targeted_verification_closes_without_broad_rerun(self):
         with tempfile.TemporaryDirectory() as temporary:
             project, base, candidate = self.fixture(Path(temporary))
+            candidate = self.enable_companion_gate_fixture(project)
             fake = self.fake_claude(project, self.full_result())
             full = self.invoke_full(project, base, fake)
             self.assertEqual(full.returncode, 3, full.stdout + full.stderr)
@@ -252,6 +330,9 @@ else:
             )
             self.assertEqual(full_receipt["binding"]["candidate_commit"], candidate)
             self.assertEqual(full_receipt["closure"]["next_required"], "targeted_verification")
+            self.assertIn("tested_implementation", full_receipt["binding"])
+            self.assertEqual(full_receipt["auditor"]["safe_mode"], True)
+            self.assertEqual(full_receipt["auditor"]["setting_sources"], ["project"])
             provider_args = json.loads(
                 (project.parent / "fake-claude-args.json").read_text()
             )
@@ -271,7 +352,8 @@ else:
                 provider_args[provider_args.index("--model") + 1],
                 "claude-fable-5-1",
             )
-            self.assertEqual(provider_args[-1], "-p")
+            self.assertIn("--print", provider_args)
+            self.assertNotIn("-p", provider_args)
             provider_stdin = (project.parent / "fake-claude-stdin.txt").read_text()
             self.assertIn("The answer must return 42.", provider_stdin)
             self.assertIn('"default_branch_ref": "origin/main"', provider_stdin)
@@ -287,6 +369,10 @@ else:
             self.assertEqual(receipt["binding"]["parent_audit_id"], full_receipt["audit_id"])
             self.assertEqual(receipt["closure"]["status"], "pass")
             self.assertEqual(receipt["auditor"]["observed_model"], "claude-fable-5-1")
+            self.assertIn(
+                receipt["auditor"]["max_turns_preflight"],
+                {"advertised", "isolated-auth-stop"},
+            )
             self.assertEqual(receipt["auditor"]["provider_usage"]["costUSD"], 0.2)
             self.assertIn("cli_entrypoint_sha256", receipt["auditor"])
             self.assertNotIn("account_identifier_sha256", receipt["auditor"])
@@ -304,16 +390,6 @@ else:
                 project,
             )
             self.assertEqual(validated.returncode, 0, validated.stdout + validated.stderr)
-            installed_scripts = project / ".vibeos/scripts"
-            installed_scripts.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(SCRIPT, installed_scripts / SCRIPT.name)
-            write_json(
-                project / ".vibeos/project-profile.json",
-                {
-                    "active_modules": ["claude-companion-audit"],
-                    "phase_audit_runtime": "claude",
-                },
-            )
             env = dict(os.environ, PROJECT_ROOT=str(project))
             gate = run(
                 [
@@ -346,7 +422,9 @@ else:
         with tempfile.TemporaryDirectory() as temporary:
             project, base, _candidate = self.fixture(Path(temporary))
             marker = "PRIVATE-SOURCE-MARKER-" + ("x" * 135000)
-            (project / "docs/evidence/WO-157/tests.txt").write_text(marker)
+            evidence_path = project / "docs/evidence/WO-157/automated-tests.md"
+            original = evidence_path.read_text()
+            evidence_path.write_text(original + marker)
             config_path = project / "docs/evidence/WO-157/claude-config.json"
             config = json.loads(config_path.read_text())
             config["max_prompt_bytes"] = 200000
@@ -378,7 +456,9 @@ else:
             scope = json.loads(scope_path.read_text())
             scope["review_paths"] = ["src", "tests/test_app.py"]
             write_json(scope_path, scope)
-            self.commit(project, "large and unicode review files")
+            self.bind_current_implementation(
+                project, "large and unicode review files"
+            )
             clean_result = {**self.full_result(), "verdict": "pass", "findings": []}
             fake = self.fake_claude(project, clean_result)
             result = self.invoke_full(project, base, fake)
@@ -420,7 +500,25 @@ else:
             self.assertIn("claude_max_turns_flag_unsupported", result.stderr)
             self.assertFalse((project.parent / "fake-claude-args.json").exists())
 
-    def test_full_cli_rejects_a_late_base_ref_override(self):
+    def test_advertised_max_turns_skips_hidden_flag_probe(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            fake = self.fake_claude(
+                project,
+                self.full_result(),
+                advertise_max_turns=True,
+                reject_max_turns_probe=True,
+            )
+            result = self.invoke_full(project, base, fake)
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            receipt = json.loads(
+                (project / ".vibeos/audit-reports/WO-157-full.json").read_text()
+            )
+            self.assertEqual(
+                receipt["auditor"]["max_turns_preflight"], "advertised"
+            )
+
+    def test_removed_base_ref_is_rejected_before_provider(self):
         with tempfile.TemporaryDirectory() as temporary:
             project, _base, candidate = self.fixture(Path(temporary))
             fake = self.fake_claude(project, self.full_result())
@@ -498,6 +596,19 @@ else:
             result = self.invoke_full(project, base, fake)
             self.assertEqual(result.returncode, 2)
             self.assertIn("changed_paths_outside_work_order_write_scope", result.stderr)
+
+    def test_full_audit_rejects_source_changes_after_recorded_test_commit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            (project / "src/app.py").write_text(
+                "def answer():\n    return 99\n", encoding="utf-8"
+            )
+            self.commit(project, "untested source change")
+            fake = self.fake_claude(project, self.full_result())
+            result = self.invoke_full(project, base, fake)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("untested_candidate_changes", result.stderr)
+            self.assertFalse((project.parent / "fake-claude-args.json").exists())
 
     def test_explicit_config_requires_recorded_unprofiled_override(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -629,6 +740,24 @@ else:
                 {"version": "2.1.100 (Claude Code fixture)"},
                 "claude_cli_version_too_old",
             ),
+            (
+                "non_success_subtype",
+                self.full_result(),
+                {"subtype": "error"},
+                "claude_provider_error_result",
+            ),
+            (
+                "unrequested_model_usage",
+                self.full_result(),
+                {"extra_model_usage": True},
+                "claude_unexpected_model_usage",
+            ),
+            (
+                "missing_structured_output",
+                self.full_result(),
+                {"omit_structured_output": True},
+                "claude_structured_output_missing",
+            ),
         ]
         for name, structured, options, expected in cases:
             with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
@@ -725,8 +854,15 @@ else:
             (project / "src/app.py").write_text(
                 "def answer():\n    return 42  # verified correction\n"
             )
-            second_evidence = project / "docs/evidence/WO-157/tests-round-2.txt"
-            second_evidence.write_text("1 passed after round 2\n")
+            tested = self.commit(project, "second targeted implementation")
+            tested_tree = self.git(project, "rev-parse", f"{tested}^{{tree}}")
+            second_evidence = project / "docs/evidence/WO-157/tests-round-2.md"
+            second_evidence.write_text(
+                "# Round two tests\n\n"
+                f"- Tested implementation commit: `{tested}`\n"
+                f"- Tested tree: `{tested_tree}`\n\n"
+                "1 passed after round 2\n"
+            )
             second_scope = {
                 "schema_version": 1,
                 "work_order": "WO-157",
@@ -735,8 +871,8 @@ else:
                 ],
                 "review_paths": ["src/app.py", "tests/test_app.py"],
                 "evidence_paths": [
-                    "docs/evidence/WO-157/tests-fixed.txt",
-                    "docs/evidence/WO-157/tests-round-2.txt",
+                    "docs/evidence/WO-157/tests-fixed.md",
+                    "docs/evidence/WO-157/tests-round-2.md",
                 ],
                 "finding_ids": ["F-001"],
             }
@@ -744,7 +880,7 @@ else:
                 project / "docs/evidence/WO-157/verify-scope-round-2.json",
                 second_scope,
             )
-            self.commit(project, "second targeted correction")
+            self.commit(project, "bind second targeted test evidence")
             fake = self.fake_claude(project, self.verification_result())
             result = self.invoke_verification(
                 project,
@@ -907,24 +1043,9 @@ else:
         gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
         with tempfile.TemporaryDirectory() as temporary:
             project, base, _candidate = self.fixture(Path(temporary))
+            self.enable_companion_gate_fixture(project)
             fake = self.fake_claude(project, self.full_result())
             self.assertEqual(self.invoke_full(project, base, fake).returncode, 3)
-            installed_scripts = project / ".vibeos/scripts"
-            installed_scripts.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(SCRIPT, installed_scripts / SCRIPT.name)
-            write_json(
-                project / ".vibeos/project-profile.json",
-                {
-                    "active_modules": ["claude-companion-audit"],
-                    "phase_audit_runtime": "claude",
-                },
-            )
-            manifest = project / ".claude/quality-gate-manifest.json"
-            manifest.parent.mkdir(parents=True)
-            write_json(
-                manifest,
-                {"gates": [{"name": "claude-companion-audit-closure"}]},
-            )
             env = dict(os.environ, PROJECT_ROOT=str(project))
             result = run(
                 [
@@ -937,6 +1058,36 @@ else:
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("receipt_not_closed", result.stdout + result.stderr)
+
+    def test_enabled_companion_gate_rejects_a_different_report_file(self):
+        gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            self.enable_companion_gate_fixture(project)
+            fake = self.fake_claude(project, self.full_result())
+            self.assertEqual(self.invoke_full(project, base, fake).returncode, 3)
+            self.apply_fix(project)
+            fake = self.fake_claude(project, self.verification_result())
+            self.assertEqual(self.invoke_verification(project, fake).returncode, 0)
+            alternate = project / ".vibeos/audit-reports/WO-157-alternate.md"
+            alternate.write_text(
+                "## Auditor Summary\n\nWO-157 security and correctness passed.\n"
+            )
+            env = dict(os.environ, PROJECT_ROOT=str(project))
+            result = run(
+                [
+                    "/bin/bash", str(gate_script),
+                    "docs/planning/WO-157-fixture.md",
+                    ".vibeos/audit-reports/WO-157-alternate.md",
+                ],
+                project,
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(
+                "not the report bound by the registered Claude companion receipt",
+                result.stdout + result.stderr,
+            )
 
     def test_close_gate_fails_closed_for_misconfigured_profile_or_missing_jq(self):
         gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
@@ -1088,6 +1239,7 @@ else:
                 ignored_result.returncode, 0, ignored_result.stdout + ignored_result.stderr
             )
             (project / "src/app.py").write_text("def answer():\n    return 43\n")
+            self.commit(project, "drift audited source")
             result = run(
                 [
                     "python3", str(SCRIPT), "validate", "--project-dir", str(project),
@@ -1097,6 +1249,87 @@ else:
             )
             self.assertEqual(result.returncode, 2)
             self.assertIn("audited_review_scope_drift_after_audit", result.stderr)
+
+    def test_validation_rejects_uncommitted_files_inside_and_outside_review_scope(self):
+        for case in ("untracked_review", "unstaged_outside"):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as temporary:
+                project, base, _candidate = self.fixture(Path(temporary))
+                fake = self.fake_claude(project, self.full_result())
+                self.assertEqual(self.invoke_full(project, base, fake).returncode, 3)
+                self.apply_fix(project)
+                fake = self.fake_claude(project, self.verification_result())
+                self.assertEqual(self.invoke_verification(project, fake).returncode, 0)
+                if case == "untracked_review":
+                    (project / "src/untracked.py").write_text("value = 1\n")
+                else:
+                    (project / "README.md").write_text("unstaged outside review\n")
+                result = run(
+                    [
+                        "python3", str(SCRIPT), "validate",
+                        "--project-dir", str(project),
+                        "--receipt", ".vibeos/audit-reports/WO-157-verification.json",
+                    ],
+                    project,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("working_tree_must_be_clean", result.stderr)
+
+    def test_committed_config_and_work_order_scope_drift_fail_closed(self):
+        for case in ("config", "work_order_scope"):
+            with self.subTest(case=case), tempfile.TemporaryDirectory() as temporary:
+                project, base, _candidate = self.fixture(Path(temporary))
+                fake = self.fake_claude(project, self.full_result())
+                self.assertEqual(self.invoke_full(project, base, fake).returncode, 3)
+                self.apply_fix(project)
+                fake = self.fake_claude(project, self.verification_result())
+                self.assertEqual(self.invoke_verification(project, fake).returncode, 0)
+                if case == "config":
+                    config_path = project / "docs/evidence/WO-157/claude-config.json"
+                    config = json.loads(config_path.read_text())
+                    config["max_turns"] = 6
+                    write_json(config_path, config)
+                    expected = "audit_config_drift_after_audit"
+                else:
+                    work_order = project / "docs/planning/WO-157-fixture.md"
+                    work_order.write_text(
+                        work_order.read_text().replace(
+                            "  - tests/**\n", "  - tests/**\n  - README.md\n"
+                        )
+                    )
+                    expected = "work_order_write_scope_drift_after_audit"
+                self.commit(project, f"drift {case}")
+                result = run(
+                    [
+                        "python3", str(SCRIPT), "validate",
+                        "--project-dir", str(project),
+                        "--receipt", ".vibeos/audit-reports/WO-157-verification.json",
+                    ],
+                    project,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(expected, result.stderr)
+
+    def test_malformed_nested_receipt_returns_controlled_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            clean_result = {**self.full_result(), "verdict": "pass", "findings": []}
+            fake = self.fake_claude(project, clean_result)
+            self.assertEqual(self.invoke_full(project, base, fake).returncode, 0)
+            receipt_path = project / ".vibeos/audit-reports/WO-157-full.json"
+            receipt = json.loads(receipt_path.read_text())
+            receipt["auditor"] = "not-an-object"
+            receipt_path.write_text(json.dumps(receipt, indent=2) + "\n")
+            result = run(
+                [
+                    "python3", str(SCRIPT), "validate",
+                    "--project-dir", str(project),
+                    "--receipt", ".vibeos/audit-reports/WO-157-full.json",
+                ],
+                project,
+            )
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("receipt_nested_objects_invalid", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
 
     def test_post_audit_commit_outside_review_roots_invalidates_receipt(self):
         with tempfile.TemporaryDirectory() as temporary:

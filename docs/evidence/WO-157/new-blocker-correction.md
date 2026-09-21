@@ -23,5 +23,6 @@ the next provider step is a new full audit of the corrected candidate, as requir
 the companion-audit state machine.
 
 The accumulated release diff is rendered with eight context lines so every changed
-path and all correction evidence fit beneath the existing 300 KB diff and 320 KB
-prompt ceilings; no path is removed from the final audit scope.
+path fits beneath the 300 KB diff ceiling. The later post-blocker full packet uses the
+committed 400 KB prompt ceiling because it also carries the complete correction
+evidence; no path is removed from the final audit scope.

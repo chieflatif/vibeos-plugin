@@ -39,11 +39,14 @@ REQUIRED_CLAUDE_FLAGS = (
     "--no-session-persistence",
     "--permission-mode",
     "--permission-prompts",
+    "--print",
     "--restricted",
     "--safe-mode",
     "--setting-sources",
     "--strict-mcp-config",
     "--tools",
+    "--model",
+    "--output-format",
 )
 BLOCKING_SEVERITIES = {"critical", "high", "medium"}
 CONFIG_KEYS = {
@@ -126,6 +129,7 @@ class ProviderRun:
     binary: Path
     cli_version: str
     cli_help_sha256: str
+    max_turns_preflight: str
     payload: dict[str, Any]
     result: dict[str, Any]
     auth: dict[str, Any]
@@ -478,6 +482,66 @@ def current_file_bindings(project: Path, rows: list[dict[str, str]]) -> str:
     return sha256_bytes(canonical_json(current))
 
 
+def tested_implementation_binding(
+    project: Path,
+    candidate: str,
+    evidence: list[tuple[str, bytes]],
+    administrative: list[str],
+    scope_path: str,
+    work_order: str,
+) -> dict[str, Any]:
+    matches: list[tuple[str, str, str]] = []
+    commit_pattern = re.compile(
+        r"(?m)^- Tested implementation commit: `([0-9a-f]{40})`\s*$"
+    )
+    tree_pattern = re.compile(r"(?m)^- Tested tree: `([0-9a-f]{40})`\s*$")
+    for path, raw in evidence:
+        text = raw.decode("utf-8", errors="replace")
+        commit_match = commit_pattern.search(text)
+        tree_match = tree_pattern.search(text)
+        if bool(commit_match) != bool(tree_match):
+            raise AuditError(f"test_evidence_binding_incomplete:{path}")
+        if commit_match and tree_match:
+            matches.append((path, commit_match.group(1), tree_match.group(1)))
+    if not matches:
+        raise AuditError("test_evidence_binding_required")
+    resolved: list[tuple[str, str, str]] = []
+    for path, commit_arg, recorded_tree in matches:
+        commit = resolve_commit(project, commit_arg, "tested_implementation_commit")
+        actual_tree = str(
+            run_git(project, "rev-parse", f"{commit}^{{tree}}")
+        ).strip()
+        if actual_tree != recorded_tree:
+            raise AuditError(f"tested_implementation_tree_mismatch:{path}")
+        if not is_ancestor(project, commit, candidate):
+            raise AuditError("tested_implementation_not_ancestor_of_candidate")
+        resolved.append((path, commit, actual_tree))
+    latest = [
+        row for row in resolved
+        if all(is_ancestor(project, other[1], row[1]) for other in resolved)
+    ]
+    if len(latest) != 1:
+        raise AuditError("test_evidence_bindings_have_no_unique_latest_commit")
+    evidence_path, tested_commit, actual_tree = latest[0]
+    delta = material_changed_paths(project, tested_commit, candidate)
+    outside = [
+        path
+        for path in delta
+        if not path_matches(path, administrative)
+        and not is_same_work_order_scope_manifest(
+            project, candidate, path, scope_path, work_order
+        )
+    ]
+    if outside:
+        raise AuditError(f"untested_candidate_changes:{outside}")
+    return {
+        "evidence_path": evidence_path,
+        "commit": tested_commit,
+        "tree": actual_tree,
+        "administrative_delta": delta,
+    }
+
+
 def load_scope(project: Path, commit: str, path_arg: str, mode: str) -> tuple[dict[str, Any], str, str]:
     rel = relative_path(path_arg, "scope_manifest")
     path = project_path(project, rel, "scope_manifest")
@@ -756,7 +820,16 @@ def claude_version(binary: Path, timeout: int) -> str:
     return value
 
 
-def claude_help_digest(binary: Path, timeout: int) -> str:
+def help_advertises_flag(help_text: str, flag: str) -> bool:
+    return bool(
+        re.search(
+            rf"(?m)(?:^|[\s,]){re.escape(flag)}(?=[\s,<\[\]=,]|$)",
+            help_text,
+        )
+    )
+
+
+def claude_help_digest(binary: Path, timeout: int) -> tuple[str, str]:
     try:
         result = subprocess.run(
             [str(binary), "--help"], capture_output=True, text=True,
@@ -767,9 +840,14 @@ def claude_help_digest(binary: Path, timeout: int) -> str:
     help_text = result.stdout + "\n" + result.stderr
     if result.returncode != 0 or not help_text.strip():
         raise AuditError("claude_help_unavailable")
-    missing = [flag for flag in REQUIRED_CLAUDE_FLAGS if flag not in help_text]
+    missing = [
+        flag for flag in REQUIRED_CLAUDE_FLAGS
+        if not help_advertises_flag(help_text, flag)
+    ]
     if missing:
         raise AuditError(f"claude_required_flags_missing:{missing}")
+    if help_advertises_flag(help_text, "--max-turns"):
+        return sha256_bytes(help_text.encode()), "advertised"
     with tempfile.TemporaryDirectory(prefix="vibeos-claude-flag-probe-") as temporary:
         probe_env = child_environment()
         probe_env["CLAUDE_CONFIG_DIR"] = temporary
@@ -787,11 +865,14 @@ def claude_help_digest(binary: Path, timeout: int) -> str:
     probe_text = probe.stdout + "\n" + probe.stderr
     if "unknown option" in probe_text.lower():
         raise AuditError("claude_max_turns_flag_unsupported")
-    if probe.returncode == 0 or not re.search(
-        r"not logged in|login|authentication|api key", probe_text, re.IGNORECASE
+    if (
+        probe.returncode != 1
+        or probe.stderr.strip()
+        or "Not logged in" not in probe.stdout
+        or "Please run /login" not in probe.stdout
     ):
         raise AuditError("claude_max_turns_probe_inconclusive")
-    return sha256_bytes((help_text + "\n" + probe_text).encode())
+    return sha256_bytes((help_text + "\n" + probe_text).encode()), "isolated-auth-stop"
 
 
 def invoke_claude(
@@ -809,7 +890,7 @@ def invoke_claude(
         "--model", config["model"], "--effort", "high",
         "--max-budget-usd", str(config["max_budget_usd"]),
         "--max-turns", str(config["max_turns"]), "--output-format", "json",
-        "--json-schema", json.dumps(schema, separators=(",", ":")), "-p",
+        "--json-schema", json.dumps(schema, separators=(",", ":")),
     ]
     try:
         with tempfile.TemporaryDirectory(prefix="vibeos-claude-audit-") as temporary:
@@ -836,7 +917,11 @@ def invoke_claude(
 def provider_output(
     payload: Any, requested_model: str, requested_provider: str
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    if not isinstance(payload, dict) or payload.get("is_error") is True:
+    if (
+        not isinstance(payload, dict)
+        or payload.get("is_error") is True
+        or payload.get("subtype") != "success"
+    ):
         raise AuditError("claude_provider_error_result")
     usage = payload.get("modelUsage")
     model_usage = usage.get(requested_model) if isinstance(usage, dict) else None
@@ -846,16 +931,18 @@ def provider_output(
         raise AuditError("claude_canonical_model_mismatch")
     if model_usage.get("provider") != requested_provider:
         raise AuditError("claude_provider_mismatch")
+    for model, details in usage.items():
+        if model == requested_model or not isinstance(details, dict):
+            continue
+        if any(
+            isinstance(value, (int, float))
+            and not isinstance(value, bool)
+            and value != 0
+            for key, value in details.items()
+            if key.endswith("Tokens") or key == "costUSD"
+        ):
+            raise AuditError(f"claude_unexpected_model_usage:{model}")
     structured = payload.get("structured_output")
-    if structured is None:
-        raw_result = payload.get("result")
-        if isinstance(raw_result, dict):
-            structured = raw_result
-        elif isinstance(raw_result, str):
-            try:
-                structured = json.loads(raw_result)
-            except json.JSONDecodeError as exc:
-                raise AuditError("claude_structured_output_missing") from exc
     if not isinstance(structured, dict):
         raise AuditError("claude_structured_output_missing")
     return structured, model_usage
@@ -963,7 +1050,11 @@ def validate_parent(parent: dict[str, Any], expected_wo: str) -> None:
     auditor = parent.get("auditor", {})
     binding = parent.get("binding")
     result = parent.get("result")
-    if not isinstance(binding, dict) or not isinstance(result, dict):
+    if (
+        not isinstance(auditor, dict)
+        or not isinstance(binding, dict)
+        or not isinstance(result, dict)
+    ):
         raise AuditError("parent_receipt_nested_structure_invalid")
     required_binding = {
         "audited_base_commit", "base_commit", "candidate_commit",
@@ -1037,6 +1128,8 @@ def prepare_full_audit(inputs: AuditInputs, parent_receipt: str | None) -> Prepa
     outside = [path for path in changed if not path_matches(path, allowed)]
     if outside:
         raise AuditError(f"full_audit_scope_omits_changed_paths:{outside}")
+    # Keep a named defense-in-depth error for a future broadening of the
+    # administrative allowlist; today the preceding outside-scope check subsumes it.
     unreviewed = [
         path for path in changed
         if not path_matches(path, inputs.scope["review_paths"])
@@ -1044,6 +1137,14 @@ def prepare_full_audit(inputs: AuditInputs, parent_receipt: str | None) -> Prepa
     ]
     if unreviewed:
         raise AuditError(f"work_order_changes_missing_from_review_scope:{unreviewed}")
+    tested_implementation = tested_implementation_binding(
+        inputs.project,
+        inputs.candidate,
+        inputs.evidence,
+        administrative,
+        inputs.scope_rel,
+        inputs.work_order,
+    )
     snapshot = git_snapshot(inputs.project, inputs.candidate, inputs.scope["review_paths"])
     diff = diff_text(
         inputs.project, base, inputs.candidate,
@@ -1071,6 +1172,7 @@ def prepare_full_audit(inputs: AuditInputs, parent_receipt: str | None) -> Prepa
             "merge_base": base,
             "audited_base_commit": base,
             "work_order_write_scope": inputs.write_scope,
+            "tested_implementation": tested_implementation,
         },
         parent=None,
     )
@@ -1111,6 +1213,20 @@ def prepare_verification(inputs: AuditInputs, parent_arg: str | None) -> Prepare
     ]
     if outside:
         raise AuditError(f"correction_scope_expanded_full_audit_required:{outside}")
+    tested_implementation = tested_implementation_binding(
+        inputs.project,
+        inputs.candidate,
+        inputs.evidence,
+        [
+            *inputs.scope["evidence_paths"],
+            *inputs.scope["acceptance_contract"],
+            inputs.work_order_path,
+            inputs.scope_rel,
+            inputs.config_rel,
+        ],
+        inputs.scope_rel,
+        inputs.work_order,
+    )
     snapshot = git_snapshot(inputs.project, inputs.candidate, parent_roots)
     diff = diff_text(
         inputs.project, base, inputs.candidate, inputs.scope["review_paths"]
@@ -1147,6 +1263,7 @@ def prepare_verification(inputs: AuditInputs, parent_arg: str | None) -> Prepare
             "default_branch_commit": default_commit,
             "merge_base": current_base,
             "audited_base_commit": audited_base,
+            "tested_implementation": tested_implementation,
         },
         parent=parent,
     )
@@ -1160,14 +1277,23 @@ def run_provider(
     binary = resolve_claude_binary(claude_bin)
     timeout = inputs.config["timeout_seconds"]
     version = claude_version(binary, timeout)
-    help_sha = claude_help_digest(binary, timeout)
+    help_sha, max_turns_preflight = claude_help_digest(binary, timeout)
     payload, structured, auth, usage = invoke_claude(
         binary, inputs.config, prepared.prompt, prepared.schema
     )
     result = validate_result(
         inputs.mode, structured, inputs.scope["finding_ids"]
     )
-    return ProviderRun(binary, version, help_sha, payload, result, auth, usage)
+    return ProviderRun(
+        binary=binary,
+        cli_version=version,
+        cli_help_sha256=help_sha,
+        max_turns_preflight=max_turns_preflight,
+        payload=payload,
+        result=result,
+        auth=auth,
+        model_usage=usage,
+    )
 
 
 def build_receipt(
@@ -1239,6 +1365,9 @@ def build_receipt(
             "cli_entrypoint_sha256": sha256_bytes(provider.binary.read_bytes()),
             "cli_version": provider.cli_version,
             "cli_help_sha256": provider.cli_help_sha256,
+            "safe_mode": True,
+            "setting_sources": ["project"],
+            "max_turns_preflight": provider.max_turns_preflight,
             "provider_usage": usage,
         },
         "result": provider.result,
@@ -1338,12 +1467,23 @@ def validate_receipt_identity(
     if expected_wo and receipt["work_order"] != expected_wo:
         raise AuditError("receipt_work_order_mismatch")
     auditor = receipt["auditor"]
+    if not all(
+        isinstance(receipt.get(key), dict)
+        for key in ("binding", "auditor", "result", "closure", "artifacts")
+    ):
+        raise AuditError("receipt_nested_objects_invalid")
     if auditor.get("requested_model") != DEFAULT_MODEL or auditor.get("observed_model") != DEFAULT_MODEL:
         raise AuditError("receipt_model_provenance_invalid")
     if auditor.get("requested_provider") != DEFAULT_PROVIDER or auditor.get("observed_provider") != DEFAULT_PROVIDER:
         raise AuditError("receipt_provider_provenance_invalid")
     if auditor.get("auth_method") != "claude.ai":
         raise AuditError("receipt_auth_provenance_invalid")
+    if auditor.get("safe_mode") is not True or auditor.get("setting_sources") != ["project"]:
+        raise AuditError("receipt_auditor_isolation_invalid")
+    if auditor.get("max_turns_preflight") not in {
+        "advertised", "isolated-auth-stop"
+    }:
+        raise AuditError("receipt_max_turns_preflight_invalid")
 
 
 def validate_branch_binding(project: Path, binding: dict[str, Any]) -> str:
@@ -1377,19 +1517,91 @@ def validate_branch_binding(project: Path, binding: dict[str, Any]) -> str:
     return candidate_commit
 
 
-def validate_bound_materials(project: Path, binding: dict[str, Any]) -> None:
+def validate_tested_implementation_binding(
+    project: Path, binding: dict[str, Any], work_order: str
+) -> None:
+    tested = binding.get("tested_implementation")
+    if not isinstance(tested, dict) or set(tested) != {
+        "evidence_path", "commit", "tree", "administrative_delta"
+    }:
+        raise AuditError("tested_implementation_binding_invalid")
+    evidence_paths = [
+        row.get("path") for row in binding.get("evidence", [])
+        if isinstance(row, dict)
+    ]
+    if tested.get("evidence_path") not in evidence_paths:
+        raise AuditError("tested_implementation_evidence_not_bound")
+    tested_commit = resolve_commit(
+        project, tested.get("commit"), "tested_implementation_commit"
+    )
+    actual_tree = str(
+        run_git(project, "rev-parse", f"{tested_commit}^{{tree}}")
+    ).strip()
+    if tested.get("tree") != actual_tree:
+        raise AuditError("tested_implementation_tree_mismatch")
+    candidate = resolve_commit(
+        project, binding.get("candidate_commit"), "candidate_commit"
+    )
+    if not is_ancestor(project, tested_commit, candidate):
+        raise AuditError("tested_implementation_not_ancestor_of_candidate")
+    delta = material_changed_paths(project, tested_commit, candidate)
+    if tested.get("administrative_delta") != delta:
+        raise AuditError("tested_implementation_delta_mismatch")
+    administrative = [
+        *evidence_paths,
+        *[
+            row.get("path") for row in binding.get("acceptance_contract", [])
+            if isinstance(row, dict)
+        ],
+        binding.get("work_order_path"),
+        binding.get("scope_manifest_path"),
+        binding.get("config_path"),
+    ]
+    if any(not isinstance(path, str) for path in administrative):
+        raise AuditError("tested_implementation_administrative_paths_invalid")
+    outside = [
+        path
+        for path in delta
+        if not path_matches(path, administrative)
+        and not is_same_work_order_scope_manifest(
+            project,
+            candidate,
+            path,
+            binding["scope_manifest_path"],
+            work_order,
+        )
+    ]
+    if outside:
+        raise AuditError(f"untested_candidate_changes:{outside}")
+
+
+def validate_bound_materials(
+    project: Path, binding: dict[str, Any], work_order: str
+) -> None:
     scope = project_path(project, binding["scope_manifest_path"], "scope_manifest_path")
     if not scope.is_file() or sha256_bytes(scope.read_bytes()) != binding["scope_manifest_sha256"]:
         raise AuditError("scope_manifest_drift_after_audit")
     if current_file_bindings(project, binding["acceptance_contract"]) != binding["acceptance_contract_sha256"]:
         raise AuditError("acceptance_contract_drift_after_audit")
     for row in binding.get("evidence", []):
+        if not isinstance(row, dict):
+            raise AuditError("audit_evidence_binding_invalid")
         evidence_path = project_path(project, row.get("path"), "evidence_path")
         if not evidence_path.is_file() or sha256_bytes(evidence_path.read_bytes()) != row.get("sha256"):
             raise AuditError(f"audit_evidence_drift_after_audit:{row.get('path')}")
     roots = binding["review_paths"]
     if snapshot_digest(current_snapshot(project, roots)) != binding["review_snapshot_sha256"]:
         raise AuditError("audited_review_scope_drift_after_audit")
+    work_order_path = project_path(
+        project, binding["work_order_path"], "work_order_path"
+    )
+    if not work_order_path.is_file():
+        raise AuditError("work_order_missing_after_audit")
+    if parse_work_order_write_scope(work_order_path.read_bytes()) != binding.get(
+        "work_order_write_scope"
+    ):
+        raise AuditError("work_order_write_scope_drift_after_audit")
+    validate_tested_implementation_binding(project, binding, work_order)
 
 
 def validate_post_audit_scope(
@@ -1448,12 +1660,13 @@ def validate_receipt_mode(project: Path, receipt: dict[str, Any]) -> None:
 def validate_receipt(
     project: Path, receipt_path: Path, expected_wo: str | None
 ) -> dict[str, Any]:
+    assert_clean(project)
     receipt = load_object(receipt_path, "receipt")
     validate_receipt_identity(receipt, expected_wo)
     validate_stored_provider_integrity(project, receipt, "receipt")
     binding = receipt["binding"]
     candidate_commit = validate_branch_binding(project, binding)
-    validate_bound_materials(project, binding)
+    validate_bound_materials(project, binding, receipt["work_order"])
     validate_post_audit_scope(project, receipt, candidate_commit)
     validate_receipt_mode(project, receipt)
     return receipt
@@ -1499,7 +1712,7 @@ def main() -> int:
     except AuditError as exc:
         print(f"[claude-companion-audit] FAIL: {exc}", file=sys.stderr)
         return 2
-    except (KeyError, OSError, TypeError, ValueError) as exc:
+    except (AttributeError, IndexError, KeyError, OSError, TypeError, ValueError) as exc:
         print(
             f"[claude-companion-audit] FAIL: malformed_input_or_runtime_error:{type(exc).__name__}",
             file=sys.stderr,
