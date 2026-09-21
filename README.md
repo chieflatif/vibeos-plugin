@@ -1,5 +1,11 @@
 # VibeOS — Autonomous Development Engine
 
+> **2.4.1 — task-sized routing and simpler independent review.**
+> Generated Codex roles select from available GPT models, including Luna. The
+> optional companion uses focused correction checks and supports an explicit
+> user-approved fresh-context fallback when Claude is unavailable. See the
+> [release notes](docs/release/2.4.1.md) for testing and release limits.
+
 > **2.4.0 — provider-bound companion audit efficiency.**
 > Codex-led projects can opt into one frozen first-party Claude audit and then
 > verify only the named corrections. Exact contract, commit, scope, diff,

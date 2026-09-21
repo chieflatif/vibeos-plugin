@@ -45,6 +45,15 @@ Read these first when they exist:
 
 ## Session Controls
 
+At bounded assignment or recovery, the parent selects an explicit available GPT
+model and supported effort. Consider Luna first for clear bounded coding, tests
+and triage; all exposed GPT models remain eligible by task fit, ambiguity,
+consequence and observed quality. Use scripts/direct completion when delegation
+adds overhead. Reassess after one correction; escalate only the hard portion.
+Preserve the user-selected parent and project-specific model choices. Generated
+roles do not pin a GPT model from a Claude alias; ensure the dispatch specifies
+the allocation so an omitted model does not silently inherit an expensive default.
+
 Install or refresh commit-boundary Git hooks when the project is a git repo:
 
 ```bash

@@ -1,0 +1,10 @@
+{
+  "enabled": true,
+  "model": "claude-fable-5-1",
+  "provider": "firstParty",
+  "max_budget_usd": 10.0,
+  "max_turns": 10,
+  "timeout_seconds": 900,
+  "max_prompt_bytes": 450000,
+  "default_branch_ref": "origin/main"
+}

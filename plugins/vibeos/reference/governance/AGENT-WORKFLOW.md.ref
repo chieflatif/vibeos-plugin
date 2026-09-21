@@ -64,9 +64,14 @@ project's configured audit/convergence flow remains authoritative.
 
 If the companion identity is unavailable:
 
-1. State that review is running in degraded mode
-2. Use the available internal auditors as supplemental review
-3. Do not claim full closure on high-risk work until cross-identity audit happens
+1. Record the actual operational failure and explain it to the user once.
+2. Ask whether to retry or explicitly authorize a fresh independent context of the
+   same model as the implementer. No response means the required review remains open.
+3. With explicit recorded approval and the enabled companion's supported fallback,
+   run the frozen review packet through that separate context. Label it honestly as
+   same-provider review, not Claude or cross-provider review. Required tests and
+   finding resolution still apply. Without that supported route, supplemental review
+   cannot substitute for the required audit.
 
 ## Required Metadata
 
@@ -78,7 +83,9 @@ Every WO should record:
 
 ## Anti-Patterns
 
-- The same identity authors and audits the same unit
+- The implementing conversation approves its own work
+- The same identity authors and audits the same unit, except the explicitly
+  user-authorized fresh-context fallback labeled as same-provider review
 - A subagent from the same identity is treated as cross-identity review
 - A handoff result is silently edited instead of re-audited
 - The team keeps retrying the same failing author/auditor pairing without flipping roles

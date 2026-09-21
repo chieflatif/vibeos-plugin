@@ -562,7 +562,13 @@ Rules:
 - Do not pause autonomy to ask which audit mode to use.
 - If a saved audit report is produced, it must include `audit_visibility_mode` and `audit_snapshot_ref` in its header.
 
-Dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — instead, dispatch the audit agents directly following the same pattern as `skills/audit/SKILL.md`):
+When `claude-companion-audit` is active, use its installed skill for one independent
+review covering the relevant lenses below. It replaces the default generic auditor
+fanout for this change. Add a specialist only for a named risk the companion review
+does not cover, and keep its blocking findings in the same change record.
+Corrections follow the companion receipt's targeted-verification path.
+
+Otherwise dispatch the audit skill logic (do NOT invoke `/vibeos:audit` as a skill — instead, dispatch the audit agents directly following the same pattern as `skills/audit/SKILL.md`):
 
 1. Dispatch audit agents in parallel where possible, selecting the correct variant (`*-same-tree.md` or standard) based on `audit_dispatch_profile`:
    - `agents/security-auditor.md` or `agents/security-auditor-same-tree.md`

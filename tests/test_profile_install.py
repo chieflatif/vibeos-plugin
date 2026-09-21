@@ -98,6 +98,8 @@ class ProfileInstallTests(unittest.TestCase):
             self.assertIn(plan["profile_hash"], backend_toml["developer_instructions"])
             self.assertEqual(backend_toml["name"], "vibeos_backend")
             self.assertEqual(backend_toml["sandbox_mode"], "workspace-write")
+            self.assertNotIn("model", backend_toml)
+            self.assertNotIn("model_reasoning_effort", backend_toml)
 
             test_auditor = tomllib.loads((target / ".codex/agents/test-auditor.toml").read_text(encoding="utf-8"))
             self.assertEqual(test_auditor["sandbox_mode"], "read-only")
@@ -188,6 +190,7 @@ class ProfileInstallTests(unittest.TestCase):
             self.assertFalse(
                 (target / ".vibeos/scripts/claude-companion-audit.py").exists()
             )
+            self.assertFalse((target / ".vibeos/scripts/approved-codex-review.py").exists())
             self.assertFalse(
                 (
                     target
@@ -245,6 +248,7 @@ class ProfileInstallTests(unittest.TestCase):
             self.assertTrue(
                 (target / ".vibeos/scripts/claude-companion-audit.py").is_file()
             )
+            self.assertTrue((target / ".vibeos/scripts/approved-codex-review.py").is_file())
             self.assertTrue(
                 (target / ".vibeos/scripts/validate-independent-audit.sh").is_file()
             )

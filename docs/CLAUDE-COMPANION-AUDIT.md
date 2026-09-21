@@ -5,15 +5,31 @@ separate Claude review without paying for the same broad audit after every fix.
 
 The operating rule is simple:
 
-1. Finish and commit one bounded work unit.
+The engineering agent performs these steps and prepares their records. The user
+describes the outcome and sees material findings or a provider-fallback decision;
+they do not create work-order IDs, manifests, evidence hashes or CLI commands.
+
+1. Finish, test and commit one bounded work unit.
 2. Run one full Claude audit against that exact commit, work order and acceptance
    contract.
-3. Fix the named findings.
+3. Fix material findings and record explicit dispositions for minor advice.
 4. Ask Claude to check those findings and the correction diff only.
 
-A new full audit is required only when the acceptance contract changes, a correction
-escapes the original review scope, or the targeted check exposes a new material
-blocker.
+A new full audit is required when the acceptance contract changes or a correction
+escapes the original review scope. A newly discovered local blocker remains in
+the targeted correction loop with a stable finding ID. It does not alone invalidate
+all previous review coverage. Existing version-1 receipts retain their original
+stricter rules; new version-2 receipts use this policy.
+
+Review is required for material acceptance, architecture, security/permission,
+durable data/schema, external-effect or release changes and substantial completed
+implementation. Group pure formatting or equivalent mechanical edits into the
+current review unit and use deterministic checks as they proceed; they do not need
+separate audit calls for each edit. The enabled close gate still requires a valid
+receipt for that unit. A failing test starts debugging;
+it is not by itself a trigger for another broad audit. In an opted-in project,
+the companion covers relevant review lenses in one review; extra specialists need
+a named coverage gap instead of repeating a generic auditor fanout.
 
 ## What is enforced
 
@@ -38,9 +54,10 @@ the flag, the probe is skipped. The receipt records which path was used.
 The model receives the frozen packet over standard input, so source is not exposed in
 the process argument list; it cannot read or change the repository.
 
-The work-order close gate fails when the receipt is missing, still has open findings,
+The work-order close gate fails when its change identity or receipt is missing, still has blocking findings,
 uses the wrong model/provider, or no longer matches the current reviewed bytes and
-acceptance contract. Validation also requires a clean non-ignored worktree, rechecks
+acceptance contract. Version-2 validation checks reviewed and bound files for drift,
+but permits unrelated workspace edits and future budget/timeout changes. It rechecks
 the work-order write scope and test binding, and requires the report supplied to the
 gate to be the exact report path bound by the registered receipt.
 
@@ -94,10 +111,13 @@ Keep the acceptance contract stable and limited to the objective, constraints an
 acceptance criteria. The work order is always included in the frozen full-audit packet
 and its reviewed SHA is retained in the receipt, but later status and evidence-checkbox
 updates do not invalidate an otherwise closed audit. Changing the normative acceptance
-contract still requires a new full audit.
+contract still requires a new full audit. If the entire work-order file is also
+listed as an acceptance contract, its whole-file binding remains strict; use a
+stable acceptance-only record when status updates need to remain independent.
 
 The correction manifest keeps the same acceptance contract, narrows `review_paths` to
-the corrected files and lists every finding from the full receipt. Both manifests and
+the corrected files and lists every active finding from the latest receipt in the
+chain, including new local blockers. Both manifests and
 all audited inputs must be committed before the provider call.
 
 At least one evidence file must bind the deterministic checks to a real Git commit
@@ -121,6 +141,7 @@ python3 .vibeos/scripts/claude-companion-audit.py full \
   --work-order docs/planning/WO-157-example.md \
   --scope-manifest docs/evidence/WO-157/full-scope.json \
   --candidate-ref HEAD \
+  --implementer-model <actual-implementing-model-slug> \
   --out .vibeos/audit-reports/WO-157-full.json
 ```
 
@@ -132,6 +153,7 @@ python3 .vibeos/scripts/claude-companion-audit.py verification \
   --work-order docs/planning/WO-157-example.md \
   --scope-manifest docs/evidence/WO-157/correction-scope.json \
   --candidate-ref HEAD \
+  --implementer-model <actual-implementing-model-slug> \
   --parent-receipt .vibeos/audit-reports/WO-157-full.json \
   --out .vibeos/audit-reports/WO-157-verification.json
 ```
@@ -163,8 +185,48 @@ installed projects receive the blocking `wo_exit` gate.
 
 Exit code `0` means a closed pass, `3` means valid review output still requires
 correction or verification, and `2` means the audit input, provider result or receipt
-failed validation. Further correction rounds may use new scope-manifest filenames in
-the same work-order evidence directory; they remain targeted to the original findings.
+failed validation. Exit `4` means operational Claude failure was recorded and the
+user must choose whether to retry or authorize fallback. Further correction rounds
+use the latest receipt and all active findings, retaining earlier finding history.
+
+Before publication, also run `validate --project-dir . --receipt <receipt>
+--release-ref <release-commit>`. Its exact-tree check prevents unrelated-work
+tolerance from being mistaken for permission to release unreviewed changes.
+
+## Explicit approved fallback
+
+Pass the actual implementing model slug on the initial call so an operational
+failure can be bound to the proposed same-model route. A negative review verdict,
+malformed output or wrong observed Claude identity is not an availability failure
+and cannot be converted into fallback permission. No fallback runs automatically.
+
+On exit `4`, the agent explains the failure and asks the user to retry or authorize
+a fresh independent context of that model. Include the configured timeout, turn
+and spend limits in that explanation, especially for timeout or budget exhaustion;
+a low configured limit is not proof of general provider unavailability. After an explicit instruction, the
+agent records the approval and its source reference against the emitted failure's
+exact binding and digest. The helper's approval schema is authoritative; records
+must state `operator_record_not_cryptographically_verified`. Never fabricate user
+authorization, reuse approval for changed inputs, or ask the user to construct JSON.
+
+Repeat the original command with the unchanged candidate and scope, adding
+`--approved-fallback <approval.json> --claude-failure <failure.json>`.
+The native Codex CLI receives only the frozen review packet in a new ephemeral
+session with user configuration ignored and a read-only sandbox requested.
+Execution rules are not disabled. Tool events invalidate the return; this is not
+a promise that the runtime exposes no tools. The receipt records the requested
+model and fresh thread; observed serving model/provider remain unknown because
+the CLI event stream does not supply them. It is labeled same-provider independent
+context, never a Claude or cross-provider audit. The same close gate validates it.
+
+The fallback expects the normal Codex ChatGPT login available through `HOME` or
+`CODEX_HOME`; it does not copy credentials or forward API-key environment variables.
+Current local qualification inspected Codex CLI0.147.0's actual help for the required
+flags. The transport fails closed on unsupported flags; cross-version qualification
+and a live fallback inference are not established by fake-CLI tests.
+
+Approval changes only the review route. It does not waive tests, material findings,
+the acceptance contract, release checks or external-effect permissions.
 
 ## Authentication boundary
 

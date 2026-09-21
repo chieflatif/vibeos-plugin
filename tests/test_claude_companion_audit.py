@@ -143,7 +143,7 @@ else:
             "max_budget_usd": 5.0,
             "max_turns": 5,
             "timeout_seconds": 60,
-            "max_prompt_bytes": 100000,
+            "max_prompt_bytes": 120000,
             "default_branch_ref": "origin/main",
         }
         write_json(project / "docs/evidence/WO-157/claude-config.json", config)
@@ -676,7 +676,7 @@ else:
 
     def test_verification_rejects_missing_finding_and_expanded_scope_before_provider(self):
         for mutation, expected in (
-            ("finding", "verification_scope_must_cover_every_original_finding"),
+            ("finding", "verification_scope_must_cover_every_unresolved_finding"),
             ("scope", "verification_scope_expands_beyond_original_review"),
         ):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temporary:
@@ -1039,6 +1039,100 @@ else:
                 result.stdout + result.stderr,
             )
 
+    def test_enabled_companion_gate_fails_without_a_target(self):
+        gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            project = Path(temporary)
+            manifest = project / ".claude/quality-gate-manifest.json"
+            manifest.parent.mkdir(parents=True)
+            write_json(manifest, {"gates": [{"name": "claude-companion-audit-closure"}]})
+            write_json(
+                project / ".vibeos/project-profile.json",
+                {"active_modules": ["claude-companion-audit"], "phase_audit_runtime": "claude"},
+            )
+            result = run(
+                ["/bin/bash", str(gate_script)], project,
+                env=dict(os.environ, PROJECT_ROOT=str(project)),
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("no active work-order target", result.stdout + result.stderr)
+
+    def test_active_companion_profile_rejects_invalid_target_name(self):
+        gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            project = Path(temporary)
+            target = project / "docs/planning/not-a-work-order.md"
+            target.parent.mkdir(parents=True)
+            target.write_text("# Not a work order\n")
+            write_json(
+                project / ".vibeos/project-profile.json",
+                {"active_modules": ["claude-companion-audit"], "phase_audit_runtime": "claude"},
+            )
+            result = run(
+                ["/bin/bash", str(gate_script), str(target)], project,
+                env=dict(os.environ, PROJECT_ROOT=str(project)),
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("does not match WO naming convention", result.stdout + result.stderr)
+
+    def test_inactive_companion_gate_without_target_preserves_skip(self):
+        gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            project = Path(temporary)
+            manifest = project / ".claude/quality-gate-manifest.json"
+            manifest.parent.mkdir(parents=True)
+            write_json(
+                manifest,
+                {"gates": [{"name": "claude-companion-audit-closure", "enabled": False}]},
+            )
+            write_json(
+                project / ".vibeos/project-profile.json",
+                {"active_modules": [], "disabled_modules": ["claude-companion-audit"]},
+            )
+            result = run(
+                ["/bin/bash", str(gate_script)], project,
+                env=dict(os.environ, PROJECT_ROOT=str(project)),
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("SKIP: No active work-order target", result.stdout)
+
+    def test_malformed_enabled_companion_config_fails_without_target(self):
+        gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            project = Path(temporary)
+            manifest = project / ".claude/quality-gate-manifest.json"
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text("{not-json\n")
+            result = run(
+                ["/bin/bash", str(gate_script)], project,
+                env=dict(os.environ, PROJECT_ROOT=str(project)),
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("quality-gate-manifest.json is invalid", result.stdout + result.stderr)
+
+    def test_valid_structured_companion_receipt_passes_without_markdown_heuristics(self):
+        gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = self.fixture(Path(temporary))
+            self.enable_companion_gate_fixture(project)
+            fake = self.fake_claude(project, self.full_result())
+            full = self.invoke_full(project, base, fake)
+            self.assertEqual(full.returncode, 3, full.stdout + full.stderr)
+            self.apply_fix(project)
+            fake = self.fake_claude(project, self.verification_result())
+            self.assertEqual(self.invoke_verification(project, fake).returncode, 0)
+            result = run(
+                [
+                    "/bin/bash", str(gate_script),
+                    "docs/planning/WO-157-fixture.md",
+                    ".vibeos/audit-reports/WO-157-verification.md",
+                ],
+                project,
+                env=dict(os.environ, PROJECT_ROOT=str(project)),
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("Structured independent review is registered", result.stdout)
+
     def test_enabled_companion_gate_rejects_an_open_receipt(self):
         gate_script = ROOT / "plugins/vibeos/scripts/validate-independent-audit.sh"
         with tempfile.TemporaryDirectory() as temporary:
@@ -1250,7 +1344,7 @@ else:
             self.assertEqual(result.returncode, 2)
             self.assertIn("audited_review_scope_drift_after_audit", result.stderr)
 
-    def test_validation_rejects_uncommitted_files_inside_and_outside_review_scope(self):
+    def test_validation_allows_uncommitted_files_outside_exact_review_paths(self):
         for case in ("untracked_review", "unstaged_outside"):
             with self.subTest(case=case), tempfile.TemporaryDirectory() as temporary:
                 project, base, _candidate = self.fixture(Path(temporary))
@@ -1271,8 +1365,7 @@ else:
                     ],
                     project,
                 )
-                self.assertEqual(result.returncode, 2)
-                self.assertIn("working_tree_must_be_clean", result.stderr)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_committed_config_and_work_order_scope_drift_fail_closed(self):
         for case in ("config", "work_order_scope"):
@@ -1288,7 +1381,7 @@ else:
                     config = json.loads(config_path.read_text())
                     config["max_turns"] = 6
                     write_json(config_path, config)
-                    expected = "audit_config_drift_after_audit"
+                    expected = None
                 else:
                     work_order = project / "docs/planning/WO-157-fixture.md"
                     work_order.write_text(
@@ -1306,8 +1399,11 @@ else:
                     ],
                     project,
                 )
-                self.assertEqual(result.returncode, 2)
-                self.assertIn(expected, result.stderr)
+                if expected is None:
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                else:
+                    self.assertEqual(result.returncode, 2)
+                    self.assertIn(expected, result.stderr)
 
     def test_malformed_nested_receipt_returns_controlled_failure(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -1331,7 +1427,7 @@ else:
             self.assertIn("receipt_nested_objects_invalid", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
 
-    def test_post_audit_commit_outside_review_roots_invalidates_receipt(self):
+    def test_post_audit_new_file_inside_write_scope_requires_review(self):
         with tempfile.TemporaryDirectory() as temporary:
             project, base, _candidate = self.fixture(Path(temporary))
             fake = self.fake_claude(project, self.full_result())
@@ -1349,7 +1445,9 @@ else:
                 project,
             )
             self.assertEqual(result.returncode, 2)
-            self.assertIn("post_audit_changes_outside_review_scope", result.stderr)
+            self.assertIn(
+                "post_audit_changes_inside_work_order_scope", result.stderr
+            )
 
 
 if __name__ == "__main__":
