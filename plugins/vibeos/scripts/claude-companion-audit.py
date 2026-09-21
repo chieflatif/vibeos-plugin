@@ -397,7 +397,7 @@ def diff_text(project: Path, base: str, candidate: str, roots: list[str]) -> str
             "--no-ext-diff",
             "--no-color",
             "--find-renames",
-            "--unified=8",
+            "--unified=3",
             base,
             candidate,
             "--",

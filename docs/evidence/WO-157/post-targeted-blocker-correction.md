@@ -24,3 +24,8 @@ corrected implementation in `automated-tests.md`.
 
 Because this was a new material blocker rather than an unclosed original finding, the
 next review is one fresh full audit of the exact corrected candidate.
+
+The first local packet build stopped before a provider call because eight lines of
+unchanged diff context pushed the complete review 5.9 KB over the separate 300 KB diff
+cap. The audit scope was not narrowed. Diff context was reduced to the standard three
+lines, retaining every changed line while bringing the complete diff to about 242 KB.
