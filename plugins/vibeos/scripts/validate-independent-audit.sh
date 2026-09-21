@@ -260,30 +260,19 @@ if [[ "$COMPANION_REQUIRED" == "true" ]]; then
     echo "[$GATE_NAME] FAIL: Claude companion receipt is absent, stale, unresolved, or has unproved provenance"
     exit 1
   fi
-  if ! REPORT_MATCH="$(python3 - "$PROJECT_ROOT" "$COMPANION_RECEIPT" "$AUDIT_REPORT" <<'PY'
-import json
-import pathlib
-import sys
-
-root = pathlib.Path(sys.argv[1]).resolve()
-receipt_path = pathlib.Path(sys.argv[2]).resolve()
-requested_report = pathlib.Path(sys.argv[3]).resolve()
+  if ! python3 - "$PROJECT_ROOT" "$COMPANION_RECEIPT" "$AUDIT_REPORT" <<'PY'
+import json, pathlib, sys
+root, receipt_path, requested = map(pathlib.Path, sys.argv[1:])
+root = root.resolve()
 try:
-    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
-    relative_report = receipt["artifacts"]["report_path"]
-    if not isinstance(relative_report, str):
-        raise TypeError("report_path must be a string")
-    bound_report = (root / relative_report).resolve()
-    bound_report.relative_to(root)
+    report = json.loads(receipt_path.read_text())["artifacts"]["report_path"]
+    bound = (root / report).resolve()
+    bound.relative_to(root)
 except (KeyError, OSError, TypeError, ValueError):
-    raise SystemExit(2)
-print("true" if bound_report == requested_report else "false")
+    raise SystemExit(1)
+raise SystemExit(0 if bound == requested.resolve() else 1)
 PY
-  )"; then
-    echo "[$GATE_NAME] FAIL: Claude companion receipt has an invalid bound report path"
-    exit 2
-  fi
-  if [[ "$REPORT_MATCH" != "true" ]]; then
+  then
     echo "[$GATE_NAME] FAIL: Supplied audit report is not the report bound by the registered Claude companion receipt"
     exit 1
   fi
