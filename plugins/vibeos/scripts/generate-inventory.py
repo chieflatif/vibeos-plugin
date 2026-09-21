@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 
-FRAMEWORK_VERSION = "2.4.0"
+FRAMEWORK_VERSION = "2.4.1"
 DEFAULT_OUT = Path("docs/evidence/vnext/generated-inventory.json")
 WO_RE = re.compile(r"^WO-\d{3}[a-z]?(?:-|\.md$)", re.I)
 

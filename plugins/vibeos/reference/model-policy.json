@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "framework_version": "2.4.0",
+  "framework_version": "2.4.1",
   "description": "Provider-neutral VibeOS model and effort policy. Tiers resolve at runtime; exact-provenance companion audit modules may separately pin a provider model in their bounded configuration.",
   "effort_levels": ["low", "medium", "high", "xhigh", "max"],
   "tiers": {
@@ -63,8 +63,8 @@
     }
   },
   "codex_mapping": {
-    "posture": "deferred",
-    "rule": "Codex mappings must resolve from local runtime capabilities and must not claim Claude hook or model parity."
+    "posture": "assignment-sized",
+    "rule": "Select an explicit available GPT model and supported effort at assignment time. Consider Luna first for clear bounded coding, tests and triage; Terra, SOL, Astra and other exposed GPT models remain eligible by task fit, ambiguity, consequence and observed quality. Use scripts/direct work when delegation costs more. Reassess after one correction. Preserve the selected parent. Claude role aliases are not fixed GPT mappings; no hook or model parity is claimed."
   },
   "public_limitations": [
     "Tier names are policy contracts, not pinned provider model IDs.",

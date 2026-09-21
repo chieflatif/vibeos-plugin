@@ -13,7 +13,11 @@ No work order or phase closes without the audits required by `docs/planning/AUDI
 
 When `.vibeos/project-profile.json` activates `claude-companion-audit`, its frozen
 receipt controls the correction loop: verify only named findings and their fixes while
-the acceptance contract and review scope remain unchanged. Otherwise, keep using the
+the acceptance contract and review scope remain unchanged. This replaces overlapping
+generic reasoning-auditor dispatch; add a specialist only for a named coverage gap.
+Critical/high findings and unmet acceptance requirements block closure; minor advice
+needs a recorded disposition. Operational provider failure requires a surfaced user
+choice before any supported fresh-context fallback. Otherwise, keep using the
 project's existing audit/convergence loop; do not claim targeted receipt verification.
 
 ## Rule

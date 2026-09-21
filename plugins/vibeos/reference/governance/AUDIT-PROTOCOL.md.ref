@@ -36,7 +36,10 @@ When the project uses more than one agent identity, the identity that authored t
 
 - Claude-authored Tier 3/4 work: Codex is the primary companion auditor when available.
 - Codex-authored Tier 3/4 work: Claude audit agents are the primary companion auditors.
-- If only one identity is available, declare degraded mode explicitly and do not claim closure on high-risk work until the companion audit happens.
+- If the companion is unavailable, surface the failure. Closure requires either
+  that companion review or the supported fresh-context fallback explicitly
+  authorized by the user under `AGENT-WORKFLOW.md`. Label that fallback as
+  same-provider review; it does not become cross-identity evidence.
 
 ## Trigger Matrix
 
@@ -51,6 +54,11 @@ When the project uses more than one agent identity, the identity that authored t
 | Phase exit | full_audit | all six auditors | companion audit required |
 | Canon revision | — | evidence + product drift | companion audit recommended for major canon |
 | Security-sensitive change | pre_commit + wo_exit | security + architecture + test | companion audit required |
+
+Layer 2 entries name coverage lenses, not mandatory separate agents. With the
+companion module active, one companion review covers those relevant lenses;
+dispatch extra specialists only for named gaps. In Layer 3, "required" also accepts
+the explicitly authorized supported fallback above, never a silent substitution.
 
 ## Severity And Blocking
 
@@ -102,8 +110,21 @@ When the installed project profile activates `claude-companion-audit`, freeze it
 receipt and keep its finding IDs. After corrections, use the companion verification
 command for those findings, the correction diff, immediate affected behavior, and new
 deterministic evidence. A changed acceptance contract, correction outside the original
-scope, or new material blocker requires a new full audit. Projects without that module
+scope requires a new full audit. A new local blocker stays in the targeted loop with
+a stable finding ID unless it reveals missing review coverage. Version-1 receipts
+retain their original rules. Projects without that module
 continue to use their existing audit/convergence protocol.
+
+For opted-in projects, that companion review replaces the overlapping generic
+reasoning-auditor fanout in this protocol. Its coverage must include all relevant
+lenses; dispatch an extra specialist only for an identified gap, retaining its
+findings in the same change record. Mechanical gates remain required. Internal
+scope/evidence records are prepared by the agent from the existing change record;
+the user should not have to construct manifests or operate the review CLI.
+Critical/high findings and unmet acceptance requirements block completion. Minor
+advice needs an explicit disposition, not automatic implementation. If Claude is
+operationally unavailable, surface the explicit user choice described in
+`AGENT-WORKFLOW.md`; never silently substitute a provider or waive the review.
 
 ## Findings Format
 

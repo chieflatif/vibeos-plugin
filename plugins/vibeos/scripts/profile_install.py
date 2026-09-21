@@ -50,7 +50,7 @@ from install_recovery import (
 )
 
 
-FRAMEWORK_VERSION = "2.4.0"
+FRAMEWORK_VERSION = "2.4.1"
 
 MODE_MODULES = {
     "minimal": [
@@ -232,6 +232,7 @@ LOCAL_ENGINEERING_INTAKE_SCRIPTS = ["local-engineering-intake.py"]
 
 CLAUDE_COMPANION_AUDIT_SCRIPTS = [
     "claude-companion-audit.py",
+    "approved-codex-review.py",
     "validate-independent-audit.sh",
 ]
 
@@ -879,6 +880,7 @@ def render_agents_md(profile: dict[str, Any], profile_hash: str) -> str:
         + "- Treat VibeOS as a supporting harness for this project.\n"
         + "- Do not replace project-specific validators with generic paperwork.\n"
         + "- Codex TOML agents are active runtime contracts and must stay profile-specific.\n"
+        + "- Before dispatch, select an explicit available GPT model and supported effort by task fit, ambiguity, consequence and observed quality. Consider Luna first for clear bounded work; all available GPT models remain eligible. Generated roles deliberately omit fixed model pins, so an omitted dispatch allocation can inherit the parent; do not rely on that default. Preserve user-selected parent and project model choices. Use scripts/direct work when delegation adds overhead; reassess after one correction.\n"
         + "- Auditor roles are read-only unless the project profile explicitly says otherwise.\n\n"
         + "## Controlled Evaluation\n\n"
         + "Read `.vibeos/controlled-evaluation-guide.md` when present and run "
@@ -952,7 +954,7 @@ def render_claude_companion_audit_skill(
     profile: dict[str, Any], profile_hash: str
 ) -> str:
     skill = "vibeos-claude-companion-audit"
-    template_id = f"skill.{skill}.v1"
+    template_id = f"skill.{skill}.v2"
     source_hash = sha256_text(template_id)
     return (
         "---\n"
@@ -965,12 +967,13 @@ def render_claude_companion_audit_skill(
         + "`claude-companion-audit`. It is the cross-identity review lane for "
         + "Codex-authored material work; deterministic gates remain separate.\n\n"
         + "## Required sequence\n\n"
-        + "1. Freeze the completed candidate in Git and create a committed scope manifest naming the work order, acceptance-contract files, exact review paths, evidence paths, and an empty `finding_ids` list.\n"
-        + "2. Run `python3 .vibeos/scripts/claude-companion-audit.py full ...` once. Preserve its JSON receipt and Markdown report.\n"
-        + "3. If it finds issues, fix them without changing the acceptance contract. Create a correction manifest naming every original finding ID and only the correction paths/evidence.\n"
-        + "4. Run `python3 .vibeos/scripts/claude-companion-audit.py verification ... --parent-receipt <full receipt>`. Do not run another broad audit merely because corrections were made.\n"
+        + "1. The agent freezes the tested candidate in Git and prepares the scope manifest from the existing change record. Use its acceptance section directly as the contract when sufficient; do not ask the user to create duplicate paperwork. Include exact review and evidence paths and an empty `finding_ids` list.\n"
+        + "2. Run `python3 .vibeos/scripts/claude-companion-audit.py full ... --implementer-model <actual-implementing-model-slug>` once. Preserve its JSON receipt and Markdown report.\n"
+        + "3. Fix material findings and record explicit dispositions for minor advice. Prepare a correction manifest for unresolved findings and correction paths/evidence. Preserve the acceptance contract and all finding history.\n"
+        + "4. Run `python3 .vibeos/scripts/claude-companion-audit.py verification ... --parent-receipt <latest receipt>`. Do not run another broad audit merely because corrections were made.\n"
         + "5. Run `bash .vibeos/scripts/validate-independent-audit.sh <work-order> <report>` before closure.\n\n"
-        + "A changed acceptance contract, correction outside the original review scope, or a new material blocker requires a new full audit. The CLI pins `claude-fable-5-1`, first-party provider provenance, restricted tool-free execution, structured output, bounded spend/turns, and no session persistence. If authentication or exact provenance cannot be proved, closure stays blocked.\n"
+        + "On operational failure (exit 4), do not invoke fallback until the user explicitly approves it. Record that instruction and the emitted failure's exact binding using the helper's approval schema. Repeat the unchanged command with `--approved-fallback <approval.json> --claude-failure <failure.json>` and the same `--implementer-model`. Label requested model and unknown observed serving identity honestly. Before publication, also validate the receipt with `--release-ref <release-commit>` for exact tree equality.\n\n"
+        + "New version-2 receipts keep newly found local blockers in targeted verification. A changed acceptance contract or correction outside reviewed scope requires renewed full coverage; legacy receipts retain their original rules. Critical/high findings and unmet requirements block; minor findings require written dispositions. The Claude lane pins first-party `claude-fable-5-1` with restricted tool-free execution and bounded spend/turns. If it is unavailable, surface the recorded failure and ask the user whether to retry or authorize the supported fresh-context fallback; unanswered requests keep closure pending. Never fabricate a Claude pass.\n"
     )
 
 
@@ -1039,17 +1042,10 @@ def render_role_contract(
 def render_codex_toml(
     role: str, meta: dict[str, str], profile: dict[str, Any], profile_hash: str
 ) -> str:
-    template_id = f"codex.toml.{role}.v1"
+    template_id = f"codex.toml.{role}.v2"
     meta_hash = sha256_text(json_dumps(meta))
     read_only = role_read_only(role, meta)
     sandbox = "read-only" if read_only else "workspace-write"
-    model_key = (meta.get("model") or "sonnet").lower()
-    model_map = {
-        "opus": ("gpt-5.5", "high"),
-        "sonnet": ("gpt-5.5", "medium"),
-        "haiku": ("gpt-5.4-mini", "low"),
-    }
-    model, effort = model_map.get(model_key, ("gpt-5.5", "medium"))
     instructions = (
         f"You are the {role.replace('-', ' ')} role for {profile['project_name']}. "
         "This Codex TOML file is an active runtime contract generated from the same "
@@ -1057,7 +1053,13 @@ def render_codex_toml(
         "and canon paths are operating truth. Do not substitute generic VibeOS workflow "
         "for project-specific evidence, tests, validators, or product outcomes. "
         f"Profile hash: {profile_hash}. "
-        f"Authority: {'read-only review' if read_only else 'workspace implementation'}."
+        f"Authority: {'read-only review' if read_only else 'workspace implementation'}. "
+        "The parent selects an explicit available GPT model and supported reasoning "
+        "effort for each assignment. Consider Luna first for clear bounded work; "
+        "Terra, SOL, Astra and other available GPT models remain eligible by task "
+        "fit, ambiguity, consequence and observed quality. Do not use a Claude "
+        "role alias as a fixed GPT mapping or inherit maximum effort automatically. "
+        "One correction then reassess the route; accountability stays with the parent."
     )
 
     # TOML files are UTF-8; render strings without \uXXXX escapes so the
@@ -1070,8 +1072,6 @@ def render_codex_toml(
         f"# VIBEOS-GENERATED template_id={template_id} profile_hash={profile_hash} source_hash={meta_hash}",
         f"name = {toml_str('vibeos_' + snake(role))}",
         f"description = {toml_str(f'{role.replace("-", " ").title()} for {profile["project_name"]}.')}",
-        f"model = {toml_str(model)}",
-        f"model_reasoning_effort = {toml_str(effort)}",
         f"sandbox_mode = {toml_str(sandbox)}",
         f"developer_instructions = {toml_str(instructions)}",
         "",

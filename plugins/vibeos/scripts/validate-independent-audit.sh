@@ -19,7 +19,7 @@
 #   2 = configuration error
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.4.0"
+FRAMEWORK_VERSION="2.4.1"
 GATE_NAME="validate-independent-audit"
 
 usage() {
@@ -27,23 +27,11 @@ usage() {
 Usage:
   bash .vibeos/scripts/validate-independent-audit.sh [work-order-file] [audit-report]
 
-Validation target resolution order:
-  WO:
-    1. CLI argument 1
-    2. WO_FILE env var
-    3. WO_NUMBER resolved under docs/planning
-    4. active_wo in .vibeos/session-state.json
-
-  Audit report:
-    1. CLI argument 2
-    2. LAST_AUDIT_REPORT env var
-    3. last_audit_report in .vibeos/session-state.json
-
-Rules:
-  - Active WOs must have a dedicated audit report under .vibeos/audit-reports/
-  - Session audits cannot satisfy post-implementation audit closure
-  - Audit report metadata must target the active WO
-  - Audit reports must look like independent audit output, not a builder summary
+WO resolution: argument 1, WO_FILE, WO_NUMBER, then session active_wo.
+Report resolution: argument 2, LAST_AUDIT_REPORT, then session last_audit_report.
+Active WOs require matching post-implementation evidence under .vibeos/audit-reports/.
+An enabled companion requires a validated structured receipt and bound report.
+Legacy reports require auditor metadata; a builder or session summary is insufficient.
 EOF
 }
 
@@ -104,8 +92,85 @@ extract_wo_number() {
   basename "$1" | sed -nE 's/^(WO-[0-9]+).*/\1/p'
 }
 
+COMPANION_REQUIRED="false"
+COMPANION_GATE_CONFIGURED="false"
+COMPANION_GATE_MANIFEST="$PROJECT_ROOT/.claude/quality-gate-manifest.json"
+if [[ -f "$COMPANION_GATE_MANIFEST" ]]; then
+  if ! COMPANION_GATE_CONFIGURED="$(python3 - "$COMPANION_GATE_MANIFEST" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    gates = manifest.get("gates", [])
+    configured = any(
+        isinstance(gate, dict)
+        and gate.get("name") == "claude-companion-audit-closure"
+        and gate.get("enabled", True) is not False
+        for gate in gates
+    )
+except (OSError, TypeError, ValueError):
+    raise SystemExit(2)
+print("true" if configured else "false")
+PY
+  )"; then
+    echo "[$GATE_NAME] FAIL: quality-gate-manifest.json is invalid"
+    exit 2
+  fi
+fi
+
+if [[ "$COMPANION_GATE_CONFIGURED" == "true" && ! -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion gate is configured but project-profile.json is missing"
+    exit 1
+fi
+
+COMPANION_PROFILE="$PROJECT_ROOT/.vibeos/project-profile.json"
+if [[ -f "$COMPANION_PROFILE" ]]; then
+  if ! MODULE_STATE="$(python3 - "$COMPANION_PROFILE" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        profile = json.load(handle)
+    modules = profile.get("active_modules", [])
+    if not isinstance(modules, list) or any(
+        not isinstance(module, str) for module in modules
+    ):
+        raise TypeError("active_modules must be a list of strings")
+except (OSError, TypeError, ValueError):
+    raise SystemExit(2)
+
+if "claude-companion-audit" not in modules:
+    print("inactive")
+elif profile.get("phase_audit_runtime") != "claude":
+    print("runtime-mismatch")
+else:
+    print("active")
+PY
+  )"; then
+    echo "[$GATE_NAME] FAIL: project-profile.json is invalid"
+    exit 2
+  fi
+  if [[ "$MODULE_STATE" == "runtime-mismatch" ]]; then
+    echo "[$GATE_NAME] FAIL: Active Claude companion audit requires phase_audit_runtime=claude"
+    exit 1
+  fi
+  [[ "$MODULE_STATE" == "active" ]] && COMPANION_REQUIRED="true"
+fi
+
+if [[ "$COMPANION_GATE_CONFIGURED" == "true" && "$COMPANION_REQUIRED" != "true" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion gate requires an active module and phase_audit_runtime=claude"
+    exit 1
+fi
+
 WO_TARGET="$(resolve_wo_target "${1:-}")"
 if [[ -z "$WO_TARGET" ]]; then
+  if [[ "$COMPANION_GATE_CONFIGURED" == "true" || "$COMPANION_REQUIRED" == "true" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion audit is enabled but no active work-order target resolved"
+    exit 1
+  fi
   echo "[$GATE_NAME] SKIP: No active work-order target resolved"
   exit 0
 fi
@@ -117,6 +182,10 @@ fi
 
 ACTIVE_WO="$(extract_wo_number "$WO_TARGET")"
 if [[ -z "$ACTIVE_WO" ]]; then
+  if [[ "$COMPANION_GATE_CONFIGURED" == "true" || "$COMPANION_REQUIRED" == "true" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion audit is enabled but target does not match WO naming convention: $(basename "$WO_TARGET")"
+    exit 1
+  fi
   echo "[$GATE_NAME] SKIP: Target does not match WO naming convention: $(basename "$WO_TARGET")"
   exit 0
 fi
@@ -163,83 +232,6 @@ if [[ -n "$SESSION_AUDIT_WO" && "$SESSION_AUDIT_WO" != "$ACTIVE_WO" ]]; then
   exit 1
 fi
 
-COMPANION_REQUIRED="false"
-COMPANION_GATE_CONFIGURED="false"
-COMPANION_GATE_MANIFEST="$PROJECT_ROOT/.claude/quality-gate-manifest.json"
-if [[ -f "$COMPANION_GATE_MANIFEST" ]]; then
-  if ! COMPANION_GATE_CONFIGURED="$(python3 - "$COMPANION_GATE_MANIFEST" <<'PY'
-import json
-import sys
-
-try:
-    with open(sys.argv[1], encoding="utf-8") as handle:
-        manifest = json.load(handle)
-    gates = manifest.get("gates", [])
-    configured = any(
-        isinstance(gate, dict)
-        and gate.get("name") == "claude-companion-audit-closure"
-        and gate.get("enabled", True) is not False
-        for gate in gates
-    )
-except (OSError, TypeError, ValueError):
-    raise SystemExit(2)
-print("true" if configured else "false")
-PY
-  )"; then
-    echo "[$GATE_NAME] FAIL: quality-gate-manifest.json is invalid"
-    exit 2
-  fi
-fi
-
-if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
-  if [[ ! -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]]; then
-    echo "[$GATE_NAME] FAIL: Claude companion gate is configured but project-profile.json is missing"
-    exit 1
-  fi
-fi
-
-COMPANION_PROFILE="$PROJECT_ROOT/.vibeos/project-profile.json"
-if [[ -f "$COMPANION_PROFILE" ]]; then
-  if ! MODULE_STATE="$(python3 - "$COMPANION_PROFILE" <<'PY'
-import json
-import sys
-
-try:
-    with open(sys.argv[1], encoding="utf-8") as handle:
-        profile = json.load(handle)
-    modules = profile.get("active_modules", [])
-    if not isinstance(modules, list) or any(
-        not isinstance(module, str) for module in modules
-    ):
-        raise TypeError("active_modules must be a list of strings")
-except (OSError, TypeError, ValueError):
-    raise SystemExit(2)
-
-if "claude-companion-audit" not in modules:
-    print("inactive")
-elif profile.get("phase_audit_runtime") != "claude":
-    print("runtime-mismatch")
-else:
-    print("active")
-PY
-  )"; then
-    echo "[$GATE_NAME] FAIL: project-profile.json is invalid"
-    exit 2
-  fi
-  if [[ "$MODULE_STATE" == "runtime-mismatch" ]]; then
-    echo "[$GATE_NAME] FAIL: Active Claude companion audit requires phase_audit_runtime=claude"
-    exit 1
-  fi
-  [[ "$MODULE_STATE" == "active" ]] && COMPANION_REQUIRED="true"
-fi
-
-if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
-  if [[ "$COMPANION_REQUIRED" != "true" ]]; then
-    echo "[$GATE_NAME] FAIL: Claude companion gate requires an active module and phase_audit_runtime=claude"
-    exit 1
-  fi
-fi
-
 if [[ "$COMPANION_REQUIRED" == "true" ]]; then
   if [[ -z "$COMPANION_RECEIPT" ]]; then
     echo "[$GATE_NAME] FAIL: Claude companion audit is enabled but no receipt is registered"
@@ -276,6 +268,9 @@ PY
     echo "[$GATE_NAME] FAIL: Supplied audit report is not the report bound by the registered Claude companion receipt"
     exit 1
   fi
+  echo "[$GATE_NAME] PASS: Structured independent review is registered for $ACTIVE_WO"
+  echo "[$GATE_NAME] report=$REL_AUDIT_REPORT"
+  exit 0
 fi
 
 AUDIT_CONTENT="$(cat "$AUDIT_REPORT")"

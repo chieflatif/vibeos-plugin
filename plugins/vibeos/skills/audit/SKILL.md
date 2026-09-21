@@ -85,7 +85,10 @@ Rules:
 
 ### Step 4: Dispatch Audit Agents
 
-Dispatch the selected audit agents using the chosen visibility mode. Auditors remain read-only in both modes.
+First check whether `claude-companion-audit` is active. If so, use its installed
+skill and skip generic agent dispatch below; add only a specialist for a named
+coverage gap. Otherwise dispatch the selected audit agents using the chosen
+visibility mode. Auditors remain read-only in both modes.
 
 **Agent dispatch list:**
 
@@ -108,6 +111,12 @@ Dispatch the selected audit agents using the chosen visibility mode. Auditors re
 When `audit_dispatch_profile` is `same-tree`, replace each `agents/<name>.md` with `agents/<name>-same-tree.md`.
 
 ### Audit Dispatch Strategy
+
+If the project activates `claude-companion-audit`, use the installed companion skill
+for one independent review of the relevant lenses. This replaces the generic
+fanout below for that change. Add a specialist only for an identified coverage gap;
+retain its findings in the same change record. Run deterministic gates separately.
+Apply the strategy below when the module is inactive.
 
 For codebases under 15K lines: dispatch each auditor on the full codebase (current behavior).
 

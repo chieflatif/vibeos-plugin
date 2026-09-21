@@ -21,7 +21,11 @@ bash ".vibeos/scripts/detect-runtime-capabilities.sh" --project-dir "."
 ```
 
 4. Run the matching shared gates with `.vibeos/scripts/gate-runner.sh`.
-5. Use available Codex-native agents or `.codex/agent-contracts/*auditor*.md` role contracts according to `.vibeos/runtime-capabilities.json`, then execute the audit phases with severity discipline. Include Flow Auditor review when the change touches user journeys, frontend/backend handoffs, auth/session continuity, data side effects, or objective fidelity. Include System Invariant Auditor review when the change touches state transitions, ownership, data integrity, retries, duplicate side effects, background jobs, webhooks, or recovery. Include Dependency Intelligence Auditor review when the change touches manifests, lockfiles, package managers, runtimes, SDKs, frameworks, auth/security/database/payment/AI packages, deployment libraries, or public-interface packages. Include Delivery Infrastructure Auditor review when the change touches CI/CD, deployment, environment/secrets, observability, smoke/health checks, rollback, runbooks, or operational scripts.
+   When the profile activates `claude-companion-audit`, use its installed skill for
+   one independent review covering the relevant lenses in step 5; this replaces
+   generic auditor fanout for the same change. Add a specialist only for a named
+   gap in coverage, retain its findings, and use targeted correction verification.
+5. When the companion module is inactive, use available Codex-native agents or `.codex/agent-contracts/*auditor*.md` role contracts according to `.vibeos/runtime-capabilities.json`, then execute the audit phases with severity discipline. Cover flow integrity for user journeys and layer handoffs, system invariants for state/recovery/side effects, dependency intelligence for package and runtime changes, and delivery infrastructure for deployment and operational changes. These are review lenses; in an opted-in companion review they do not each require a separate agent.
 6. Report findings in severity order, with business impact first and concrete fixes second.
 7. If there are no findings, say that plainly and note residual risk or verification gaps.
 
