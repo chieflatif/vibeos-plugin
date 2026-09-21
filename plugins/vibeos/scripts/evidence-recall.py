@@ -15,7 +15,7 @@ import re
 import sys
 from pathlib import Path
 
-FRAMEWORK_VERSION = "2.3.2"
+FRAMEWORK_VERSION = "2.4.0"
 STOPWORDS = {"a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "in", "is", "it", "of", "on", "or", "the", "to", "with"}
 TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9_.:/-]*", re.I)
 HEADING_RE = re.compile(r"(?m)^(#{1,3})\s+(.+)$")

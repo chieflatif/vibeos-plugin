@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "work_order": "WO-157",
+  "acceptance_contract": [
+    "docs/evidence/WO-157/acceptance-contract.md"
+  ],
+  "review_paths": [
+    "README.md",
+    "docs/CLAUDE-COMPANION-AUDIT.md",
+    "docs/INSTALLATION.md",
+    "docs/planning/DEVELOPMENT-PLAN.md",
+    "docs/release/2.4.0.md",
+    "plugins/vibeos/reference/claude/rules/audit-discipline.md.ref",
+    "plugins/vibeos/reference/governance/AGENT-WORKFLOW.md.ref",
+    "plugins/vibeos/reference/governance/AUDIT-PROTOCOL.md.ref",
+    "plugins/vibeos/scripts/claude-companion-audit.py",
+    "plugins/vibeos/scripts/validate-independent-audit.sh",
+    "plugins/vibeos/skills/audit/SKILL.md",
+    "plugins/vibeos/skills/build/SKILL.md",
+    "tests/test_claude_companion_audit.py"
+  ],
+  "evidence_paths": [
+    "docs/evidence/WO-157/audit-corrections-round-2.md",
+    "docs/evidence/WO-157/automated-tests.md",
+    "docs/evidence/WO-157/final-audit-corrections.md"
+  ],
+  "finding_ids": [
+    "F-001",
+    "F-002",
+    "F-003",
+    "F-004",
+    "F-005",
+    "F-006",
+    "F-007",
+    "F-008",
+    "F-009",
+    "F-010",
+    "F-011",
+    "F-012",
+    "F-013",
+    "F-014",
+    "F-015",
+    "F-016",
+    "F-017"
+  ]
+}

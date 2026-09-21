@@ -1,5 +1,5 @@
 {
-  "version": "2.3.2",
+  "version": "2.4.0",
   "description": "Declarative gate manifest — catalogs every script with tier, blocking, phase, and env configuration. The gate-runner reads this to determine which gates to execute per phase.",
   "gates": [
     {"script": "scripts/validate-no-secrets.sh", "tier": 0, "blocking": true, "phase": "pre_commit", "env": {"SCAN_PATTERNS": "azure_connection_strings,sas_tokens,aws_keys,api_tokens,jwts,private_keys"}},
@@ -95,6 +95,7 @@
     {"script": "scripts/runtime-capabilities.py", "purpose": "Testable parser and JSON writer for runtime capability detection"},
     {"script": "scripts/workstation-package.sh", "purpose": "Optional macOS workstation package checker, installer dry-run, and post-install verifier"},
     {"script": "scripts/local-engineering-intake.py", "purpose": "Runs disabled-by-default, loopback-only structured engineering intake with closed-schema evidence validation and bounded fallback"},
+    {"script": "scripts/claude-companion-audit.py", "purpose": "Runs one frozen first-party Claude companion audit and targeted verification of its named corrections with exact provenance and drift checks"},
     {"script": "scripts/comp-plan.py", "purpose": "Generates VibOS Comp execution plans and worktree scope manifests from MISSION.md"},
     {"script": "scripts/comp-integration-check.py", "purpose": "Checks VibOS Comp work package evidence before integrated gauntlet execution"},
     {"script": "scripts/comp-scorecard.py", "purpose": "Generates VibOS Comp SCORECARD.md with normalized dimension pass/warn/fail results"},

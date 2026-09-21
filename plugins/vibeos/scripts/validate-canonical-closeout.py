@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 
 
-FRAMEWORK_VERSION = "2.3.2"
+FRAMEWORK_VERSION = "2.4.0"
 
 
 class CloseoutError(RuntimeError):

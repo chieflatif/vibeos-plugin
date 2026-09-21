@@ -5,7 +5,7 @@
 # the user's intent to inject routing context for the model.
 #
 # Framework version: 2.2.0
-FRAMEWORK_VERSION="2.3.2"
+FRAMEWORK_VERSION="2.4.0"
 
 # --- VibeOS project-scope guard (auto-inserted) ------------------------------
 # Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so

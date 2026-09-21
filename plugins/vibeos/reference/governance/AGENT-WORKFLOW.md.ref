@@ -55,7 +55,10 @@ Anchor artifacts include the things the receiver should trust:
 - failing test output
 - file lists
 
-The receiving agent's output is reviewed through a fresh audit round, not silently edited into a different result.
+The receiving agent's first output is reviewed through a fresh audit round, not silently
+edited into a different result. If `claude-companion-audit` is active, corrections to
+named findings use its frozen receipt and targeted verification command. Otherwise the
+project's configured audit/convergence flow remains authoritative.
 
 ## Degraded Mode
 

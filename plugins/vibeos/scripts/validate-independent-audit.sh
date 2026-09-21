@@ -19,7 +19,7 @@
 #   2 = configuration error
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.2"
+FRAMEWORK_VERSION="2.4.0"
 GATE_NAME="validate-independent-audit"
 
 usage() {
@@ -146,9 +146,11 @@ fi
 
 SESSION_AUDIT_KIND=""
 SESSION_AUDIT_WO=""
+COMPANION_RECEIPT=""
 if [[ -f "$SESSION_STATE_FILE" ]] && command -v jq >/dev/null 2>&1; then
   SESSION_AUDIT_KIND="$(jq -r '.last_audit_report_type // empty' "$SESSION_STATE_FILE" 2>/dev/null || echo "")"
   SESSION_AUDIT_WO="$(jq -r '.last_audit_work_order // empty' "$SESSION_STATE_FILE" 2>/dev/null || echo "")"
+  COMPANION_RECEIPT="$(jq -r '.last_claude_companion_receipt // empty' "$SESSION_STATE_FILE" 2>/dev/null || echo "")"
 fi
 
 if [[ -n "$SESSION_AUDIT_KIND" && "$SESSION_AUDIT_KIND" != "post-implementation" ]]; then
@@ -159,6 +161,121 @@ fi
 if [[ -n "$SESSION_AUDIT_WO" && "$SESSION_AUDIT_WO" != "$ACTIVE_WO" ]]; then
   echo "[$GATE_NAME] FAIL: Registered audit targets '$SESSION_AUDIT_WO' but active WO is '$ACTIVE_WO'"
   exit 1
+fi
+
+COMPANION_REQUIRED="false"
+COMPANION_GATE_CONFIGURED="false"
+COMPANION_GATE_MANIFEST="$PROJECT_ROOT/.claude/quality-gate-manifest.json"
+if [[ -f "$COMPANION_GATE_MANIFEST" ]]; then
+  if ! COMPANION_GATE_CONFIGURED="$(python3 - "$COMPANION_GATE_MANIFEST" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    gates = manifest.get("gates", [])
+    configured = any(
+        isinstance(gate, dict)
+        and gate.get("name") == "claude-companion-audit-closure"
+        and gate.get("enabled", True) is not False
+        for gate in gates
+    )
+except (OSError, TypeError, ValueError):
+    raise SystemExit(2)
+print("true" if configured else "false")
+PY
+  )"; then
+    echo "[$GATE_NAME] FAIL: quality-gate-manifest.json is invalid"
+    exit 2
+  fi
+fi
+
+if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
+  if [[ ! -f "$PROJECT_ROOT/.vibeos/project-profile.json" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion gate is configured but project-profile.json is missing"
+    exit 1
+  fi
+fi
+
+COMPANION_PROFILE="$PROJECT_ROOT/.vibeos/project-profile.json"
+if [[ -f "$COMPANION_PROFILE" ]]; then
+  if ! MODULE_STATE="$(python3 - "$COMPANION_PROFILE" <<'PY'
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        profile = json.load(handle)
+    modules = profile.get("active_modules", [])
+    if not isinstance(modules, list) or any(
+        not isinstance(module, str) for module in modules
+    ):
+        raise TypeError("active_modules must be a list of strings")
+except (OSError, TypeError, ValueError):
+    raise SystemExit(2)
+
+if "claude-companion-audit" not in modules:
+    print("inactive")
+elif profile.get("phase_audit_runtime") != "claude":
+    print("runtime-mismatch")
+else:
+    print("active")
+PY
+  )"; then
+    echo "[$GATE_NAME] FAIL: project-profile.json is invalid"
+    exit 2
+  fi
+  if [[ "$MODULE_STATE" == "runtime-mismatch" ]]; then
+    echo "[$GATE_NAME] FAIL: Active Claude companion audit requires phase_audit_runtime=claude"
+    exit 1
+  fi
+  [[ "$MODULE_STATE" == "active" ]] && COMPANION_REQUIRED="true"
+fi
+
+if [[ "$COMPANION_GATE_CONFIGURED" == "true" ]]; then
+  if [[ "$COMPANION_REQUIRED" != "true" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion gate requires an active module and phase_audit_runtime=claude"
+    exit 1
+  fi
+fi
+
+if [[ "$COMPANION_REQUIRED" == "true" ]]; then
+  if [[ -z "$COMPANION_RECEIPT" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion audit is enabled but no receipt is registered"
+    exit 1
+  fi
+  if [[ "$COMPANION_RECEIPT" != /* ]]; then
+    COMPANION_RECEIPT="$PROJECT_ROOT/$COMPANION_RECEIPT"
+  fi
+  COMPANION_VALIDATOR="$PROJECT_ROOT/.vibeos/scripts/claude-companion-audit.py"
+  if [[ ! -f "$COMPANION_VALIDATOR" ]]; then
+    echo "[$GATE_NAME] FAIL: Claude companion validator is missing: $COMPANION_VALIDATOR"
+    exit 2
+  fi
+  if ! python3 "$COMPANION_VALIDATOR" validate \
+    --project-dir "$PROJECT_ROOT" \
+    --receipt "${COMPANION_RECEIPT#$PROJECT_ROOT/}" \
+    --work-order "$ACTIVE_WO"; then
+    echo "[$GATE_NAME] FAIL: Claude companion receipt is absent, stale, unresolved, or has unproved provenance"
+    exit 1
+  fi
+  if ! python3 - "$PROJECT_ROOT" "$COMPANION_RECEIPT" "$AUDIT_REPORT" <<'PY'
+import json, pathlib, sys
+root, receipt_path, requested = map(pathlib.Path, sys.argv[1:])
+root = root.resolve()
+try:
+    report = json.loads(receipt_path.read_text())["artifacts"]["report_path"]
+    bound = (root / report).resolve()
+    bound.relative_to(root)
+except (KeyError, OSError, TypeError, ValueError):
+    raise SystemExit(1)
+raise SystemExit(0 if bound == requested.resolve() else 1)
+PY
+  then
+    echo "[$GATE_NAME] FAIL: Supplied audit report is not the report bound by the registered Claude companion receipt"
+    exit 1
+  fi
 fi
 
 AUDIT_CONTENT="$(cat "$AUDIT_REPORT")"

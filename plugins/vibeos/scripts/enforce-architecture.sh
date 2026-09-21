@@ -24,7 +24,7 @@
 #   2 = Configuration error (missing rules file, invalid JSON)
 set -euo pipefail
 
-FRAMEWORK_VERSION="2.3.2"
+FRAMEWORK_VERSION="2.4.0"
 GATE_NAME="enforce-architecture"
 
 usage() {

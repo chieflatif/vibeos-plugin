@@ -673,6 +673,21 @@ retry.
 
 ---
 
+## Phase 49: Cross-Identity Audit Efficiency
+
+**Goal:** Make Claude companion review real, provider-bound and cheaper to operate by
+running one frozen full audit followed by correction-only verification.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-157 | Claude Companion Audit and Targeted Correction Verification | Profile installer; Claude Code CLI; audit protocol | In Progress |
+
+The module is disabled by default and must be enabled per project. A changed acceptance
+contract, correction outside the original review scope, or new material blocker requires
+a fresh full audit; ordinary fixes do not.
+
+---
+
 ## Contingency Plans
 
 If Phase 0 spike or Phase 1 post-audit reveals failed assumptions:

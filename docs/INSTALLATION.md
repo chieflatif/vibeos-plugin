@@ -15,15 +15,19 @@ Run version commands on the destination Mac. The release evidence names versions
 actually exercised; a different runtime needs its own capability readback. No
 installer copies login sessions, credentials, global settings or private projects.
 
-## Clone an exact release
+## Clone a confirmed published release
 
 ```bash
-git clone --branch v2.3.1 --single-branch https://github.com/chieflatif/vibeos-plugin.git
+git clone https://github.com/chieflatif/vibeos-plugin.git
 cd vibeos-plugin
+git fetch --tags
+VIBEOS_TAG="replace-with-confirmed-published-tag"
+git switch --detach "$VIBEOS_TAG"
 git rev-parse HEAD
 ```
 
-Compare that commit with the GitHub release. Keep this source directory separate
+Choose only a tag that is already visible on GitHub, then compare the checked-out
+commit with that release. Keep this source directory separate
 from your application. The application should have its own Git repository and a
 README or product document explaining what you are building.
 
@@ -102,6 +106,13 @@ Use [controlled evaluation](CONTROLLED-EVALUATION.md) to bind engineering result
 to protected specifications and exact required checks. Pick agent models from the
 models available on that Mac; use smaller models for bounded work and independent
 review for consequential changes.
+
+For Codex-led projects that require a separate Claude audit, explicitly enable the
+disabled-by-default `claude-companion-audit` module and set
+`phase_audit_runtime` to `claude`. The project must have an authenticated first-party
+Claude Code CLI available to the backend process. VibeOS does not install or copy that
+login. The module runs one frozen full audit and then targeted verification of the
+original findings; see [Claude companion audit](CLAUDE-COMPANION-AUDIT.md).
 
 ## Upgrade and recover
 

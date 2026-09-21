@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "work_order": "WO-157",
+  "acceptance_contract": [
+    "docs/evidence/WO-157/acceptance-contract.md"
+  ],
+  "review_paths": [
+    ".claude-plugin/marketplace.json",
+    "README.md",
+    "docs/CLAUDE-COMPANION-AUDIT.md",
+    "docs/INSTALLATION.md",
+    "docs/evidence/vnext/generated-inventory.json",
+    "docs/planning/DEVELOPMENT-PLAN.md",
+    "docs/planning/WO-INDEX.md",
+    "docs/release/2.4.0.md",
+    "plugins/vibeos",
+    "pyproject.toml",
+    "tests/test_claude_companion_audit.py",
+    "tests/test_profile_install.py",
+    "vibeos-init.sh",
+    "vibeos-init-codex.sh"
+  ],
+  "evidence_paths": [
+    "docs/evidence/WO-157/audit-corrections.md",
+    "docs/evidence/WO-157/audit-corrections-round-2.md",
+    "docs/evidence/WO-157/automated-tests.md",
+    "docs/evidence/WO-157/final-audit-corrections.md",
+    "docs/evidence/WO-157/final-targeted-verification-scope.json",
+    "docs/evidence/WO-157/full-audit-scope.json",
+    "docs/evidence/WO-157/full-audit-scope-final.json",
+    "docs/evidence/WO-157/new-blocker-correction.md",
+    "docs/evidence/WO-157/post-targeted-blocker-correction.md",
+    "docs/evidence/WO-157/research.md",
+    "docs/evidence/WO-157/targeted-verification-scope.json",
+    "docs/evidence/WO-157/targeted-verification-scope-round-2.json"
+  ],
+  "finding_ids": []
+}
