@@ -1,8 +1,8 @@
 # WO-157 automated verification
 
-- Evidence recorded: 2026-09-21T01:26:31Z
-- Tested implementation commit: `ebcbf4c5ce57aabed5540f2fc6b3a067fb4ccfe0`
-- Tested tree: `091995bd5818fa927c3eea9dba4ea84d2838c9bc`
+- Evidence recorded: 2026-09-21T01:40:47Z
+- Tested implementation commit: `9d6ae01c9c6f33fae8be7baca04479b1b9013ed9`
+- Tested tree: `8b7c76080fda3299e48429094664d9e4f646445d`
 
 The later evidence-only commit may add this record, the targeted scope manifest and
 release-gate wording; it does not alter executable implementation bytes.
@@ -18,7 +18,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q \
   tests/test_canonical_closeout.py
 ```
 
-Result: **77 tests and 32 subtests passed in 43.44 seconds**.
+Result: **78 tests and 32 subtests passed in 50.58 seconds**.
 
 This covers the companion CLI, provider/receipt refusal paths, full-to-targeted
 verification, profile installation, release handoff, canonical closeout, enabled and
@@ -30,7 +30,7 @@ disabled close-gate behavior, large files, Unicode paths, and post-audit drift.
 PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q tests
 ```
 
-Result: **387 tests and 78 subtests passed in 223.46 seconds**.
+Result: **388 tests and 78 subtests passed in 235.42 seconds**.
 
 The run used permission only for the repository's in-process loopback HTTP fixtures;
 no product service was contacted.
@@ -44,7 +44,7 @@ no product service was contacted.
 - Generated inventory matched source after excluding its volatile `generated_at` field.
 - `git diff --check` passed.
 - The configured pre-commit phase passed 9 gates, failed 0, and skipped the existing
-  non-blocking dependency gate (10 total). Its embedded test gate passed in 105 seconds.
+  non-blocking dependency gate (10 total). Its embedded test gate passed in 111 seconds.
 
 ## Live review boundary
 

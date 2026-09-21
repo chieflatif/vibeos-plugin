@@ -2,7 +2,7 @@
 
 - Parent audit: `claude-audit-892a4340-f578-4cd2-863a-ef7fb410ca31`
 - Parent candidate: `54c0080fdbd557ab31d0b7e71ed8b0aa6bba357b`
-- Corrected implementation: `ebcbf4c5ce57aabed5540f2fc6b3a067fb4ccfe0`
+- Corrected implementation: `9d6ae01c9c6f33fae8be7baca04479b1b9013ed9`
 
 This correction round is limited to the 17 findings from the final full audit. It does
 not change the acceptance contract or expand the original review roots.
@@ -14,7 +14,7 @@ not change the acceptance contract or expand the original review roots.
 | F-003 | Gate activation reads an enabled manifest gate and exact `.active_modules` membership. A disabled gate/profile mention passes normal independent-audit validation without demanding a companion receipt. |
 | F-004 | Tests now prove active-module failure for no receipt, no report, and a registered but open receipt. |
 | F-005 | Global skills and protocol references use targeted verification only when `claude-companion-audit` is active; all other projects retain their existing convergence behavior. |
-| F-006 | `automated-tests.md` binds focused, full-suite, static, inventory, and gate results to implementation commit `ebcbf4c5ce57aabed5540f2fc6b3a067fb4ccfe0` and its tree. |
+| F-006 | `automated-tests.md` binds focused, full-suite, static, inventory, and gate results to implementation commit `9d6ae01c9c6f33fae8be7baca04479b1b9013ed9` and its tree. |
 | F-007 | Git review snapshots hash raw blobs without the 160 KB packet-material ceiling; a tracked 170 KB binary is audited and revalidated. |
 | F-008 | Git path discovery uses NUL-delimited output consistently; a non-ASCII tracked filename is audited and revalidated. |
 | F-009 | The committed audit configuration bytes are included in both full and correction packets. |
