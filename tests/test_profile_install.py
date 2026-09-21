@@ -226,6 +226,18 @@ class ProfileInstallTests(unittest.TestCase):
                 )
             )
             self.apply(target)
+            installed_profile = json.loads(
+                (target / ".vibeos/project-profile.json").read_text(encoding="utf-8")
+            )
+            self.assertIn(
+                "claude-companion-audit", installed_profile["active_modules"]
+            )
+            self.assertEqual(installed_profile["phase_audit_runtime"], "claude")
+            self.assertTrue(installed_profile["claude_companion_audit"]["enabled"])
+            self.assertEqual(
+                installed_profile["claude_companion_audit"]["model"],
+                "claude-fable-5-1",
+            )
             self.assertTrue(
                 (target / ".vibeos/scripts/claude-companion-audit.py").is_file()
             )

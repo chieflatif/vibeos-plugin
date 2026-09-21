@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import fnmatch
 import hashlib
 import json
 import os
@@ -25,6 +26,7 @@ RECEIPT_TYPE = "vibeos.claude-companion-audit"
 SCHEMA_VERSION = 1
 DEFAULT_MODEL = "claude-fable-5-1"
 DEFAULT_PROVIDER = "firstParty"
+MIN_CLAUDE_CLI_VERSION = (2, 1, 277)
 BLOCKING_SEVERITIES = {"critical", "high", "medium"}
 CONFIG_KEYS = {
     "enabled",
@@ -234,6 +236,41 @@ def path_matches(path: str, roots: list[str]) -> bool:
     return any(path == root or path.startswith(root.rstrip("/") + "/") for root in roots)
 
 
+def declared_path_matches(path: str, patterns: list[str]) -> bool:
+    for pattern in patterns:
+        if pattern.endswith("/**"):
+            prefix = pattern[:-3].rstrip("/")
+            if path == prefix or path.startswith(prefix + "/"):
+                return True
+        elif fnmatch.fnmatchcase(path, pattern):
+            return True
+    return False
+
+
+def parse_work_order_write_scope(raw: bytes) -> list[str]:
+    text = raw.decode("utf-8", errors="replace")
+    if not text.startswith("---\n"):
+        raise AuditError("work_order_frontmatter_missing")
+    lines = text.splitlines()
+    in_scope = False
+    values: list[str] = []
+    for line in lines[1:]:
+        if line == "---":
+            break
+        if line == "write_scope:":
+            in_scope = True
+            continue
+        if in_scope and line.startswith("  - "):
+            value = line[4:].strip().strip('"').strip("'")
+            values.append(relative_path(value, "work_order_write_scope"))
+            continue
+        if in_scope and line and not line.startswith(" "):
+            break
+    if not values:
+        raise AuditError("work_order_write_scope_missing")
+    return values
+
+
 def changed_paths(project: Path, base: str, candidate: str) -> list[str]:
     text = str(run_git(project, "diff", "--name-only", "--no-renames", base, candidate, "--"))
     return [line for line in text.splitlines() if line]
@@ -286,16 +323,24 @@ def git_snapshot(project: Path, commit: str, roots: list[str]) -> dict[str, Any]
 def current_snapshot(project: Path, roots: list[str]) -> dict[str, Any]:
     files: dict[str, str] = {}
     absent: list[str] = []
+    listed = run_git(project, "ls-files", "-z", "--", *roots, binary=True)
+    assert isinstance(listed, bytes)
+    names = sorted(
+        item.decode("utf-8", errors="surrogateescape")
+        for item in listed.split(b"\0")
+        if item
+    )
     for root in roots:
-        path = project_path(project, root, "snapshot_path")
-        if path.is_file() and not path.is_symlink():
-            files[root] = sha256_bytes(path.read_bytes())
-        elif path.is_dir() and not path.is_symlink():
-            for child in sorted(path.rglob("*")):
-                if child.is_file() and not child.is_symlink():
-                    files[str(child.relative_to(project))] = sha256_bytes(child.read_bytes())
-        else:
+        matching = [name for name in names if name == root or name.startswith(root.rstrip("/") + "/")]
+        if not matching:
             absent.append(root)
+        for name in matching:
+            path = project_path(project, name, "snapshot_path")
+            try:
+                raw = os.readlink(path).encode() if path.is_symlink() else path.read_bytes()
+            except OSError:
+                continue
+            files[name] = sha256_bytes(raw)
     return {"roots": roots, "files": dict(sorted(files.items())), "absent": sorted(absent)}
 
 
@@ -347,6 +392,27 @@ def load_scope(project: Path, commit: str, path_arg: str, mode: str) -> tuple[di
     if mode == "verification" and not finding_ids:
         raise AuditError("verification_scope_requires_finding_ids")
     return scope, rel, sha256_bytes(current)
+
+
+def is_same_work_order_scope_manifest(
+    project: Path, commit: str, path: str, scope_path: str, work_order: str
+) -> bool:
+    scope_dir = str(PurePosixPath(scope_path).parent)
+    if not path.startswith(scope_dir.rstrip("/") + "/") or not path.endswith(".json"):
+        return False
+    raw = git_file_or_none(project, commit, path)
+    if raw is None:
+        return False
+    try:
+        payload = json.loads(raw)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return False
+    return (
+        isinstance(payload, dict)
+        and set(payload) == SCOPE_KEYS
+        and payload.get("schema_version") == SCHEMA_VERSION
+        and payload.get("work_order") == work_order
+    )
 
 
 def full_schema() -> dict[str, Any]:
@@ -525,7 +591,11 @@ Original findings to verify:
 
 
 def child_environment() -> dict[str, str]:
-    allowed = {"HOME", "USER", "LOGNAME", "PATH", "TMPDIR", "LANG", "CLAUDE_CONFIG_DIR"}
+    allowed = {
+        "HOME", "USER", "LOGNAME", "PATH", "TMPDIR", "LANG", "CLAUDE_CONFIG_DIR",
+        "HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy",
+        "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS",
+    }
     return {key: value for key, value in os.environ.items() if key in allowed or key.startswith("LC_")}
 
 
@@ -567,12 +637,16 @@ def claude_version(binary: Path, timeout: int) -> str:
     )
     if result.returncode != 0 or not result.stdout.strip():
         raise AuditError("claude_version_unavailable")
-    return result.stdout.strip()[:200]
+    value = result.stdout.strip()[:200]
+    match = re.search(r"(\d+)\.(\d+)\.(\d+)", value)
+    if not match or tuple(int(item) for item in match.groups()) < MIN_CLAUDE_CLI_VERSION:
+        raise AuditError("claude_cli_version_too_old")
+    return value
 
 
 def invoke_claude(
     binary: Path, config: dict[str, Any], prompt: str, schema: dict[str, Any]
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
     if len(prompt.encode()) > config["max_prompt_bytes"]:
         raise AuditError("audit_packet_exceeds_configured_prompt_limit")
     auth = auth_status(binary, config["timeout_seconds"])
@@ -580,20 +654,21 @@ def invoke_claude(
         str(binary), "--print", "--safe-mode", "--restricted", "--tools", "",
         "--disable-slash-commands", "--no-chrome", "--no-session-persistence",
         "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
-        "--permission-mode", "plan", "--permission-prompts", "none",
+        "--permission-mode", "default", "--permission-prompts", "none",
         "--model", config["model"], "--effort", "high",
         "--max-budget-usd", str(config["max_budget_usd"]),
         "--max-turns", str(config["max_turns"]), "--output-format", "json",
-        "--json-schema", json.dumps(schema, separators=(",", ":")), "-p", prompt,
+        "--json-schema", json.dumps(schema, separators=(",", ":")), "-p",
     ]
     try:
         with tempfile.TemporaryDirectory(prefix="vibeos-claude-audit-") as temporary:
             result = subprocess.run(
-                command, cwd=temporary, env=child_environment(), capture_output=True,
+                command, cwd=temporary, env=child_environment(), input=prompt.encode(), capture_output=True,
                 timeout=config["timeout_seconds"], check=False,
             )
-    except subprocess.TimeoutExpired as exc:
-        raise AuditError("claude_audit_timed_out") from exc
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        label = "claude_audit_timed_out" if isinstance(exc, subprocess.TimeoutExpired) else "claude_audit_unavailable"
+        raise AuditError(label) from exc
     if len(result.stdout) > MAX_PROVIDER_BYTES:
         raise AuditError("claude_provider_response_too_large")
     if result.returncode != 0:
@@ -603,15 +678,22 @@ def invoke_claude(
         payload = json.loads(result.stdout)
     except (json.JSONDecodeError, UnicodeDecodeError) as exc:
         raise AuditError("claude_provider_response_not_json") from exc
+    structured, model_usage = provider_output(payload, config["model"], config["provider"])
+    return payload, structured, auth, model_usage
+
+
+def provider_output(
+    payload: Any, requested_model: str, requested_provider: str
+) -> tuple[dict[str, Any], dict[str, Any]]:
     if not isinstance(payload, dict) or payload.get("is_error") is True:
         raise AuditError("claude_provider_error_result")
     usage = payload.get("modelUsage")
-    model_usage = usage.get(config["model"]) if isinstance(usage, dict) else None
+    model_usage = usage.get(requested_model) if isinstance(usage, dict) else None
     if not isinstance(model_usage, dict):
         raise AuditError("claude_model_usage_missing_requested_model")
-    if model_usage.get("canonicalModel") != config["model"]:
+    if model_usage.get("canonicalModel") != requested_model:
         raise AuditError("claude_canonical_model_mismatch")
-    if model_usage.get("provider") != config["provider"]:
+    if model_usage.get("provider") != requested_provider:
         raise AuditError("claude_provider_mismatch")
     structured = payload.get("structured_output")
     if structured is None:
@@ -623,16 +705,20 @@ def invoke_claude(
                 structured = json.loads(raw_result)
             except json.JSONDecodeError as exc:
                 raise AuditError("claude_structured_output_missing") from exc
-    return payload, structured, auth
+    if not isinstance(structured, dict):
+        raise AuditError("claude_structured_output_missing")
+    return structured, model_usage
 
 
 def receipt_closure(mode: str, result: dict[str, Any]) -> dict[str, Any]:
     if mode == "full":
         blocking = [item["id"] for item in result["findings"] if item["severity"] in BLOCKING_SEVERITIES]
+        passed = not blocking and result["verdict"] == "pass"
+        has_findings = bool(result["findings"])
         return {
-            "status": "pass" if not blocking and result["verdict"] == "pass" else "changes_required",
+            "status": "pass" if passed else "changes_required",
             "blocking_finding_ids": blocking,
-            "next_required": "none" if not blocking and result["verdict"] == "pass" else "targeted_verification",
+            "next_required": "none" if passed else ("targeted_verification" if has_findings else "full_audit"),
         }
     open_ids = [item["id"] for item in result["finding_checks"] if item["status"] != "closed"]
     new_blockers = bool(result["new_blockers"])
@@ -652,7 +738,9 @@ def markdown_report(receipt: dict[str, Any]) -> str:
         f"- Requested Model: {receipt['auditor']['requested_model']}",
         f"- Confirmed Model: {receipt['auditor']['observed_model']}",
         f"- Confirmed Provider: {receipt['auditor']['observed_provider']}",
-        "- Auditors dispatched: architecture, correctness, security, test quality, evidence, product drift, system invariants, dependency intelligence, delivery infrastructure", "",
+        "- audit_visibility_mode: committed-tree",
+        f"- Candidate commit: {receipt['binding']['candidate_commit']}",
+        "- Auditor: one Claude companion review covering architecture, correctness, security, test quality, evidence, product drift, system invariants, dependency intelligence, and delivery infrastructure", "",
         "## Verdict", "", result["verdict"].upper(), "",
         "## Auditor Summary", "", result["summary"], "",
     ]
@@ -708,6 +796,8 @@ def update_session_state(project: Path, receipt_path: Path, report_path: Path, r
             "last_audited_at": receipt["created_at"],
             "last_claude_companion_receipt": str(receipt_path.relative_to(project)),
             "last_claude_companion_mode": receipt["mode"],
+            "audit_visibility_mode": "committed-tree",
+            "audit_visibility_ref": receipt["binding"]["candidate_commit"],
         }
     )
     write_atomic(state_path, json.dumps(state, indent=2, sort_keys=True).encode() + b"\n")
@@ -720,6 +810,16 @@ def validate_parent(parent: dict[str, Any], expected_wo: str) -> None:
     if parent.get("work_order") != expected_wo:
         raise AuditError("parent_receipt_work_order_mismatch")
     auditor = parent.get("auditor", {})
+    binding = parent.get("binding")
+    result = parent.get("result")
+    if not isinstance(binding, dict) or not isinstance(result, dict):
+        raise AuditError("parent_receipt_nested_structure_invalid")
+    if not isinstance(binding.get("candidate_commit"), str) or not isinstance(
+        binding.get("review_paths"), list
+    ):
+        raise AuditError("parent_receipt_binding_invalid")
+    if not isinstance(result.get("findings"), list):
+        raise AuditError("parent_receipt_findings_invalid")
     if auditor.get("observed_model") != DEFAULT_MODEL or auditor.get("observed_provider") != DEFAULT_PROVIDER:
         raise AuditError("parent_receipt_auditor_provenance_invalid")
 
@@ -733,9 +833,15 @@ def run_audit(args: argparse.Namespace) -> int:
     work_order_number = re.match(r"^(WO-[0-9]+)", Path(work_order_path).name)
     if not work_order_number or work_order_number.group(1) != scope["work_order"]:
         raise AuditError("work_order_does_not_match_scope_manifest")
+    if bool(args.config) != bool(args.allow_unprofiled_project):
+        raise AuditError("explicit_config_requires_allow_unprofiled_project")
     config, config_rel, config_sha = load_config(project, args.config)
     work_order_raw = git_file(project, candidate, work_order_path)
+    write_scope = parse_work_order_write_scope(work_order_raw)
     contract, contract_sha = file_bindings(project, candidate, scope["acceptance_contract"])
+    contract_materials = [
+        (path, git_file(project, candidate, path)) for path in scope["acceptance_contract"]
+    ]
     evidence = [(path, git_file(project, candidate, path)) for path in scope["evidence_paths"]]
     parent_path: Path | None = None
     parent: dict[str, Any] | None = None
@@ -744,17 +850,41 @@ def run_audit(args: argparse.Namespace) -> int:
         if args.parent_receipt:
             raise AuditError("full_audit_does_not_accept_parent_receipt")
         base = resolve_commit(project, args.base_ref, "base_ref")
+        default_branch_commit = resolve_commit(
+            project, args.default_branch_ref, "default_branch_ref"
+        )
+        merge_base = str(run_git(project, "merge-base", candidate, default_branch_commit)).strip()
+        if base != merge_base:
+            raise AuditError("base_ref_must_equal_default_branch_merge_base")
         all_changed = material_changed_paths(project, base, candidate)
+        outside_write_scope = [
+            path for path in all_changed if not declared_path_matches(path, write_scope)
+        ]
+        if outside_write_scope:
+            raise AuditError(f"changed_paths_outside_work_order_write_scope:{outside_write_scope}")
         allowed = scope["review_paths"] + scope["evidence_paths"] + scope["acceptance_contract"] + [work_order_path, scope_rel, config_rel]
         outside = [path for path in all_changed if not path_matches(path, allowed)]
         if outside:
             raise AuditError(f"full_audit_scope_omits_changed_paths:{outside}")
+        administrative = scope["evidence_paths"] + scope["acceptance_contract"] + [work_order_path, scope_rel, config_rel]
+        unreviewed = [
+            path for path in all_changed
+            if not path_matches(path, scope["review_paths"])
+            and not path_matches(path, administrative)
+        ]
+        if unreviewed:
+            raise AuditError(f"work_order_changes_missing_from_review_scope:{unreviewed}")
         review_snapshot = git_snapshot(project, candidate, scope["review_paths"])
         correction_diff = diff_text(project, base, candidate, scope["review_paths"] + scope["acceptance_contract"])
-        materials = [(work_order_path, work_order_raw), *evidence]
+        materials = [(work_order_path, work_order_raw), *contract_materials, *evidence]
         prompt = packet_for_full(work_order_number.group(1), scope, contract, correction_diff, materials, candidate)
         schema = full_schema()
-        binding_extra: dict[str, Any] = {}
+        binding_extra: dict[str, Any] = {
+            "default_branch_ref": args.default_branch_ref,
+            "default_branch_commit": default_branch_commit,
+            "merge_base": merge_base,
+            "work_order_write_scope": write_scope,
+        }
     else:
         if not args.parent_receipt:
             raise AuditError("verification_requires_parent_receipt")
@@ -774,26 +904,41 @@ def run_audit(args: argparse.Namespace) -> int:
             raise AuditError("acceptance_contract_changed_full_audit_required")
         all_changed = material_changed_paths(project, base, candidate)
         allowed = scope["review_paths"] + scope["evidence_paths"] + [work_order_path, scope_rel, config_rel]
-        outside = [path for path in all_changed if not path_matches(path, allowed)]
+        outside = [
+            path for path in all_changed
+            if not path_matches(path, allowed)
+            and not is_same_work_order_scope_manifest(
+                project, candidate, path, scope_rel, work_order_number.group(1)
+            )
+        ]
         if outside:
             raise AuditError(f"correction_scope_expanded_full_audit_required:{outside}")
         review_snapshot = git_snapshot(project, candidate, parent_roots)
         correction_diff = diff_text(project, base, candidate, scope["review_paths"])
-        materials = evidence
+        materials = [*contract_materials, *evidence]
         prompt = packet_for_verification(work_order_number.group(1), scope, parent, correction_diff, materials, candidate)
         schema = verification_schema(scope["finding_ids"])
         binding_extra = {
             "parent_receipt_path": str(parent_path.relative_to(project)),
             "parent_receipt_sha256": parent_sha,
             "parent_audit_id": parent["audit_id"],
+            "work_order_write_scope": write_scope,
         }
     if not correction_diff.strip():
         raise AuditError("audit_diff_is_empty")
     binary = resolve_claude_binary(args.claude_bin)
-    payload, structured, auth = invoke_claude(binary, config, prompt, schema)
+    payload, structured, auth, model_usage = invoke_claude(binary, config, prompt, schema)
     result = validate_result(args.mode, structured, scope["finding_ids"])
     raw_provider = canonical_json(payload)
-    account = str(auth.get("email", ""))
+    usage_evidence = {
+        key: model_usage[key]
+        for key in (
+            "inputTokens", "outputTokens", "cacheReadInputTokens",
+            "cacheCreationInputTokens", "costUSD", "contextWindow", "maxOutputTokens",
+        )
+        if key in model_usage and isinstance(model_usage[key], (int, float))
+        and not isinstance(model_usage[key], bool)
+    }
     receipt: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "receipt_type": RECEIPT_TYPE,
@@ -820,18 +965,19 @@ def run_audit(args: argparse.Namespace) -> int:
             "prompt_sha256": sha256_bytes(prompt.encode()),
             "config_path": config_rel,
             "config_sha256": config_sha,
+            "unprofiled_project_override": bool(args.allow_unprofiled_project),
             **binding_extra,
         },
         "auditor": {
             "requested_model": config["model"],
-            "observed_model": config["model"],
+            "observed_model": model_usage["canonicalModel"],
             "requested_provider": config["provider"],
-            "observed_provider": config["provider"],
+            "observed_provider": model_usage["provider"],
             "auth_method": auth.get("authMethod"),
-            "account_identifier_sha256": sha256_bytes(account.encode()) if account else None,
             "cli_path": str(binary),
-            "cli_sha256": sha256_bytes(binary.read_bytes()),
+            "cli_entrypoint_sha256": sha256_bytes(binary.read_bytes()),
             "cli_version": claude_version(binary, config["timeout_seconds"]),
+            "provider_usage": usage_evidence,
         },
         "result": result,
         "closure": receipt_closure(args.mode, result),
@@ -874,11 +1020,26 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
         raise AuditError("receipt_model_provenance_invalid")
     if auditor.get("requested_provider") != DEFAULT_PROVIDER or auditor.get("observed_provider") != DEFAULT_PROVIDER:
         raise AuditError("receipt_provider_provenance_invalid")
+    if auditor.get("auth_method") != "claude.ai":
+        raise AuditError("receipt_auth_provenance_invalid")
     artifacts = receipt["artifacts"]
     for path_key, hash_key in (("provider_response_path", "provider_response_sha256"), ("report_path", "report_sha256")):
         artifact = project_path(project, artifacts[path_key], path_key)
         if not artifact.is_file() or sha256_bytes(artifact.read_bytes()) != artifacts[hash_key]:
             raise AuditError(f"receipt_artifact_drift:{artifacts[path_key]}")
+    provider_path = project_path(
+        project, artifacts["provider_response_path"], "provider_response_path"
+    )
+    provider_payload = load_object(provider_path, "provider_response")
+    provider_result, provider_usage = provider_output(
+        provider_payload, auditor["requested_model"], auditor["requested_provider"]
+    )
+    if provider_result != receipt["result"]:
+        raise AuditError("receipt_result_does_not_match_provider_payload")
+    if auditor["observed_model"] != provider_usage.get("canonicalModel"):
+        raise AuditError("receipt_observed_model_does_not_match_provider_payload")
+    if auditor["observed_provider"] != provider_usage.get("provider"):
+        raise AuditError("receipt_observed_provider_does_not_match_provider_payload")
     binding = receipt["binding"]
     scope = project_path(project, binding["scope_manifest_path"], "scope_manifest_path")
     if not scope.is_file() or sha256_bytes(scope.read_bytes()) != binding["scope_manifest_sha256"]:
@@ -903,6 +1064,8 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
             raise AuditError("verification_acceptance_contract_mismatch")
     else:
         raise AuditError("receipt_mode_invalid")
+    if closure != receipt_closure(receipt["mode"], receipt["result"]):
+        raise AuditError("receipt_closure_does_not_match_result")
     if closure.get("status") != "pass" or closure.get("next_required") != "none":
         raise AuditError(f"receipt_not_closed:{closure.get('next_required')}")
     return receipt
@@ -928,8 +1091,11 @@ def parser() -> argparse.ArgumentParser:
         item.add_argument("--scope-manifest", required=True)
         item.add_argument("--candidate-ref", default="HEAD")
         item.add_argument("--base-ref", required=mode == "full")
+        if mode == "full":
+            item.add_argument("--default-branch-ref", default="origin/main")
         item.add_argument("--parent-receipt", required=mode == "verification")
         item.add_argument("--config")
+        item.add_argument("--allow-unprofiled-project", action="store_true")
         item.add_argument("--claude-bin")
         item.add_argument("--out", required=True)
         item.set_defaults(func=run_audit, mode=mode)
@@ -947,6 +1113,12 @@ def main() -> int:
         return int(args.func(args))
     except AuditError as exc:
         print(f"[claude-companion-audit] FAIL: {exc}", file=sys.stderr)
+        return 2
+    except (KeyError, OSError, TypeError, ValueError) as exc:
+        print(
+            f"[claude-companion-audit] FAIL: malformed_input_or_runtime_error:{type(exc).__name__}",
+            file=sys.stderr,
+        )
         return 2
 
 

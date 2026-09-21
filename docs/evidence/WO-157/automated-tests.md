@@ -15,11 +15,11 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q \
   tests/test_canonical_closeout.py
 ```
 
-Result: 52 tests and 24 subtests passed in 24.86 seconds after release metadata
-and governance checks were included.
+Corrected-candidate result: 71 tests and 32 subtests passed in 36.87 seconds after
+the independent-audit findings were covered.
 
-The narrower new-module/profile selection passed 23 tests and 7 subtests after the
-stable acceptance-contract behavior was added.
+The selection now includes the companion CLI, profile installation, release handoff,
+canonical closeout and generated-inventory coverage.
 
 ## Full repository suite
 
@@ -29,7 +29,7 @@ Command:
 PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q tests
 ```
 
-Final post-version-bump result: 362 tests and 70 subtests passed in 174.05 seconds.
+Corrected-candidate result: 378 tests and 78 subtests passed in 219.82 seconds.
 
 The first sandboxed run denied seven pre-existing localhost HTTP fixtures and also
 found one invalid WO model-policy value. The metadata was corrected. The exact suite
@@ -49,8 +49,9 @@ was used only for the repository's in-process loopback fixtures.
 ## Evidence limit
 
 The fake Claude CLI proves exact command flags, schema handling, full-to-targeted
-verification, provider mismatch refusal and drift invalidation. It does not prove a
-provider call. The release remains held until a real first-party Fable receipt exists.
+verification, provider mismatch refusal and drift invalidation. The real first-party
+full audit returned findings against candidate `999f1d5`; release remains held until
+those exact findings pass targeted verification.
 
 The first live invocation stopped before a provider call because the roughly 290 KB
 release packet exceeded its 240 KB project ceiling. The committed audit configuration

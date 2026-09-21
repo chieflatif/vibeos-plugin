@@ -237,7 +237,7 @@ def build_inventory(root: Path, generated_at: str | None = None) -> dict[str, An
         "schema_version": "1.0",
         "framework_version": FRAMEWORK_VERSION,
         "generated_at": generated_at or iso_now(),
-        "project_dir": str(root),
+        "project_dir": ".",
         "git": {
             "current_branch_expected": "main",
             "public_tag_status": "not_selected",

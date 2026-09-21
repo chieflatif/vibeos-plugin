@@ -19,18 +19,25 @@ blocker.
 
 The CLI records the exact base and candidate commits, reviewed paths and byte
 snapshot, acceptance-contract digest, scope-manifest digest, diff digest, evidence
-digests, prompt digest, raw provider-result digest, Claude CLI version and binary
-digest, requested and observed model, requested and observed provider, findings and
-closure state.
+digests, prompt digest, raw provider-result digest, Claude CLI version and entrypoint
+file digest, requested and observed model, requested and observed provider, usage,
+findings and closure state.
 
 The provider call is pinned to `claude-fable-5-1` through the first-party Claude Code
 CLI. It runs in safe, restricted, tool-free mode with no MCP servers, no permission
 prompts, no browser, no session persistence, a maximum budget and a turn ceiling.
-The model receives a frozen packet; it cannot read or change the repository.
+The model receives the frozen packet over standard input, so source is not exposed in
+the process argument list; it cannot read or change the repository.
 
 The work-order close gate fails when the receipt is missing, still has open findings,
 uses the wrong model/provider, or no longer matches the current reviewed bytes and
 acceptance contract.
+
+On Claude Code surfaces, the proof-protection hook also blocks implementation roles
+from editing companion receipts. Codex does not have equivalent write-hook isolation;
+validation therefore cross-checks the receipt result and observed provenance against
+the stored raw provider payload, but this remains integrity evidence rather than a
+hostile same-user security boundary.
 
 ## Enable it for one project
 
@@ -89,6 +96,7 @@ python3 .vibeos/scripts/claude-companion-audit.py full \
   --work-order docs/planning/WO-157-example.md \
   --scope-manifest docs/evidence/WO-157/full-scope.json \
   --base-ref origin/main \
+  --default-branch-ref origin/main \
   --candidate-ref HEAD \
   --out .vibeos/audit-reports/WO-157-full.json
 ```
@@ -114,6 +122,21 @@ bash .vibeos/scripts/validate-independent-audit.sh \
   .vibeos/audit-reports/WO-157-verification.md
 ```
 
+The full-audit base must equal the candidate's merge base with the named default
+branch, and every changed path must be declared by the work order and covered by the
+review or its explicit administrative evidence. This prevents a late, artificially
+narrow base from hiding earlier implementation commits.
+
+Installed projects read authorization and limits from `.vibeos/project-profile.json`.
+The plugin repository's own release audit may instead pass a committed `--config`
+file only together with the explicit `--allow-unprofiled-project` flag; that override
+is recorded in the receipt. It is not the normal project workflow.
+
+Exit code `0` means a closed pass, `3` means valid review output still requires
+correction or verification, and `2` means the audit input, provider result or receipt
+failed validation. Further correction rounds may use new scope-manifest filenames in
+the same work-order evidence directory; they remain targeted to the original findings.
+
 ## Authentication boundary
 
 The process must be able to prove a logged-in first-party Claude account through
@@ -126,3 +149,5 @@ The CLI reference used for this implementation is Anthropic's current Claude Cod
 command-line documentation: <https://code.claude.com/docs/en/cli-usage>. The exact
 model identity is documented at
 <https://platform.claude.com/docs/en/models/fable-5-1/overview>.
+CLI version 2.1.277 or newer is required for the pinned flags. Standard proxy and CA
+environment variables are passed through for authenticated enterprise backends.

@@ -100,7 +100,7 @@ fi
 # ----------------------------------------------------------------
 IS_EVIDENCE_FILE=false
 case "$REL_PATH" in
-  docs/evidence/*|docs/evidence/*)
+  docs/evidence/*|.vibeos/audit-reports/*)
     IS_EVIDENCE_FILE=true
     ;;
 esac
@@ -113,7 +113,7 @@ if [ "$IS_EVIDENCE_FILE" = true ]; then
         TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date +"%Y-%m-%dT%H:%M:%SZ")
         echo "| $TIMESTAMP | proof-protection | BLOCKED: $CURRENT_AGENT attempted to modify evidence bundle $REL_PATH | Evidence protected |" >> "$BUILD_LOG" 2>/dev/null || true
       fi
-      deny "Implementation agent '$CURRENT_AGENT' cannot modify evidence bundles in docs/evidence/. Evidence is write-once audit proof."
+      deny "Implementation agent '$CURRENT_AGENT' cannot modify evidence bundles or companion audit receipts. Evidence is write-once audit proof."
       ;;
   esac
 fi
