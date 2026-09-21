@@ -111,7 +111,9 @@ Keep the acceptance contract stable and limited to the objective, constraints an
 acceptance criteria. The work order is always included in the frozen full-audit packet
 and its reviewed SHA is retained in the receipt, but later status and evidence-checkbox
 updates do not invalidate an otherwise closed audit. Changing the normative acceptance
-contract still requires a new full audit.
+contract still requires a new full audit. If the entire work-order file is also
+listed as an acceptance contract, its whole-file binding remains strict; use a
+stable acceptance-only record when status updates need to remain independent.
 
 The correction manifest keeps the same acceptance contract, narrows `review_paths` to
 the corrected files and lists every active finding from the latest receipt in the
@@ -199,7 +201,9 @@ malformed output or wrong observed Claude identity is not an availability failur
 and cannot be converted into fallback permission. No fallback runs automatically.
 
 On exit `4`, the agent explains the failure and asks the user to retry or authorize
-a fresh independent context of that model. After an explicit instruction, the
+a fresh independent context of that model. Include the configured timeout, turn
+and spend limits in that explanation, especially for timeout or budget exhaustion;
+a low configured limit is not proof of general provider unavailability. After an explicit instruction, the
 agent records the approval and its source reference against the emitted failure's
 exact binding and digest. The helper's approval schema is authoritative; records
 must state `operator_record_not_cryptographically_verified`. Never fabricate user
@@ -214,6 +218,12 @@ a promise that the runtime exposes no tools. The receipt records the requested
 model and fresh thread; observed serving model/provider remain unknown because
 the CLI event stream does not supply them. It is labeled same-provider independent
 context, never a Claude or cross-provider audit. The same close gate validates it.
+
+The fallback expects the normal Codex ChatGPT login available through `HOME` or
+`CODEX_HOME`; it does not copy credentials or forward API-key environment variables.
+Current local qualification inspected Codex CLI0.147.0's actual help for the required
+flags. The transport fails closed on unsupported flags; cross-version qualification
+and a live fallback inference are not established by fake-CLI tests.
 
 Approval changes only the review route. It does not waive tests, material findings,
 the acceptance contract, release checks or external-effect permissions.

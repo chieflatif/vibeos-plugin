@@ -725,6 +725,8 @@ def verification_schema(
 
 
 def finding_is_material(finding: dict[str, Any]) -> bool:
+    if finding.get("_source_policy_version", RECEIPT_SCHEMA_VERSION) < 2:
+        return finding["severity"] in LEGACY_BLOCKING_SEVERITIES
     return (
         finding["severity"] in MATERIAL_SEVERITIES
         or bool(finding.get("acceptance_requirement"))
@@ -736,7 +738,10 @@ def finding_blocks(finding: dict[str, Any], policy_version: int) -> bool:
         return finding["severity"] in LEGACY_BLOCKING_SEVERITIES
     if finding_is_material(finding):
         return True
-    return finding.get("disposition") == "fix"
+    return (
+        finding["severity"] in {"medium", "low"}
+        and finding.get("disposition") == "fix"
+    )
 
 
 def validate_result(
@@ -774,6 +779,10 @@ def validate_result(
             base_keys = set(schema["properties"]["findings"]["items"]["required"])
             if policy_version >= 2 and item.get("severity") in {"medium", "low"}:
                 base_keys.update({"acceptance_requirement", "disposition"})
+            elif policy_version >= 2:
+                base_keys.update(
+                    set(item) & {"acceptance_requirement", "disposition"}
+                )
             ensure_exact_keys(item, base_keys, "finding")
             if not re.fullmatch(r"F-[0-9]{3}", item["id"]):
                 raise AuditError("finding_id_invalid")
@@ -788,6 +797,17 @@ def validate_result(
                     raise AuditError("finding_disposition_invalid")
                 if item["acceptance_requirement"] and item["disposition"] != "fix":
                     raise AuditError("unmet_acceptance_requirement_must_be_fixed")
+            elif policy_version >= 2:
+                if (
+                    "acceptance_requirement" in item
+                    and not isinstance(item["acceptance_requirement"], bool)
+                ):
+                    raise AuditError("finding_acceptance_requirement_invalid")
+                if (
+                    "disposition" in item
+                    and item["disposition"] not in ALL_DISPOSITIONS
+                ):
+                    raise AuditError("finding_disposition_invalid")
             ids.append(item["id"])
         if len(ids) != len(set(ids)):
             raise AuditError("finding_ids_not_unique")
@@ -1123,19 +1143,27 @@ def receipt_closure(
 def markdown_report(receipt: dict[str, Any]) -> str:
     result = receipt["result"]
     fallback = is_fallback_receipt(receipt)
+    routes = receipt["binding"].get("coverage_routes") or [
+        review_route_entry(receipt)
+    ]
+    broad_route = routes[0]["route"]
+    current_route = routes[-1]["route"]
     observed_model = receipt["auditor"]["observed_model"]
     observed_provider = receipt["auditor"]["observed_provider"]
     lines = [
         "# Independent Companion Audit", "",
         f"- Work Order: {receipt['work_order']}",
         f"- Audit Type: {receipt['mode']}",
-        f"- Review Route: {receipt['auditor'].get('route', 'claude_primary')}",
+        f"- Review Route: {current_route}",
+        f"- Broad Review Route: {broad_route}",
         f"- Requested Model: {receipt['auditor']['requested_model']}",
         f"- Observed Model: {observed_model if observed_model else 'not provider-observed'}",
         f"- Observed Provider: {observed_provider if observed_provider else 'not provider-observed'}",
         "- audit_visibility_mode: committed-tree",
         f"- Candidate commit: {receipt['binding']['candidate_commit']}",
         (
+            f"- Auditor: targeted {current_route} verification of findings from the broad {broad_route} review"
+            if receipt["mode"] == "verification" else
             "- Auditor: approved fresh Codex context using the implementing model slug requested on the CLI; model/provider identity was not provider-observed"
             if fallback else
             "- Auditor: one Claude companion review covering architecture, correctness, security, test quality, evidence, product drift, system invariants, dependency intelligence, and delivery infrastructure"
@@ -1143,6 +1171,15 @@ def markdown_report(receipt: dict[str, Any]) -> str:
         "## Verdict", "", result["verdict"].upper(), "",
         "## Auditor Summary", "", result["summary"], "",
     ]
+    if fallback:
+        lines[lines.index("## Verdict"):lines.index("## Verdict")] = [
+            f"- Approval ID: {receipt['auditor']['approval_id']}",
+            f"- Approval recorded at: {receipt['auditor']['approval_recorded_at']}",
+            f"- Recorded approver: {receipt['auditor']['approval_recorded_approver']}",
+            f"- Approval source: {receipt['auditor']['approval_source_ref']}",
+            f"- Approval authenticity: {receipt['auditor']['approval_authenticity']}",
+            "",
+        ]
     if receipt["mode"] == "full":
         lines.extend(["## Findings", ""])
         if not result["findings"]:
@@ -1205,6 +1242,38 @@ def update_session_state(project: Path, receipt_path: Path, report_path: Path, r
 def is_fallback_receipt(receipt: dict[str, Any]) -> bool:
     auditor = receipt.get("auditor")
     return isinstance(auditor, dict) and auditor.get("route") == FALLBACK_ROUTE
+
+
+def review_route_entry(receipt: dict[str, Any]) -> dict[str, str]:
+    return {
+        "audit_id": receipt["audit_id"],
+        "mode": receipt["mode"],
+        "route": FALLBACK_ROUTE if is_fallback_receipt(receipt) else "claude_primary",
+    }
+
+
+def validated_coverage_routes(
+    project: Path, receipt: dict[str, Any]
+) -> list[dict[str, str]]:
+    """Derive the route chain from hash-bound parents and check any stored summary."""
+    current = review_route_entry(receipt)
+    if receipt["mode"] == "full":
+        expected = [current]
+    else:
+        binding = receipt["binding"]
+        parent_path = project_path(
+            project, binding.get("parent_receipt_path"), "parent_receipt_path"
+        )
+        parent_raw = parent_path.read_bytes()
+        if sha256_bytes(parent_raw) != binding.get("parent_receipt_sha256"):
+            raise AuditError("parent_receipt_drift")
+        parent = load_object(parent_path, "parent_receipt")
+        validate_parent(parent, receipt["work_order"])
+        expected = [*validated_coverage_routes(project, parent), current]
+    stored = receipt["binding"].get("coverage_routes")
+    if stored is not None and stored != expected:
+        raise AuditError("receipt_coverage_routes_invalid")
+    return expected
 
 
 def fallback_binding(
@@ -1355,7 +1424,10 @@ def active_findings(
         )
         findings = receipt["result"]["findings"]
         if policy_version < 2:
-            return {item["id"]: item for item in findings}
+            return {
+                item["id"]: {**item, "_source_policy_version": policy_version}
+                for item in findings
+            }
         return {
             item["id"]: item for item in findings
             if finding_blocks(item, policy_version)
@@ -1621,7 +1693,8 @@ def validate_prepared_result(
 
 
 def receipt_binding(
-    inputs: AuditInputs, prepared: PreparedAudit, unprofiled_override: bool
+    inputs: AuditInputs, prepared: PreparedAudit, unprofiled_override: bool,
+    audit_id: str, route: str,
 ) -> dict[str, Any]:
     parent_evidence = (
         prepared.parent["binding"].get("evidence", [])
@@ -1636,6 +1709,15 @@ def receipt_binding(
         prepared.parent["binding"]["review_paths"]
         if prepared.parent else inputs.scope["review_paths"]
     )
+    coverage_routes = (
+        validated_coverage_routes(inputs.project, prepared.parent)
+        if prepared.parent else []
+    )
+    coverage_routes.append({
+        "audit_id": audit_id,
+        "mode": inputs.mode,
+        "route": route,
+    })
     return {
         "base_commit": prepared.base,
         "candidate_commit": inputs.candidate,
@@ -1657,6 +1739,7 @@ def receipt_binding(
         "config_path": inputs.config_rel,
         "config_sha256": inputs.config_sha,
         "unprofiled_project_override": unprofiled_override,
+        "coverage_routes": coverage_routes,
         **prepared.binding_extra,
     }
 
@@ -1676,15 +1759,18 @@ def build_receipt(
         and isinstance(provider.model_usage[key], (int, float))
         and not isinstance(provider.model_usage[key], bool)
     }
+    audit_id = f"claude-audit-{uuid.uuid4()}"
     return {
         "schema_version": RECEIPT_SCHEMA_VERSION,
         "receipt_type": RECEIPT_TYPE,
         "framework_version": FRAMEWORK_VERSION,
-        "audit_id": f"claude-audit-{uuid.uuid4()}",
+        "audit_id": audit_id,
         "mode": inputs.mode,
         "work_order": inputs.work_order,
         "created_at": utc_now(),
-        "binding": receipt_binding(inputs, prepared, unprofiled_override),
+        "binding": receipt_binding(
+            inputs, prepared, unprofiled_override, audit_id, "claude_primary"
+        ),
         "auditor": {
             "requested_model": inputs.config["model"],
             "observed_model": provider.model_usage["canonicalModel"],
@@ -1713,15 +1799,19 @@ def build_fallback_receipt(
     result: dict[str, Any], implementer_model: str, unprofiled_override: bool,
 ) -> dict[str, Any]:
     transport = bundle["transport"]
+    approval = bundle["authorization"]["approval"]
+    audit_id = f"codex-fallback-audit-{uuid.uuid4()}"
     return {
         "schema_version": RECEIPT_SCHEMA_VERSION,
         "receipt_type": FALLBACK_RECEIPT_TYPE,
         "framework_version": FRAMEWORK_VERSION,
-        "audit_id": f"codex-fallback-audit-{uuid.uuid4()}",
+        "audit_id": audit_id,
         "mode": inputs.mode,
         "work_order": inputs.work_order,
         "created_at": utc_now(),
-        "binding": receipt_binding(inputs, prepared, unprofiled_override),
+        "binding": receipt_binding(
+            inputs, prepared, unprofiled_override, audit_id, FALLBACK_ROUTE
+        ),
         "auditor": {
             "route": FALLBACK_ROUTE,
             "requested_model": implementer_model,
@@ -1742,7 +1832,11 @@ def build_fallback_receipt(
                 "thread_id": transport["thread_id"],
             },
             "tool_isolation": transport["tool_isolation"],
-            "approval_authenticity": bundle["authorization"]["approval"]["authenticity"],
+            "approval_id": approval["approval_id"],
+            "approval_recorded_at": approval["recorded_at"],
+            "approval_recorded_approver": approval["recorded_approver"],
+            "approval_source_ref": approval["source_ref"],
+            "approval_authenticity": approval["authenticity"],
         },
         "result": result,
         "closure": receipt_closure(
@@ -2154,8 +2248,6 @@ def validate_bound_materials(
         "work_order_write_scope"
     ):
         raise AuditError("work_order_write_scope_drift_after_audit")
-    if sha256_bytes(work_order_path.read_bytes()) != binding.get("work_order_sha256"):
-        raise AuditError("work_order_drift_after_audit")
     validate_tested_implementation_binding(project, binding, work_order)
 
 
@@ -2166,9 +2258,30 @@ def validate_post_audit_scope(
     if not is_ancestor(project, candidate_commit, head_commit):
         raise AuditError("current_head_does_not_descend_from_audited_candidate")
     if receipt["schema_version"] >= 2:
-        # Unrelated commits and working files may proceed. The candidate/tree
-        # hash, bound inputs, evidence, and full reviewed-root snapshot are
-        # validated separately and still fail closed on reviewed-byte drift.
+        binding = receipt["binding"]
+        administrative = [
+            *[row["path"] for row in binding.get("evidence", [])],
+            *[row["path"] for row in binding["acceptance_contract"]],
+            binding["work_order_path"], binding["scope_manifest_path"],
+            binding["config_path"],
+        ]
+        post_audit = material_changed_paths(
+            project, candidate_commit, head_commit
+        )
+        related_unreviewed = [
+            path for path in post_audit
+            if declared_path_matches(path, binding["work_order_write_scope"])
+            and not path_matches(path, binding["review_paths"] + administrative)
+            and not is_same_work_order_scope_manifest(
+                project, head_commit, path, binding["scope_manifest_path"],
+                receipt["work_order"],
+            )
+        ]
+        if related_unreviewed:
+            raise AuditError(
+                "post_audit_changes_inside_work_order_scope:"
+                f"{related_unreviewed}"
+            )
         return
     assert_legacy_clean(project)
     binding = receipt["binding"]
@@ -2198,6 +2311,7 @@ def validate_receipt_mode(project: Path, receipt: dict[str, Any]) -> None:
     binding = receipt["binding"]
     closure = receipt["closure"]
     policy_version = receipt["schema_version"]
+    validated_coverage_routes(project, receipt)
     if receipt["mode"] == "full":
         validate_result(
             "full", receipt["result"], [], policy_version=policy_version

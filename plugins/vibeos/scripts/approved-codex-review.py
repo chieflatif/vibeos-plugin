@@ -94,10 +94,10 @@ def validate_approval(
         raise ReviewError("approval_identity_invalid")
     if stored_approval["decision"] != "approve_same_model_fallback":
         raise ReviewError("approval_decision_invalid")
-    if stored_approval["recorded_approver"] != "Latif" or stored_approval["authenticity"] != APPROVAL_AUTHENTICITY:
+    if stored_approval["authenticity"] != APPROVAL_AUTHENTICITY:
         raise ReviewError("approval_record_invalid")
-    for key in ("approval_id", "recorded_at", "source_ref"):
-        if not isinstance(stored_approval[key], str) or not stored_approval[key]:
+    for key in ("approval_id", "recorded_at", "recorded_approver", "source_ref"):
+        if not isinstance(stored_approval[key], str) or not stored_approval[key].strip():
             raise ReviewError(f"approval_{key}_invalid")
     if _validate_binding(stored_approval["binding"]) != expected:
         raise ReviewError("approval_binding_mismatch")

@@ -32,6 +32,19 @@ class CompanionFallbackIntegrationTests(unittest.TestCase):
             *(extra or []),
         ]
 
+    def verification_command(self, project: Path, *, extra=None):
+        return [
+            "python3", str(SCRIPT), "verification", "--project-dir", str(project),
+            "--work-order", "docs/planning/WO-157-fixture.md",
+            "--scope-manifest", "docs/evidence/WO-157/verify-scope.json",
+            "--candidate-ref", "HEAD",
+            "--parent-receipt", ".vibeos/audit-reports/WO-157-full.json",
+            "--config", "docs/evidence/WO-157/claude-config.json",
+            "--allow-unprofiled-project",
+            "--out", ".vibeos/audit-reports/WO-157-verification.json",
+            *(extra or []),
+        ]
+
     def fake_codex(self, directory: Path, result: dict):
         binary = directory / "fake-codex"
         args_path = directory / "fake-codex-args.json"
@@ -65,7 +78,7 @@ for event in events:
             "receipt_type": "vibeos.approved-same-model-codex-review",
             "approval_id": "approval-fixture",
             "recorded_at": "2026-09-20T21:00:00Z",
-            "recorded_approver": "Latif",
+            "recorded_approver": "Fixture Operator",
             "source_ref": "test-fixture:explicit-approval",
             "authenticity": "operator_record_not_cryptographically_verified",
             "decision": "approve_same_model_fallback",
@@ -130,6 +143,14 @@ for event in events:
             self.assertEqual(receipt["auditor"]["requested_model"], "gpt-5.6-sol")
             self.assertIsNone(receipt["auditor"]["observed_model"])
             self.assertIsNone(receipt["auditor"]["observed_provider"])
+            self.assertEqual(
+                receipt["auditor"]["approval_recorded_approver"],
+                "Fixture Operator",
+            )
+            self.assertEqual(
+                receipt["auditor"]["approval_source_ref"],
+                "test-fixture:explicit-approval",
+            )
             args = json.loads(args_path.read_text())
             self.assertIn("--ephemeral", args)
             self.assertNotIn("resume", args)
@@ -169,6 +190,117 @@ for event in events:
             claude = helper.fake_claude(project, helper.verification_result())
             verified = helper.invoke_verification(project, claude)
             self.assertEqual(verified.returncode, 0, verified.stdout + verified.stderr)
+            receipt = json.loads(
+                (project / ".vibeos/audit-reports/WO-157-verification.json").read_text()
+            )
+            self.assertEqual(
+                [entry["route"] for entry in receipt["binding"]["coverage_routes"]],
+                ["approved_same_model_codex_fallback", "claude_primary"],
+            )
+            report = (
+                project / ".vibeos/audit-reports/WO-157-verification.md"
+            ).read_text()
+            self.assertIn(
+                "Broad Review Route: approved_same_model_codex_fallback", report
+            )
+
+    def test_nonoperational_claude_failures_never_create_fallback_permission(self):
+        helper = self.fixtures()
+        cases = (
+            (
+                "wrong-model",
+                {"canonical_model": "claude-unrequested"},
+                "claude_canonical_model_mismatch",
+            ),
+            (
+                "malformed-result",
+                {"structured": "not-an-object"},
+                "claude_structured_output_missing",
+            ),
+        )
+        for name, options, expected in cases:
+            with self.subTest(name=name), tempfile.TemporaryDirectory() as temporary:
+                project, _base, _candidate = helper.fixture(Path(temporary))
+                structured = options.pop("structured", helper.full_result())
+                claude = helper.fake_claude(project, structured, **options)
+                completed = run(
+                    self.command(
+                        project,
+                        extra=[
+                            "--claude-bin", str(claude),
+                            "--implementer-model", "gpt-5.6-sol",
+                        ],
+                    ),
+                    project,
+                )
+                self.assertEqual(completed.returncode, 2)
+                self.assertIn(expected, completed.stderr)
+                self.assertFalse(list(
+                    (project / ".vibeos/audit-reports").glob("*.claude-failure.json")
+                ))
+
+    def test_claude_full_can_parent_approved_fallback_verification(self):
+        helper = self.fixtures()
+        with tempfile.TemporaryDirectory() as temporary:
+            project, _base, _candidate = helper.fixture(Path(temporary))
+            claude = helper.fake_claude(project, helper.full_result())
+            full = run(
+                self.command(project, extra=["--claude-bin", str(claude)]), project
+            )
+            self.assertEqual(full.returncode, 3, full.stdout + full.stderr)
+            full_path = project / ".vibeos/audit-reports/WO-157-full.json"
+            legacy_parent = json.loads(full_path.read_text())
+            legacy_parent["binding"].pop("coverage_routes")
+            write_json(full_path, legacy_parent)
+            helper.apply_fix(project)
+            unavailable = helper.fake_claude(
+                project, helper.verification_result(), authenticated=False
+            )
+            failed = run(
+                self.verification_command(
+                    project,
+                    extra=[
+                        "--claude-bin", str(unavailable),
+                        "--implementer-model", "gpt-5.6-sol",
+                    ],
+                ),
+                project,
+            )
+            self.assertEqual(failed.returncode, 4, failed.stdout + failed.stderr)
+            failure_path = project / json.loads(failed.stdout)["claude_failure"]
+            failure = json.loads(failure_path.read_text())
+            approval_path = project / ".vibeos/audit-reports/approval.json"
+            write_json(approval_path, self.approval(failure))
+            codex, _args_path = self.fake_codex(
+                Path(temporary), helper.verification_result()
+            )
+            verified = run(
+                self.verification_command(
+                    project,
+                    extra=[
+                        "--implementer-model", "gpt-5.6-sol",
+                        "--approved-fallback", str(approval_path.relative_to(project)),
+                        "--claude-failure", str(failure_path.relative_to(project)),
+                        "--codex-bin", str(codex),
+                    ],
+                ),
+                project,
+            )
+            self.assertEqual(verified.returncode, 0, verified.stdout + verified.stderr)
+            receipt = json.loads(
+                (project / ".vibeos/audit-reports/WO-157-verification.json").read_text()
+            )
+            self.assertEqual(
+                [entry["route"] for entry in receipt["binding"]["coverage_routes"]],
+                ["claude_primary", "approved_same_model_codex_fallback"],
+            )
+            report = (
+                project / ".vibeos/audit-reports/WO-157-verification.md"
+            ).read_text()
+            self.assertIn("Broad Review Route: claude_primary", report)
+            self.assertIn(
+                "Review Route: approved_same_model_codex_fallback", report
+            )
 
     def test_tampered_approval_is_rejected_before_codex(self):
         helper = self.fixtures()

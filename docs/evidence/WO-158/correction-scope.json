@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "work_order": "WO-158",
+  "acceptance_contract": ["docs/evidence/WO-158/acceptance-contract.md"],
+  "review_paths": [
+    "docs/CLAUDE-COMPANION-AUDIT.md",
+    "plugins/vibeos/reference/governance/AGENT-WORKFLOW.md.ref",
+    "plugins/vibeos/scripts/approved-codex-review.py",
+    "plugins/vibeos/scripts/claude-companion-audit.py",
+    "plugins/vibeos/scripts/profile_install.py",
+    "tests/test_approved_codex_review.py",
+    "tests/test_claude_companion_audit.py",
+    "tests/test_companion_fallback_integration.py",
+    "tests/test_companion_simplification.py"
+  ],
+  "evidence_paths": [
+    "docs/evidence/WO-158/automated-tests.md",
+    "docs/evidence/WO-158/audit-corrections.md",
+    "docs/evidence/WO-158/correction-tests.md"
+  ],
+  "finding_ids": ["F-001", "F-002", "F-003", "F-004", "F-005", "F-006", "F-007"]
+}

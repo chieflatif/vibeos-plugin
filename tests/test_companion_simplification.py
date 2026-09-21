@@ -73,6 +73,66 @@ class CompanionSimplificationTests(unittest.TestCase):
             ["F-001"],
         )
 
+    def test_v1_medium_cannot_be_deferred_in_v2_verification(self):
+        legacy = self.medium_finding()
+        legacy.pop("acceptance_requirement")
+        legacy.pop("disposition")
+        parent = {
+            "schema_version": 1,
+            "mode": "full",
+            "result": {
+                "verdict": "changes_required",
+                "summary": "Legacy medium remains blocking.",
+                "findings": [legacy],
+                "coverage": [],
+                "limitations": [],
+            },
+        }
+        context = CORE.active_findings(Path("."), parent)
+        verification = {
+            "verdict": "pass",
+            "summary": "Attempted legacy deferral.",
+            "finding_checks": [
+                {
+                    "id": "F-001",
+                    "status": "deferred",
+                    "evidence": "No code change supplied.",
+                    "note": "Would defer under v2-only semantics.",
+                }
+            ],
+            "new_blockers": [],
+            "coverage": ["F-001"],
+            "limitations": [],
+        }
+        with self.assertRaisesRegex(CORE.AuditError, "material_finding_must_close"):
+            CORE.validate_result(
+                "verification",
+                verification,
+                ["F-001"],
+                finding_context=context,
+            )
+
+    def test_high_finding_accepts_optional_v2_schema_fields(self):
+        result = {
+            "verdict": "changes_required",
+            "summary": "High finding remains blocking.",
+            "findings": [
+                {
+                    "id": "F-001",
+                    "severity": "high",
+                    "title": "Material issue",
+                    "location": "src/app.py:2",
+                    "evidence": "The material issue is present.",
+                    "recommendation": "Correct it.",
+                    "acceptance_requirement": True,
+                    "disposition": "fix",
+                }
+            ],
+            "coverage": ["implementation"],
+            "limitations": [],
+        }
+        self.assertEqual(CORE.validate_result("full", result, []), result)
+
     def test_nonmaterial_verification_can_disposition_but_material_must_close(self):
         context = {"F-001": self.medium_finding(disposition="fix")}
         verification = {
@@ -219,6 +279,87 @@ class CompanionSimplificationTests(unittest.TestCase):
             )
             self.assertEqual(invalid.returncode, 2)
             self.assertIn("audited_review_scope_drift_after_audit", invalid.stderr)
+
+    def test_status_only_work_order_change_passes_but_write_scope_change_fails(self):
+        helper = self.helper()
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = helper.fixture(Path(temporary))
+            clean = {**helper.full_result(), "verdict": "pass", "findings": []}
+            fake = helper.fake_claude(project, clean)
+            self.assertEqual(helper.invoke_full(project, base, fake).returncode, 0)
+            receipt = ".vibeos/audit-reports/WO-157-full.json"
+
+            work_order = project / "docs/planning/WO-157-fixture.md"
+            work_order.write_text(
+                work_order.read_text().replace(
+                    "wo: WO-157\n", "wo: WO-157\nstatus: Complete\n"
+                )
+            )
+            helper.commit(project, "mark work order complete")
+            status_only = run(
+                [
+                    "python3", str(SCRIPT), "validate", "--project-dir", str(project),
+                    "--receipt", receipt,
+                ],
+                project,
+            )
+            self.assertEqual(
+                status_only.returncode, 0, status_only.stdout + status_only.stderr
+            )
+
+            work_order.write_text(
+                work_order.read_text().replace(
+                    "  - tests/**\n", "  - tests/**\n  - README.md\n"
+                )
+            )
+            helper.commit(project, "expand work order scope")
+            scope_change = run(
+                [
+                    "python3", str(SCRIPT), "validate", "--project-dir", str(project),
+                    "--receipt", receipt,
+                ],
+                project,
+            )
+            self.assertEqual(scope_change.returncode, 2)
+            self.assertIn(
+                "work_order_write_scope_drift_after_audit", scope_change.stderr
+            )
+
+    def test_related_post_audit_file_fails_while_unrelated_file_passes(self):
+        helper = self.helper()
+        with tempfile.TemporaryDirectory() as temporary:
+            project, base, _candidate = helper.fixture(Path(temporary))
+            clean = {**helper.full_result(), "verdict": "pass", "findings": []}
+            fake = helper.fake_claude(project, clean)
+            self.assertEqual(helper.invoke_full(project, base, fake).returncode, 0)
+            receipt = ".vibeos/audit-reports/WO-157-full.json"
+
+            (project / "notes.md").write_text("unrelated follow-up\n")
+            helper.commit(project, "add unrelated notes")
+            unrelated = run(
+                [
+                    "python3", str(SCRIPT), "validate", "--project-dir", str(project),
+                    "--receipt", receipt,
+                ],
+                project,
+            )
+            self.assertEqual(
+                unrelated.returncode, 0, unrelated.stdout + unrelated.stderr
+            )
+
+            (project / "src/new_related.py").write_text("value = 1\n")
+            helper.commit(project, "add related unreviewed source")
+            related = run(
+                [
+                    "python3", str(SCRIPT), "validate", "--project-dir", str(project),
+                    "--receipt", receipt,
+                ],
+                project,
+            )
+            self.assertEqual(related.returncode, 2)
+            self.assertIn(
+                "post_audit_changes_inside_work_order_scope", related.stderr
+            )
 
     def test_v1_receipt_validation_remains_strict_about_config_bytes(self):
         helper = self.helper()

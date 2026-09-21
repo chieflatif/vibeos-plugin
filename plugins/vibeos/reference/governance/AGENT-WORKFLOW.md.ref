@@ -84,6 +84,8 @@ Every WO should record:
 ## Anti-Patterns
 
 - The implementing conversation approves its own work
+- The same identity authors and audits the same unit, except the explicitly
+  user-authorized fresh-context fallback labeled as same-provider review
 - A subagent from the same identity is treated as cross-identity review
 - A handoff result is silently edited instead of re-audited
 - The team keeps retrying the same failing author/auditor pairing without flipping roles

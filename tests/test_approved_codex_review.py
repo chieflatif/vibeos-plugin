@@ -195,6 +195,22 @@ else:
                 )
             self.assertFalse(args_path.exists())
 
+    def test_recorded_operator_identity_is_portable_but_must_be_nonempty(self):
+        binding = self.binding()
+        approval, failure = self.records(binding)
+        approval["recorded_approver"] = "Project Operator"
+        authorization = approved_codex_review.validate_approval(
+            approval, failure, binding
+        )
+        self.assertEqual(
+            authorization["approval"]["recorded_approver"], "Project Operator"
+        )
+        approval["recorded_approver"] = "  "
+        with self.assertRaisesRegex(
+            approved_codex_review.ReviewError, "approval_recorded_approver_invalid"
+        ):
+            approved_codex_review.validate_approval(approval, failure, binding)
+
     def test_malformed_duplicate_or_tool_lifecycle_is_rejected(self):
         binding = self.binding()
         approval, failure = self.records(binding)

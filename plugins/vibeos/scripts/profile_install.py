@@ -967,7 +967,7 @@ def render_claude_companion_audit_skill(
         + "`claude-companion-audit`. It is the cross-identity review lane for "
         + "Codex-authored material work; deterministic gates remain separate.\n\n"
         + "## Required sequence\n\n"
-        + "1. The agent freezes the tested candidate in Git and prepares the scope manifest from the existing change record. Use its acceptance section directly as the contract when sufficient; do not ask the user to create duplicate paperwork. Include exact review and evidence paths and an empty `finding_ids` list.\n"
+        + "1. The agent freezes the tested candidate in Git and prepares the scope manifest from the existing change record. Reuse a stable acceptance document, or extract only its acceptance section into a frozen record so status updates remain independent; do not ask the user to create paperwork. Include exact review and evidence paths and an empty `finding_ids` list.\n"
         + "2. Run `python3 .vibeos/scripts/claude-companion-audit.py full ... --implementer-model <actual-implementing-model-slug>` once. Preserve its JSON receipt and Markdown report.\n"
         + "3. Fix material findings and record explicit dispositions for minor advice. Prepare a correction manifest for unresolved findings and correction paths/evidence. Preserve the acceptance contract and all finding history.\n"
         + "4. Run `python3 .vibeos/scripts/claude-companion-audit.py verification ... --parent-receipt <latest receipt>`. Do not run another broad audit merely because corrections were made.\n"

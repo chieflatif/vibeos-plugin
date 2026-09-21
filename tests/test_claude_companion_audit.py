@@ -1427,7 +1427,7 @@ else:
             self.assertIn("receipt_nested_objects_invalid", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
 
-    def test_post_audit_commit_outside_review_roots_does_not_invalidate_receipt(self):
+    def test_post_audit_new_file_inside_write_scope_requires_review(self):
         with tempfile.TemporaryDirectory() as temporary:
             project, base, _candidate = self.fixture(Path(temporary))
             fake = self.fake_claude(project, self.full_result())
@@ -1444,7 +1444,10 @@ else:
                 ],
                 project,
             )
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(
+                "post_audit_changes_inside_work_order_scope", result.stderr
+            )
 
 
 if __name__ == "__main__":
