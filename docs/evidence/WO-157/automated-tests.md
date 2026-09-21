@@ -1,10 +1,13 @@
 # WO-157 automated verification
 
-Date: 2026-09-20 (America/Los_Angeles)
+- Evidence recorded: 2026-09-21T01:26:31Z
+- Tested implementation commit: `ebcbf4c5ce57aabed5540f2fc6b3a067fb4ccfe0`
+- Tested tree: `091995bd5818fa927c3eea9dba4ea84d2838c9bc`
 
-## Focused audit and installer path
+The later evidence-only commit may add this record, the targeted scope manifest and
+release-gate wording; it does not alter executable implementation bytes.
 
-Command:
+## Focused release slice
 
 ```text
 PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q \
@@ -15,46 +18,37 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q \
   tests/test_canonical_closeout.py
 ```
 
-Final corrected-candidate result: 73 tests and 32 subtests passed in 42.55 seconds
-after the remaining default-branch-authority finding and legacy-receipt upgrade were
-covered.
+Result: **77 tests and 32 subtests passed in 43.44 seconds**.
 
-The selection now includes the companion CLI, profile installation, release handoff,
-canonical closeout and generated-inventory coverage.
+This covers the companion CLI, provider/receipt refusal paths, full-to-targeted
+verification, profile installation, release handoff, canonical closeout, enabled and
+disabled close-gate behavior, large files, Unicode paths, and post-audit drift.
 
 ## Full repository suite
-
-Command:
 
 ```text
 PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q tests
 ```
 
-Final corrected-candidate result: 380 tests and 78 subtests passed in 206.19 seconds.
+Result: **387 tests and 78 subtests passed in 223.46 seconds**.
 
-The first sandboxed run denied seven pre-existing localhost HTTP fixtures and also
-found one invalid WO model-policy value. The metadata was corrected. The exact suite
-was then rerun with localhost test-server permission and passed. The network permission
-was used only for the repository's in-process loopback fixtures.
+The run used permission only for the repository's in-process loopback HTTP fixtures;
+no product service was contacted.
 
 ## Static and governance checks
 
-- `ruff check` passed for the new audit CLI, profile installer and relevant tests.
-- `bash -n plugins/vibeos/scripts/validate-independent-audit.sh` passed.
-- `wo-frontmatter-lint.py lint` and `validate-index` passed after the WO contract was
-  corrected.
-- JSON parsing and `git diff --check` passed.
-- The pre-commit quality-gate run passed 9 blocking gates with 0 failures; one
-  dependency gate was skipped under its existing non-blocking policy.
+- Ruff passed for the audit CLI, profile installer, and relevant tests.
+- Bash syntax validation passed for `validate-independent-audit.sh`.
+- WO frontmatter lint and generated-index validation passed.
+- All repository JSON parsed successfully.
+- Generated inventory matched source after excluding its volatile `generated_at` field.
+- `git diff --check` passed.
+- The configured pre-commit phase passed 9 gates, failed 0, and skipped the existing
+  non-blocking dependency gate (10 total). Its embedded test gate passed in 105 seconds.
 
-## Evidence limit
+## Live review boundary
 
-The fake Claude CLI proves exact command flags, schema handling, full-to-targeted
-verification, provider mismatch refusal and drift invalidation. The real first-party
-full audit returned findings against candidate `999f1d5`; release remains held until
-those exact findings pass targeted verification.
-
-The first live invocation stopped before a provider call because the roughly 290 KB
-release packet exceeded its 240 KB project ceiling. The committed audit configuration
-raises that one ceiling to 320 KB, within the CLI's enforced 500 KB maximum; model,
-provider, spend, turn and time limits are unchanged.
+The first-party Fable full audit `claude-audit-892a4340-f578-4cd2-863a-ef7fb410ca31`
+reviewed candidate `54c0080fdbd557ab31d0b7e71ed8b0aa6bba357b` and returned 17 named findings.
+The implementation commit above resolves those findings. A targeted provider check of
+those exact finding IDs is required before release; the earlier full audit is not rerun.
