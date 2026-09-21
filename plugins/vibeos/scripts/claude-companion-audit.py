@@ -205,6 +205,27 @@ def resolve_commit(project: Path, ref: str, label: str) -> str:
     return value
 
 
+def merge_base(project: Path, left: str, right: str) -> str:
+    result = subprocess.run(
+        ["git", "merge-base", left, right], cwd=project, capture_output=True, text=True,
+        check=False,
+    )
+    value = result.stdout.strip()
+    if result.returncode != 0 or not re.fullmatch(r"[0-9a-f]{40}", value):
+        raise AuditError("default_branch_merge_base_unavailable")
+    return value
+
+
+def is_ancestor(project: Path, ancestor: str, descendant: str) -> bool:
+    result = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+        cwd=project, capture_output=True, check=False,
+    )
+    if result.returncode not in {0, 1}:
+        raise AuditError("default_branch_ancestry_check_failed")
+    return result.returncode == 0
+
+
 def assert_clean(project: Path) -> None:
     status = str(run_git(project, "status", "--porcelain=v1", "--untracked-files=all"))
     dirty = []
@@ -860,8 +881,8 @@ def run_audit(args: argparse.Namespace) -> int:
         base = resolve_commit(project, args.base_ref, "base_ref")
         default_branch_ref = config["default_branch_ref"]
         default_branch_commit = resolve_commit(project, default_branch_ref, "default_branch_ref")
-        merge_base = str(run_git(project, "merge-base", candidate, default_branch_commit)).strip()
-        if base != merge_base:
+        audited_merge_base = merge_base(project, candidate, default_branch_commit)
+        if base != audited_merge_base:
             raise AuditError("base_ref_must_equal_default_branch_merge_base")
         all_changed = material_changed_paths(project, base, candidate)
         outside_write_scope = [
@@ -889,7 +910,7 @@ def run_audit(args: argparse.Namespace) -> int:
         binding_extra: dict[str, Any] = {
             "default_branch_ref": default_branch_ref,
             "default_branch_commit": default_branch_commit,
-            "merge_base": merge_base,
+            "merge_base": audited_merge_base,
             "audited_base_commit": base,
             "work_order_write_scope": write_scope,
         }
@@ -934,17 +955,11 @@ def run_audit(args: argparse.Namespace) -> int:
         default_branch_commit = resolve_commit(
             project, default_branch_ref, "default_branch_ref"
         )
-        recorded_default_commit = parent["binding"].get("default_branch_commit")
-        if recorded_default_commit and recorded_default_commit != default_branch_commit:
-            raise AuditError("parent_receipt_default_branch_commit_drift")
-        merge_base = str(run_git(project, "merge-base", candidate, default_branch_commit)).strip()
+        current_merge_base = merge_base(project, candidate, default_branch_commit)
         audited_base_commit = parent["binding"].get(
             "audited_base_commit", parent["binding"]["base_commit"]
         )
-        recorded_merge_base = parent["binding"].get("merge_base")
-        if merge_base != audited_base_commit or (
-            recorded_merge_base and recorded_merge_base != merge_base
-        ):
+        if not is_ancestor(project, audited_base_commit, current_merge_base):
             raise AuditError("parent_receipt_merge_base_mismatch")
         binding_extra = {
             "parent_receipt_path": str(parent_path.relative_to(project)),
@@ -953,7 +968,7 @@ def run_audit(args: argparse.Namespace) -> int:
             "work_order_write_scope": write_scope,
             "default_branch_ref": default_branch_ref,
             "default_branch_commit": default_branch_commit,
-            "merge_base": merge_base,
+            "merge_base": current_merge_base,
             "audited_base_commit": audited_base_commit,
         }
     if not correction_diff.strip():
@@ -1086,15 +1101,21 @@ def validate_receipt(project: Path, receipt_path: Path, expected_wo: str | None)
     default_branch_commit = resolve_commit(
         project, current_config["default_branch_ref"], "default_branch_ref"
     )
-    if default_branch_commit != binding.get("default_branch_commit"):
-        raise AuditError("default_branch_commit_drift_after_audit")
     candidate_commit = resolve_commit(project, binding["candidate_commit"], "candidate_commit")
-    merge_base = str(run_git(project, "merge-base", candidate_commit, default_branch_commit)).strip()
-    if (
-        merge_base != binding.get("merge_base")
-        or merge_base != binding.get("audited_base_commit")
-    ):
+    recorded_default_commit = resolve_commit(
+        project, binding["default_branch_commit"], "recorded_default_branch_commit"
+    )
+    recorded_merge_base = merge_base(project, candidate_commit, recorded_default_commit)
+    if recorded_merge_base != binding.get("merge_base"):
         raise AuditError("receipt_merge_base_mismatch")
+    audited_base_commit = resolve_commit(
+        project, binding["audited_base_commit"], "audited_base_commit"
+    )
+    if not is_ancestor(project, audited_base_commit, recorded_merge_base):
+        raise AuditError("receipt_recorded_default_branch_lost_audited_base")
+    current_merge_base = merge_base(project, candidate_commit, default_branch_commit)
+    if not is_ancestor(project, audited_base_commit, current_merge_base):
+        raise AuditError("receipt_current_default_branch_lost_audited_base")
     scope = project_path(project, binding["scope_manifest_path"], "scope_manifest_path")
     if not scope.is_file() or sha256_bytes(scope.read_bytes()) != binding["scope_manifest_sha256"]:
         raise AuditError("scope_manifest_drift_after_audit")

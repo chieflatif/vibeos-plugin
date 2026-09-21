@@ -124,10 +124,11 @@ bash .vibeos/scripts/validate-independent-audit.sh \
 
 The full-audit base must equal the candidate's merge base with the committed
 `default_branch_ref` from the project profile. Only `origin/*` remote refs are accepted,
-and receipt validation recomputes the recorded ref, commit and merge base. Every changed
-path must also be declared by the work order and covered by the review or its explicit
-administrative evidence. This prevents a late, artificially narrow CLI base from
-hiding earlier implementation commits.
+and receipt validation proves both the recorded and current remote histories still
+descend from the audited base. The remote branch may advance or absorb the candidate
+without invalidating the receipt. Every changed path must also be declared by the work
+order and covered by the review or its explicit administrative evidence. This prevents
+a late, artificially narrow CLI base from hiding earlier implementation commits.
 
 Installed projects read authorization and limits from `.vibeos/project-profile.json`.
 The plugin repository's own release audit may instead pass a committed `--config`

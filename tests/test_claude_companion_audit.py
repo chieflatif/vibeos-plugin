@@ -365,7 +365,7 @@ else:
             self.assertIn("base_ref_must_equal_default_branch_merge_base", result.stderr)
             self.assertFalse((project.parent / "fake-claude-args.json").exists())
 
-    def test_default_branch_authority_rejects_local_ref_and_detects_remote_drift(self):
+    def test_default_branch_authority_rejects_local_ref_and_allows_safe_remote_advance(self):
         with tempfile.TemporaryDirectory() as temporary:
             project, base, _candidate = self.fixture(Path(temporary))
             config_path = project / "docs/evidence/WO-157/claude-config.json"
@@ -395,8 +395,20 @@ else:
                 ],
                 project,
             )
-            self.assertEqual(validated.returncode, 2)
-            self.assertIn("default_branch_commit_drift_after_audit", validated.stderr)
+            self.assertEqual(validated.returncode, 0, validated.stdout + validated.stderr)
+
+            tree = self.git(project, "rev-parse", f"{base}^{{tree}}")
+            unrelated = self.git(project, "commit-tree", tree, "-m", "unrelated root")
+            self.git(project, "update-ref", "refs/remotes/origin/main", unrelated)
+            rejected = run(
+                [
+                    "python3", str(SCRIPT), "validate", "--project-dir", str(project),
+                    "--receipt", ".vibeos/audit-reports/WO-157-full.json",
+                ],
+                project,
+            )
+            self.assertEqual(rejected.returncode, 2)
+            self.assertIn("default_branch_merge_base_unavailable", rejected.stderr)
 
     def test_full_audit_rejects_change_outside_work_order_write_scope(self):
         with tempfile.TemporaryDirectory() as temporary:

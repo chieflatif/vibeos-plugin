@@ -15,7 +15,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q \
   tests/test_canonical_closeout.py
 ```
 
-Final corrected-candidate result: 73 tests and 32 subtests passed in 45.38 seconds
+Final corrected-candidate result: 73 tests and 32 subtests passed in 42.55 seconds
 after the remaining default-branch-authority finding and legacy-receipt upgrade were
 covered.
 
@@ -30,7 +30,7 @@ Command:
 PYTHONDONTWRITEBYTECODE=1 python3 -m pytest -q tests
 ```
 
-Final corrected-candidate result: 380 tests and 78 subtests passed in 226.95 seconds.
+Final corrected-candidate result: 380 tests and 78 subtests passed in 206.19 seconds.
 
 The first sandboxed run denied seven pre-existing localhost HTTP fixtures and also
 found one invalid WO model-policy value. The metadata was corrected. The exact suite

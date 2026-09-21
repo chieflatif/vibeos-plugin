@@ -14,14 +14,15 @@ The follow-up correction makes the default branch part of committed project auth
 - Full receipts retain the configured ref, its exact commit, the computed merge base
   and audited base commit. Verification receipts carry that original base authority
   forward.
-- Receipt validation now hashes and revalidates the committed config, resolves the
-  recorded remote ref again, and recomputes the candidate merge base. Config drift,
-  remote-ref drift or a merge-base mismatch invalidates closure.
+- Receipt validation now hashes and revalidates the committed config, then verifies
+  the recorded and current remote histories both retain the audited base. Config drift,
+  unrelated history or a historical merge-base mismatch invalidates closure; normal
+  remote advancement does not.
 - Original full-audit receipts created before these binding fields existed are upgraded
   only by deriving the ref from current committed configuration and proving that the
   recomputed merge base equals the original receipt's audited base commit.
-- Tests prove that a local `HEAD~1` authority is refused and that moving the recorded
-  remote ref after an otherwise passing audit invalidates the receipt.
+- Tests prove that a local `HEAD~1` authority is refused, a safe remote advance remains
+  valid, and an unrelated remote history invalidates the receipt.
 - The Claude CLI minimum-version check now runs before the paid provider call.
 
 This round changes only the remaining finding's immediate code, configuration,
