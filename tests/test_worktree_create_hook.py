@@ -242,6 +242,35 @@ class WorktreeCreateHookTests(unittest.TestCase):
 
         self.assert_refused(self.run_hook("not-a-worktree", repo))
 
+    def test_registered_worktree_with_broken_git_link_is_not_reopened(self):
+        repo, _, _ = self.make_repo()
+        first = self.run_hook("broken", repo)
+        target = self.returned_path(first)
+        # Simulate a damaged worktree: its .git link file is moved aside, but
+        # the registration in the main repository remains.
+        (target / ".git").rename(target / "git-link-moved-aside")
+
+        self.assert_refused(self.run_hook("broken", repo))
+
+    def test_reopen_completes_missing_setup_files_without_overwriting(self):
+        repo, _, _ = self.make_repo()
+        (repo / ".gitignore").write_text(".env.local\n.env.extra\n", encoding="utf-8")
+        (repo / ".worktreeinclude").write_text(".env.local\n.env.extra\n", encoding="utf-8")
+        (repo / ".env.local").write_text("LOCAL_ONLY=1\n", encoding="utf-8")
+        (repo / ".env.extra").write_text("EXTRA=1\n", encoding="utf-8")
+        target = self.returned_path(self.run_hook("resume-setup", repo))
+        # Simulate an interrupted first setup (one include missing) plus a
+        # user edit inside the worktree that a reopen must preserve.
+        (target / ".env.extra").rename(target / "env-extra-moved-aside")
+        (target / ".env.local").write_text("EDITED_IN_WORKTREE=1\n", encoding="utf-8")
+
+        again = self.run_hook("resume-setup", repo)
+
+        self.assertEqual(again.returncode, 0, again.stderr)
+        self.assertEqual(self.returned_path(again).resolve(), target.resolve())
+        self.assertEqual((target / ".env.extra").read_text(encoding="utf-8"), "EXTRA=1\n")
+        self.assertEqual((target / ".env.local").read_text(encoding="utf-8"), "EDITED_IN_WORKTREE=1\n")
+
     def test_symlinked_worktrees_directory_is_refused(self):
         repo, _, _ = self.make_repo()
         outside = self.base / "outside"

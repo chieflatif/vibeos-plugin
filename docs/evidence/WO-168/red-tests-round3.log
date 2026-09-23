@@ -1,0 +1,5 @@
+/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/pathlib/__init__.py:771: FileNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_registered_worktree_with_broken_git_link_is_not_reopened
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_reopen_completes_missing_setup_files_without_overwriting
+2 failed, 20 passed in 4.80s

@@ -91,14 +91,66 @@ is_linked_worktree_of_this_repo() {
       continue
     fi
     entry_real=$(cd "$entry" 2>/dev/null && pwd -P) || continue
-    [ "$entry_real" = "$dir_real" ] && return 0
+    [ "$entry_real" = "$dir_real" ] && is_usable_worktree "$dir_real" && return 0
   done < <(git -C "$PROJECT_ROOT" worktree list --porcelain 2>/dev/null)
   return 1
+}
+
+# True when git itself can use DIR as a worktree of this repository: its top
+# level is DIR and it shares this repository's common git directory. Rejects
+# a registered worktree whose .git link is missing or broken.
+is_usable_worktree() {
+  local dir="$1" top_real dir_common repo_common
+  top_real=$(cd "$dir" 2>/dev/null && cd "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null && pwd -P) || return 1
+  [ "$top_real" = "$dir" ] || return 1
+  dir_common=$(cd "$dir" && cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd -P) || return 1
+  repo_common=$(cd "$PROJECT_ROOT" && cd "$(git rev-parse --git-common-dir 2>/dev/null)" 2>/dev/null && pwd -P) || return 1
+  [ "$dir_common" = "$repo_common" ]
+}
+
+# Copy the VibeOS scope manifest and gitignored .worktreeinclude matches into
+# the worktree. Only missing destinations are written, so a reopen completes
+# an interrupted setup without overwriting anything edited in the worktree.
+copy_setup_files() {
+  local scopes_file="$PROJECT_ROOT/.vibeos/worktree-scopes.json"
+  local include_file="$PROJECT_ROOT/.worktreeinclude"
+  local include_pattern match rel_path
+  if [ -f "$scopes_file" ] && [ ! -e "$TARGET_DIR/.vibeos/worktree-scopes.json" ]; then
+    mkdir -p "$TARGET_DIR/.vibeos" || fail "Could not create VibeOS state directory in worktree."
+    cp "$scopes_file" "$TARGET_DIR/.vibeos/worktree-scopes.json" || fail "Could not copy worktree scope manifest."
+  fi
+  [ -f "$include_file" ] || return 0
+  while IFS= read -r include_pattern; do
+    include_pattern=$(printf '%s' "$include_pattern" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    case "$include_pattern" in
+      ""|\#*|!*) continue ;;
+      /*|*..*) continue ;;
+    esac
+
+    matches=()
+    while IFS= read -r match; do
+      [ -n "$match" ] && matches+=("$match")
+    done < <(cd "$PROJECT_ROOT" && compgen -G "$include_pattern" 2>/dev/null || true)
+    if [ "${#matches[@]}" -eq 0 ] && [ -e "$PROJECT_ROOT/$include_pattern" ]; then
+      matches=("$include_pattern")
+    fi
+
+    for rel_path in "${matches[@]}"; do
+      rel_path="${rel_path#./}"
+      [ -e "$PROJECT_ROOT/$rel_path" ] || continue
+      [ -e "$TARGET_DIR/$rel_path" ] && continue
+      if git -C "$PROJECT_ROOT" check-ignore -q -- "$rel_path"; then
+        mkdir -p "$TARGET_DIR/$(dirname "$rel_path")" || fail "Could not create include target directory."
+        cp -R "$PROJECT_ROOT/$rel_path" "$TARGET_DIR/$rel_path" || fail "Could not copy included worktree file: $rel_path"
+      fi
+    done
+  done < "$include_file"
 }
 
 if [ -e "$TARGET_DIR" ]; then
   # Claude Code's default reopens an existing worktree of the same name.
   if is_linked_worktree_of_this_repo "$TARGET_DIR"; then
+    copy_setup_files
     printf '%s\n' "$TARGET_DIR"
     exit 0
   fi
@@ -128,38 +180,6 @@ echo "[worktree-scope-setup] baseRef=$BASE_MODE base=$BASE_REF" >&2
 
 git -C "$PROJECT_ROOT" worktree add -b "$BRANCH" "$TARGET_DIR" "$BASE_REF" >&2 || fail "git worktree add failed."
 
-SCOPES_FILE="$PROJECT_ROOT/.vibeos/worktree-scopes.json"
-if [ -f "$SCOPES_FILE" ]; then
-  mkdir -p "$TARGET_DIR/.vibeos" || fail "Could not create VibeOS state directory in worktree."
-  cp "$SCOPES_FILE" "$TARGET_DIR/.vibeos/worktree-scopes.json" || fail "Could not copy worktree scope manifest."
-fi
-
-INCLUDE_FILE="$PROJECT_ROOT/.worktreeinclude"
-if [ -f "$INCLUDE_FILE" ]; then
-  while IFS= read -r include_pattern; do
-    include_pattern=$(printf '%s' "$include_pattern" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-    case "$include_pattern" in
-      ""|\#*|!*) continue ;;
-      /*|*..*) continue ;;
-    esac
-
-    matches=()
-    while IFS= read -r match; do
-      [ -n "$match" ] && matches+=("$match")
-    done < <(cd "$PROJECT_ROOT" && compgen -G "$include_pattern" 2>/dev/null || true)
-    if [ "${#matches[@]}" -eq 0 ] && [ -e "$PROJECT_ROOT/$include_pattern" ]; then
-      matches=("$include_pattern")
-    fi
-
-    for rel_path in "${matches[@]}"; do
-      rel_path="${rel_path#./}"
-      [ -e "$PROJECT_ROOT/$rel_path" ] || continue
-      if git -C "$PROJECT_ROOT" check-ignore -q -- "$rel_path"; then
-        mkdir -p "$TARGET_DIR/$(dirname "$rel_path")" || fail "Could not create include target directory."
-        cp -R "$PROJECT_ROOT/$rel_path" "$TARGET_DIR/$rel_path" || fail "Could not copy included worktree file: $rel_path"
-      fi
-    done
-  done < "$INCLUDE_FILE"
-fi
+copy_setup_files
 
 printf '%s\n' "$TARGET_DIR"
