@@ -688,6 +688,26 @@ a fresh full audit; ordinary fixes do not.
 
 ---
 
+## Phase 50: Ambidextrous Lean Release
+
+**Goal:** VibeOS 3.0. Claude or Codex can lead any installed project and switch mid-work. Governance cost scales with change size. Projects run fully autonomously on automated, cross-vendor-checked gates, with no human approval steps. Approved by Latif on 22 September 2026 ("yes proceed"). Design of record: release proposal r3, `docs/evidence/ambidextrous-release/phase-2-design/RELEASE-PROPOSAL-r3.md` on branch `claude/vibeos-ambidextrous-release`, which lands with the 3.0 work.
+
+| WO | Title | Dependencies | Status |
+|---|---|---|---|
+| WO-168 | WorktreeCreate hook works in every repository (2.4.2) | None | In Progress |
+| WO-160 | Codex qualification spike and baseline archive | Latif's decision 6(b) | Planned |
+| WO-161 | Profile v2, roles, registry, one-source rendering, effect block | WO-160 | Planned |
+| WO-162 | Floor, pyramid, classifier, start record, checklist, guard, doctor | WO-161 | Planned |
+| WO-163 | Review, receipts, merge automation, decisions, batching | WO-162 | Planned |
+| WO-164 | switch, recover, snapshot, custody, handover drill | WO-160, WO-163 | Planned |
+| WO-165 | Upgrade engine and rollback | WO-162, WO-163 | Planned |
+| WO-166 | Pruning, inventory, measurement, feedback loop | WO-165 | Planned |
+| WO-167 | Release: probes, real-copy rehearsals, version, runbook | All above | Planned |
+
+WO-168 ships alone as 2.4.2. Only WO-168 has a work-order file so far. The others get theirs when they start, from r3's sections, and each L work order gets a cross-vendor plan review before its first code commit.
+
+---
+
 ## Contingency Plans
 
 If Phase 0 spike or Phase 1 post-audit reveals failed assumptions:

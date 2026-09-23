@@ -1,0 +1,22 @@
+You are the independent cross-vendor reviewer (OpenAI) for a change Claude wrote in the VibeOS repository. This is a confirmation review after three rounds.
+
+HARD RULES: read-only. Do not create, modify, move or delete any file. Do not run tests, installers, git write commands or network commands. Read-only commands only (cat, sed, rg, ls, git log, git show, git diff).
+
+CONTEXT: You reviewed WO-168 (the WorktreeCreate hook) in rounds 1–3 (commits 07da733, cc00379 and 89fdca7). In round 3 you found R3-1 (a partial directory is never completed on retry) and R3-2 (a regression: a stale tracked scope manifest is kept on first creation). Both came from a round-2 attempt to fix R2-2, a low-severity issue that already existed in 2.4.1.
+
+Latif decided, after the three-round cap:
+- restore 2.4.1's copy behaviour (a full copy on first creation, no copy on reopen, matching Claude Code's default reopen);
+- keep every security and correctness fix;
+- record R2-2 as a known limit.
+
+That is commit 1dc2cc1, the current HEAD.
+
+REVIEW: `git diff 8d76cbd HEAD -- plugins/vibeos/hooks/scripts/worktree-scope-setup.sh tests/test_worktree_create_hook.py` (the whole change against 2.4.1), and `docs/planning/WO-168-worktree-create-fix.md`.
+Confirm:
+1. R3-1 and R3-2 are gone.
+2. F1–F4 and R2-1 remain fixed.
+3. Nothing regressed compared with 2.4.1: bash 3.2, stdout carrying only the path, failure paths, and VibeOS scope and `.worktreeinclude` copying.
+4. The known limit (R2-2) is described accurately in the WO.
+Mark each acceptance criterion as met, not met or not verifiable.
+
+OUTPUT: JSON per schema. Give verdict PASS if no finding of medium severity or above is open; the recorded R2-2 known limit does not count. wrote_anything must be false.

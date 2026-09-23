@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "verdict": { "type": "string", "enum": ["PASS", "PASS_WITH_NITS", "FAIL"] },
+    "summary": { "type": "string" },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "type": "string", "enum": ["critical", "high", "medium", "low", "nit"] },
+          "location": { "type": "string" },
+          "issue": { "type": "string" },
+          "recommendation": { "type": "string" }
+        },
+        "required": ["id", "severity", "location", "issue", "recommendation"],
+        "additionalProperties": false
+      }
+    },
+    "acceptance_criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "criterion": { "type": "string" },
+          "met": { "type": "string", "enum": ["yes", "no", "not_verifiable"] },
+          "basis": { "type": "string" }
+        },
+        "required": ["criterion", "met", "basis"],
+        "additionalProperties": false
+      }
+    },
+    "files_read": { "type": "array", "items": { "type": "string" } },
+    "wrote_anything": { "type": "boolean" }
+  },
+  "required": ["verdict", "summary", "findings", "acceptance_criteria", "files_read", "wrote_anything"],
+  "additionalProperties": false
+}

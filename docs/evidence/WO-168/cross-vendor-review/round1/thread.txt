@@ -1,0 +1,2 @@
+thread=01a0cc64-0227-7ba0-95a5-c0f93f216482
+usage={"input_tokens":130609,"cached_input_tokens":92032,"cache_write_input_tokens":0,"output_tokens":4411,"reasoning_output_tokens":2398}

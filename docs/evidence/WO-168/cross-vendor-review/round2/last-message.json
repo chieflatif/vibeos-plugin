@@ -1,0 +1,84 @@
+{
+  "verdict": "FAIL",
+  "summary": "F1–F4 are fixed for the reported cases: F1 at hook lines 72–105; F2 at lines 25–36; F3 at lines 72–76 and 108–113; F4 at test lines 92–102 and 125–131. The new reopen check has a medium-severity failure path: it can return a directory whose Git worktree metadata remains listed even though the directory is no longer a usable worktree. Bash 3.2 syntax, paths containing spaces in porcelain output, physical-path comparison on macOS, and the one-path-only stdout contract otherwise appear sound. Tests were not run in this read-only review.",
+  "findings": [
+    {
+      "id": "R2-1",
+      "severity": "medium",
+      "location": "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh:81–105",
+      "issue": "The new check matches a directory against `git worktree list --porcelain` but never verifies that Git can use that directory as a worktree. If a linked worktree's `.git` file is removed while its directory and stale registration remain, `cd` and the physical-path comparison can succeed, so the hook prints the unusable path and exits 0. The prior check required `git rev-parse --show-toplevel` to succeed.",
+      "recommendation": "Keep the registration check, then verify the target with Git, including that its top level is the target and its common Git directory matches the repository. Add a test for a registered worktree whose `.git` file has been removed."
+    },
+    {
+      "id": "R2-2",
+      "severity": "low",
+      "location": "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh:129–165",
+      "issue": "If copying the VibeOS manifest or an included file fails after `git worktree add`, the hook exits with empty stdout but leaves a registered worktree. A retry takes the early reopen path at lines 99–104 and skips the copy. This behavior predates the round 2 fix.",
+      "recommendation": "Handle incomplete setup on retry or clean up the newly created worktree after a copy failure."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion": "1. Create a named worktree in a repository without a VibeOS marker.",
+      "met": "yes",
+      "basis": "Hook lines 42–45 and 129–165; test lines 106–123; recorded 25 passing hook tests."
+    },
+    {
+      "criterion": "2. `head` includes unpushed commits.",
+      "met": "yes",
+      "basis": "Hook lines 115–125; test lines 133–141."
+    },
+    {
+      "criterion": "3. `fresh` uses origin default, with HEAD fallback.",
+      "met": "yes",
+      "basis": "Hook lines 117–125; test lines 143–168."
+    },
+    {
+      "criterion": "4. Settings precedence and malformed-file fallback.",
+      "met": "yes",
+      "basis": "Hook lines 52–68; test lines 170–197."
+    },
+    {
+      "criterion": "5. Reopen an existing worktree of the same name.",
+      "met": "no",
+      "basis": "A normal linked worktree reopens, but lines 81–105 can also report success for a stale registration whose directory is no longer a usable worktree."
+    },
+    {
+      "criterion": "6. Invalid name or non-repository cwd fails with empty stdout.",
+      "met": "yes",
+      "basis": "Hook lines 20–45; test lines 100–102 and 209–230."
+    },
+    {
+      "criterion": "7. Preserve VibeOS manifest and `.worktreeinclude` copying and the WO-117 test.",
+      "met": "yes",
+      "basis": "Hook lines 131–163 retain the copy behavior; tests at lines 264–288 and the recorded full-suite run cover it. Copy failure recovery remains a limitation."
+    },
+    {
+      "criterion": "8. Full suite, `bash -n`, WO lint, and index validation pass.",
+      "met": "not_verifiable",
+      "basis": "The recorded full-suite pass is for an earlier commit. The current-HEAD `full-suite-round2.log` contains only a start line. Bash 3.2 hook tests are recorded as 25 passed, but current-HEAD evidence for all four gates is incomplete."
+    },
+    {
+      "criterion": "9. Passing cross-vendor review recorded under WO-168 evidence.",
+      "met": "no",
+      "basis": "This review returns FAIL, and the reviewer was required to remain read-only."
+    }
+  ],
+  "files_read": [
+    "README.md",
+    "CLAUDE.md",
+    "plugins/vibeos/reference/codex/AGENTS.md.ref",
+    "docs/planning/DEVELOPMENT-PLAN.md",
+    "docs/planning/WO-168-worktree-create-fix.md",
+    "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh",
+    "tests/test_worktree_create_hook.py",
+    "tests/test_team_governance_hooks.py",
+    "docs/evidence/WO-168/bash32-tests.log",
+    "docs/evidence/WO-168/green-tests-round2.log",
+    "docs/evidence/WO-168/full-suite-run2.log",
+    "docs/evidence/WO-168/full-suite-round2.log",
+    "docs/evidence/WO-168/full-suite.log",
+    "docs/evidence/WO-168/green-tests.log"
+  ],
+  "wrote_anything": false
+}

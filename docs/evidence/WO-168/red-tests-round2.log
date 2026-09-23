@@ -1,0 +1,12 @@
+>       self.assert_refused(self.run_hook("escape-attempt", repo))
+
+tests/test_worktree_create_hook.py:252: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_worktree_create_hook.py:101: in assert_refused
+    self.assertNotEqual(result.returncode, 0, f"expected refusal; stdout={result.stdout!r}")
+E   AssertionError: 0 == 0 : expected refusal; stdout='/private/var/folders/4y/nb7qcx6j5fg6sg58kdqtjkvh0000gn/T/tmpsun9a84f/project/.claude/worktrees/escape-attempt\n'
+=========================== short test summary info ============================
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_symlink_to_main_checkout_is_not_accepted_as_existing_worktree
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_symlinked_claude_directory_is_refused
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_symlinked_worktrees_directory_is_refused
+3 failed, 17 passed in 4.34s

@@ -64,6 +64,7 @@ Generated from WO frontmatter plus the vNext master plan. Do not edit this block
 | WO-156 | Opt-In Local Engineering Intake and Triage | 48 | Complete | frontmatter |
 | WO-157 | Claude Companion Audit and Targeted Correction Verification | 49 | In Progress | frontmatter |
 | WO-158 | Simplify independent review and approved fallback | 50 | In Progress | frontmatter |
+| WO-168 | WorktreeCreate hook works in every repository (2.4.2) | 50 | In Progress | frontmatter |
 <!-- VIBEOS-GENERATED-END: wo-frontmatter-index -->
 
 ## Backlog

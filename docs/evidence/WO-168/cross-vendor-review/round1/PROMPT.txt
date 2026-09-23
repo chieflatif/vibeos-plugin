@@ -1,0 +1,28 @@
+You are the independent cross-vendor reviewer (OpenAI) for a small change written by Claude in the VibeOS repository. Review it for correctness.
+
+HARD RULES: read-only. Do not create, modify, move or delete any file. Do not run tests, installers, git write commands, or network commands. Read-only commands are allowed: cat, sed, rg, ls, git log, git show and git diff.
+
+THE CHANGE: the latest commit on the current branch (`git show HEAD`, or `git diff HEAD~1 HEAD`), work order WO-168. Read `docs/planning/WO-168-worktree-create-fix.md` for the objective, the Phase 0 findings and the acceptance criteria.
+
+WHAT IT FIXES: VibeOS is a user-scoped Claude Code plugin that registers a WorktreeCreate hook, `plugins/vibeos/hooks/scripts/worktree-scope-setup.sh`. The documented contract is:
+- a registered WorktreeCreate hook replaces Claude Code's default worktree creation;
+- the hook gets JSON on stdin with `name` and `cwd`;
+- it must print the created worktree's absolute path as the last non-empty stdout line;
+- empty stdout or a non-zero exit makes worktree creation fail.
+
+The old hook exited 0 with empty stdout outside VibeOS projects, which broke isolated worktrees in every other repository. It also ignored Claude Code's `worktree.baseRef` setting ("fresh", the default, means origin/<default-branch> with a fallback to HEAD; "head" means the current HEAD; precedence is local .claude/settings.local.json > project .claude/settings.json > user ~/.claude/settings.json). And it failed on an existing worktree of the same name, where Claude's default reopens it.
+
+REVIEW FOR:
+- Correctness against that contract, and bash 3.2 compatibility (macOS default).
+- Stdout discipline: nothing but the path on stdout.
+- The failure paths.
+- The existing-worktree check: can it wrongly accept a directory that is not a worktree of this repository?
+- Settings-precedence edge cases.
+- Security: name validation, and path handling that could escape `.claude/worktrees`.
+- Whether the new tests in `tests/test_worktree_create_hook.py` actually prove the acceptance criteria.
+- Whether the version bump and the plan and index edits are consistent.
+- Anything that would break existing VibeOS behaviour; see also `tests/test_team_governance_hooks.py`.
+
+Mark each acceptance criterion in the WO file as met, not met, or not verifiable.
+
+OUTPUT: follow the JSON schema. Use verdict FAIL only for a real defect that must be fixed before release. Keep nits separate, as severity "nit". wrote_anything must be false.
