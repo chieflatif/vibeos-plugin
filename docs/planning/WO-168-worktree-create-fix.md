@@ -83,7 +83,7 @@ Out of scope, recorded for 3.0:
 - [x] C0: Phase 0 complete (above).
 - [x] C1: Spec-first tests written and failing for the right reasons (13 of 14 red on the old hook; `docs/evidence/WO-168/red-tests.log`).
 - [x] C2: Hook fixed; new and existing tests pass (19 passed; `green-tests.log`).
-- [x] C3: Full suite passes: 436 passed, 95 subtests, Python 3.14.6 (`full-suite-run2.log`). `bash -n` and 118 JSON files are clean (`full-suite.log`); that run was aborted at a fixture deadlock, since fixed. WO lint and index pass.
+- [x] C3: Full suite on the release candidate `1dc2cc1`: 445 passed, 95 subtests, Python 3.14.6 (`full-suite-release.log`). `bash -n` and 118 JSON files clean; WO lint and index pass. Hook tests also pass under macOS bash 3.2.57.
 - [x] C4: Cross-vendor review passes; receipt recorded. The confirmation review of `1dc2cc1` returned PASS with no findings (GPT-6 Sol, thread `01a0cc73-098b-7132-a0a4-c6c90b3d34ea`; `docs/evidence/WO-168/cross-vendor-review/round4/`).
 - [ ] C5: Version 2.4.2; PR opened; `vibeos-quality` CI green.
 - [ ] C6: Merged to main and tagged `v2.4.2`.
