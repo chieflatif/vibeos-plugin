@@ -26,9 +26,14 @@ if [ -z "$NAME" ]; then
   fail "WorktreeCreate payload did not include a name."
 fi
 
-if ! printf '%s' "$NAME" | grep -qE '^[A-Za-z0-9._-]+$'; then
-  fail "Invalid worktree name '$NAME'. Use only letters, numbers, dot, underscore, and hyphen."
-fi
+# Whole-string check (grep would accept a multi-line value line by line).
+# "." and ".." are rejected because they would resolve outside the worktree
+# directory.
+case "$NAME" in
+  .|..|*[!A-Za-z0-9._-]*)
+    fail "Invalid worktree name. Use only letters, numbers, dot, underscore, and hyphen (not '.' or '..')."
+    ;;
+esac
 
 if [ -z "$CWD_VALUE" ]; then
   CWD_VALUE=$(pwd)
@@ -62,28 +67,50 @@ read_base_ref_mode() {
   printf 'fresh'
 }
 
-# True when DIR is the top of a linked worktree of the same repository.
-is_worktree_of_this_repo() {
-  local dir="$1" top dir_real top_real dir_common repo_common
-  top=$(cd "$dir" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null) || return 1
-  dir_real=$(cd "$dir" && pwd -P) || return 1
-  top_real=$(cd "$top" && pwd -P) || return 1
-  [ "$dir_real" = "$top_real" ] || return 1
-  dir_common=$(cd "$dir" && cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P) || return 1
-  repo_common=$(cd "$PROJECT_ROOT" && cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P) || return 1
-  [ "$dir_common" = "$repo_common" ]
+# Like Claude Code's default, refuse symlinks on the worktree path, so a
+# worktree can never be created or reopened outside .claude/worktrees.
+for link_candidate in "$PROJECT_ROOT/.claude" "$PROJECT_ROOT/.claude/worktrees" "$TARGET_DIR"; do
+  if [ -L "$link_candidate" ]; then
+    fail "Refusing a symlink on the worktree path: $link_candidate"
+  fi
+done
+
+# True when DIR is a registered linked worktree of this repository (never the
+# main checkout). Compares physical paths against `git worktree list`, whose
+# first entry is always the main working tree.
+is_linked_worktree_of_this_repo() {
+  local dir_real entry entry_real first=1
+  dir_real=$(cd "$1" 2>/dev/null && pwd -P) || return 1
+  while IFS= read -r entry; do
+    case "$entry" in
+      "worktree "*) entry="${entry#worktree }" ;;
+      *) continue ;;
+    esac
+    if [ "$first" -eq 1 ]; then
+      first=0
+      continue
+    fi
+    entry_real=$(cd "$entry" 2>/dev/null && pwd -P) || continue
+    [ "$entry_real" = "$dir_real" ] && return 0
+  done < <(git -C "$PROJECT_ROOT" worktree list --porcelain 2>/dev/null)
+  return 1
 }
 
 if [ -e "$TARGET_DIR" ]; then
   # Claude Code's default reopens an existing worktree of the same name.
-  if is_worktree_of_this_repo "$TARGET_DIR"; then
+  if is_linked_worktree_of_this_repo "$TARGET_DIR"; then
     printf '%s\n' "$TARGET_DIR"
     exit 0
   fi
-  fail "Target path exists and is not a worktree of this repository: $TARGET_DIR"
+  fail "Target path exists and is not a linked worktree of this repository: $TARGET_DIR"
 fi
 
 mkdir -p "$(dirname "$TARGET_DIR")" || fail "Could not create worktree parent directory."
+PARENT_REAL=$(cd "$(dirname "$TARGET_DIR")" && pwd -P) || fail "Could not resolve worktree parent directory."
+EXPECTED_PARENT_REAL="$(cd "$PROJECT_ROOT" && pwd -P)/.claude/worktrees"
+if [ "$PARENT_REAL" != "$EXPECTED_PARENT_REAL" ]; then
+  fail "Worktree parent resolves outside the repository: $PARENT_REAL"
+fi
 
 BASE_MODE=$(read_base_ref_mode)
 BASE_REF=""

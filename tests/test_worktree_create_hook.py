@@ -90,9 +90,16 @@ class WorktreeCreateHookTests(unittest.TestCase):
         )
 
     def returned_path(self, result) -> Path:
-        lines = [line for line in result.stdout.splitlines() if line.strip()]
-        self.assertTrue(lines, f"hook printed no path; stderr={result.stderr!r}")
-        return Path(lines[-1].strip())
+        # Contract: on success stdout is exactly one absolute path and a newline.
+        self.assertTrue(result.stdout.endswith("\n"), f"stdout={result.stdout!r} stderr={result.stderr!r}")
+        self.assertEqual(result.stdout.count("\n"), 1, f"stdout must be one line: {result.stdout!r}")
+        path = Path(result.stdout[:-1])
+        self.assertTrue(path.is_absolute(), f"not absolute: {result.stdout!r}")
+        return path
+
+    def assert_refused(self, result):
+        self.assertNotEqual(result.returncode, 0, f"expected refusal; stdout={result.stdout!r}")
+        self.assertEqual(result.stdout, "", "a refusal must print nothing on stdout")
 
     # -- behaviour -------------------------------------------------------------
 
@@ -121,8 +128,7 @@ class WorktreeCreateHookTests(unittest.TestCase):
         result = self.run_hook("quiet-one", repo)
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        stdout_lines = [line for line in result.stdout.splitlines() if line.strip()]
-        self.assertEqual(len(stdout_lines), 1, f"unexpected stdout: {result.stdout!r}")
+        self.assertEqual(result.stdout, str(self.returned_path(result)) + "\n")
 
     def test_base_ref_head_uses_current_head_including_unpushed_commits(self):
         repo, _, unpushed = self.make_repo(with_origin=True)
@@ -203,19 +209,57 @@ class WorktreeCreateHookTests(unittest.TestCase):
     def test_invalid_name_fails_with_empty_stdout(self):
         repo, _, _ = self.make_repo()
 
-        result = self.run_hook("../escape", repo)
-
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "")
+        self.assert_refused(self.run_hook("../escape", repo))
 
     def test_cwd_outside_git_fails_with_empty_stdout(self):
         not_a_repo = self.base / "plain-dir"
         not_a_repo.mkdir()
 
-        result = self.run_hook("outside", not_a_repo)
+        self.assert_refused(self.run_hook("outside", not_a_repo))
 
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "")
+    def test_multiline_name_is_refused(self):
+        repo, _, _ = self.make_repo()
+
+        self.assert_refused(self.run_hook("ok\n../escape", repo))
+        self.assert_refused(self.run_hook("ok\nbad name", repo))
+
+    def test_dot_names_are_refused(self):
+        repo, _, _ = self.make_repo()
+
+        self.assert_refused(self.run_hook(".", repo))
+        self.assert_refused(self.run_hook("..", repo))
+
+    def test_symlink_to_main_checkout_is_not_accepted_as_existing_worktree(self):
+        repo, _, _ = self.make_repo()
+        (repo / ".claude/worktrees").mkdir(parents=True)
+        (repo / ".claude/worktrees/alias").symlink_to(repo)
+
+        self.assert_refused(self.run_hook("alias", repo))
+
+    def test_plain_directory_is_not_accepted_as_existing_worktree(self):
+        repo, _, _ = self.make_repo()
+        (repo / ".claude/worktrees/not-a-worktree").mkdir(parents=True)
+
+        self.assert_refused(self.run_hook("not-a-worktree", repo))
+
+    def test_symlinked_worktrees_directory_is_refused(self):
+        repo, _, _ = self.make_repo()
+        outside = self.base / "outside"
+        outside.mkdir()
+        (repo / ".claude").mkdir()
+        (repo / ".claude/worktrees").symlink_to(outside)
+
+        self.assert_refused(self.run_hook("escape-attempt", repo))
+        self.assertEqual(list(outside.iterdir()), [], "nothing may be created outside the repository")
+
+    def test_symlinked_claude_directory_is_refused(self):
+        repo, _, _ = self.make_repo()
+        outside = self.base / "outside-claude"
+        outside.mkdir()
+        (repo / ".claude").symlink_to(outside)
+
+        self.assert_refused(self.run_hook("escape-attempt", repo))
+        self.assertEqual(list(outside.iterdir()), [], "nothing may be created outside the repository")
 
     def test_worktreeinclude_copies_gitignored_files_in_any_repository(self):
         repo, _, _ = self.make_repo()
