@@ -1,0 +1,100 @@
+{
+  "verdict": "FAIL",
+  "summary": "The normal creation path matches the stated hook contract, and the version, plan, and index edits are consistent. Release should wait: the existing-path check can accept the main checkout as a linked worktree, and name validation can accept invalid multiline names. Review was read-only; test results were assessed from committed logs.",
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "high",
+      "location": "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh:66",
+      "issue": "The existing-path check compares repository roots and common Git directories but never proves that the target is a linked worktree. If `.claude/worktrees/<name>` is a symlink to the repository's main checkout, the hook exits successfully and prints that symlink as the worktree path.",
+      "recommendation": "Verify the target against Git's registered linked-worktree paths and reject the main checkout and symlink aliases. Add tests for both."
+    },
+    {
+      "id": "F2",
+      "severity": "medium",
+      "location": "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh:29",
+      "issue": "`grep -qE` checks input line by line. A name containing a valid line plus a newline and invalid characters passes validation. If a same-repository worktree already exists at that named path, the hook can return success and a multiline path despite the invalid name.",
+      "recommendation": "Validate the entire value with a Bash pattern or equivalent whole-string check, explicitly rejecting newlines and path separators. Test an invalid multiline name."
+    },
+    {
+      "id": "F3",
+      "severity": "medium",
+      "location": "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh:39",
+      "issue": "A symlink at `.claude/worktrees` can direct a newly created worktree outside that directory. The hook prints the lexical path without checking where it resolves.",
+      "recommendation": "Resolve and validate the worktree parent before creation; reject a parent that resolves outside the intended `.claude/worktrees` location."
+    },
+    {
+      "id": "F4",
+      "severity": "low",
+      "location": "tests/test_worktree_create_hook.py:95",
+      "issue": "The stdout test counts only non-empty lines. It would pass if the hook printed extra blank lines, and the path helper would accept an extra non-path line before the final path.",
+      "recommendation": "Assert that stdout is exactly the expected absolute path followed by one newline on successful calls."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion": "1. Create a worktree in a repository without a VibeOS marker",
+      "met": "yes",
+      "basis": "The guard was removed; the new test covers the branch, location, linked worktree, and returned path."
+    },
+    {
+      "criterion": "2. head uses the current HEAD",
+      "met": "yes",
+      "basis": "The hook resolves HEAD for this mode; a test distinguishes it from an unpushed commit's origin."
+    },
+    {
+      "criterion": "3. fresh uses origin's default branch, falling back to HEAD",
+      "met": "yes",
+      "basis": "The hook verifies origin/HEAD and falls back to HEAD; tests cover both cases and the default setting."
+    },
+    {
+      "criterion": "4. Settings precedence and malformed settings",
+      "met": "yes",
+      "basis": "The read order is local, project, user; malformed JSON is skipped. Tests cover local and project precedence and a malformed user file."
+    },
+    {
+      "criterion": "5. Reopen an existing worktree of the same name",
+      "met": "no",
+      "basis": "The normal case is tested, but the check also accepts a symlink to the main checkout as though it were a linked worktree."
+    },
+    {
+      "criterion": "6. Invalid name or cwd fails with empty stdout",
+      "met": "no",
+      "basis": "The test covers `../escape` and a non-repository cwd, but multiline invalid names can pass the line-based validator."
+    },
+    {
+      "criterion": "7. Preserve VibeOS scope and gitignored include copying",
+      "met": "yes",
+      "basis": "The copying code remains, the new tests cover both behaviors, and the committed green log reports 19 passing tests including the existing WO-117 test."
+    },
+    {
+      "criterion": "8. Full suite, Bash syntax, WO lint, and index validation pass",
+      "met": "not_verifiable",
+      "basis": "Committed logs report 436 passing tests and clean Bash syntax; this read-only review could not rerun them. The inspected logs do not show WO lint or index validation output."
+    },
+    {
+      "criterion": "9. Passing cross-vendor review recorded under docs/evidence/WO-168",
+      "met": "no",
+      "basis": "This review found release-blocking defects, and no review receipt is present in the inspected commit."
+    }
+  ],
+  "files_read": [
+    "README.md",
+    "CLAUDE.md",
+    "plugins/vibeos/reference/codex/AGENTS.md.ref",
+    "docs/planning/DEVELOPMENT-PLAN.md",
+    "docs/planning/WO-168-worktree-create-fix.md",
+    "docs/planning/WO-INDEX.md",
+    "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh",
+    "tests/test_worktree_create_hook.py",
+    "tests/test_team_governance_hooks.py",
+    "tests/test_companion_fallback_integration.py",
+    ".claude-plugin/marketplace.json",
+    "plugins/vibeos/.claude-plugin/plugin.json",
+    "docs/evidence/WO-168/red-tests.log",
+    "docs/evidence/WO-168/green-tests.log",
+    "docs/evidence/WO-168/full-suite.log",
+    "docs/evidence/WO-168/full-suite-run2.log"
+  ],
+  "wrote_anything": false
+}

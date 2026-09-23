@@ -1,0 +1,76 @@
+{
+  "verdict": "FAIL",
+  "summary": "R2-1 is fixed: lines 94 and 104–108 reject a registered worktree whose .git link is missing. If Git instead resolves from the broken directory to the parent repository, line 105 rejects that parent top level. R2-2 is fixed for missing individual files by lines 153 and 118–145, but remains open for partially copied directories. The new copy-only-missing rule also changes first-creation behavior for a tracked scope manifest. I found no Bash 3.2 syntax or stdout-path regression. This was a read-only review; recorded test results were not reproduced.",
+  "findings": [
+    {
+      "id": "R3-1",
+      "severity": "medium",
+      "location": "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh:140-145,153",
+      "issue": "R2-2 remains open for a .worktreeinclude directory. If cp -R fails after creating part of the destination directory, the first call fails, but a retry sees that directory at line 141, skips it, and returns the worktree path with files still missing. The new test covers a missing individual file, not a partial directory copy.",
+      "recommendation": "Make directory retries copy missing children without overwriting existing children, and cover an interrupted directory copy in a test."
+    },
+    {
+      "id": "R3-2",
+      "severity": "medium",
+      "location": "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh:118-120,181-183",
+      "issue": "On first creation, Git may check out a tracked .vibeos/worktree-scopes.json from the selected base ref. The new existence check then skips the copy from the current checkout. When those versions differ, the new worktree receives the base ref's stale scope rules; before this commit, first creation copied the current checkout's manifest over it.",
+      "recommendation": "Preserve the original manifest copy on first creation, while using copy-only-missing behavior on reopen."
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "criterion": "1. Create a worktree in a repository without a VibeOS marker, with only its absolute path on stdout.",
+      "met": "yes",
+      "basis": "The hook has no project guard; lines 181–185 create the worktree and print one path. The recorded 27-test run includes this case."
+    },
+    {
+      "criterion": "2. head uses the current HEAD, including unpushed commits.",
+      "met": "yes",
+      "basis": "Lines 175–177 resolve HEAD for head mode; the recorded hook tests cover an unpushed commit."
+    },
+    {
+      "criterion": "3. fresh uses origin/HEAD, falling back to HEAD.",
+      "met": "yes",
+      "basis": "Lines 169–177 implement both paths; the recorded hook tests cover them."
+    },
+    {
+      "criterion": "4. Settings precedence and malformed-file handling.",
+      "met": "yes",
+      "basis": "Lines 54–67 use local, project, then user settings and continue past malformed JSON; the recorded hook tests cover precedence and malformed input."
+    },
+    {
+      "criterion": "5. Reopen an existing worktree of the same name.",
+      "met": "yes",
+      "basis": "Lines 94, 104–108, and 150–155 reopen a registered, usable linked worktree. The recorded tests cover normal reopen and a missing .git link."
+    },
+    {
+      "criterion": "6. Invalid name or non-repository cwd fails with empty stdout.",
+      "met": "yes",
+      "basis": "Lines 25–43 reject these inputs before any stdout write; the recorded hook tests cover both."
+    },
+    {
+      "criterion": "7. Preserve VibeOS scope-manifest and .worktreeinclude copying and pass the WO-117 test.",
+      "met": "no",
+      "basis": "Lines 118–120 can leave a stale tracked scope manifest on first creation, and lines 140–145 can leave a partially copied include directory after retry. The recorded tests do not cover either case."
+    },
+    {
+      "criterion": "8. Full suite, bash -n, WO lint, and index validation pass.",
+      "met": "not_verifiable",
+      "basis": "The round-3 logs report 27 hook tests passing under Bash 5 and Bash 3.2. The HEAD-specific full-suite log contains only a start line; the WO's full-suite and validation claims refer to earlier evidence. No tests or validators were run in this read-only review."
+    },
+    {
+      "criterion": "9. Passing cross-vendor review recorded under docs/evidence/WO-168/.",
+      "met": "no",
+      "basis": "This round returns FAIL with two medium findings; the WO checklist still leaves cross-vendor review unchecked."
+    }
+  ],
+  "files_read": [
+    "plugins/vibeos/hooks/scripts/worktree-scope-setup.sh",
+    "docs/planning/WO-168-worktree-create-fix.md",
+    "tests/test_worktree_create_hook.py",
+    "docs/evidence/WO-168/full-suite-final.log",
+    "docs/evidence/WO-168/bash32-tests-round3.log",
+    "docs/evidence/WO-168/green-tests-round3.log"
+  ],
+  "wrote_anything": false
+}

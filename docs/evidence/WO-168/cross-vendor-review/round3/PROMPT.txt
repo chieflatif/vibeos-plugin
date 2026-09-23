@@ -1,0 +1,22 @@
+You are the independent cross-vendor reviewer (OpenAI) for a change Claude wrote in the VibeOS repository. This is round 3 of the same review.
+
+HARD RULES: read-only. Do not create, modify, move or delete any file. Do not run tests, installers, git write commands or network commands. Read-only commands are allowed: cat, sed, rg, ls, git log, git show and git diff.
+
+CONTEXT: Round 1 (commit 07da733) returned FAIL with F1–F4, which round 2 confirmed fixed at cc00379. Round 2 raised two new findings:
+- R2-1 (medium): a registered worktree whose `.git` link was missing could be reopened.
+- R2-2 (low): after a copy failure, a retry reopened the worktree without finishing setup.
+
+Claude's fix is commit 89fdca7, the current HEAD.
+
+REVIEW: `git show HEAD`, and the whole hook at `plugins/vibeos/hooks/scripts/worktree-scope-setup.sh`.
+1. Are R2-1 and R2-2 fixed? Name the exact lines.
+2. Did anything regress F1–F4, or any other part of the hook? Consider:
+   - bash 3.2;
+   - stdout carrying only the path;
+   - failure paths;
+   - the copy-only-missing semantics on first creation compared with reopen;
+   - `git rev-parse` behaviour from inside a broken worktree, including whether it could resolve to the parent repository;
+   - `.worktreeinclude` edge cases.
+3. Mark each acceptance criterion in `docs/planning/WO-168-worktree-create-fix.md` as met, not met or not verifiable.
+
+OUTPUT: follow the JSON schema. Give verdict PASS only if no finding of medium severity or above remains open. wrote_anything must be false.

@@ -252,24 +252,34 @@ class WorktreeCreateHookTests(unittest.TestCase):
 
         self.assert_refused(self.run_hook("broken", repo))
 
-    def test_reopen_completes_missing_setup_files_without_overwriting(self):
+    def test_reopen_returns_existing_worktree_unchanged(self):
         repo, _, _ = self.make_repo()
-        (repo / ".gitignore").write_text(".env.local\n.env.extra\n", encoding="utf-8")
-        (repo / ".worktreeinclude").write_text(".env.local\n.env.extra\n", encoding="utf-8")
+        (repo / ".gitignore").write_text(".env.local\n", encoding="utf-8")
+        (repo / ".worktreeinclude").write_text(".env.local\n", encoding="utf-8")
         (repo / ".env.local").write_text("LOCAL_ONLY=1\n", encoding="utf-8")
-        (repo / ".env.extra").write_text("EXTRA=1\n", encoding="utf-8")
-        target = self.returned_path(self.run_hook("resume-setup", repo))
-        # Simulate an interrupted first setup (one include missing) plus a
-        # user edit inside the worktree that a reopen must preserve.
-        (target / ".env.extra").rename(target / "env-extra-moved-aside")
+        target = self.returned_path(self.run_hook("keep-edits", repo))
         (target / ".env.local").write_text("EDITED_IN_WORKTREE=1\n", encoding="utf-8")
 
-        again = self.run_hook("resume-setup", repo)
+        again = self.run_hook("keep-edits", repo)
 
         self.assertEqual(again.returncode, 0, again.stderr)
         self.assertEqual(self.returned_path(again).resolve(), target.resolve())
-        self.assertEqual((target / ".env.extra").read_text(encoding="utf-8"), "EXTRA=1\n")
         self.assertEqual((target / ".env.local").read_text(encoding="utf-8"), "EDITED_IN_WORKTREE=1\n")
+
+    def test_new_worktree_gets_current_scope_manifest_over_tracked_base_copy(self):
+        repo, _, _ = self.make_repo()
+        (repo / ".vibeos").mkdir()
+        (repo / ".vibeos/config.json").write_text("{}\n", encoding="utf-8")
+        (repo / ".vibeos/worktree-scopes.json").write_text('{"version": "base"}\n', encoding="utf-8")
+        self.git(repo, "add", ".vibeos/worktree-scopes.json")
+        self.git(repo, "commit", "-q", "-m", "tracked base copy of the scope manifest")
+        (repo / ".vibeos/worktree-scopes.json").write_text('{"version": "current"}\n', encoding="utf-8")
+
+        target = self.returned_path(self.run_hook("fresh-scopes", repo))
+
+        self.assertEqual(
+            (target / ".vibeos/worktree-scopes.json").read_text(encoding="utf-8"), '{"version": "current"}\n'
+        )
 
     def test_symlinked_worktrees_directory_is_refused(self):
         repo, _, _ = self.make_repo()

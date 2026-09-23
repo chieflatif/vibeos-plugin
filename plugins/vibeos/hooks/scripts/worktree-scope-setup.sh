@@ -108,14 +108,18 @@ is_usable_worktree() {
   [ "$dir_common" = "$repo_common" ]
 }
 
-# Copy the VibeOS scope manifest and gitignored .worktreeinclude matches into
-# the worktree. Only missing destinations are written, so a reopen completes
-# an interrupted setup without overwriting anything edited in the worktree.
+# Copy the VibeOS scope manifest and gitignored .worktreeinclude matches from
+# the current checkout into a NEWLY created worktree (2.4.1 behaviour: the
+# current checkout's copy wins over any tracked copy from the base ref).
+# Not run on reopen: like Claude Code's default, a reopened worktree is
+# returned as it is. Known limit (pre-existing, recorded in WO-168): if a copy
+# fails after `git worktree add`, the worktree stays registered and a later
+# reopen returns it without the missing files.
 copy_setup_files() {
   local scopes_file="$PROJECT_ROOT/.vibeos/worktree-scopes.json"
   local include_file="$PROJECT_ROOT/.worktreeinclude"
   local include_pattern match rel_path
-  if [ -f "$scopes_file" ] && [ ! -e "$TARGET_DIR/.vibeos/worktree-scopes.json" ]; then
+  if [ -f "$scopes_file" ]; then
     mkdir -p "$TARGET_DIR/.vibeos" || fail "Could not create VibeOS state directory in worktree."
     cp "$scopes_file" "$TARGET_DIR/.vibeos/worktree-scopes.json" || fail "Could not copy worktree scope manifest."
   fi
@@ -138,7 +142,6 @@ copy_setup_files() {
     for rel_path in "${matches[@]}"; do
       rel_path="${rel_path#./}"
       [ -e "$PROJECT_ROOT/$rel_path" ] || continue
-      [ -e "$TARGET_DIR/$rel_path" ] && continue
       if git -C "$PROJECT_ROOT" check-ignore -q -- "$rel_path"; then
         mkdir -p "$TARGET_DIR/$(dirname "$rel_path")" || fail "Could not create include target directory."
         cp -R "$PROJECT_ROOT/$rel_path" "$TARGET_DIR/$rel_path" || fail "Could not copy included worktree file: $rel_path"
@@ -150,7 +153,6 @@ copy_setup_files() {
 if [ -e "$TARGET_DIR" ]; then
   # Claude Code's default reopens an existing worktree of the same name.
   if is_linked_worktree_of_this_repo "$TARGET_DIR"; then
-    copy_setup_files
     printf '%s\n' "$TARGET_DIR"
     exit 0
   fi

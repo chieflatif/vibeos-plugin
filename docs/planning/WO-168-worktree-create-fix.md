@@ -84,10 +84,21 @@ Out of scope, recorded for 3.0:
 - [x] C1: Spec-first tests written and failing for the right reasons (13 of 14 red on the old hook; `docs/evidence/WO-168/red-tests.log`).
 - [x] C2: Hook fixed; new and existing tests pass (19 passed; `green-tests.log`).
 - [x] C3: Full suite passes: 436 passed, 95 subtests, Python 3.14.6 (`full-suite-run2.log`). `bash -n` and 118 JSON files are clean (`full-suite.log`); that run was aborted at a fixture deadlock, since fixed. WO lint and index pass.
-- [ ] C4: Cross-vendor review passes; receipt recorded.
+- [ ] C4: Cross-vendor review passes; receipt recorded. (Rounds 1 to 3 and Latif's decision are in the review log; the confirmation review is pending.)
 - [ ] C5: Version 2.4.2; PR opened; `vibeos-quality` CI green.
 - [ ] C6: Merged to main and tagged `v2.4.2`.
 - [ ] C7: The fixed hook mirrored into Latif's installed plugin cache, with the original set aside, and verified by running the hook in a non-VibeOS repository.
+
+## Cross-vendor review log (GPT-6 Sol, engineering tier)
+
+| Round | Candidate | Verdict | Findings and outcome |
+|---|---|---|---|
+| 1 | `07da733` | FAIL | F1 (high): a symlink to the main checkout was accepted as an existing worktree. F2: multi-line names passed validation. F3: a symlinked `.claude/worktrees` could redirect creation. F4 (low): stdout was not asserted exactly. All four fixed in `cc00379`. |
+| 2 | `cc00379` | FAIL | F1 to F4 confirmed fixed. R2-1 (medium): a registered worktree whose `.git` link was missing could be reopened; fixed in `89fdca7` by requiring git to use the directory as a worktree. R2-2 (low, pre-existing in 2.4.1): a copy failure after `git worktree add` leaves a registered worktree. |
+| 3 | `89fdca7` | FAIL | R2-1 confirmed fixed. The round-2 attempt to fix R2-2 (copying only missing files, including on reopen) caused R3-1 (a partially copied directory is never finished) and R3-2, a regression: a new worktree kept a stale tracked scope manifest. |
+| Latif | — | Decision after three rounds | "OK": restore 2.4.1's copy behaviour (full copy on first creation, nothing on reopen), keep every security fix, record R2-2 as a known limit, run one confirmation review. |
+
+**Known limit (R2-2, low, unchanged from 2.4.1):** if copying a scope manifest or `.worktreeinclude` file fails after `git worktree add`, the hook fails, but the worktree stays registered. A later reopen returns it as it is, without the missing files. That matches Claude Code's default reopen behaviour. The first failure's stderr names the file.
 
 ## Test Strategy
 
