@@ -56,6 +56,7 @@ import sys
 if sys.argv[1:] == ["--version"]:
     print("codex-cli 0.147.0 fixture")
     raise SystemExit(0)
+sys.stdin.read()
 pathlib.Path({str(args_path)!r}).write_text(json.dumps(sys.argv[1:]))
 args = sys.argv[1:]
 pathlib.Path(args[args.index("--output-last-message") + 1]).write_text({final!r})

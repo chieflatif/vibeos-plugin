@@ -1,22 +1,17 @@
 #!/usr/bin/env bash
 # VibeOS Plugin — Worktree Scope Setup Hook
 # Hook type: WorktreeCreate
-# Creates the git worktree and copies VibeOS worktree-scope state into it.
+# Creates the git worktree for Claude Code and copies VibeOS worktree-scope
+# state into it when present.
+#
+# A registered WorktreeCreate hook REPLACES Claude Code's default worktree
+# creation in every repository (this plugin is user-scoped), and a hook that
+# prints no path makes creation fail. So, unlike the other VibeOS hooks, this
+# one deliberately has no VibeOS project-scope guard: it must behave like the
+# default in any git repository (WO-168). Output contract: the worktree's
+# absolute path is the only stdout line; everything else goes to stderr.
 
-FRAMEWORK_VERSION="2.4.0"
-
-# --- VibeOS project-scope guard (auto-inserted) ------------------------------
-# Stay inert outside VibeOS-managed projects. The plugin is user-scoped, so
-# without this every hook would fire in every project on the machine.
-# Override with VIBEOS_FORCE_HOOKS=1. Definition: is-vibeos-project.sh
-__VIBEOS_GUARD_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)/is-vibeos-project.sh"
-if [ -f "$__VIBEOS_GUARD_LIB" ]; then
-  # shellcheck source=/dev/null
-  . "$__VIBEOS_GUARD_LIB"
-  is_vibeos_project || exit 0
-fi
-# -----------------------------------------------------------------------------
-
+FRAMEWORK_VERSION="2.4.2"
 
 INPUT=$(cat)
 NAME=$(echo "$INPUT" | jq -r '.name // ""' 2>/dev/null || echo "")
@@ -44,16 +39,65 @@ PROJECT_ROOT=$(cd "$PROJECT_ROOT" && pwd)
 TARGET_DIR="$PROJECT_ROOT/.claude/worktrees/$NAME"
 BRANCH="worktree-$NAME"
 
+# Claude Code's worktree.baseRef setting: "fresh" (default) branches from
+# origin/<default-branch>; "head" branches from the current checkout's HEAD.
+# The hook payload does not carry it, so read the settings files in Claude
+# Code's precedence order: local > project > user. Missing, malformed or
+# unrecognised values fall through to the next file, then to "fresh".
+read_base_ref_mode() {
+  local settings_file value
+  for settings_file in \
+    "$PROJECT_ROOT/.claude/settings.local.json" \
+    "$PROJECT_ROOT/.claude/settings.json" \
+    "${HOME:-}/.claude/settings.json"; do
+    [ -f "$settings_file" ] || continue
+    value=$(jq -r '.worktree.baseRef // empty' "$settings_file" 2>/dev/null) || continue
+    case "$value" in
+      head|fresh)
+        printf '%s' "$value"
+        return 0
+        ;;
+    esac
+  done
+  printf 'fresh'
+}
+
+# True when DIR is the top of a linked worktree of the same repository.
+is_worktree_of_this_repo() {
+  local dir="$1" top dir_real top_real dir_common repo_common
+  top=$(cd "$dir" 2>/dev/null && git rev-parse --show-toplevel 2>/dev/null) || return 1
+  dir_real=$(cd "$dir" && pwd -P) || return 1
+  top_real=$(cd "$top" && pwd -P) || return 1
+  [ "$dir_real" = "$top_real" ] || return 1
+  dir_common=$(cd "$dir" && cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P) || return 1
+  repo_common=$(cd "$PROJECT_ROOT" && cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P) || return 1
+  [ "$dir_common" = "$repo_common" ]
+}
+
 if [ -e "$TARGET_DIR" ]; then
-  fail "Target worktree already exists: $TARGET_DIR"
+  # Claude Code's default reopens an existing worktree of the same name.
+  if is_worktree_of_this_repo "$TARGET_DIR"; then
+    printf '%s\n' "$TARGET_DIR"
+    exit 0
+  fi
+  fail "Target path exists and is not a worktree of this repository: $TARGET_DIR"
 fi
 
 mkdir -p "$(dirname "$TARGET_DIR")" || fail "Could not create worktree parent directory."
 
-BASE_REF=$(git -C "$PROJECT_ROOT" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)
-if [ -z "$BASE_REF" ]; then
-  BASE_REF="HEAD"
+BASE_MODE=$(read_base_ref_mode)
+BASE_REF=""
+if [ "$BASE_MODE" = "fresh" ]; then
+  BASE_REF=$(git -C "$PROJECT_ROOT" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)
+  if [ -n "$BASE_REF" ] && ! git -C "$PROJECT_ROOT" rev-parse --verify --quiet "${BASE_REF}^{commit}" >/dev/null 2>&1; then
+    BASE_REF=""
+  fi
 fi
+if [ -z "$BASE_REF" ]; then
+  # "head", or "fresh" with no usable origin default branch: the current HEAD.
+  BASE_REF=$(git -C "$PROJECT_ROOT" rev-parse --verify --quiet "HEAD^{commit}" 2>/dev/null) || fail "Repository has no commit to branch from: $PROJECT_ROOT"
+fi
+echo "[worktree-scope-setup] baseRef=$BASE_MODE base=$BASE_REF" >&2
 
 git -C "$PROJECT_ROOT" worktree add -b "$BRANCH" "$TARGET_DIR" "$BASE_REF" >&2 || fail "git worktree add failed."
 

@@ -1,0 +1,25 @@
+        self.assertEqual(
+>           (self.returned_path(result) / ".env.local").read_text(encoding="utf-8"), "LOCAL_ONLY=1\n"
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+        )
+
+tests/test_worktree_create_hook.py:230: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_worktree_create_hook.py:94: in returned_path
+    self.assertTrue(lines, f"hook printed no path; stderr={result.stderr!r}")
+E   AssertionError: [] is not true : hook printed no path; stderr=''
+=========================== short test summary info ============================
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_base_ref_fresh_uses_origin_default_branch
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_base_ref_head_uses_current_head_including_unpushed_commits
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_creates_worktree_in_repository_without_vibeos_marker
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_cwd_outside_git_fails_with_empty_stdout
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_existing_worktree_of_same_name_is_reopened
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_fresh_without_remote_falls_back_to_head
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_invalid_name_fails_with_empty_stdout
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_local_settings_override_project_settings
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_malformed_settings_file_is_ignored
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_no_setting_defaults_to_fresh
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_path_is_the_only_stdout_line
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_project_settings_override_user_settings
+FAILED tests/test_worktree_create_hook.py::WorktreeCreateHookTests::test_worktreeinclude_copies_gitignored_files_in_any_repository
+13 failed, 1 passed in 1.79s
